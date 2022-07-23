@@ -1,0 +1,101 @@
+{
+	"titles": {
+		"home": "Home",
+		"send": "Send",
+		"receive": "Receive",
+		"scan": "Scan",
+		"connect": "Connect",
+		"payments": "Payments",
+		"payment": "Payment",
+		"settings": "Settings",
+		"settings_app": "App Settings",
+		"settings_help": "Help",
+		"settings_currency": "Currency Settings",
+		"settings_language": "Language Settings",
+		"settings_unit": "Unit Settings"
+	},
+	"inputs": {
+		"destination": {
+			"label": "Pay To",
+			"hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
+			"error": "Not a valid payment destination",
+			"invalid_invoice": "Invalid Lightning Invoice",
+			"placeholder": "Invoice or Node Public Key"
+		},
+		"terms_conditions": {
+			"agree": "I agree to the",
+			"terms": "terms and conditions"
+		}
+	},
+	"labels": {
+		"expired": "Expired",
+		"expires_in": "Expires in:",
+		"invoice": "Invoice:",
+		"destination": "Destination:",
+		"status": "Status:",
+		"completed_at": "Completed At:",
+		"created_started_at": "{{direction; receive:Created; send:Started;}} At:",
+		"description": "Description:",
+		"payment_id": "Payment ID:",
+		"fee": "{feeType; receive:Receive; network:Network;}} Fee:"
+	},
+	"time": {
+		"mins": "mins"
+	},
+	"validation": {
+		"field_invalid": "Field Invalid",
+		"field_too_short": "Minimum {{min}} characters",
+		"field_too_long": "Maximum {{max}} characters",
+		"required": "Required",
+		"invalid_email": "Invalid email",
+		"password_match": "Passwords do not match",
+		"one_of": "Must be one of the following values: {{values}}"
+	},
+	"errors": {
+		"camera_connection": "There was an error connecting to your camera, please try again."
+	},
+	"buttons": {
+		"create_invoice": "Create Invoice",
+		"send_payment": "Send Payment",
+		"next": "Next",
+		"yes": "Yes",
+		"no": "No",
+		"send": "Send",
+		"scan": "Scan",
+		"receive": "Receive",
+		"create_instant": "Create Instant Wallet",
+		"connect": "Connect",
+		"connect_to_camera": "Connect to Camera",
+		"view_summary": "View Summary",
+		"back": "Back",
+		"edit": "Edit",
+		"cancel": "Cancel",
+		"save": "Save"
+	},
+	"payment": {
+		"amount": {
+			"heading": "Amount",
+			"subheading": "How much would you like to {{direction; receive:receive; send:send;}}?"
+		},
+		"description": {
+			"heading": "Description",
+			"subheading": "What is this payment for?"
+		},
+		"summary": {
+			"heading": "{{direction; receive:Receive; send:Send;}} Payment",
+			"destination": "Destination:",
+			"amount": "Amount:",
+			"description": "Description:",
+			"expiry": "Expires in:"
+		},
+		"details": {
+			"action": "You {{direction; receive:{{status; pending:invoiced; expired:invoiced; completed:received}}; send:{{status; pending:are sending; completed:sent}};}}"
+		}
+	},
+	"modals": {
+		"clipboard": {
+			"paragraph_one": "You have a {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} on your clipboard.",
+			"paragraph_two": "Would you like to use this {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} for a transaction?"
+		}
+	}
+}

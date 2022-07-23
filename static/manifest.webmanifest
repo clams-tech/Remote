@@ -1,0 +1,22 @@
+{
+	"short_name": "Clams",
+	"name": "Clams App",
+	"start_url": "index.html",
+	"display": "fullscreen",
+	"theme_color": "#000",
+	"background_color": "#fff",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"type": "image/svg+xml",
+			"sizes": "512x512",
+			"purpose": "any"
+		},
+		{
+			"src": "/favicon.svg",
+			"type": "image/svg+xml",
+			"sizes": "512x512",
+			"purpose": "maskable"
+		}
+	]
+}
