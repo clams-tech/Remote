@@ -1,3 +1,4 @@
+import type { CoreLnCredentials } from './backends'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
@@ -27,3 +28,11 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
+
+export const CORE_LN_CREDENTIALS_DEFAULT: CoreLnCredentials = {
+	port: 9735,
+	protocol: 'ws:',
+	publicKey: '',
+	ip: '',
+	rune: ''
+}

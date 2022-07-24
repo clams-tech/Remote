@@ -1,29 +1,26 @@
-import { BehaviorSubject, from, fromEvent, of, Subject, timer } from 'rxjs'
+import { BehaviorSubject, from, fromEvent, of, timer } from 'rxjs'
+import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators'
+import { CORE_LN_CREDENTIALS_DEFAULT, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { Modals, type BitcoinExchangeRates, type Settings } from './types'
+import type { CoreLnCredentials } from './backends'
 
 import {
-	catchError,
-	filter,
-	map,
-	pluck,
-	shareReplay,
-	startWith,
-	switchMap,
-	take
-} from 'rxjs/operators'
+	getBitcoinExchangeRate,
+	getPageVisibilityParams,
+	getSettings,
+	SvelteSubject
+} from './utils'
 
-import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { getBitcoinExchangeRate, getPageVisibilityParams, getSettings } from './utils'
-import { Modals, type BitcoinExchangeRates, type Settings } from './types'
-
+export const credentials$ = new SvelteSubject<CoreLnCredentials | null>(null)
 export const lastPath$ = new BehaviorSubject('/')
 export const settings$ = new BehaviorSubject<Settings>(getSettings())
-export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates>(null)
+export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 
 const pageVisibilityParams = getPageVisibilityParams()
 
 export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
-	map(() => !document[pageVisibilityParams.hidden]),
+	map(() => !document[pageVisibilityParams.hidden as keyof Document]),
 	startWith(true),
 	shareReplay(1)
 )
@@ -35,7 +32,7 @@ settings$.subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.
 timer(0, 1 * MIN_IN_MS)
 	.pipe(
 		switchMap(() => from(getBitcoinExchangeRate())),
-		catchError(() => of({})),
-		pluck('bitcoin')
+		catchError(() => of({ bitcoin: null })),
+		map(({ bitcoin }) => bitcoin)
 	)
 	.subscribe(bitcoinExchangeRates$)

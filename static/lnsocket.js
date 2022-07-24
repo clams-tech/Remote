@@ -790,7 +790,6 @@ async function lnsocket_init() {
     if (!(this instanceof SocketImpl)) return new SocketImpl(host);
 
     if (typeof WebSocket !== "undefined") {
-      console.log("WebSocket", typeof WebSocket);
       const ok = host.startsWith("ws://") || host.startsWith("wss://");
       if (!ok) throw new Error("host must start with ws:// or wss://");
       const ws = new WebSocket(host);
@@ -1028,11 +1027,8 @@ async function lnsocket_init() {
 
   LNSocket.prototype.rpc = async function lnsocket_rpc(opts) {
     const msg = this.make_commando_msg(opts);
-    console.log("sending message");
     this.write(msg);
-    console.log("reading");
     const res = await this.read_all_rpc();
-    console.log({ res });
     return JSON.parse(res);
   };
 
@@ -1047,7 +1043,6 @@ async function lnsocket_init() {
     let chunks = [];
     while (true) {
       const [typ, msg] = await this.recv();
-      console.log({ typ, msg });
       switch (typ) {
         case COMMANDO_REPLY_TERM:
           chunks.push(msg.slice(8));
@@ -1056,7 +1051,6 @@ async function lnsocket_init() {
           chunks.push(msg.slice(8));
           break;
         default:
-          console.log("got unknown type", typ);
           continue;
       }
     }

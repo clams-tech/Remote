@@ -1,3 +1,16 @@
+<script lang="ts" context="module">
+	import type { Load } from '@sveltejs/kit'
+
+	export const load: Load = async ({ url }) => {
+		if (browser && !credentials$.getValue()) {
+			return {
+				redirect: '/connect',
+				status: 302
+			}
+		}
+	}
+</script>
+
 <script lang="ts">
 	import { fade } from 'svelte/transition'
 	import { t } from '$lib/i18n/translations'
@@ -5,12 +18,17 @@
 	import ArrowIcon from '$lib/icons/Arrow.svelte'
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 	import Link from '$lib/elements/Link.svelte'
+	import { coreLightning } from '$lib/backends'
+	import { browser } from '$app/env'
+	import { credentials$ } from '$lib/streams'
 
 	const buttons = [
 		{ key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
 		{ key: 'scan', icon: QRIcon, props: {} },
 		{ key: 'receive', icon: ArrowIcon, props: {} }
 	]
+
+	coreLightning.getInfo().then(console.log)
 </script>
 
 <svelte:head>

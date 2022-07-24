@@ -1,3 +1,69 @@
+export type CoreLnCredentials = {
+	rune: string
+	publicKey: string
+	ip: string
+	port: number
+	protocol: 'ws:' | 'wss:'
+	proxy?: string
+}
+
+export type Socket = {
+	connect_and_init: (publicKey: string, endpoint: string) => Promise<void>
+	rpc: (request: LNRequest & { rune: string }) => Promise<{ result: LNResponse }>
+	genkey: () => void
+	destroy: () => void
+}
+
+// ==== REQUESTS ==== //
+
+export type GetinfoRequest = {
+	method: 'getinfo'
+}
+
+export type ListinvoicesRequest = {
+	method: 'listinvoices'
+}
+
+export type ListpaysRequest = {
+	method: 'listpays'
+}
+
+export interface InvoiceRequest {
+	msatoshi: string | 'any'
+	label: string
+	description: string
+	expiry?: number
+	cltv?: number | string
+}
+
+export type PayRequest = {
+	method: 'pay'
+	params: {
+		bolt11: string
+		msatoshi?: string
+		label?: string
+		riskfactor?: string
+		maxfeepercent?: string
+		retry_for: number
+		maxdelay?: string
+		exemptfee?: string
+		exclude?: string
+	}
+}
+
+export interface KeysendRequest {
+	destination: string
+	msatoshi: string
+	label?: string
+	maxfeepercent?: string
+	retry_for?: number
+	maxdelay?: string
+	exemptfee?: string
+}
+
+export type LNRequest = PayRequest | GetinfoRequest | ListinvoicesRequest | ListpaysRequest
+
+// ==== RESPONSES ==== //
 export interface GetinfoResponse {
 	/**
 	 * The addresses we announce to the world
@@ -119,14 +185,6 @@ export enum BindingType {
 	Torv3 = 'torv3'
 }
 
-export interface InvoiceRequest {
-	msatoshi: string | 'any'
-	label: string
-	description: string
-	expiry?: number
-	cltv?: number | string
-}
-
 export interface InvoiceResponse {
 	/**
 	 * the bolt11 string
@@ -168,18 +226,6 @@ export interface InvoiceResponse {
 	 * *exposeprivatechannels* is *false*, so there isn't.
 	 */
 	warning_private_unused?: string
-}
-
-export interface PayRequest {
-	bolt11: string
-	msatoshi?: string
-	label?: string
-	riskfactor?: string
-	maxfeepercent?: string
-	retry_for: number
-	maxdelay?: string
-	exemptfee?: string
-	exclude?: string
 }
 
 export interface PayResponse {
@@ -267,16 +313,6 @@ export interface Pay {
 	 * status of the payment
 	 */
 	status: PaymentStatus
-}
-
-export interface KeysendRequest {
-	destination: string
-	msatoshi: string
-	label?: string
-	maxfeepercent?: string
-	retry_for?: number
-	maxdelay?: string
-	exemptfee?: string
 }
 
 export interface KeysendResponse {
@@ -517,3 +553,13 @@ export interface WaitSendpayResponse {
 	 */
 	status: PaymentStatus
 }
+
+export type LNResponse =
+	| InvoiceResponse
+	| WaitSendpayResponse
+	| ListinvoicesResponse
+	| ListfundsResponse
+	| ListpaysResponse
+	| PayResponse
+	| GetinfoResponse
+	| KeysendResponse

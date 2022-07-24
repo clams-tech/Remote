@@ -10,6 +10,7 @@ import { bitcoinExchangeRates$ } from './streams'
 
 import {
 	BitcoinDenomination,
+	type BitcoinExchangeRates,
 	type Denomination,
 	type FiatDenomination,
 	type PaymentType,
@@ -101,7 +102,7 @@ export function truncateValue(request: string): string {
 	return `${request.slice(0, 9)}...${request.slice(-9)}`
 }
 
-export function getBitcoinExchangeRate(): Promise<Response> {
+export function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
 	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
 }
 
