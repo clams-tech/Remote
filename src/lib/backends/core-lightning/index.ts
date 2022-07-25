@@ -38,7 +38,7 @@ async function createInvoice(params: InvoiceRequest['params']): Promise<Payment>
 		type: 'payment_request',
 		startedAt,
 		completedAt: null,
-		expiresAt: new Date(expires_at).toISOString(),
+		expiresAt: new Date(expires_at * 1000).toISOString(),
 		bolt11,
 		description,
 		hash: payment_hash,
