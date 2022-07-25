@@ -1,12 +1,8 @@
 <script lang="ts" context="module">
-	export function load({ session, params }) {
-		// redirect to welcome page if not logged in
-		return !session.token
-			? {
-					status: 302,
-					redirect: '/welcome'
-			  }
-			: { props: { id: params.id } }
+	import type { Load } from '@sveltejs/kit'
+
+	export const load: Load = ({ params }) => {
+		return { props: { id: params.id } }
 	}
 </script>
 
@@ -20,6 +16,8 @@
 	export let id: string // payment id
 
 	$: payment = $payments$?.find((p) => p.id === id)
+
+	$: console.log({ payment })
 
 	function handleClose() {
 		const path = lastPath$.value
