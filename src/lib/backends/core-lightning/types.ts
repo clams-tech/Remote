@@ -9,7 +9,9 @@ export type CoreLnCredentials = {
 
 export type Socket = {
 	connect_and_init: (publicKey: string, endpoint: string) => Promise<void>
-	rpc: (request: LNRequest & { rune: string }) => Promise<{ result: LNResponse }>
+	rpc: (
+		request: LNRequest & { rune: string }
+	) => Promise<{ result: LNResponse; error: ErrorResponse }>
 	genkey: () => void
 	destroy: () => void
 }
@@ -29,11 +31,14 @@ export type ListpaysRequest = {
 }
 
 export interface InvoiceRequest {
-	msatoshi: string | 'any'
-	label: string
-	description: string
-	expiry?: number
-	cltv?: number | string
+	method: 'invoice'
+	params: {
+		amount_msat: string | 'any'
+		label: string
+		description: string
+		expiry?: number
+		cltv?: number | string
+	}
 }
 
 export type PayRequest = {
@@ -61,7 +66,12 @@ export interface KeysendRequest {
 	exemptfee?: string
 }
 
-export type LNRequest = PayRequest | GetinfoRequest | ListinvoicesRequest | ListpaysRequest
+export type LNRequest =
+	| PayRequest
+	| GetinfoRequest
+	| ListinvoicesRequest
+	| ListpaysRequest
+	| InvoiceRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -552,6 +562,11 @@ export interface WaitSendpayResponse {
 	 * status of the payment
 	 */
 	status: PaymentStatus
+}
+
+export type ErrorResponse = {
+	code: number
+	message: string
 }
 
 export type LNResponse =

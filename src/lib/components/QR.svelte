@@ -3,21 +3,17 @@
 	import { fade } from 'svelte/transition'
 	import QRCodeStyling from 'qr-code-styling'
 
-	export let value: string
+	export let value: string | null
 	export let size = Math.min(window.innerWidth - 64, 400)
-	// export let logo;
-	let canvas: HTMLCanvasElement = null
 
 	export function getQrImage() {
 		return canvas?.toDataURL()
 	}
 
-	let node
-	let qrcode
+	let canvas: HTMLCanvasElement | null = null
+	let node: HTMLDivElement
 
 	$: if (value && node) {
-		qrcode && qrcode.clear()
-
 		const qrCode = new QRCodeStyling({
 			width: size,
 			height: size,
@@ -45,12 +41,6 @@
 
 		qrCode.append(node)
 	}
-
-	console.log(value)
-
-	onDestroy(() => {
-		qrcode && qrcode.clear()
-	})
 </script>
 
 <div in:fade class="border-2 border-neutral-400 rounded-lg shadow-md">

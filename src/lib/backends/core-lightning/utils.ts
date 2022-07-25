@@ -1,15 +1,20 @@
 import { credentials$ } from '$lib/streams'
 import { firstValueFrom, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
-import type { LNRequest, LNResponse, Socket, CoreLnCredentials } from './types'
+import type { LNRequest, LNResponse, Socket, CoreLnCredentials, ErrorResponse } from './types'
 
 let lnsocket: Socket
+let socketDestroyed = false
 let processing = false
 
 const requestQueue: { id: string; request: LNRequest }[] = []
-const responseStream$ = new Subject<{ id: string; response: LNResponse }>()
+const responseStream$ = new Subject<{
+	id: string
+	response: { result: LNResponse; error?: ErrorResponse }
+}>()
 
 export async function initLnSocket() {
+	socketDestroyed = false
 	const LNSocket = await (window as any).lnsocket_init()
 
 	lnsocket = LNSocket()
@@ -18,6 +23,10 @@ export async function initLnSocket() {
 
 async function processRequests(credentials: CoreLnCredentials) {
 	processing = true
+
+	if (socketDestroyed) {
+		await initLnSocket()
+	}
 
 	const { protocol, ip, port, proxy, publicKey } = credentials
 	const url = proxy ? `${protocol}//${proxy}/${ip}:${port}` : `${protocol}//${ip}:${port}`
@@ -31,7 +40,7 @@ async function processRequests(credentials: CoreLnCredentials) {
 			toProcess.map(async ({ id, request }) => {
 				const response = await lnsocket.rpc({ ...request, rune: credentials.rune })
 
-				return { response: response.result, id }
+				return { response: response, id }
 			})
 		)
 
@@ -40,6 +49,7 @@ async function processRequests(credentials: CoreLnCredentials) {
 
 	processing = false
 	lnsocket.destroy()
+	socketDestroyed = true
 }
 
 export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
@@ -59,7 +69,13 @@ export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
 	return firstValueFrom(
 		responseStream$.pipe(
 			filter((response) => response.id === id),
-			map(({ response }) => response)
+			map(({ response }) => {
+				if (response.error) {
+					throw new Error(response.error.message)
+				}
+
+				return response.result
+			})
 		)
 	)
 }

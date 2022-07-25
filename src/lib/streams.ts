@@ -1,7 +1,7 @@
 import { BehaviorSubject, from, fromEvent, of, timer } from 'rxjs'
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators'
-import { CORE_LN_CREDENTIALS_DEFAULT, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { Modals, type BitcoinExchangeRates, type Settings } from './types'
+import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
 import type { CoreLnCredentials } from './backends'
 
 import {
@@ -16,6 +16,8 @@ export const lastPath$ = new BehaviorSubject('/')
 export const settings$ = new BehaviorSubject<Settings>(getSettings())
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 export const modal$ = new BehaviorSubject<Modals>(Modals.none)
+
+export const payments$ = new BehaviorSubject<Payment[]>([])
 
 const pageVisibilityParams = getPageVisibilityParams()
 

@@ -58,3 +58,24 @@ export enum Modals {
 }
 
 export type PaymentType = 'node_public_key' | 'payment_request' | 'lightning_address' | 'lnurl'
+
+export type Payment = {
+	id: string
+	status: PaymentStatus
+	direction: PaymentDirection
+	value: string // msat
+	fee: string | null // msat
+	type: PaymentType
+	startedAt: string // ISO UTC
+	completedAt: string | null // ISO UTC
+	expiresAt: string | null // ISO UTC
+	bolt11: string | null
+	description?: string
+	hash: string
+	preimage?: string
+	destination?: string
+}
+
+type PaymentDirection = 'receive' | 'send'
+
+export type PaymentStatus = 'pending' | 'completed' | 'expired' | 'failed'

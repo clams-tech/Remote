@@ -162,13 +162,15 @@ export function convertValue({
 	from,
 	to
 }: {
-	value: string
+	value: string | null
 	from: Denomination
 	to: Denomination
 }): string | null {
 	if (from === to) {
 		return value
 	}
+
+	if (!value) return value
 
 	switch (from) {
 		case 'btc':
@@ -264,10 +266,10 @@ export function formatValueForDisplay({
 	value,
 	denomination
 }: {
-	value: string
+	value: string | null
 	denomination: Denomination
 }): string {
-	if (!value) return value
+	if (!value) return ''
 
 	switch (denomination) {
 		case 'btc':

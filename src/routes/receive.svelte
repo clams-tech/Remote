@@ -4,13 +4,14 @@
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import Summary from '$lib/components/Summary.svelte'
-	import { settings$ } from '$lib/streams'
+	import { payments$, settings$ } from '$lib/streams'
 	import { convertValue, SvelteSubject } from '$lib/utils'
 	import { goto } from '$app/navigation'
 	import { BitcoinDenomination } from '$lib/types'
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { t } from '$lib/i18n/translations'
+	import { coreLightning } from '$lib/backends'
 
 	let requesting = false
 
@@ -38,8 +39,41 @@
 		expiry: invoiceExpiry
 	})
 
-	function submit() {
-		//
+	async function submit() {
+		const { value, description, expiry } = $receivePayment$
+		errorMsg = ''
+
+		const amount_msat = convertValue({
+			value,
+			from: settings$.value.primaryDenomination,
+			to: BitcoinDenomination.msats
+		})
+
+		if (!amount_msat) {
+			errorMsg = 'Something went wrong, please try again'
+			return
+		}
+
+		try {
+			requesting = true
+
+			const payment = await coreLightning.createInvoice({
+				amount_msat,
+				description,
+				expiry,
+				label: crypto.randomUUID()
+			})
+
+			// add to payments
+			payments$.next([...$payments$, payment])
+
+			// route to payment route
+			goto(`/payments/${payment.id}`)
+		} catch (error) {
+			requesting = false
+			errorMsg = (error as { message: string }).message
+			console.log({ error })
+		}
 	}
 </script>
 
