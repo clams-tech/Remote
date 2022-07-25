@@ -146,7 +146,7 @@ export function fiatToMsats({
 
 	const btcValue = Big(1).div(Big(exchangeRate).div(value))
 
-	return btcValue.times(1e11).toString()
+	return btcValue.times(1e11).round().toString()
 }
 
 export function msatsToFiat(msats: string, exchangeRate: number): string | null {
