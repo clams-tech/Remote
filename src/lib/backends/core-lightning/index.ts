@@ -5,7 +5,8 @@ import type {
 	InvoiceRequest,
 	InvoiceResponse,
 	ListinvoicesResponse,
-	ListpaysResponse
+	ListpaysResponse,
+	WaitInvoiceResponse
 } from './types'
 import type { Payment } from '$lib/types'
 
@@ -48,6 +49,27 @@ async function createInvoice(params: InvoiceRequest['params']): Promise<Payment>
 	return payment
 }
 
+async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
+	const { id } = payment
+
+	const result = await rpcRequest({
+		method: 'waitinvoice',
+		params: {
+			label: id
+		}
+	})
+
+	const { status, amount_received_msat, paid_at, payment_preimage } = result as WaitInvoiceResponse
+
+	return {
+		...payment,
+		status: status === 'paid' ? 'completed' : 'expired',
+		value: amount_received_msat || payment.value,
+		completedAt: new Date((paid_at as number) * 1000).toISOString(),
+		preimage: payment_preimage
+	}
+}
+
 async function listInvoices(): Promise<ListinvoicesResponse> {
 	const result = await rpcRequest({ method: 'listinvoices' })
 	return result as ListinvoicesResponse
@@ -62,6 +84,7 @@ export default {
 	init,
 	getInfo,
 	createInvoice,
+	waitForInvoicePayment,
 	listInvoices,
 	listPays
 }

@@ -30,7 +30,7 @@ export type ListpaysRequest = {
 	method: 'listpays'
 }
 
-export interface InvoiceRequest {
+export type InvoiceRequest = {
 	method: 'invoice'
 	params: {
 		amount_msat: string | 'any'
@@ -56,6 +56,13 @@ export type PayRequest = {
 	}
 }
 
+export type WaitInvoiceRequest = {
+	method: 'waitinvoice'
+	params: {
+		label: string
+	}
+}
+
 export interface KeysendRequest {
 	destination: string
 	msatoshi: string
@@ -72,6 +79,7 @@ export type LNRequest =
 	| ListinvoicesRequest
 	| ListpaysRequest
 	| InvoiceRequest
+	| WaitInvoiceRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -569,6 +577,8 @@ export type ErrorResponse = {
 	message: string
 }
 
+export type WaitInvoiceResponse = Invoice
+
 export type LNResponse =
 	| InvoiceResponse
 	| WaitSendpayResponse
@@ -578,3 +588,4 @@ export type LNResponse =
 	| PayResponse
 	| GetinfoResponse
 	| KeysendResponse
+	| WaitInvoiceResponse

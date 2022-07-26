@@ -17,8 +17,6 @@
 
 	$: payment = $payments$?.find((p) => p.id === id)
 
-	$: console.log({ payment })
-
 	function handleClose() {
 		const path = lastPath$.value
 
