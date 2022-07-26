@@ -6,9 +6,12 @@ import type {
 	InvoiceResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
+	PayRequest,
+	PayResponse,
 	WaitInvoiceResponse
 } from './types'
 import type { Payment } from '$lib/types'
+import Big from 'big.js'
 
 async function init(): Promise<void> {
 	await initLnSocket()
@@ -63,10 +66,53 @@ async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
 
 	return {
 		...payment,
-		status: status === 'paid' ? 'completed' : 'expired',
+		status: status === 'paid' ? 'complete' : 'expired',
 		value: amount_received_msat || payment.value,
 		completedAt: new Date((paid_at as number) * 1000).toISOString(),
 		preimage: payment_preimage
+	}
+}
+
+async function payInvoice(options: {
+	bolt11: string
+	id: string
+	amount_msat?: string
+}): Promise<Payment> {
+	const { bolt11, id, amount_msat: send_msat } = options
+
+	const result = await rpcRequest({
+		method: 'pay',
+		params: {
+			label: id,
+			bolt11,
+			amount_msat: send_msat
+		}
+	})
+
+	const {
+		payment_hash,
+		payment_preimage,
+		created_at,
+		amount_msat,
+		amount_sent_msat,
+		status,
+		destination
+	} = result as PayResponse
+
+	return {
+		id,
+		hash: payment_hash,
+		preimage: payment_preimage,
+		destination,
+		type: 'payment_request',
+		direction: 'send',
+		value: amount_msat,
+		completedAt: new Date().toISOString(),
+		expiresAt: null,
+		startedAt: new Date(created_at * 1000).toISOString(),
+		fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+		status,
+		bolt11
 	}
 }
 
@@ -85,6 +131,7 @@ export default {
 	getInfo,
 	createInvoice,
 	waitForInvoicePayment,
+	payInvoice,
 	listInvoices,
 	listPays
 }

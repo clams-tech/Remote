@@ -13,6 +13,7 @@
 
 	import {
 		convertValue,
+		formatDate,
 		formatValueForDisplay,
 		truncateValue,
 		writeClipboardValue
@@ -24,7 +25,7 @@
 	const { primaryDenomination, secondaryDenomination } = settings$.value
 
 	$: statusColor =
-		payment.status === 'completed'
+		payment.status === 'complete'
 			? 'success'
 			: payment.status === 'expired' || payment.status === 'failed'
 			? 'error'
@@ -82,7 +83,7 @@
 			<div in:fade class="flex flex-col items-end">
 				<span
 					class="text-3xl tracking-wider {payment.direction === 'receive' &&
-					payment.status === 'completed'
+					payment.status === 'complete'
 						? 'text-utility-success'
 						: 'text-current'}"
 					>{payment.direction === 'receive' ? '+' : '-'}{formatValueForDisplay({
@@ -108,9 +109,11 @@
 	{#if payment.direction === 'receive' && payment.status === 'pending'}
 		<div class="my-4 flex flex-col items-center justify-center">
 			<Qr value={payment.bolt11} />
-			<div class="mt-2">
-				<ExpiryCountdown expiry={new Date(payment.expiresAt)} />
-			</div>
+			{#if payment.expiresAt}
+				<div class="mt-2">
+					<ExpiryCountdown expiry={new Date(payment.expiresAt)} />
+				</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -166,7 +169,7 @@
 					</div>
 				{/if}
 
-				{#if payment.status === 'completed'}
+				{#if payment.status === 'complete'}
 					<div class="w-4 ml-1 border rounded-full">
 						<Check />
 					</div>
@@ -184,14 +187,14 @@
 		{#if payment.completedAt}
 			<SummaryRow>
 				<span slot="label">{$t('app.labels.completed_at')}</span>
-				<span slot="value">{payment.completedAt}</span>
+				<span slot="value">{formatDate(payment.completedAt)}</span>
 			</SummaryRow>
 		{:else}
 			<SummaryRow>
 				<span slot="label"
 					>{$t('app.labels.created_started_at', { direction: payment.direction })}</span
 				>
-				<span slot="value">{payment.startedAt}</span>
+				<span slot="value">{formatDate(payment.startedAt)}</span>
 			</SummaryRow>
 		{/if}
 

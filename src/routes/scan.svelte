@@ -1,26 +1,33 @@
 <script lang="ts">
 	import Scanner from '$lib/components/Scanner.svelte'
 	import { goto } from '$app/navigation'
+	import { decode } from 'light-bolt11-decoder'
 	import { convertValue, formatDecodedInvoice, SvelteSubject } from '$lib/utils'
 	import Slide from '$lib/elements/Slide.svelte'
 	import Summary from '$lib/components/Summary.svelte'
-	import { BitcoinDenomination } from '$lib/types'
-	import { settings$ } from '$lib/streams'
+	import { BitcoinDenomination, type Payment } from '$lib/types'
+	import { payments$, settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
+	import { coreLightning, type ErrorResponse } from '$lib/backends'
 
 	let requesting = false
 	let errorMsg = ''
 
-	const sendPayment$ = new SvelteSubject({
-		paymentRequest: '',
+	const sendPayment$ = new SvelteSubject<
+		Pick<Payment, 'bolt11' | 'description' | 'value'> & {
+			expiry: number | null
+			timestamp: number | null
+		}
+	>({
+		bolt11: '',
 		description: '',
 		expiry: null,
-		amount: '0',
+		value: '0',
 		timestamp: null
 	})
 
 	$: value = convertValue({
-		value: $sendPayment$.amount,
+		value: $sendPayment$.value,
 		from: BitcoinDenomination.msats,
 		to: $settings$.primaryDenomination
 	})
@@ -40,33 +47,38 @@
 		}
 
 		try {
-			// const decodedInvoice = decode(invoice)
-			// const { paymentRequest, description, expiry, amount, timestamp } =
-			// 	formatDecodedInvoice(decodedInvoice)
-			// sendPayment$.next({
-			// 	paymentRequest,
-			// 	description,
-			// 	expiry,
-			// 	amount,
-			// 	timestamp
-			// })
-			// next()
+			const decodedInvoice = decode(invoice)
+			const { paymentRequest, description, expiry, amount, timestamp } =
+				formatDecodedInvoice(decodedInvoice)
+
+			sendPayment$.next({
+				bolt11: paymentRequest,
+				description,
+				expiry,
+				value: amount,
+				timestamp
+			})
+
+			next()
 		} catch (error) {
 			console.log({ error })
 		}
 	}
 
 	async function sendPayment() {
-		const { paymentRequest } = sendPayment$.getValue()
+		const { bolt11 } = sendPayment$.getValue()
 
 		errorMsg = ''
 		requesting = true
 
+		const id = crypto.randomUUID()
+
 		try {
-			// @TODO send payment
-			// goto(`/payments/${payment.id}`)
+			const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
+			payments$.next([...$payments$, payment])
+			goto(`/payments/${payment.id}`)
 		} catch (error) {
-			errorMsg = (error as { message: string }).message
+			errorMsg = (error as ErrorResponse).message
 		} finally {
 			requesting = false
 		}
@@ -105,7 +117,7 @@
 {#if slide === 1}
 	<Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
 		<Summary
-			destination={$sendPayment$.paymentRequest}
+			destination={$sendPayment$.bolt11}
 			type="payment_request"
 			{value}
 			description={$sendPayment$.description}

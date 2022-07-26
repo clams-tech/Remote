@@ -17,3 +17,5 @@ declare namespace svelte.JSX {
 		onswipe?: (event: string) => void
 	}
 }
+
+declare module 'light-bolt11-decoder'

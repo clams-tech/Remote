@@ -5,8 +5,29 @@ import { take, takeUntil } from 'rxjs/operators'
 import Big from 'big.js'
 import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
+import { formatRelative, type Locale } from 'date-fns'
 import { BITCOIN_EXCHANGE_RATE_ENDPOINT, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-import { bitcoinExchangeRates$ } from './streams'
+import { bitcoinExchangeRates$, settings$ } from './streams'
+
+import {
+	ar,
+	bn,
+	enGB,
+	enUS,
+	es,
+	fr,
+	hi,
+	id,
+	ja,
+	pt,
+	ru,
+	zhCN,
+	de,
+	te,
+	tr,
+	ta,
+	ko
+} from 'date-fns/locale'
 
 import {
 	BitcoinDenomination,
@@ -405,18 +426,32 @@ export function getPageVisibilityParams(): { hidden: string; visibilityChange: s
 	}
 }
 
-export function formatDate(ISO: string, style: 'short' | 'medium' | 'long') {
-	// new Date(ISO.replace(/ /g, 'T')) work for safari, but not on other browsers
-	if (style === 'short') {
-		return new Date(ISO).toLocaleString() //@TODO
-	}
+// https://github.com/date-fns/date-fns/blob/9bb51691f201c3ec05ab832acbc5d478f2e5c47a/docs/i18nLocales.md
+const locales: Record<string, Locale> = {
+	'en-GB': enGB, // British English
+	'en-US': enUS, // American English
+	'zh-CN': zhCN, // Chinese (mainland)
+	es, // Spanish
+	hi, // Hindi
+	ar, // Arabic
+	bn, // Bengali
+	fr, // French
+	pt, // Portuguese
+	ru, // Russian
+	ja, // Japanese
+	id, // Indonesian
+	de, // German
+	te, // Telugu
+	tr, // Turkish
+	ta, // Tamil
+	ko // Korean
+}
 
-	if (style === 'medium') {
-		return new Date(ISO).toLocaleString() //@TODO
-	}
+export function formatDate(ISO: string, type: 'relative' = 'relative') {
+	const locale = locales[settings$.value.language] || enGB
 
-	if (style === 'long') {
-		return new Date(ISO).toLocaleString() //@TODO
+	if (type === 'relative') {
+		return formatRelative(new Date(ISO), new Date(), { locale })
 	}
 }
 

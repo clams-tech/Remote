@@ -10,10 +10,10 @@
 	import ExpiryCountdown from './ExpiryCountdown.svelte'
 
 	export let type: PaymentType | null
-	export let destination = ''
+	export let destination: string | null = ''
 	export let direction: 'send' | 'receive'
 	export let value: string | null
-	export let description: string
+	export let description: string = ''
 	export let expiry: number | null
 	export let timestamp: number | null = null
 	export let requesting: boolean
@@ -46,7 +46,7 @@
 		</h1>
 
 		<!-- DESTINATION -->
-		{#if direction === 'send'}
+		{#if direction === 'send' && destination}
 			<SummaryRow>
 				<span slot="label">{$t('app.payment.summary.destination')}</span>
 				<span slot="value">

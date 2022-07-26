@@ -78,4 +78,4 @@ export type Payment = {
 
 type PaymentDirection = 'receive' | 'send'
 
-export type PaymentStatus = 'pending' | 'completed' | 'expired' | 'failed'
+export type PaymentStatus = 'pending' | 'complete' | 'expired' | 'failed'

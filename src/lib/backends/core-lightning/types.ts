@@ -45,11 +45,11 @@ export type PayRequest = {
 	method: 'pay'
 	params: {
 		bolt11: string
-		msatoshi?: string
+		amount_msat?: string
 		label?: string
 		riskfactor?: string
 		maxfeepercent?: string
-		retry_for: number
+		retry_for?: number
 		maxdelay?: string
 		exemptfee?: string
 		exclude?: string
@@ -250,11 +250,11 @@ export interface PayResponse {
 	/**
 	 * Amount the recipient received
 	 */
-	amount_msat: number
+	amount_msat: string
 	/**
 	 * Total amount we sent (including fees)
 	 */
-	amount_sent_msat: number
+	amount_sent_msat: string
 	/**
 	 * the UNIX timestamp showing when this payment was initiated
 	 */
@@ -521,57 +521,6 @@ export enum InvoiceStatus {
 	Unpaid = 'unpaid'
 }
 
-export interface WaitSendpayResponse {
-	/**
-	 * The amount delivered to destination (if known)
-	 */
-	amount_msat?: bigint
-	/**
-	 * The amount sent
-	 */
-	amount_sent_msat: bigint
-	/**
-	 * the bolt11 string (if pay supplied one)
-	 */
-	bolt11?: string
-	/**
-	 * the bolt12 string (if supplied for pay: **experimental-offers** only).
-	 */
-	bolt12?: string
-	/**
-	 * the UNIX timestamp showing when this payment was initiated
-	 */
-	created_at: number
-	/**
-	 * the final destination of the payment if known
-	 */
-	destination?: string
-	/**
-	 * Grouping key to disambiguate multiple attempts to pay an invoice or the same payment_hash
-	 */
-	groupid?: number
-	/**
-	 * unique ID for this payment attempt
-	 */
-	id: number
-	/**
-	 * the label, if given to sendpay
-	 */
-	label?: string
-	/**
-	 * the *partid*, if given to sendpay
-	 */
-	partid?: number
-	/**
-	 * the hash of the *payment_preimage* which will prove payment
-	 */
-	payment_hash: string
-	/**
-	 * status of the payment
-	 */
-	status: PaymentStatus
-}
-
 export type ErrorResponse = {
 	code: number
 	message: string
@@ -581,7 +530,6 @@ export type WaitInvoiceResponse = Invoice
 
 export type LNResponse =
 	| InvoiceResponse
-	| WaitSendpayResponse
 	| ListinvoicesResponse
 	| ListfundsResponse
 	| ListpaysResponse
