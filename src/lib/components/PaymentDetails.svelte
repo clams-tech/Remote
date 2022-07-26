@@ -181,14 +181,18 @@
 		{#if payment.completedAt}
 			<SummaryRow>
 				<span slot="label">{$t('app.labels.completed_at')}</span>
-				<span slot="value">{formatDate(payment.completedAt)}</span>
+				<span slot="value"
+					>{formatDate({ date: payment.completedAt, language: $settings$.language })}</span
+				>
 			</SummaryRow>
 		{:else}
 			<SummaryRow>
 				<span slot="label"
 					>{$t('app.labels.created_started_at', { direction: payment.direction })}</span
 				>
-				<span slot="value">{formatDate(payment.startedAt)}</span>
+				<span slot="value"
+					>{formatDate({ date: payment.startedAt, language: $settings$.language })}</span
+				>
 			</SummaryRow>
 		{/if}
 

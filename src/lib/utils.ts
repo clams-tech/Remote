@@ -9,6 +9,7 @@ import { formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { CoreLnCredentials } from './backends'
+import type { Denomination, PaymentType, Settings } from './types'
 
 import {
 	ar,
@@ -283,11 +284,12 @@ const locales: Record<string, Locale> = {
 	ko // Korean
 }
 
-export function formatDate(ISO: string, type: 'relative' = 'relative') {
-	const locale = locales[settings$.value.language] || enGB
+export function formatDate(options: { date: string; language: string; type?: 'relative' }) {
+	const { date, language, type = 'relative' } = options
+	const locale = locales[language] || enGB
 
 	if (type === 'relative') {
-		return formatRelative(new Date(ISO), new Date(), { locale })
+		return formatRelative(new Date(date), new Date(), { locale })
 	}
 }
 
