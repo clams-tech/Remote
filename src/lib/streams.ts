@@ -13,6 +13,8 @@ export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 export const nodeInfo$ = new BehaviorSubject<GetinfoResponse | null>(null)
 export const payments$ = new BehaviorSubject<Payment[]>([])
 
+nodeInfo$.subscribe((info) => info && console.log(info))
+
 const pageVisibilityParams = getPageVisibilityParams()
 
 export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(

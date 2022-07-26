@@ -1,9 +1,8 @@
-import { session } from '$app/stores'
 import { firstValueFrom, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
-import { get } from 'svelte/store'
 import type { LNRequest, LNResponse, Socket, CoreLnCredentials, ErrorResponse } from './types'
 
+let credentials: CoreLnCredentials
 let lnsocket: Socket
 let socketDestroyed = false
 let processing = false
@@ -29,7 +28,11 @@ responseStream$.subscribe(({ id }) => {
 	}
 })
 
-export async function initLnSocket() {
+export async function initLnSocket(creds: CoreLnCredentials) {
+	if (!credentials) {
+		credentials = creds
+	}
+
 	console.log('CREATING SOCKET')
 	socketDestroyed = false
 	const LNSocket = await (window as any).lnsocket_init()
@@ -43,7 +46,7 @@ async function processRequests(credentials: CoreLnCredentials) {
 	processing = true
 
 	if (!lnsocket || socketDestroyed) {
-		await initLnSocket()
+		await initLnSocket(credentials)
 	}
 
 	const { protocol, ip, port, proxy, publicKey } = credentials
@@ -72,8 +75,6 @@ async function processRequests(credentials: CoreLnCredentials) {
 }
 
 export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
-	const { credentials } = get(session)
-
 	if (!credentials) {
 		throw new Error('Credentials must be set before making rpc requests')
 	}

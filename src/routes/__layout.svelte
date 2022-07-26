@@ -15,11 +15,12 @@
 <script lang="ts">
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
-	import { lastPath$ } from '$lib/streams'
+	import { lastPath$, nodeInfo$ } from '$lib/streams'
 	import '../app.css'
 	import { coreLightning } from '$lib/backends'
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import { session } from '$app/stores'
+	import { get } from 'svelte/store'
 
 	beforeNavigate(({ from }) => {
 		if (from) {
@@ -33,8 +34,11 @@
 	let loading = true
 
 	async function load() {
-		if ($session.credentials) {
-			await coreLightning.init()
+		const { credentials } = get(session)
+		if (credentials) {
+			await coreLightning.init(credentials)
+			const info = await coreLightning.getInfo()
+			nodeInfo$.next(info)
 		}
 
 		loading = false

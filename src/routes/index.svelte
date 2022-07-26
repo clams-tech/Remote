@@ -9,15 +9,12 @@
 	import ArrowIcon from '$lib/icons/Arrow.svelte'
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 	import Link from '$lib/elements/Link.svelte'
-	import { coreLightning } from '$lib/backends'
 
 	const buttons = [
 		{ key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
 		{ key: 'scan', icon: QRIcon, props: {} },
 		{ key: 'receive', icon: ArrowIcon, props: {} }
 	]
-
-	coreLightning.getInfo().then(console.log)
 </script>
 
 <svelte:head>

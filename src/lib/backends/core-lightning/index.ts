@@ -3,6 +3,7 @@ import { initLnSocket, rpcRequest } from './utils'
 import type { Payment } from '$lib/types'
 
 import type {
+	CoreLnCredentials,
 	GetinfoResponse,
 	InvoiceRequest,
 	InvoiceResponse,
@@ -13,8 +14,8 @@ import type {
 	WaitInvoiceResponse
 } from './types'
 
-async function init(): Promise<void> {
-	await initLnSocket()
+async function init(creds: CoreLnCredentials): Promise<void> {
+	await initLnSocket(creds)
 }
 
 async function getInfo(): Promise<GetinfoResponse> {
