@@ -1,5 +1,6 @@
 <script lang="ts">
 	import lodashDebounce from 'lodash.debounce'
+	import { decode } from 'light-bolt11-decoder'
 	import type { PaymentType } from '$lib/types'
 	import TextInput from '$lib/elements/TextInput.svelte'
 	import { onMount } from 'svelte'
@@ -7,6 +8,8 @@
 	import Button from '$lib/elements/Button.svelte'
 	import Modal, { closeModal } from '../elements/Modal.svelte'
 	import { t } from '$lib/i18n/translations'
+	import { modal$ } from '$lib/streams'
+	import { Modals } from '$lib/types'
 
 	import {
 		formatDecodedInvoice,
@@ -14,8 +17,6 @@
 		readClipboardValue,
 		getPaymentType
 	} from '$lib/utils'
-	import { modal$ } from '$lib/streams'
-	import { Modals } from '$lib/types'
 
 	export let value: string
 	export let type: PaymentType | null
@@ -33,12 +34,12 @@
 		type = getPaymentType(value) || null
 
 		if (type === 'payment_request') {
-			// try {
-			// 	const decodedInvoice = decode(value)
-			// 	;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
-			// } catch (e) {
-			// 	error = $t('app.inputs.destination.invalid_invoice')
-			// }
+			try {
+				const decodedInvoice = decode(value)
+				;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
+			} catch (e) {
+				error = $t('app.inputs.destination.invalid_invoice')
+			}
 		}
 
 		debouncedValidate()

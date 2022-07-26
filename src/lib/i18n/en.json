@@ -37,7 +37,7 @@
 		"created_started_at": "{{direction; receive:Created; send:Started;}} At:",
 		"description": "Description:",
 		"payment_id": "Payment ID:",
-		"fee": "{feeType; receive:Receive; network:Network;}} Fee:"
+		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:"
 	},
 	"time": {
 		"mins": "mins"

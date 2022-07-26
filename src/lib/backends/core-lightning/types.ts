@@ -64,13 +64,16 @@ export type WaitInvoiceRequest = {
 }
 
 export interface KeysendRequest {
-	destination: string
-	msatoshi: string
-	label?: string
-	maxfeepercent?: string
-	retry_for?: number
-	maxdelay?: string
-	exemptfee?: string
+	method: 'keysend'
+	params: {
+		destination: string
+		amount_msat: string
+		label?: string
+		maxfeepercent?: string
+		retry_for?: number
+		maxdelay?: string
+		exemptfee?: string
+	}
 }
 
 export type LNRequest =
@@ -80,6 +83,7 @@ export type LNRequest =
 	| ListpaysRequest
 	| InvoiceRequest
 	| WaitInvoiceRequest
+	| KeysendRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -337,11 +341,11 @@ export interface KeysendResponse {
 	/**
 	 * Amount the recipient received
 	 */
-	amount_msat: number
+	amount_msat: string
 	/**
 	 * Total amount we sent (including fees)
 	 */
-	amount_sent_msat: number
+	amount_sent_msat: string
 	/**
 	 * the UNIX timestamp showing when this payment was initiated
 	 */

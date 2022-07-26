@@ -5,10 +5,12 @@
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
 	import { convertValue, SvelteSubject } from '$lib/utils'
-	import { settings$ } from '$lib/streams'
+	import { payments$, settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import { t } from '$lib/i18n/translations'
+	import { coreLightning, type ErrorResponse } from '$lib/backends'
+	import Big from 'big.js'
 
 	let previousSlide = 0
 	let slide = 0
@@ -31,8 +33,6 @@
 	let errorMsg = ''
 
 	// @TODO - handle error message
-	// will probs need the backend to return a different error code
-	// for each error so that we can map an error code to a localised error msg
 
 	type SendPayment = {
 		destination: string
@@ -65,21 +65,55 @@
 
 			switch (type) {
 				case 'payment_request': {
-					// @TODO send payment request
-					// paymentId = payment.id
+					const id = crypto.randomUUID()
+					const payment = await coreLightning.payInvoice({
+						id,
+						bolt11: destination,
+						amount_msat: value
+							? Big(
+									convertValue({
+										value,
+										from: primaryDenomination,
+										to: BitcoinDenomination.msats
+									}) as string
+							  )
+									.round()
+									.toString()
+							: undefined
+					})
+
+					payments$.next([...$payments$, payment])
+					paymentId = payment.id
+
 					break
 				}
 				case 'node_public_key': {
-					// @TODO keysend
-					// paymentId = payment.id
+					const id = crypto.randomUUID()
+					const payment = await coreLightning.payKeysend({
+						id,
+						destination,
+						amount_msat: Big(
+							convertValue({
+								value,
+								from: primaryDenomination,
+								to: BitcoinDenomination.msats
+							}) as string
+						)
+							.round()
+							.toString()
+					})
+
+					payments$.next([...$payments$, payment])
+					paymentId = payment.id
+
 					break
 				}
 			}
 
-			// goto(`/payments/${paymentId}`)
+			goto(`/payments/${paymentId}`)
 		} catch (error) {
 			requesting = false
-			errorMsg = (error as { message: string }).message
+			errorMsg = (error as ErrorResponse).message
 			console.log('send payment error:', error)
 		}
 	}

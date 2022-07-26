@@ -4,6 +4,7 @@ import type {
 	GetinfoResponse,
 	InvoiceRequest,
 	InvoiceResponse,
+	KeysendResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
 	PayRequest,
@@ -116,6 +117,49 @@ async function payInvoice(options: {
 	}
 }
 
+async function payKeysend(options: {
+	destination: string
+	id: string
+	amount_msat: string
+}): Promise<Payment> {
+	const { destination: send_destination, id, amount_msat: send_msat } = options
+
+	const result = await rpcRequest({
+		method: 'keysend',
+		params: {
+			label: id,
+			destination: send_destination,
+			amount_msat: send_msat
+		}
+	})
+
+	const {
+		payment_hash,
+		payment_preimage,
+		created_at,
+		amount_msat,
+		amount_sent_msat,
+		status,
+		destination
+	} = result as KeysendResponse
+
+	return {
+		id,
+		hash: payment_hash,
+		preimage: payment_preimage,
+		destination,
+		type: 'payment_request',
+		direction: 'send',
+		value: amount_msat,
+		completedAt: new Date().toISOString(),
+		expiresAt: null,
+		startedAt: new Date(created_at * 1000).toISOString(),
+		fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+		status,
+		bolt11: null
+	}
+}
+
 async function listInvoices(): Promise<ListinvoicesResponse> {
 	const result = await rpcRequest({ method: 'listinvoices' })
 	return result as ListinvoicesResponse
@@ -132,6 +176,7 @@ export default {
 	createInvoice,
 	waitForInvoicePayment,
 	payInvoice,
+	payKeysend,
 	listInvoices,
 	listPays
 }

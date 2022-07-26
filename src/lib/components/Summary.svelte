@@ -77,25 +77,27 @@
 		</SummaryRow>
 
 		<!-- EXPIRY -->
-		<SummaryRow>
-			<span slot="label">{$t('app.payment.summary.expiry')}</span>
-			<span class="flex items-center" slot="value">
-				{#if direction === 'receive'}
-					<input
-						class="h-2 bg-purple-50 appearance-none mr-4 accent-purple-500 dark:accent-purple-300"
-						type="range"
-						min="1"
-						max="60"
-						bind:value={expiryMinutes}
-						on:change={updateExpiry}
-					/>
-					{expiryMinutes}
-					{$t('app.time.mins')}
-				{:else if expiresAt}
-					<ExpiryCountdown label={false} expiry={new Date(expiresAt)} />
-				{/if}
-			</span>
-		</SummaryRow>
+		{#if type === 'payment_request'}
+			<SummaryRow>
+				<span slot="label">{$t('app.payment.summary.expiry')}</span>
+				<span class="flex items-center" slot="value">
+					{#if direction === 'receive'}
+						<input
+							class="h-2 bg-purple-50 appearance-none mr-4 accent-purple-500 dark:accent-purple-300"
+							type="range"
+							min="1"
+							max="60"
+							bind:value={expiryMinutes}
+							on:change={updateExpiry}
+						/>
+						{expiryMinutes}
+						{$t('app.time.mins')}
+					{:else if expiresAt}
+						<ExpiryCountdown label={false} expiry={new Date(expiresAt)} />
+					{/if}
+				</span>
+			</SummaryRow>
+		{/if}
 	</div>
 
 	<div class="mt-6">
