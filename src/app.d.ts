@@ -7,7 +7,7 @@ declare namespace App {
 	// interface Locals {}
 	// interface Platform {}
 	interface Session {
-		credentials: string | { node: string; rune: string }
+		credentials: CoreLnCredentials
 	}
 	// interface Stuff {}
 }

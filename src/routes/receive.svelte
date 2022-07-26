@@ -1,14 +1,16 @@
+<script lang="ts" context="module">
+	export { load } from '$lib/utils'
+</script>
+
 <script lang="ts">
-	import Big from 'big.js'
-	import { fade } from 'svelte/transition'
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import Summary from '$lib/components/Summary.svelte'
 	import { payments$, settings$, waitForAndUpdatePayment } from '$lib/streams'
-	import { convertValue, SvelteSubject } from '$lib/utils'
+	import { SvelteSubject } from '$lib/utils'
+	import { convertValue } from '$lib/conversion'
 	import { goto } from '$app/navigation'
 	import { BitcoinDenomination } from '$lib/types'
-	import Spinner from '$lib/elements/Spinner.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { t } from '$lib/i18n/translations'
 	import { coreLightning } from '$lib/backends'

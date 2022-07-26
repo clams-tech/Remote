@@ -1,9 +1,5 @@
 <script lang="ts" context="module">
-	import type { Load } from '@sveltejs/kit'
-
-	export const load: Load = ({ params }) => {
-		return { props: { id: params.id } }
-	}
+	export { load } from '$lib/utils'
 </script>
 
 <script lang="ts">

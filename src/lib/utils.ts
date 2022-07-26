@@ -6,8 +6,9 @@ import Big from 'big.js'
 import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
 import { formatRelative, type Locale } from 'date-fns'
-import { BITCOIN_EXCHANGE_RATE_ENDPOINT, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-import { bitcoinExchangeRates$, settings$ } from './streams'
+import type { Load } from '@sveltejs/kit'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
+import type { CoreLnCredentials } from './backends'
 
 import {
 	ar,
@@ -29,15 +30,6 @@ import {
 	ko
 } from 'date-fns/locale'
 
-import {
-	BitcoinDenomination,
-	type BitcoinExchangeRates,
-	type Denomination,
-	type FiatDenomination,
-	type PaymentType,
-	type Settings
-} from './types'
-
 export const encryptWithAES = (text: string, passphrase: string) => {
 	return CryptoJS.AES.encrypt(text, passphrase).toString()
 }
@@ -46,6 +38,14 @@ export const decryptWithAES = (ciphertext: string, passphrase: string) => {
 	const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase)
 	const originalText = bytes.toString(CryptoJS.enc.Utf8)
 	return originalText
+}
+
+export class SvelteSubject<T> extends BehaviorSubject<T> {
+	set: BehaviorSubject<T>['next']
+	constructor(initialState: T) {
+		super(initialState)
+		this.set = super.next
+	}
 }
 
 export const onMount$ = defer(() => {
@@ -80,14 +80,6 @@ export const beforeUpdate$ = defer(() => {
 	return subject.asObservable().pipe(takeUntil(onDestroy$))
 })
 
-export class SvelteSubject<T> extends BehaviorSubject<T> {
-	set: BehaviorSubject<T>['next']
-	constructor(initialState: T) {
-		super(initialState)
-		this.set = super.next
-	}
-}
-
 type FormattedSections = {
 	expiry: number
 	description: string
@@ -121,160 +113,6 @@ export function formatDecodedInvoice(decodedInvoice: {
 
 export function truncateValue(request: string): string {
 	return `${request.slice(0, 9)}...${request.slice(-9)}`
-}
-
-export function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
-	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
-}
-
-export function msatsToBtc(msats: string): string {
-	return Big(msats === 'any' ? '0' : msats)
-		.div(1e11)
-		.toString()
-}
-
-export function msatsToSats(msats: string): string {
-	return Big(msats === 'any' ? '0' : msats)
-		.div(1000)
-		.toString()
-}
-
-export function satsToBtc(sats: string): string {
-	return Big(sats).div(1e8).toString()
-}
-
-export function satsToMsats(sats: string): string {
-	return Big(sats).times(1000).toString()
-}
-
-export function btcToMsats(btc: string): string {
-	return Big(btc).times(1e11).toString()
-}
-
-export function btcToSats(btc: string): number {
-	return Big(btc).times(1e8).toNumber()
-}
-
-export function fiatToMsats({
-	value,
-	exchangeRate
-}: {
-	value: string
-	exchangeRate: number
-}): string | null {
-	if (!exchangeRate) return null
-	if (value === '0' || value === '0.' || value === '0.0' || value === '0.00') return value
-
-	const btcValue = Big(1).div(Big(exchangeRate).div(value))
-
-	return btcValue.times(1e11).round().toString()
-}
-
-export function msatsToFiat(msats: string, exchangeRate: number): string | null {
-	if (!exchangeRate) return null
-
-	return Big(exchangeRate)
-		.times(msatsToBtc(msats === 'any' ? '0' : msats))
-		.toString()
-}
-
-export function convertValue({
-	value,
-	from,
-	to
-}: {
-	value: string | null
-	from: Denomination
-	to: Denomination
-}): string | null {
-	if (from === to) {
-		return value
-	}
-
-	if (!value) return value
-
-	switch (from) {
-		case 'btc':
-		case 'sats':
-		case 'msats': {
-			const valueMsats =
-				from === 'msats' ? value : bitcoinDenominationToMsats({ denomination: from, value })
-
-			return convertMsats({
-				value: valueMsats,
-				denomination: to
-			})
-		}
-
-		default: {
-			const exchangeRate = getExchangeRate(from as FiatDenomination)
-			const valueMsats = exchangeRate ? fiatToMsats({ value, exchangeRate }) : null
-
-			if (!valueMsats) return null
-
-			return convertValue({ value: valueMsats, from: BitcoinDenomination.msats, to })
-		}
-	}
-}
-
-function bitcoinDenominationToMsats({
-	value,
-	denomination
-}: {
-	value: string
-	denomination: string
-}): string {
-	switch (denomination) {
-		case 'btc':
-			return btcToMsats(value)
-		case 'sats':
-			return satsToMsats(value)
-		default:
-			return value
-	}
-}
-
-function getExchangeRate(denomination: FiatDenomination): number | null {
-	return bitcoinExchangeRates$.value && bitcoinExchangeRates$.value[denomination]
-}
-
-export function convertMsats({
-	value,
-	denomination
-}: {
-	value: string
-	denomination: Denomination
-}): string | null {
-	switch (denomination) {
-		case 'sats':
-			return msatsToSats(value)
-
-		case 'btc':
-			return msatsToBtc(value)
-
-		case 'msats':
-			return value
-
-		// all fiat denominations
-		default: {
-			const exchangeRate = getExchangeRate(denomination as FiatDenomination)
-			return exchangeRate ? msatsToFiat(value, exchangeRate) : null
-		}
-	}
-}
-
-export function isBitcoinDenomination(denomination: Denomination): boolean {
-	switch (denomination) {
-		case 'btc':
-		case 'sats':
-		case 'msats': {
-			return true
-		}
-
-		default: {
-			return false
-		}
-	}
 }
 
 export function getSettings(): Settings {
@@ -342,10 +180,8 @@ export async function writeClipboardValue(text: string): Promise<boolean> {
 	}
 }
 
-export const clamsTagRegex = /^@[0-9a-zA-Z_-]{1,30}/
 export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
-export const walletIdRegex = /^[A-Za-z0-9_-]{21}$/
 
 export function getPaymentType(value: string): PaymentType | null {
 	if (nodePublicKeyRegex.test(value)) {
@@ -466,3 +302,24 @@ export function formatDestination(destination: string, type: PaymentType): strin
 }
 
 export const userAgent = new UAParser(navigator.userAgent)
+
+export function getCredentialsFromStorage(): CoreLnCredentials | null {
+	const credentialsJson = localStorage.getItem('credentials')
+
+	return credentialsJson ? JSON.parse(credentialsJson) : null
+}
+
+export const load: Load = async ({ session }) => {
+	if (!session.credentials) {
+		const storedCredentials = getCredentialsFromStorage()
+
+		if (storedCredentials) {
+			session.credentials = storedCredentials
+		} else {
+			return {
+				redirect: '/connect',
+				status: 302
+			}
+		}
+	}
+}

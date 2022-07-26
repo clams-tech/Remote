@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+	export { load } from '$lib/utils'
+</script>
+
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'

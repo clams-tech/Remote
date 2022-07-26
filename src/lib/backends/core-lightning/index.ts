@@ -1,4 +1,6 @@
+import Big from 'big.js'
 import { initLnSocket, rpcRequest } from './utils'
+import type { Payment } from '$lib/types'
 
 import type {
 	GetinfoResponse,
@@ -7,12 +9,9 @@ import type {
 	KeysendResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
-	PayRequest,
 	PayResponse,
 	WaitInvoiceResponse
 } from './types'
-import type { Payment } from '$lib/types'
-import Big from 'big.js'
 
 async function init(): Promise<void> {
 	await initLnSocket()

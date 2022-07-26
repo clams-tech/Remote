@@ -1,17 +1,10 @@
 import { BehaviorSubject, from, fromEvent, of, timer } from 'rxjs'
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators'
-import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { BITCOIN_EXCHANGE_RATE_ENDPOINT, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
 import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
-import { coreLightning, type CoreLnCredentials, type GetinfoResponse } from './backends'
+import { coreLightning, type GetinfoResponse } from './backends'
+import { getPageVisibilityParams, getSettings } from './utils'
 
-import {
-	getBitcoinExchangeRate,
-	getPageVisibilityParams,
-	getSettings,
-	SvelteSubject
-} from './utils'
-
-export const credentials$ = new SvelteSubject<CoreLnCredentials | null>(null)
 export const lastPath$ = new BehaviorSubject('/')
 export const settings$ = new BehaviorSubject<Settings>(getSettings())
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
@@ -52,4 +45,8 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	} catch (error) {
 		console.log('Error waiting for invoice payment:', error)
 	}
+}
+
+export function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
+	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
 }

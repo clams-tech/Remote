@@ -17,6 +17,9 @@
 	import { beforeNavigate } from '$app/navigation'
 	import { lastPath$ } from '$lib/streams'
 	import '../app.css'
+	import { coreLightning } from '$lib/backends'
+	import Spinner from '$lib/elements/Spinner.svelte'
+	import { session } from '$app/stores'
 
 	beforeNavigate(({ from }) => {
 		if (from) {
@@ -26,6 +29,18 @@
 
 	let innerHeight = window.innerHeight
 	let innerWidth = window.innerWidth
+
+	let loading = true
+
+	async function load() {
+		if ($session.credentials) {
+			await coreLightning.init()
+		}
+
+		loading = false
+	}
+
+	load()
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />
@@ -38,6 +53,10 @@
 
 	<!-- CONTENT -->
 	<main class="flex flex-grow w-full flex-col items-center bg-inherit">
-		<slot />
+		{#if loading}
+			<Spinner />
+		{:else}
+			<slot />
+		{/if}
 	</main>
 </div>

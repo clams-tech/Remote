@@ -1,10 +1,15 @@
+<script lang="ts" context="module">
+	export { load } from '$lib/utils'
+</script>
+
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import Destination from '$lib/components/Destination.svelte'
 	import Summary from '$lib/components/Summary.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
-	import { convertValue, SvelteSubject } from '$lib/utils'
+	import { getCredentialsFromStorage, SvelteSubject } from '$lib/utils'
+	import { convertValue } from '$lib/conversion'
 	import { payments$, settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'

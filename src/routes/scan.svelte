@@ -1,14 +1,19 @@
+<script lang="ts" context="module">
+	export { load } from '$lib/utils'
+</script>
+
 <script lang="ts">
 	import Scanner from '$lib/components/Scanner.svelte'
 	import { goto } from '$app/navigation'
 	import { decode } from 'light-bolt11-decoder'
-	import { convertValue, formatDecodedInvoice, SvelteSubject } from '$lib/utils'
 	import Slide from '$lib/elements/Slide.svelte'
 	import Summary from '$lib/components/Summary.svelte'
 	import { BitcoinDenomination, type Payment } from '$lib/types'
 	import { payments$, settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
 	import { coreLightning, type ErrorResponse } from '$lib/backends'
+	import { formatDecodedInvoice, SvelteSubject } from '$lib/utils'
+	import { convertValue } from '$lib/conversion'
 
 	let requesting = false
 	let errorMsg = ''

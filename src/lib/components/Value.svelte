@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Exchange from '$lib/icons/Exchange.svelte'
 	import { settings$ } from '$lib/streams'
-	import { convertValue, formatValueForDisplay } from '$lib/utils'
+	import { formatValueForDisplay } from '$lib/utils'
+	import { convertValue } from '$lib/conversion'
 	import { onMount } from 'svelte'
 
 	/**

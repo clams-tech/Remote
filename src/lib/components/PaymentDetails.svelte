@@ -10,15 +10,9 @@
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import Copy from '$lib/icons/Copy.svelte'
 	import Check from '$lib/icons/Check.svelte'
-
-	import {
-		convertValue,
-		formatDate,
-		formatValueForDisplay,
-		truncateValue,
-		writeClipboardValue
-	} from '$lib/utils'
 	import Warning from '$lib/icons/Warning.svelte'
+	import { convertValue } from '$lib/conversion'
+	import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
 
 	export let payment: Payment
 

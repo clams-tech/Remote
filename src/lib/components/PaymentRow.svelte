@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import Arrow from '$lib/icons/Arrow.svelte'
-
 	import { settings$ } from '$lib/streams'
 	import { BitcoinDenomination } from '$lib/types'
-	import { convertValue, formatValueForDisplay, formatDate } from '$lib/utils'
+	import { formatValueForDisplay, formatDate } from '$lib/utils'
+	import { convertValue } from '$lib/conversion'
 
 	export let payment
 

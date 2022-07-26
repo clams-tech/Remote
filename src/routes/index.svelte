@@ -1,14 +1,5 @@
 <script lang="ts" context="module">
-	import type { Load } from '@sveltejs/kit'
-
-	export const load: Load = async ({ url }) => {
-		if (browser && !credentials$.getValue()) {
-			return {
-				redirect: '/connect',
-				status: 302
-			}
-		}
-	}
+	export { load } from '$lib/utils'
 </script>
 
 <script lang="ts">
@@ -19,8 +10,6 @@
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 	import Link from '$lib/elements/Link.svelte'
 	import { coreLightning } from '$lib/backends'
-	import { browser } from '$app/env'
-	import { credentials$ } from '$lib/streams'
 
 	const buttons = [
 		{ key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
