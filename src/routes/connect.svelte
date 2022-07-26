@@ -1,11 +1,17 @@
 <script lang="ts" context="module">
 	import type { Load } from '@sveltejs/kit'
 
+	let loaded = false
+
 	export const load: Load = async ({ session }) => {
-		if (session.credentials) {
-			return {
-				redirect: '/',
-				status: 302
+		if (!loaded) {
+			loaded = true
+
+			if (session.credentials) {
+				return {
+					redirect: '/',
+					status: 302
+				}
 			}
 		}
 	}
@@ -24,11 +30,12 @@
 	$session.credentials = CORE_LN_CREDENTIALS_DEFAULT
 
 	async function connect() {
-		// @TODO - Validate credentials
 		localStorage.setItem('credentials', JSON.stringify($session.credentials))
-		await coreLightning.init()
+		await coreLightning.init($session.credentials)
 		goto('/')
 	}
+
+	// @TODO - credentials validation
 </script>
 
 <svelte:head>
