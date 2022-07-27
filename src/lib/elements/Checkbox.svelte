@@ -2,8 +2,8 @@
 	export let label: string
 	export let name: string
 	export let checked: boolean
-	export let handleChange = (event: Event) => {}
-	export let handleBlur = (event: Event) => {}
+	export let handleChange = () => {}
+	export let handleBlur = () => {}
 </script>
 
 <div class="flex items-center mb-7">

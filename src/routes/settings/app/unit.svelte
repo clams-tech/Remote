@@ -25,8 +25,6 @@
 			bitcoinDenomination: BitcoinDenomination[key]
 		})
 	}
-
-	const denominations = Object.keys(BitcoinDenomination).filter((key) => key !== 'msats')
 </script>
 
 <svelte:head>

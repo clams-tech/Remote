@@ -49,6 +49,6 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	}
 }
 
-export function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
+export async function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
 	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
 }

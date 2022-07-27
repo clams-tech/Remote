@@ -2,7 +2,7 @@
 	export let label = ''
 	export let toggled = false
 
-	export let handleChange = (event: Event) => {}
+	export let handleChange = () => {}
 </script>
 
 <div class="cursor-pointer flex items-center">

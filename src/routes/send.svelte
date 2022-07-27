@@ -8,7 +8,7 @@
 	import Summary from '$lib/components/Summary.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
-	import { getCredentialsFromStorage, SvelteSubject } from '$lib/utils'
+	import { SvelteSubject } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 	import { payments$, settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
@@ -61,7 +61,7 @@
 
 	async function sendPayment() {
 		requesting = true
-		const { destination, value, type, description } = sendPayment$.getValue()
+		const { destination, value, type } = sendPayment$.getValue()
 		const { primaryDenomination } = $settings$
 
 		try {

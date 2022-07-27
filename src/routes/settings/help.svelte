@@ -29,7 +29,7 @@
 	<section in:fade class="w-full h-full">
 		<h1 class="text-center my-4">Help & Support</h1>
 		<div class="flex flex-col items-center border-y border-neutral-70 pb-5">
-			{#each options as { label, href, icon }, index}
+			{#each options as { label, href, icon }}
 				<a class="mt-5 flex items-center w-full justify-center" {href}>
 					{#if icon}
 						<div class="w-12 mr-2">

@@ -3,8 +3,8 @@
 	export let inputs: { name: string; display: string; value: string }[]
 	export let groupName: string
 	export let value: unknown
-	export let handleChange = (event: Event) => {}
-	export let handleBlur = (event: Event) => {}
+	export let handleChange = () => {}
+	export let handleBlur = () => {}
 	export let direction: 'row' | 'column' = 'column'
 </script>
 

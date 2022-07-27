@@ -32,7 +32,7 @@
 			class="flex flex-col bg-white absolute z-10 py-3 rounded-b-lg shadow-md"
 			in:fade={{duration: 150}}
 		>
-			{#each options as { href, target, rel, display, value, onclick = (event) => {} } (`${href}:${display}`)}
+			{#each options as { href, target, rel, display, value, onclick = () => {} } (`${href}:${display}`)}
 				<div class="px-2 py-1 cursor-pointer">
 					<ConditionalLinkWrapper {href} {target} {rel}>
 						<div

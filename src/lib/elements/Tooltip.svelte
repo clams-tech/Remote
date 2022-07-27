@@ -1,27 +1,33 @@
-<script>
+<script lang="ts">
 	import { fade } from 'svelte/transition'
 	export let title = ''
 
 	let isHovered = false
-	let x
-	let y
+	let x: number
+	let y: number
 
-	function mouseOver(event) {
+	function focus() {
+		isHovered = true
+	}
+
+	function mouseOver(event: MouseEvent) {
 		isHovered = true
 		x = event.pageX + 5
 		y = event.pageY + 5
 	}
-	function mouseMove(event) {
+
+	function mouseMove(event: MouseEvent) {
 		x = event.pageX + 5
 		y = event.pageY + 5
 	}
+
 	function mouseLeave() {
 		isHovered = false
 	}
 </script>
 
 <div
-	on:focus={mouseOver}
+	on:focus={focus}
 	on:mouseover={mouseOver}
 	on:blur={mouseLeave}
 	on:mouseleave={mouseLeave}

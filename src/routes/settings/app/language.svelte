@@ -34,7 +34,7 @@
 	<section in:fade class="w-full h-full">
 		<h1 class="text-center my-4">Settings</h1>
 		<div class="border-y border-neutral-70">
-			{#each Object.entries(Language) as [key, val], index}
+			{#each Object.values(Language) as val, index}
 				{#if $settings$.language === val}
 					<SettingRow label={val} {index}>
 						<div class="w-7" slot="element">

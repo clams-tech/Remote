@@ -2,7 +2,7 @@
 	import { fly } from 'svelte/transition'
 	import BackButton from './BackButton.svelte'
 
-	export let back: () => void | null = null
+	export let back: (() => void) | null = null
 	export let direction: 'left' | 'right' = 'left'
 
 	function getValue() {

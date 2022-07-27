@@ -42,7 +42,7 @@
 			secondaryDenomination: currentSettings.primaryDenomination
 		})
 
-		value = secondaryValue
+		value = secondaryValue as string
 
 		if (input) {
 			input.value = formatValueForDisplay({
@@ -65,9 +65,9 @@
 			: value
 		: '0'
 
-	function handleInput(e) {
-		let { value: newValue } = e.target
-		const { data } = e
+	function handleInput(e: Event) {
+		let { value: newValue } = e.target as HTMLInputElement
+		const { data } = e as InputEvent
 		const { primaryDenomination } = settings$.value
 		const decimalIndex = newValue.indexOf('.')
 
