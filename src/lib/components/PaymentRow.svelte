@@ -1,29 +1,30 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import Arrow from '$lib/icons/Arrow.svelte'
+	import type { Payment } from '$lib/types'
 	import { settings$ } from '$lib/streams'
 	import { BitcoinDenomination } from '$lib/types'
 	import { formatValueForDisplay, formatDate } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 
-	export let payment
+	export let payment: Payment
 
-	// const { id, direction, value, startedAt } = payment
+	const { id, direction, value, startedAt } = payment
 
-	// $: primaryValue = convertValue({
-	// 	from: BitcoinDenomination.msats,
-	// 	to: $settings$.bitcoinDenomination,
-	// 	value
-	// })
+	$: primaryValue = convertValue({
+		from: BitcoinDenomination.msats,
+		to: $settings$.bitcoinDenomination,
+		value
+	})
 
-	// $: secondaryValue = convertValue({
-	// 	from: BitcoinDenomination.msats,
-	// 	to: $settings$.fiatDenomination,
-	// 	value
-	// })
+	$: secondaryValue = convertValue({
+		from: BitcoinDenomination.msats,
+		to: $settings$.fiatDenomination,
+		value
+	})
 </script>
 
-<!-- <div
+<div
 	on:click={() => goto(`/payments/${id}`)}
 	class="flex items-center justify-between  p-4 border-t w-full cursor-pointer"
 >
@@ -37,7 +38,9 @@
 		</div>
 		<div class="flex flex-col">
 			<span class="">{direction === 'receive' ? 'received' : 'sent'}</span>
-			<span class="text-sm text-slate-400">{formatDate(startedAt, 'short')}</span>
+			<span class="text-sm text-slate-400"
+				>{formatDate({ date: startedAt, language: $settings$.language })}</span
+			>
 		</div>
 	</div>
 
@@ -51,4 +54,4 @@
 			{$settings$.fiatDenomination}
 		</p>
 	</div>
-</div> -->
+</div>
