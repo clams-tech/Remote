@@ -1,6 +1,8 @@
 import Big from 'big.js'
-import { initLnSocket, rpcRequest } from './utils'
+import { decode } from 'light-bolt11-decoder'
+import { initLnSocket, invoiceStatusToPaymentStatus, rpcRequest } from './utils'
 import type { Payment } from '$lib/types'
+import { formatDecodedInvoice } from '$lib/utils'
 
 import type {
 	CoreLnCredentials,
@@ -160,6 +162,79 @@ async function payKeysend(options: {
 	}
 }
 
+async function getPayments(): Promise<Payment[]> {
+	const [{ invoices }, { pays }] = await Promise.all([listInvoices(), listPays()])
+
+	const invoicePayments: Payment[] = invoices.map(
+		({
+			label,
+			bolt11,
+			payment_hash,
+			amount_received_msat,
+			amount_msat,
+			status,
+			paid_at,
+			payment_preimage,
+			description,
+			expires_at
+		}) => {
+			const decodedInvoice = decode(bolt11)
+			const { timestamp } = formatDecodedInvoice(decodedInvoice)
+
+			return {
+				id: label,
+				bolt11: bolt11 || null,
+				hash: payment_hash,
+				direction: 'receive',
+				type: 'payment_request',
+				preimage: payment_preimage,
+				value: (amount_received_msat || amount_msat) as string,
+				status: invoiceStatusToPaymentStatus(status),
+				completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
+				expiresAt: new Date(expires_at * 1000).toISOString(),
+				description,
+				destination: undefined,
+				fee: null,
+				startedAt: new Date(timestamp * 1000).toISOString()
+			}
+		}
+	)
+
+	const sentPayments: Payment[] = pays.map(
+		({
+			bolt11,
+			destination,
+			payment_hash,
+			status,
+			created_at,
+			label,
+			preimage,
+			amount_msat,
+			amount_sent_msat
+		}) => {
+			const timestamp = new Date(created_at * 1000).toISOString()
+
+			return {
+				id: label || payment_hash,
+				destination,
+				bolt11: bolt11 || null,
+				status,
+				startedAt: timestamp,
+				hash: payment_hash,
+				preimage,
+				value: amount_msat,
+				fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+				direction: 'send',
+				type: bolt11 ? 'payment_request' : 'node_public_key',
+				expiresAt: null,
+				completedAt: timestamp
+			}
+		}
+	)
+
+	return invoicePayments.concat(sentPayments)
+}
+
 async function listInvoices(): Promise<ListinvoicesResponse> {
 	const result = await rpcRequest({ method: 'listinvoices' })
 	return result as ListinvoicesResponse
@@ -177,6 +252,5 @@ export default {
 	waitForInvoicePayment,
 	payInvoice,
 	payKeysend,
-	listInvoices,
-	listPays
+	getPayments
 }

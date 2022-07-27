@@ -15,7 +15,7 @@
 <script lang="ts">
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
-	import { lastPath$, nodeInfo$ } from '$lib/streams'
+	import { lastPath$, nodeInfo$, payments$ } from '$lib/streams'
 	import '../app.css'
 	import { coreLightning } from '$lib/backends'
 	import Spinner from '$lib/elements/Spinner.svelte'
@@ -37,8 +37,10 @@
 		const { credentials } = get(session)
 		if (credentials) {
 			await coreLightning.init(credentials)
-			const info = await coreLightning.getInfo()
-			nodeInfo$.next(info)
+
+			coreLightning.getInfo().then((info) => nodeInfo$.next(info))
+			// @TODO - Add back in once LNSocket can handle simultaneous requests
+			// coreLightning.getPayments().then(payments => payments$.next(payments))
 		}
 
 		loading = false

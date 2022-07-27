@@ -323,6 +323,9 @@ export interface Pay {
 	 * the final destination of the payment if known
 	 */
 	destination?: string
+	preimage: string
+	amount_msat: string
+	amount_sent_msat: string
 	/**
 	 * the label, if given to sendpay
 	 */

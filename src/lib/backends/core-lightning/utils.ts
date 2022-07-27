@@ -1,6 +1,14 @@
+import type { Payment } from '$lib/types'
 import { firstValueFrom, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
-import type { LNRequest, LNResponse, Socket, CoreLnCredentials, ErrorResponse } from './types'
+import type {
+	LNRequest,
+	LNResponse,
+	Socket,
+	CoreLnCredentials,
+	ErrorResponse,
+	InvoiceStatus
+} from './types'
 
 let credentials: CoreLnCredentials
 let lnsocket: Socket
@@ -53,7 +61,13 @@ async function processRequests(credentials: CoreLnCredentials) {
 	const url = proxy ? `${protocol}//${proxy}/${ip}:${port}` : `${protocol}//${ip}:${port}`
 
 	console.log('INITIATING CONNECTION TO NODE')
-	await lnsocket.connect_and_init(publicKey, url)
+	try {
+		console.log({ publicKey, url })
+		await lnsocket.connect_and_init(publicKey, url)
+	} catch (error) {
+		console.log('ERROR CONNECTING TO NODE:', error)
+		return
+	}
 
 	while (requestQueue.length) {
 		// take all elements from queue
@@ -98,4 +112,15 @@ export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
 			})
 		)
 	)
+}
+
+export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
+	switch (status) {
+		case 'paid':
+			return 'complete'
+		case 'unpaid':
+			return 'pending'
+		default:
+			return 'expired'
+	}
 }
