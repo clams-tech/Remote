@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte'
 	import { fade } from 'svelte/transition'
 	import QRCodeStyling from 'qr-code-styling'
 
