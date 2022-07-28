@@ -40,7 +40,7 @@
 
 			coreLightning.getInfo().then((info) => nodeInfo$.next(info))
 			// @TODO - Add back in once LNSocket can handle simultaneous requests
-			// coreLightning.getPayments().then(payments => payments$.next(payments))
+			coreLightning.getPayments().then((payments) => payments$.next(payments))
 		}
 
 		loading = false

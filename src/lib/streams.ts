@@ -14,6 +14,7 @@ export const nodeInfo$ = new BehaviorSubject<GetinfoResponse | null>(null)
 export const payments$ = new BehaviorSubject<Payment[]>([])
 
 nodeInfo$.subscribe((info) => info && console.log(info))
+payments$.subscribe((payments) => payments && console.log(payments))
 
 const pageVisibilityParams = getPageVisibilityParams()
 
