@@ -214,6 +214,12 @@ async function getPayments(): Promise<Payment[]> {
 		}) => {
 			const timestamp = new Date(created_at * 1000).toISOString()
 
+			const decodedInvoice = bolt11 && decode(bolt11)
+
+			const { description } = decodedInvoice
+				? formatDecodedInvoice(decodedInvoice)
+				: { description: undefined }
+
 			return {
 				id: label || payment_hash,
 				destination,
@@ -227,7 +233,8 @@ async function getPayments(): Promise<Payment[]> {
 				direction: 'send',
 				type: bolt11 ? 'payment_request' : 'node_public_key',
 				expiresAt: null,
-				completedAt: timestamp
+				completedAt: timestamp,
+				description
 			}
 		}
 	)

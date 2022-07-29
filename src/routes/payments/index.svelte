@@ -22,7 +22,7 @@
 
 	let statusFilters: Record<string, boolean> = {
 		pending: true,
-		completed: true,
+		complete: true,
 		expired: true,
 		failed: true
 	}
@@ -42,7 +42,7 @@
 			?.filter(
 				(payment) =>
 					(statusFilters.pending && payment.status === 'pending') ||
-					(statusFilters.completed && payment.status === 'complete') ||
+					(statusFilters.complete && payment.status === 'complete') ||
 					(statusFilters.expired && payment.status === 'expired') ||
 					(statusFilters.failed && payment.status === 'failed')
 			)
@@ -172,10 +172,8 @@
 			{/if}
 		</div>
 
-		{#if filteredPayments}
-			{#each filteredPayments as payment (payment.id)}
-				<PaymentRow {payment} />
-			{/each}
-		{/if}
+		{#each filteredPayments as payment (payment.id)}
+			<PaymentRow {payment} />
+		{/each}
 	</section>
 </Slide>
