@@ -1,5 +1,21 @@
 <script lang="ts" context="module">
-	export { load } from '$lib/utils'
+	import type { Load } from './__types/[id]'
+
+	export const load: Load = ({ params, session }) => {
+		if (!session.credentials) {
+			const storedCredentials = getCredentialsFromStorage()
+
+			if (storedCredentials) {
+				session.credentials = storedCredentials
+				return { props: { id: params.id } }
+			} else {
+				return {
+					redirect: '/connect',
+					status: 302
+				}
+			}
+		}
+	}
 </script>
 
 <script lang="ts">
@@ -8,6 +24,7 @@
 	import { goto } from '$app/navigation'
 	import PaymentDetails from '$lib/components/PaymentDetails.svelte'
 	import BackButton from '$lib/elements/BackButton.svelte'
+	import { getCredentialsFromStorage } from '$lib/utils'
 
 	export let id: string // payment id
 
