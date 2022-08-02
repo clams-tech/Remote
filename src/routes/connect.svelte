@@ -49,35 +49,11 @@
 		</h1>
 		<div class="w-full max-w-md flex flex-col items-center justify-center">
 			<TextInput
-				name="publicKey"
+				name="connection"
 				type="text"
-				label="Node Public Key"
-				placeholder="029c4b65fb91f9acb382cc904e995117f6c6b819fc1e4568e50249ce75ec45f260"
-				bind:value={$session.credentials.publicKey}
-			/>
-
-			<TextInput
-				name="protocol"
-				type="text"
-				label="Protocol"
-				placeholder="ws:"
-				bind:value={$session.credentials.protocol}
-			/>
-
-			<TextInput
-				name="ip"
-				type="text"
-				label="IP Address"
-				placeholder="122.198.29.182"
-				bind:value={$session.credentials.ip}
-			/>
-
-			<TextInput
-				name="port"
-				type="number"
-				label="Port"
-				placeholder="9735"
-				bind:value={$session.credentials.port}
+				label="Node Connect"
+				placeholder="02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735"
+				bind:value={$session.credentials.connection}
 			/>
 
 			<TextInput

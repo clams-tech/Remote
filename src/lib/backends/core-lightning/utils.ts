@@ -1,3 +1,4 @@
+import { lnsocketProxy } from '$lib/constants'
 import type { Payment } from '$lib/types'
 import { firstValueFrom, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
@@ -39,13 +40,13 @@ async function processRequests(credentials: CoreLnCredentials) {
 
 	await initLnSocket(credentials)
 
-	const { protocol, ip, port, proxy, publicKey } = credentials
-	const url = proxy ? `${protocol}//${proxy}/${ip}:${port}` : `${protocol}//${ip}:${port}`
+	const { connection, rune } = credentials
+
+	const [publicKey, host] = connection.split('@')
 
 	console.log('INITIATING CONNECTION TO NODE')
 	try {
-		console.log({ publicKey, url })
-		await lnsocket.connect_and_init(publicKey, url)
+		await lnsocket.connect_and_init(publicKey, `${lnsocketProxy}/${host}`)
 	} catch (error) {
 		console.log('ERROR CONNECTING TO NODE:', error)
 		return
@@ -53,7 +54,7 @@ async function processRequests(credentials: CoreLnCredentials) {
 
 	while (requestQueue.length) {
 		const { id, request } = requestQueue.shift() as { id: string; request: LNRequest }
-		const response = await lnsocket.rpc({ ...request, rune: credentials.rune })
+		const response = await lnsocket.rpc({ ...request, rune })
 
 		responseStream$.next({ id, response })
 	}

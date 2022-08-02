@@ -1,10 +1,6 @@
 export type CoreLnCredentials = {
+	connection: string
 	rune: string
-	publicKey: string
-	ip: string
-	port: number
-	protocol: 'ws:' | 'wss:'
-	proxy?: string
 }
 
 export type Socket = {

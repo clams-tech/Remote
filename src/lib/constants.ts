@@ -4,6 +4,8 @@ import { BitcoinDenomination, FiatDenomination, Language, type Settings } from '
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
 
+export const lnsocketProxy = 'wss://lnsocket.clams.tech'
+
 export const BITCOIN_EXCHANGE_RATE_ENDPOINT = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${Object.keys(
 	FiatDenomination
 ).join(',')}`
@@ -30,9 +32,6 @@ export const DEFAULT_SETTINGS: Settings = {
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
 
 export const CORE_LN_CREDENTIALS_DEFAULT: CoreLnCredentials = {
-	port: 9735,
-	protocol: 'ws:',
-	publicKey: '',
-	ip: '',
+	connection: '',
 	rune: ''
 }
