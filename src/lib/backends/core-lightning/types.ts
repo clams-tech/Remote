@@ -20,6 +20,12 @@ export type GetinfoRequest = {
 
 export type ListinvoicesRequest = {
 	method: 'listinvoices'
+	params?: {
+		label?: string
+		invstring?: string
+		payment_hash?: string
+		offer_id?: string
+	}
 }
 
 export type ListpaysRequest = {

@@ -1,9 +1,14 @@
 import { BehaviorSubject, from, fromEvent, of, timer } from 'rxjs'
-import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators'
-import { BITCOIN_EXCHANGE_RATE_ENDPOINT, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { catchError, filter, map, shareReplay, startWith, switchMap, take } from 'rxjs/operators'
+import {
+	BITCOIN_EXCHANGE_RATE_ENDPOINT,
+	CORE_LN_CREDENTIALS_INITIAL,
+	MIN_IN_MS,
+	SETTINGS_STORAGE_KEY
+} from './constants'
 import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
-import { coreLightning, type GetinfoResponse } from './backends'
-import { getPageVisibilityParams, getSettings } from './utils'
+import { coreLightning, type CoreLnCredentials, type GetinfoResponse } from './backends'
+import { getCredentialsFromStorage, getPageVisibilityParams, getSettings } from './utils'
 
 export const lastPath$ = new BehaviorSubject('/')
 export const settings$ = new BehaviorSubject<Settings>(getSettings())
@@ -13,8 +18,29 @@ export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 export const nodeInfo$ = new BehaviorSubject<GetinfoResponse | null>(null)
 export const payments$ = new BehaviorSubject<Payment[]>([])
 
-nodeInfo$.subscribe((info) => info && console.log(info))
-payments$.subscribe((payments) => payments && console.log(payments))
+export const credentials$ = new BehaviorSubject<CoreLnCredentials>(
+	getCredentialsFromStorage() || CORE_LN_CREDENTIALS_INITIAL
+)
+
+// once we have credentials, go ahed and fetch data
+credentials$
+	.pipe(
+		filter(({ connection, rune }) => !!(connection && rune)),
+		take(1)
+	)
+	.subscribe(async (credentials) => {
+		await coreLightning.init(credentials)
+
+		coreLightning.getInfo().then((info) => {
+			console.log(info)
+			nodeInfo$.next(info)
+		})
+
+		coreLightning.getPayments().then((payments) => {
+			console.log(payments)
+			payments$.next(payments)
+		})
+	})
 
 const pageVisibilityParams = getPageVisibilityParams()
 

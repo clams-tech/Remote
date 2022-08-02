@@ -1,18 +1,11 @@
 <script lang="ts" context="module">
 	import type { Load } from './__types/[id]'
 
-	export const load: Load = ({ params, session }) => {
-		if (!session.credentials) {
-			const storedCredentials = getCredentialsFromStorage()
-
-			if (storedCredentials) {
-				session.credentials = storedCredentials
-				return { props: { id: params.id } }
-			} else {
-				return {
-					redirect: '/connect',
-					status: 302
-				}
+	export const load: Load = ({ params }) => {
+		if (!credentials$.getValue().connection) {
+			return {
+				redirect: '/connect',
+				status: 302
 			}
 		} else {
 			return { props: { id: params.id } }
@@ -22,7 +15,7 @@
 
 <script lang="ts">
 	import { fade } from 'svelte/transition'
-	import { lastPath$, payments$ } from '$lib/streams'
+	import { credentials$, lastPath$, payments$ } from '$lib/streams'
 	import { goto } from '$app/navigation'
 	import PaymentDetails from '$lib/components/PaymentDetails.svelte'
 	import BackButton from '$lib/elements/BackButton.svelte'

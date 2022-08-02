@@ -15,12 +15,8 @@
 <script lang="ts">
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
-	import { lastPath$, nodeInfo$, payments$ } from '$lib/streams'
+	import { lastPath$ } from '$lib/streams'
 	import '../app.css'
-	import { coreLightning } from '$lib/backends'
-	import Spinner from '$lib/elements/Spinner.svelte'
-	import { session } from '$app/stores'
-	import { get } from 'svelte/store'
 
 	beforeNavigate(({ from }) => {
 		if (from) {
@@ -30,23 +26,6 @@
 
 	let innerHeight = window.innerHeight
 	let innerWidth = window.innerWidth
-
-	let loading = true
-
-	async function load() {
-		const { credentials } = get(session)
-		if (credentials) {
-			await coreLightning.init(credentials)
-
-			coreLightning.getInfo().then((info) => nodeInfo$.next(info))
-			// @TODO - Add back in once LNSocket can handle simultaneous requests
-			coreLightning.getPayments().then((payments) => payments$.next(payments))
-		}
-
-		loading = false
-	}
-
-	load()
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />
@@ -59,10 +38,6 @@
 
 	<!-- CONTENT -->
 	<main class="flex flex-grow w-full flex-col items-center bg-inherit">
-		{#if loading}
-			<Spinner />
-		{:else}
-			<slot />
-		{/if}
+		<slot />
 	</main>
 </div>

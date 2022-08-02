@@ -1,8 +1,10 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
 import { initLnSocket, invoiceStatusToPaymentStatus, rpcRequest } from './utils'
-import type { Payment } from '$lib/types'
+import type { Payment, PaymentStatus } from '$lib/types'
 import { formatDecodedInvoice } from '$lib/utils'
+import { firstValueFrom, timer } from 'rxjs'
+import { switchMap, filter, map } from 'rxjs/operators'
 
 import type {
 	CoreLnCredentials,
@@ -12,8 +14,7 @@ import type {
 	KeysendResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
-	PayResponse,
-	WaitInvoiceResponse
+	PayResponse
 } from './types'
 
 async function init(creds: CoreLnCredentials): Promise<void> {
@@ -55,25 +56,55 @@ async function createInvoice(params: InvoiceRequest['params']): Promise<Payment>
 	return payment
 }
 
+// async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
+// 	const { id } = payment
+
+// 	const result = await rpcRequest({
+// 		method: 'waitinvoice',
+// 		params: {
+// 			label: id
+// 		}
+// 	})
+
+// 	const { status, amount_received_msat, paid_at, payment_preimage } = result as WaitInvoiceResponse
+
+// 	return {
+// 		...payment,
+// 		status: status === 'paid' ? 'complete' : 'expired',
+// 		value: amount_received_msat || payment.value,
+// 		completedAt: new Date((paid_at as number) * 1000).toISOString(),
+// 		preimage: payment_preimage
+// 	}
+// }
+
+// need to poll for the moment due to current limitations in lnsocket library
 async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
-	const { id } = payment
+	const result$ = timer(0, 1000).pipe(
+		switchMap(() =>
+			rpcRequest({
+				method: 'listinvoices',
+				params: {
+					label: payment.id
+				}
+			})
+		),
+		map((result) => {
+			const { invoices } = result as ListinvoicesResponse
+			return invoices[0]
+		}),
+		filter((invoice) => invoice.status !== 'unpaid'),
+		map(({ status, amount_received_msat, paid_at, payment_preimage }) => {
+			return {
+				...payment,
+				status: (status === 'paid' ? 'complete' : 'expired') as PaymentStatus,
+				value: amount_received_msat || payment.value,
+				completedAt: new Date((paid_at as number) * 1000).toISOString(),
+				preimage: payment_preimage
+			}
+		})
+	)
 
-	const result = await rpcRequest({
-		method: 'waitinvoice',
-		params: {
-			label: id
-		}
-	})
-
-	const { status, amount_received_msat, paid_at, payment_preimage } = result as WaitInvoiceResponse
-
-	return {
-		...payment,
-		status: status === 'paid' ? 'complete' : 'expired',
-		value: amount_received_msat || payment.value,
-		completedAt: new Date((paid_at as number) * 1000).toISOString(),
-		preimage: payment_preimage
-	}
+	return firstValueFrom(result$)
 }
 
 async function payInvoice(options: {

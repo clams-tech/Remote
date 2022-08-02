@@ -3,11 +3,11 @@
 
 	let loaded = false
 
-	export const load: Load = async ({ session }) => {
+	export const load: Load = async () => {
 		if (!loaded) {
 			loaded = true
 
-			if (session.credentials) {
+			if (credentials$.getValue().connection) {
 				return {
 					redirect: '/',
 					status: 302
@@ -24,14 +24,13 @@
 	import { goto } from '$app/navigation'
 	import TextInput from '$lib/elements/TextInput.svelte'
 	import Button from '$lib/elements/Button.svelte'
-	import { session } from '$app/stores'
-	import { CORE_LN_CREDENTIALS_DEFAULT } from '$lib/constants'
+	import { credentials$ } from '$lib/streams'
 
-	$session.credentials = CORE_LN_CREDENTIALS_DEFAULT
+	let connection = ''
+	let rune = ''
 
 	async function connect() {
-		localStorage.setItem('credentials', JSON.stringify($session.credentials))
-		await coreLightning.init($session.credentials)
+		credentials$.next({ connection, rune })
 		goto('/')
 	}
 
@@ -53,7 +52,7 @@
 				type="text"
 				label="Node Connect"
 				placeholder="02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735"
-				bind:value={$session.credentials.connection}
+				bind:value={connection}
 			/>
 
 			<TextInput
@@ -61,7 +60,7 @@
 				type="text"
 				label="Rune"
 				placeholder="KUhZzNlECC7pYsz3QVbF1TqjIUYi3oyESTI7n60hLMs9MA=="
-				bind:value={$session.credentials.rune}
+				bind:value={rune}
 			/>
 
 			<Button primary text={$t('app.buttons.connect')} on:click={connect} />

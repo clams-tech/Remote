@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js'
 import { onMount, onDestroy, afterUpdate, beforeUpdate } from 'svelte'
-import { Subject, defer, BehaviorSubject } from 'rxjs'
+import { Subject, defer, BehaviorSubject, Observable } from 'rxjs'
 import { take, takeUntil } from 'rxjs/operators'
 import Big from 'big.js'
 import Hammer from 'hammerjs'
@@ -30,6 +30,7 @@ import {
 	ta,
 	ko
 } from 'date-fns/locale'
+import { credentials$ } from './streams'
 
 export const encryptWithAES = (text: string, passphrase: string) => {
 	return CryptoJS.AES.encrypt(text, passphrase).toString()
@@ -311,17 +312,86 @@ export function getCredentialsFromStorage(): CoreLnCredentials | null {
 	return credentialsJson ? JSON.parse(credentialsJson) : null
 }
 
-export const load: Load = async ({ session }) => {
-	if (!session.credentials) {
-		const storedCredentials = getCredentialsFromStorage()
+export const load: Load = async () => {
+	const credentials = credentials$.getValue()
 
-		if (storedCredentials) {
-			session.credentials = storedCredentials
-		} else {
-			return {
-				redirect: '/connect',
-				status: 302
-			}
+	if (!credentials.connection) {
+		return {
+			redirect: '/connect',
+			status: 302
 		}
 	}
+}
+
+// https://github.com/danguer/blog-examples/blob/master/js/base64-binary.js
+export const Base64Binary = {
+	_keyStr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
+
+	removePaddingChars: function (input: string) {
+		const lkey = this._keyStr.indexOf(input.charAt(input.length - 1))
+
+		if (lkey == 64) {
+			return input.substring(0, input.length - 1)
+		}
+
+		return input
+	},
+
+	decode: function (input: string) {
+		//get last chars to see if are valid
+		input = this.removePaddingChars(input)
+		input = this.removePaddingChars(input)
+
+		const bytes = parseInt(((input.length / 4) * 3).toString(), 10)
+
+		let chr1, chr2, chr3
+		let enc1, enc2, enc3, enc4
+		let i = 0
+		let j = 0
+
+		const uarray = new Uint8Array(bytes)
+
+		// input = input.replace(/[^A-Za-z0-9+/=]/g, '')
+
+		for (i = 0; i < bytes; i += 3) {
+			//get the 3 octects in 4 ascii chars
+			enc1 = this._keyStr.indexOf(input.charAt(j++))
+			enc2 = this._keyStr.indexOf(input.charAt(j++))
+			enc3 = this._keyStr.indexOf(input.charAt(j++))
+			enc4 = this._keyStr.indexOf(input.charAt(j++))
+
+			chr1 = (enc1 << 2) | (enc2 >> 4)
+			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2)
+			chr3 = ((enc3 & 3) << 6) | enc4
+
+			uarray[i] = chr1
+			if (enc3 != 64) uarray[i + 1] = chr2
+			if (enc4 != 64) uarray[i + 2] = chr3
+		}
+
+		return uarray
+	}
+}
+
+function i2hex(i: number) {
+	return ('0' + i.toString(16)).slice(-2)
+}
+
+export const binaryHashToHex = (hash: Uint8Array): string => {
+	return hash.reduce(function (memo, i) {
+		return memo + i2hex(i)
+	}, '')
+}
+
+export const decodeRune = (rune: string) => {
+	const runeBinary = Base64Binary.decode(rune)
+	const hashBinary = runeBinary.slice(0, 32)
+
+	const hash = binaryHashToHex(hashBinary)
+
+	const restBinary = runeBinary.slice(32)
+	const [id, ...restrictions] = new TextDecoder().decode(restBinary).split('&')
+	const runeId = id.split('=')[1]
+
+	console.log({ restrictions, runeId, hash })
 }

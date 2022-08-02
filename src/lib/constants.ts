@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
 
-export const CORE_LN_CREDENTIALS_DEFAULT: CoreLnCredentials = {
+export const CORE_LN_CREDENTIALS_INITIAL: CoreLnCredentials = {
 	connection: '',
 	rune: ''
 }
