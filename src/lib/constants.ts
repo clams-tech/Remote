@@ -17,7 +17,7 @@ export const MIN_IN_SECS = 60
 export const DEFAULT_INVOICE_EXPIRY = 15 * MIN_IN_SECS
 
 export const DEFAULT_SETTINGS: Settings = {
-	language: Language.english,
+	language: navigator?.languages ? navigator.languages[0] : navigator.language || Language['en-US'],
 	fiatDenomination: FiatDenomination.usd,
 	bitcoinDenomination: BitcoinDenomination.sats,
 	primaryDenomination: BitcoinDenomination.sats,
@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	darkmode: false
 }
 
+export const CREDENTIALS_STORAGE_KEY = 'credentials'
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
 
 export const CORE_LN_CREDENTIALS_DEFAULT: CoreLnCredentials = {
