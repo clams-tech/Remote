@@ -182,7 +182,7 @@ async function getPayments(): Promise<Payment[]> {
 			const { timestamp } = formatDecodedInvoice(decodedInvoice)
 
 			return {
-				id: label,
+				id: label || payment_hash,
 				bolt11: bolt11 || null,
 				hash: payment_hash,
 				direction: 'receive',
