@@ -25,12 +25,12 @@
 	import TextInput from '$lib/elements/TextInput.svelte'
 	import Button from '$lib/elements/Button.svelte'
 	import { session } from '$app/stores'
-	import { CORE_LN_CREDENTIALS_DEFAULT } from '$lib/constants'
+	import { CORE_LN_CREDENTIALS_DEFAULT, CREDENTIALS_STORAGE_KEY } from '$lib/constants'
 
 	$session.credentials = CORE_LN_CREDENTIALS_DEFAULT
 
 	async function connect() {
-		localStorage.setItem('credentials', JSON.stringify($session.credentials))
+		localStorage.setItem(CREDENTIALS_STORAGE_KEY, JSON.stringify($session.credentials))
 		await coreLightning.init($session.credentials)
 		goto('/')
 	}

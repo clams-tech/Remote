@@ -11,6 +11,8 @@
 	import { settings$ } from '$lib/streams'
 	import Toggle from '$lib/elements/Toggle.svelte'
 	import { t } from '$lib/i18n/translations'
+	import Button from '$lib/elements/Button.svelte'
+	import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
 
 	let settings = [
 		{ label: 'App', route: '/settings/app' },
@@ -51,6 +53,15 @@
 					</SettingRow>
 				{/if}
 			{/each}
+		</div>
+		<div class="m-6">
+			<Button
+				text="Log out"
+				on:click={() => {
+					localStorage.removeItem(CREDENTIALS_STORAGE_KEY)
+					window.location.reload()
+				}}
+			/>
 		</div>
 	</section>
 </Slide>
