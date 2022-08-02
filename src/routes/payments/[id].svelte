@@ -27,6 +27,7 @@
 	import PaymentDetails from '$lib/components/PaymentDetails.svelte'
 	import BackButton from '$lib/elements/BackButton.svelte'
 	import { getCredentialsFromStorage } from '$lib/utils'
+	import { t } from '$lib/i18n/translations'
 
 	export let id: string // payment id
 
@@ -43,6 +44,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>{$t('app.titles.payment')}</title>
+</svelte:head>
 
 <section in:fade class="flex flex-col justify-center items-start w-full max-w-xl">
 	<BackButton on:click={handleClose} />
