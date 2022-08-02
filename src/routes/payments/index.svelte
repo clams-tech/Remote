@@ -12,6 +12,7 @@
 	import Checkbox from '$lib/elements/Checkbox.svelte'
 	import Caret from '$lib/icons/Caret.svelte'
 	import type { Payment } from '$lib/types'
+	import { t } from '$lib/i18n/translations'
 
 	let showFilters = false
 
@@ -87,6 +88,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>{$t('app.titles.payments')}</title>
+</svelte:head>
 
 <Slide
 	back={() => {

@@ -14,6 +14,8 @@
 					status: 302
 				}
 			}
+		} else {
+			return { props: { id: params.id } }
 		}
 	}
 </script>
