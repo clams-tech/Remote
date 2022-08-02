@@ -9,7 +9,8 @@ import { formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { CoreLnCredentials } from './backends'
-import type { Denomination, PaymentType, Settings } from './types'
+import { type Denomination, type PaymentType, type Settings, Language } from './types'
+import { credentials$ } from './streams'
 
 import {
 	ar,
@@ -30,7 +31,6 @@ import {
 	ta,
 	ko
 } from 'date-fns/locale'
-import { credentials$ } from './streams'
 
 export const encryptWithAES = (text: string, passphrase: string) => {
 	return CryptoJS.AES.encrypt(text, passphrase).toString()
@@ -287,7 +287,9 @@ const locales: Record<string, Locale> = {
 
 export function formatDate(options: { date: string; language: string; type?: 'relative' }) {
 	const { date, language, type = 'relative' } = options
-	const locale = locales[language] || enGB
+	const settingsLocale =
+		Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
+	const locale = locales[settingsLocale] || enGB
 
 	if (type === 'relative') {
 		return formatRelative(new Date(date), new Date(), { locale })

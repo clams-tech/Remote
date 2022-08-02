@@ -11,11 +11,25 @@ export type Settings = {
 	darkmode: boolean
 }
 
+// locale => Display language
 export enum Language {
-	english = 'English',
-	spanish = 'Spanish',
-	french = 'French',
-	german = 'German'
+	'en-US' = 'English (US)', // American
+	'en-GB' = 'English (UK)', // British
+	'zh-CN' = 'Chinese', // Mainland
+	es = 'Spanish',
+	hi = 'Hindi',
+	ar = 'Arabic',
+	bn = 'Bengali',
+	fr = 'French',
+	pt = 'Portuguese',
+	ru = 'Russian',
+	ja = 'Japanese',
+	id = 'Indonesian',
+	de = 'German',
+	te = 'Telugu',
+	tr = 'Turkish',
+	ta = 'Tamil',
+	ko = 'Korean'
 }
 
 export enum BitcoinDenomination {
