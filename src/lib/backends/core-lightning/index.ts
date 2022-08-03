@@ -7,7 +7,6 @@ import { firstValueFrom, timer } from 'rxjs'
 import { switchMap, filter, map } from 'rxjs/operators'
 
 import type {
-	CoreLnCredentials,
 	GetinfoResponse,
 	InvoiceRequest,
 	InvoiceResponse,
@@ -17,8 +16,8 @@ import type {
 	PayResponse
 } from './types'
 
-async function init(creds: CoreLnCredentials): Promise<void> {
-	await initLnSocket(creds)
+async function init(): Promise<void> {
+	await initLnSocket()
 }
 
 async function getInfo(): Promise<GetinfoResponse> {

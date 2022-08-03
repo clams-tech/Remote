@@ -18,7 +18,6 @@
 </script>
 
 <script lang="ts">
-	import { coreLightning } from '$lib/backends'
 	import { t } from '$lib/i18n/translations'
 	import { fade } from 'svelte/transition'
 	import { goto } from '$app/navigation'

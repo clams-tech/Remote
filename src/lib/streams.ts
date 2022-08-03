@@ -28,9 +28,7 @@ credentials$
 		filter(({ connection, rune }) => !!(connection && rune)),
 		take(1)
 	)
-	.subscribe(async (credentials) => {
-		await coreLightning.init(credentials)
-
+	.subscribe(async () => {
 		coreLightning.getInfo().then((info) => {
 			console.log(info)
 			nodeInfo$.next(info)

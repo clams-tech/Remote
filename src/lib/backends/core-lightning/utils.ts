@@ -1,4 +1,5 @@
 import { lnsocketProxy } from '$lib/constants'
+import { credentials$ } from '$lib/streams'
 import type { Payment } from '$lib/types'
 import { firstValueFrom, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
@@ -11,7 +12,6 @@ import type {
 	InvoiceStatus
 } from './types'
 
-let credentials: CoreLnCredentials
 let lnsocket: Socket
 let processing = false
 
@@ -22,11 +22,7 @@ const responseStream$ = new Subject<{
 	response: { result: LNResponse; error?: ErrorResponse }
 }>()
 
-export async function initLnSocket(creds: CoreLnCredentials) {
-	if (!credentials) {
-		credentials = creds
-	}
-
+export async function initLnSocket() {
 	console.log('CREATING SOCKET')
 	const LNSocket = await (window as any).lnsocket_init()
 
@@ -38,7 +34,7 @@ async function processRequests(credentials: CoreLnCredentials) {
 	console.log('PROCESSING REQUESTS')
 	processing = true
 
-	await initLnSocket(credentials)
+	await initLnSocket()
 
 	const { connection, rune } = credentials
 
@@ -65,7 +61,9 @@ async function processRequests(credentials: CoreLnCredentials) {
 }
 
 export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
-	if (!credentials) {
+	const credentials = credentials$.getValue()
+
+	if (!credentials.rune) {
 		throw new Error('Credentials must be set before making rpc requests')
 	}
 
