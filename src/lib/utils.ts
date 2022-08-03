@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js'
 import { onMount, onDestroy, afterUpdate, beforeUpdate } from 'svelte'
-import { Subject, defer, BehaviorSubject, Observable } from 'rxjs'
+import { Subject, defer, BehaviorSubject } from 'rxjs'
 import { take, takeUntil } from 'rxjs/operators'
 import Big from 'big.js'
 import Hammer from 'hammerjs'
@@ -385,6 +385,37 @@ export const binaryHashToHex = (hash: Uint8Array): string => {
 	}, '')
 }
 
+const runeOperatorRegex = /[=^$/~<>{}#!]/g
+
+export const operatorToDescription = (operator: string): string => {
+	switch (operator) {
+		case '=':
+			return 'is equal to'
+		case '^':
+			return 'starts with'
+		case '$':
+			return 'ends with'
+		case '/':
+			return 'is not equal to'
+		case '~':
+			return 'contains'
+		case '<':
+			return 'is less than'
+		case '>':
+			return 'is greater than'
+		case '{':
+			return 'sorts before'
+		case '}':
+			return 'sorts after'
+		case '#':
+			return 'comment'
+		case '!':
+			return 'is missing'
+		default:
+			return ''
+	}
+}
+
 export const decodeRune = (rune: string) => {
 	const runeBinary = Base64Binary.decode(rune)
 	const hashBinary = runeBinary.slice(0, 32)
@@ -392,8 +423,31 @@ export const decodeRune = (rune: string) => {
 	const hash = binaryHashToHex(hashBinary)
 
 	const restBinary = runeBinary.slice(32)
-	const [id, ...restrictions] = new TextDecoder().decode(restBinary).split('&')
-	const runeId = id.split('=')[1]
+	const [uniqueId, ...restrictionStrings] = new TextDecoder().decode(restBinary).split('&')
+	const id = uniqueId.split('=')[1]
 
-	console.log({ restrictions, runeId, hash })
+	const restrictions = restrictionStrings.map((restriction) => {
+		const alternatives = restriction.split('|')
+
+		const summary = alternatives.reduce((str, alternative) => {
+			const [operator] = alternative.match(runeOperatorRegex) || []
+
+			if (!operator) return str
+
+			const [name, value] = alternative.split(operator)
+
+			return `${str ? `${str} OR ` : ''}${name} ${operatorToDescription(operator)} ${value}`
+		}, '')
+
+		return {
+			alternatives,
+			summary
+		}
+	})
+
+	return {
+		id,
+		hash,
+		restrictions
+	}
 }
