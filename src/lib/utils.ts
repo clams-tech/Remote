@@ -8,7 +8,7 @@ import UAParser from 'ua-parser-js'
 import { formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-import type { CoreLnCredentials } from './backends'
+import type { CoreLnCredentials, ListfundsResponse } from './backends'
 import { type Denomination, type PaymentType, type Settings, Language } from './types'
 import { credentials$ } from './streams'
 
@@ -323,6 +323,16 @@ export const load: Load = async () => {
 			status: 302
 		}
 	}
+}
+
+export const calculateBalance = (funds: ListfundsResponse): string => {
+	const offChain = funds.channels.reduce(
+		(total, { our_amount_msat }) => total.add(our_amount_msat),
+		Big('0')
+	)
+	const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+
+	return offChain.add(onChain).toString()
 }
 
 // https://github.com/danguer/blog-examples/blob/master/js/base64-binary.js

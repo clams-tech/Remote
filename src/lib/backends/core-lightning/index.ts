@@ -11,6 +11,7 @@ import type {
 	InvoiceRequest,
 	InvoiceResponse,
 	KeysendResponse,
+	ListfundsResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
 	PayResponse
@@ -282,6 +283,11 @@ async function listPays(): Promise<ListpaysResponse> {
 	return result as ListpaysResponse
 }
 
+async function listFunds(): Promise<ListfundsResponse> {
+	const result = await rpcRequest({ method: 'listfunds' })
+	return result as ListfundsResponse
+}
+
 export default {
 	init,
 	getInfo,
@@ -289,5 +295,6 @@ export default {
 	waitForInvoicePayment,
 	payInvoice,
 	payKeysend,
-	getPayments
+	getPayments,
+	listFunds
 }

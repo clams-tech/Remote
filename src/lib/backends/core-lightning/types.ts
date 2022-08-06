@@ -78,6 +78,10 @@ export interface KeysendRequest {
 	}
 }
 
+export type ListfundsRequest = {
+	method: 'listfunds'
+}
+
 export type LNRequest =
 	| PayRequest
 	| GetinfoRequest
@@ -86,6 +90,7 @@ export type LNRequest =
 	| InvoiceRequest
 	| WaitInvoiceRequest
 	| KeysendRequest
+	| ListfundsRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -156,7 +161,7 @@ export interface GetinfoResponse {
 	warning_lightningd_sync?: string
 }
 
-export interface Address {
+export type Address = {
 	/**
 	 * port number
 	 */
@@ -179,7 +184,7 @@ export enum AddressType {
 	Websocket = 'websocket'
 }
 
-export interface Binding {
+export type Binding = {
 	/**
 	 * address in expected format for **type**
 	 */
@@ -209,7 +214,7 @@ export enum BindingType {
 	Torv3 = 'torv3'
 }
 
-export interface InvoiceResponse {
+export type InvoiceResponse = {
 	/**
 	 * the bolt11 string
 	 */
@@ -252,7 +257,7 @@ export interface InvoiceResponse {
 	warning_private_unused?: string
 }
 
-export interface PayResponse {
+export type PayResponse = {
 	/**
 	 * Amount the recipient received
 	 */
@@ -300,11 +305,11 @@ export enum PaymentStatus {
 	Pending = 'pending'
 }
 
-export interface ListpaysResponse {
+export type ListpaysResponse = {
 	pays: Pay[]
 }
 
-export interface Pay {
+export type Pay = {
 	/**
 	 * the bolt11 string (if pay supplied one)
 	 */
@@ -342,7 +347,7 @@ export interface Pay {
 	status: PaymentStatus
 }
 
-export interface KeysendResponse {
+export type KeysendResponse = {
 	/**
 	 * Amount the recipient received
 	 */
@@ -381,12 +386,12 @@ export interface KeysendResponse {
 	warning_partial_completion?: string
 }
 
-export interface ListfundsResponse {
+export type ListfundsResponse = {
 	channels: Channel[]
 	outputs: Output[]
 }
 
-export interface Channel {
+export type Channel = {
 	/**
 	 * total channel value
 	 */
@@ -434,7 +439,7 @@ export enum State {
 	Openingd = 'OPENINGD'
 }
 
-export interface Output {
+export type Output = {
 	/**
 	 * the bitcoin address of the output
 	 */
@@ -469,11 +474,11 @@ export enum OutputStatus {
 	Unconfirmed = 'unconfirmed'
 }
 
-export interface ListinvoicesResponse {
+export type ListinvoicesResponse = {
 	invoices: Invoice[]
 }
 
-export interface Invoice {
+export type Invoice = {
 	/**
 	 * the amount required to pay this invoice
 	 */

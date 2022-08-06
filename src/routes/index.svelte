@@ -9,7 +9,12 @@
 	import ArrowIcon from '$lib/icons/Arrow.svelte'
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 	import Link from '$lib/elements/Link.svelte'
-	import { decodeRune } from '$lib/utils'
+	import { funds$, settings$ } from '$lib/streams'
+	import { calculateBalance } from '$lib/utils'
+	import Spinner from '$lib/elements/Spinner.svelte'
+	import Value from '$lib/components/Value.svelte'
+	import { convertValue } from '$lib/conversion'
+	import { BitcoinDenomination } from '$lib/types'
 
 	const buttons = [
 		{ key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
@@ -17,10 +22,14 @@
 		{ key: 'receive', icon: ArrowIcon, props: {} }
 	]
 
-	const rune =
-		'aTEhoWOAllxYDgWSUyGPEKVeUwr-MG_Il1HXZis1MYs9NCZtZXRob2RebGlzdHxtZXRob2ReZ2V0fG1ldGhvZD1zdW1tYXJ5Jm1ldGhvZC9saXN0ZGF0YXN0b3Jl'
-
-	console.log(decodeRune(rune))
+	$: balanceMsat = $funds$.data && calculateBalance($funds$.data)
+	$: balancePrimaryDenom =
+		balanceMsat &&
+		convertValue({
+			value: balanceMsat,
+			from: BitcoinDenomination.msats,
+			to: $settings$.primaryDenomination
+		})
 </script>
 
 <svelte:head>
@@ -31,6 +40,14 @@
 	<div class="w-1/3 max-w-xs">
 		<ClamsLogo />
 	</div>
+
+	{#if $funds$.loading}
+		<div class="p-6">
+			<Spinner />
+		</div>
+	{:else if balancePrimaryDenom !== null}
+		<Value value={balancePrimaryDenom} readonly />
+	{/if}
 
 	<div class="flex items-center justify-around w-full max-w-lg p-4 mt-4">
 		{#each buttons as { key, icon, props } (key)}
