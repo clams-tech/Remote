@@ -1,43 +1,96 @@
 import { BehaviorSubject, from, fromEvent, of, timer } from 'rxjs'
-import { catchError, filter, map, shareReplay, startWith, switchMap, take } from 'rxjs/operators'
+import {
+	catchError,
+	filter,
+	map,
+	shareReplay,
+	skip,
+	startWith,
+	switchMap,
+	take
+} from 'rxjs/operators'
+import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
+import { getCredentialsFromStorage, getPageVisibilityParams, getSettings } from './utils'
+
 import {
 	BITCOIN_EXCHANGE_RATE_ENDPOINT,
 	CORE_LN_CREDENTIALS_INITIAL,
 	MIN_IN_MS,
 	SETTINGS_STORAGE_KEY
 } from './constants'
-import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
-import { coreLightning, type CoreLnCredentials, type GetinfoResponse } from './backends'
-import { getCredentialsFromStorage, getPageVisibilityParams, getSettings } from './utils'
+
+import {
+	coreLightning,
+	type CoreLnCredentials,
+	type GetinfoResponse,
+	type ListfundsResponse
+} from './backends'
 
 export const lastPath$ = new BehaviorSubject('/')
 export const settings$ = new BehaviorSubject<Settings>(getSettings())
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 
-export const nodeInfo$ = new BehaviorSubject<GetinfoResponse | null>(null)
-export const payments$ = new BehaviorSubject<Payment[]>([])
-
 export const credentials$ = new BehaviorSubject<CoreLnCredentials>(
 	getCredentialsFromStorage() || CORE_LN_CREDENTIALS_INITIAL
 )
 
-// once we have credentials, go ahed and fetch data
+// ==== NODE DATA ==== //
+
+export const nodeInfo$ = new BehaviorSubject<{
+	data: GetinfoResponse | null
+	loading?: boolean
+	error?: string
+}>({ loading: true, data: null })
+
+export const payments$ = new BehaviorSubject<{
+	data: Payment[] | null
+	loading?: boolean
+	error?: string
+}>({ loading: true, data: null })
+
+export const funds$ = new BehaviorSubject<{
+	data: ListfundsResponse | null
+	loading?: boolean
+	error?: string
+}>({ loading: true, data: null })
+
+// once we have credentials, go ahead and fetch initial data
 credentials$
 	.pipe(
 		filter(({ connection, rune }) => !!(connection && rune)),
 		take(1)
 	)
 	.subscribe(async () => {
-		coreLightning.getInfo().then((info) => {
-			console.log(info)
-			nodeInfo$.next(info)
-		})
+		coreLightning
+			.getInfo()
+			.then((data) => {
+				console.log(data)
+				nodeInfo$.next({ loading: false, data })
+			})
+			.catch((error) => {
+				nodeInfo$.next({ loading: false, data: null, error: error.message })
+			})
 
-		coreLightning.getPayments().then((payments) => {
-			console.log(payments)
-			payments$.next(payments)
-		})
+		coreLightning
+			.getPayments()
+			.then((data) => {
+				console.log(data)
+				payments$.next({ loading: false, data })
+			})
+			.catch((error) => {
+				payments$.next({ loading: false, data: null, error: error.message })
+			})
+
+		coreLightning
+			.listFunds()
+			.then((data) => {
+				console.log(data)
+				funds$.next({ loading: false, data })
+			})
+			.catch((error) => {
+				funds$.next({ loading: false, data: null, error: error.message })
+			})
 	})
 
 const pageVisibilityParams = getPageVisibilityParams()
@@ -49,7 +102,9 @@ export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityCh
 )
 
 // update settings in storage
-settings$.subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
+settings$
+	.pipe(skip(1))
+	.subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
 
 // get and update bitcoin exchange rate
 timer(0, 1 * MIN_IN_MS)
@@ -64,11 +119,13 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	try {
 		const updatedPayment = await coreLightning.waitForInvoicePayment(payment)
 
-		const paymentsUpdate = payments$
-			.getValue()
-			.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
+		const currentPayments = payments$.getValue().data
 
-		payments$.next(paymentsUpdate)
+		const paymentsUpdate = currentPayments
+			? currentPayments.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
+			: [updatedPayment]
+
+		payments$.next({ data: paymentsUpdate })
 	} catch (error) {
 		console.log('Error waiting for invoice payment:', error)
 	}

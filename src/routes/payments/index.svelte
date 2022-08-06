@@ -13,6 +13,7 @@
 	import Caret from '$lib/icons/Caret.svelte'
 	import type { Payment } from '$lib/types'
 	import { t } from '$lib/i18n/translations'
+	import Spinner from '$lib/elements/Spinner.svelte'
 
 	let showFilters = false
 
@@ -31,8 +32,10 @@
 	let searchTerm = ''
 	let filteredPayments: Payment[] = []
 
+	$: payments = $payments$.data || []
+
 	$: {
-		filteredPayments = $payments$
+		filteredPayments = payments
 			// direction
 			?.filter(
 				(payment) =>
@@ -120,7 +123,7 @@
 			{#if showFilters}
 				<div class="flex flex-col border p-4 mt-4">
 					<!-- Filtering -->
-					{#if $payments$?.some((payment) => payment.direction === 'send') && $payments$?.some((payment) => payment.direction === 'receive')}
+					{#if payments.some((payment) => payment.direction === 'send') && payments.some((payment) => payment.direction === 'receive')}
 						<p class="text-neutral-600 italic">Direction:</p>
 						<div class="flex">
 							{#each Object.keys(directionFilters) as direction}
@@ -139,7 +142,7 @@
 					<p class="text-neutral-600 italic">Status:</p>
 					<div class="flex flex-wrap">
 						{#each Object.keys(statusFilters) as status}
-							{#if $payments$?.some((payment) => payment.status === status)}
+							{#if payments.some((payment) => payment.status === status)}
 								<div class="mr-2">
 									<Checkbox
 										name={status}
@@ -177,8 +180,15 @@
 			{/if}
 		</div>
 
-		{#each filteredPayments as payment (payment.id)}
-			<PaymentRow {payment} />
-		{/each}
+		{#if $payments$.loading}
+			<Spinner />
+		{:else if $payments$.error}
+			<!-- @TODO - Render error correctly -->
+			<span>{$payments$.error}</span>
+		{:else}
+			{#each filteredPayments as payment (payment.id)}
+				<PaymentRow {payment} />
+			{/each}
+		{/if}
 	</section>
 </Slide>

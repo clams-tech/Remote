@@ -19,12 +19,12 @@
 	import { goto } from '$app/navigation'
 	import PaymentDetails from '$lib/components/PaymentDetails.svelte'
 	import BackButton from '$lib/elements/BackButton.svelte'
-	import { getCredentialsFromStorage } from '$lib/utils'
 	import { t } from '$lib/i18n/translations'
+	import Spinner from '$lib/elements/Spinner.svelte'
 
 	export let id: string // payment id
 
-	$: payment = $payments$?.find((p) => p.id === id)
+	$: payment = $payments$.data && $payments$.data.find((p) => p.id === id)
 
 	function handleClose() {
 		const path = lastPath$.value
@@ -42,10 +42,19 @@
 	<title>{$t('app.titles.payment')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-center items-start w-full max-w-xl">
+<section in:fade class="flex flex-col justify-start items-center w-full h-full max-w-xl">
 	<BackButton on:click={handleClose} />
 
-	{#if payment}
+	{#if $payments$.loading}
+		<div class="w-full h-full flex items-center justify-center">
+			<Spinner />
+		</div>
+	{:else if $payments$.error}
+		<div class="w-full h-full flex items-center justify-center">
+			<!-- @TODO - Render error correctly -->
+			<span>{$payments$.error}</span>
+		</div>
+	{:else if payment}
 		<div class="flex w-full">
 			<PaymentDetails {payment} />
 		</div>
