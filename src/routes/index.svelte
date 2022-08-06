@@ -9,7 +9,7 @@
 	import ArrowIcon from '$lib/icons/Arrow.svelte'
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 	import Link from '$lib/elements/Link.svelte'
-	import { funds$, settings$ } from '$lib/streams'
+	import { funds$, nodeInfo$, settings$ } from '$lib/streams'
 	import { calculateBalance } from '$lib/utils'
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import Value from '$lib/components/Value.svelte'
@@ -43,9 +43,16 @@
 			<Settings />
 		</div>
 	</a>
-	<div class="w-1/3 max-w-xs">
+
+	<a href="/" class="w-24 absolute top-1 left-1">
 		<ClamsLogo />
-	</div>
+	</a>
+
+	{#if $nodeInfo$.data}
+		<span style="border-color: #{$nodeInfo$.data.color};" class="px-4 py-2 rounded-md border-2"
+			>{$nodeInfo$.data.alias}</span
+		>
+	{/if}
 
 	{#if $funds$.loading}
 		<div class="p-6">
