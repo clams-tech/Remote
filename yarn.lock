@@ -1468,6 +1468,12 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
+"rune-decoder@https://github.com/clams-tech/rune-decoder":
+  version "0.0.1"
+  resolved "https://github.com/clams-tech/rune-decoder#b4ca48fbdbad5749716f0b785a2a57e58d3dbcac"
+  dependencies:
+    typescript "^4.7.4"
+
 rxjs@^7.5.6:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.5.6.tgz#0446577557862afd6903517ce7cae79ecb9662bc"

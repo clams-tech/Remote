@@ -52,6 +52,7 @@
 		"lodash.isequal": "^4.5.0",
 		"qr-code-styling": "^1.6.0-rc.1",
 		"qr-scanner": "^1.4.1",
+		"rune-decoder": "https://github.com/clams-tech/rune-decoder",
 		"rxjs": "^7.5.6",
 		"sveltekit-i18n": "^2.2.2",
 		"ua-parser-js": "^1.0.2"
