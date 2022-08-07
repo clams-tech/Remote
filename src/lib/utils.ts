@@ -9,7 +9,7 @@ import { formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { CoreLnCredentials, ListfundsResponse } from './backends'
-import { type Denomination, type PaymentType, type Settings, Language } from './types'
+import { type Denomination, type PaymentType, type Settings, Language, type Payment } from './types'
 import { credentials$ } from './streams'
 
 import {
@@ -287,8 +287,10 @@ const locales: Record<string, Locale> = {
 
 export function formatDate(options: { date: string; language: string; type?: 'relative' }) {
 	const { date, language, type = 'relative' } = options
+
 	const settingsLocale =
 		Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
+
 	const locale = locales[settingsLocale] || enGB
 
 	if (type === 'relative') {
@@ -325,12 +327,23 @@ export const load: Load = async () => {
 	}
 }
 
+// limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
 	const offChain = funds.channels.reduce(
 		(total, { our_amount_msat }) => total.add(our_amount_msat),
 		Big('0')
 	)
-	const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
 
-	return offChain.add(onChain).toString()
+	// const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+
+	// return offChain.add(onChain).toString()
+	return offChain.toString()
 }
+
+export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
+	payments.sort((a, b) => {
+		return (
+			new Date(b.completedAt || b.startedAt).getTime() -
+			new Date(a.completedAt || a.startedAt).getTime()
+		)
+	})

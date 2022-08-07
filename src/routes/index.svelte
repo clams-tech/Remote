@@ -8,7 +8,6 @@
 	import QRIcon from '$lib/icons/Qr.svelte'
 	import ArrowIcon from '$lib/icons/Arrow.svelte'
 	import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-	import Link from '$lib/elements/Link.svelte'
 	import { funds$, nodeInfo$, settings$ } from '$lib/streams'
 	import { calculateBalance } from '$lib/utils'
 	import Spinner from '$lib/elements/Spinner.svelte'
@@ -16,6 +15,7 @@
 	import { convertValue } from '$lib/conversion'
 	import { BitcoinDenomination } from '$lib/types'
 	import Settings from '$lib/icons/Settings.svelte'
+	import RecentPayment from '$lib/components/RecentPayment.svelte'
 
 	const buttons = [
 		{ key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
@@ -39,7 +39,7 @@
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
 	<a href="/settings">
-		<div class="w-8 absolute top-2 right-2">
+		<div class="w-8 absolute top-4 right-4">
 			<Settings />
 		</div>
 	</a>
@@ -49,8 +49,12 @@
 	</a>
 
 	{#if $nodeInfo$.data}
-		<span style="border-color: #{$nodeInfo$.data.color};" class="px-2 py-1 rounded-md border-2"
-			>{$nodeInfo$.data.alias}</span
+		<span class="flex items-center"
+			>{$nodeInfo$.data.alias}
+			<div
+				style="background-color: #{$nodeInfo$.data.color};"
+				class="w-4 h-4 rounded-full ml-2"
+			/></span
 		>
 	{/if}
 
@@ -68,7 +72,7 @@
 				href={`/${key}`}
 				class=" w-1/4 h-24 border rounded flex flex-col justify-center items-center"
 			>
-				<div class="w-12">
+				<div class="w-8">
 					<svelte:component this={icon} {...props} />
 				</div>
 				<div>{$t(`app.buttons.${key}`)}</div>
@@ -76,5 +80,5 @@
 		{/each}
 	</div>
 
-	<Link href="/payments">payments</Link>
+	<RecentPayment />
 </div>

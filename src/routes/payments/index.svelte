@@ -14,7 +14,6 @@
 	import type { Payment } from '$lib/types'
 	import { t } from '$lib/i18n/translations'
 	import Spinner from '$lib/elements/Spinner.svelte'
-	import Arrow from '$lib/icons/Arrow.svelte'
 
 	let showFilters = false
 

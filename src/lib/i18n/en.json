@@ -89,7 +89,7 @@
 			"expiry": "Expires in:"
 		},
 		"details": {
-			"action": "You {{direction; receive:{{status; pending:invoiced; expired:invoiced; complete:received}}; send:{{status; pending:are sending; complete:sent}};}}"
+			"action": "{{direction; receive:{{status; pending:Invoiced; expired:Invoiced; complete:Received}}; send:{{status; pending:Sending; complete:Sent}};}}"
 		}
 	},
 	"modals": {
