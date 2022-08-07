@@ -93,6 +93,11 @@ credentials$
 			})
 	})
 
+// handle dark mode toggle
+settings$.subscribe(({ darkmode }) => {
+	document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
+})
+
 const pageVisibilityParams = getPageVisibilityParams()
 
 export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
