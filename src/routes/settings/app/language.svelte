@@ -32,7 +32,7 @@
 	}}
 >
 	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">Settings</h1>
+		<h1 class="text-center my-4">{$t('app.settings.language')}</h1>
 		<div class="border-y border-neutral-70">
 			{#each Object.values(Language) as val, index}
 				{#if $settings$.language === val}

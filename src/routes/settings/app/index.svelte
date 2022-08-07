@@ -13,17 +13,17 @@
 
 	let settings = [
 		{
-			label: 'Language',
+			label: $t('app.settings.language'),
 			route: '/settings/app/language',
 			value: $settings$.language
 		},
 		{
-			label: 'Local currency',
+			label: $t('app.settings.local_currency'),
 			route: '/settings/app/currency',
 			value: $settings$.fiatDenomination.toLocaleUpperCase()
 		},
 		{
-			label: 'Bitcoin unit',
+			label: $t('app.settings.bitcoin_unit'),
 			route: '/settings/app/unit',
 			value: $settings$.bitcoinDenomination
 		}
@@ -48,18 +48,18 @@
 		goto('/settings')
 	}}
 >
-	<section in:fade class="w-full h-full dark:bg-neutral-800">
-		<h1 class="text-center my-4">App</h1>
+	<section in:fade class="w-full h-full">
+		<h1 class="text-center my-4">{$t('app.settings.app')}</h1>
 		<div class="border-y border-neutral-70">
 			{#each settings as { label, route, value }, index}
 				<SettingRow {label} {route} {index}>
-					<p slot="element" class="text-neutral-400 dark:text-neutral-200">{value}</p>
+					<p slot="element" class="">{value}</p>
 				</SettingRow>
 			{/each}
 			<div class="flex py-3 px-6 border-y border-neutral-70">
-				<p>Notifications</p>
+				<p>{$t('app.settings.notifications')}</p>
 			</div>
-			<SettingRow label="Incoming transactions">
+			<SettingRow label={$t('app.settings.incoming_transactions')}>
 				<Toggle
 					slot="element"
 					toggled={$settings$.notifications}

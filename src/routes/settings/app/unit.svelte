@@ -37,7 +37,7 @@
 	}}
 >
 	<section in:fade class="w-full h-full ">
-		<h1 class="text-center my-4">Bitcoin unit</h1>
+		<h1 class="text-center my-4">{$t('app.settings.bitcoin_unit')}</h1>
 		<div class="border-y border-neutral-70">
 			{#each bitcoinDenominations as { value, label }, index}
 				{#if $settings$.bitcoinDenomination === value}

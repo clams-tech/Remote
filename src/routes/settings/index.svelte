@@ -15,9 +15,9 @@
 	import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
 
 	let settings = [
-		{ label: 'App', route: '/settings/app' },
-		{ label: 'Help & support', route: 'settings/help' },
-		{ label: 'Dark mode' }
+		{ label: $t('app.settings.app'), route: '/settings/app' },
+		{ label: $t('app.settings.help_and_support'), route: 'settings/help' },
+		{ label: $t('app.settings.dark_mode') }
 	]
 
 	const toggleDarkmode = () => {
@@ -40,10 +40,10 @@
 	}}
 >
 	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">Settings</h1>
+		<h1 class="text-center my-4">{$t('app.settings.settings')}</h1>
 		<div class="border-y border-neutral-70">
 			{#each settings as { label, route }, index}
-				{#if label === 'Dark mode'}
+				{#if label === 'Dark Mode'}
 					<SettingRow {label} {index}>
 						<Toggle slot="element" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
 					</SettingRow>
@@ -56,7 +56,7 @@
 		</div>
 		<div class="m-6">
 			<Button
-				text="Log out"
+				text={$t('app.buttons.log_out')}
 				on:click={() => {
 					localStorage.removeItem(CREDENTIALS_STORAGE_KEY)
 					window.location.reload()
