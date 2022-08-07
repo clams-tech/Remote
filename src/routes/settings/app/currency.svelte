@@ -55,10 +55,10 @@
 	}}
 >
 	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">Local Currency</h1>
+		<h1 class="text-center my-4">{$t('app.settings.local_currency')}</h1>
 		<div class="border-y border-neutral-70">
 			<div class="flex py-3 px-6 border-b border-neutral-70">
-				<p>Commonly used</p>
+				<p>{$t('app.settings.commonly_used')}</p>
 			</div>
 			{#each Object.entries(FiatDenomination) as [key, val], index}
 				{#if index < 2}
@@ -76,7 +76,7 @@
 				{/if}
 			{/each}
 			<div class="flex py-3 px-6 border-y border-neutral-70">
-				<p>All options</p>
+				<p>{$t('app.settings.all_options')}</p>
 			</div>
 			{#each Object.entries(FiatDenomination).sort( ([a], [b]) => a.localeCompare(b) ) as [key, val], index}
 				{#if $settings$.fiatDenomination === val}

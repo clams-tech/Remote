@@ -70,7 +70,8 @@
 		"back": "Back",
 		"edit": "Edit",
 		"cancel": "Cancel",
-		"save": "Save"
+		"save": "Save",
+		"log_out": "Log out"
 	},
 	"payment": {
 		"amount": {
@@ -97,5 +98,19 @@
 			"paragraph_one": "You have a {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} on your clipboard.",
 			"paragraph_two": "Would you like to use this {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} for a transaction?"
 		}
+	},
+	"settings": {
+		"settings": "Settings",
+		"app": "App",
+		"help_and_support": "Help & Support",
+		"dark_mode": "Dark Mode",
+		"language": "Language",
+		"local_currency": "Local Currency",
+		"bitcoin_unit": "Bitcoin Unit",
+		"community": "Community",
+		"notifications": "Notifications",
+		"incoming_transactions": "Incoming Transactions",
+		"commonly_used": "Commonly Used",
+		"all_options": "All Options"
 	}
 }
