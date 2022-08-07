@@ -118,23 +118,23 @@
 		<div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded">
 			<div class="flex items-end">
 				<div class="relative flex items-center">
-					<div class="text-5xl font-semibold cursor-pointer font-mono">{displayValue}</div>
+					<div class="text-4xl font-semibold cursor-pointer font-mono">{displayValue}</div>
 					{#if !readonly}
 						<input
 							bind:this={input}
 							on:input={handleInput}
 							type="number"
-							class="absolute caret-black dark:caret-white h-12 top-0 left-0 w-1 text-5xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
+							class="absolute caret-black dark:caret-white h-12 top-0 left-0 w-1 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
 						/>
 					{/if}
 				</div>
-				<span class="ml-2 text-xl leading-1 font-semibold pb-1">
+				<span class="ml-2 text-lg leading-1 font-semibold pb-1">
 					{$settings$.primaryDenomination.toUpperCase()}
 				</span>
 			</div>
 			<div
 				on:click={switchDenomination}
-				class="w-8 ml-6 p-1 box-content text-slate-400 hover:text-slate-600 hover:border-slate-600 transition-all rotate-90 cursor-pointer"
+				class="w-6 ml-6 p-1 box-content text-slate-400 hover:text-slate-600 hover:border-slate-600 transition-all rotate-90 cursor-pointer"
 			>
 				<Exchange />
 			</div>

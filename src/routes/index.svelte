@@ -49,7 +49,7 @@
 	</a>
 
 	{#if $nodeInfo$.data}
-		<span style="border-color: #{$nodeInfo$.data.color};" class="px-4 py-2 rounded-md border-2"
+		<span style="border-color: #{$nodeInfo$.data.color};" class="px-2 py-1 rounded-md border-2"
 			>{$nodeInfo$.data.alias}</span
 		>
 	{/if}
