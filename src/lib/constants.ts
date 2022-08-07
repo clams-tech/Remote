@@ -17,7 +17,9 @@ export const MIN_IN_SECS = 60
 export const DEFAULT_INVOICE_EXPIRY = 15 * MIN_IN_SECS
 
 export const DEFAULT_SETTINGS: Settings = {
-	language: navigator?.languages ? navigator.languages[0] : navigator.language || Language['en-US'],
+	language: (navigator?.languages
+		? navigator.languages[0]
+		: navigator.language || Language['en-US']) as Language,
 	fiatDenomination: FiatDenomination.usd,
 	bitcoinDenomination: BitcoinDenomination.sats,
 	primaryDenomination: BitcoinDenomination.sats,

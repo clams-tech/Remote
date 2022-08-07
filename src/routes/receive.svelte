@@ -6,7 +6,7 @@
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import Summary from '$lib/components/Summary.svelte'
-	import { payments$, settings$, waitForAndUpdatePayment } from '$lib/streams'
+	import { addPayment, settings$, waitForAndUpdatePayment } from '$lib/streams'
 	import { SvelteSubject } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 	import { goto } from '$app/navigation'
@@ -67,7 +67,7 @@
 			})
 
 			// add to payments
-			payments$.next([...$payments$, payment])
+			addPayment(payment)
 
 			// track invoice payment
 			waitForAndUpdatePayment(payment)

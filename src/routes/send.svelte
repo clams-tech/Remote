@@ -10,7 +10,7 @@
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
 	import { SvelteSubject } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
-	import { payments$, settings$ } from '$lib/streams'
+	import { addPayment, settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import { t } from '$lib/i18n/translations'
@@ -87,7 +87,7 @@
 							: undefined
 					})
 
-					payments$.next([...$payments$, payment])
+					addPayment(payment)
 					paymentId = payment.id
 
 					break
@@ -108,7 +108,7 @@
 							.toString()
 					})
 
-					payments$.next([...$payments$, payment])
+					addPayment(payment)
 					paymentId = payment.id
 
 					break

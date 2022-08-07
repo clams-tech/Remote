@@ -136,6 +136,11 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	}
 }
 
+export function addPayment(payment: Payment): void {
+	const currentPayments = payments$.getValue().data || []
+	payments$.next({ data: [...currentPayments, payment] })
+}
+
 export async function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
 	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
 }
