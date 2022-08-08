@@ -50,9 +50,9 @@
 	</a>
 
 	{#if $nodeInfo$.data}
-		<span class="flex items-center"
+		<span in:fade class="flex items-center"
 			>{$nodeInfo$.data.alias}
-			<div
+			<span
 				style="background-color: #{$nodeInfo$.data.color};"
 				class="w-4 h-4 rounded-full ml-2"
 			/></span
@@ -60,11 +60,13 @@
 	{/if}
 
 	{#if $funds$.loading}
-		<div class="p-6">
+		<div in:fade class="p-6">
 			<Spinner />
 		</div>
 	{:else if balancePrimaryDenom !== null}
-		<Value value={balancePrimaryDenom} readonly />
+		<div in:fade>
+			<Value value={balancePrimaryDenom} readonly />
+		</div>
 	{/if}
 
 	<div class="flex items-center justify-around w-full max-w-sm p-4 mt-4">
