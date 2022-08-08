@@ -1,6 +1,6 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
-import { initLnSocket, invoiceStatusToPaymentStatus, rpcRequest } from './utils'
+import { invoiceStatusToPaymentStatus, rpcRequest } from './utils'
 import type { Payment, PaymentStatus } from '$lib/types'
 import { formatDecodedInvoice, sortPaymentsMostRecent } from '$lib/utils'
 import { firstValueFrom, timer } from 'rxjs'
@@ -16,10 +16,6 @@ import type {
 	ListpaysResponse,
 	PayResponse
 } from './types'
-
-async function init(): Promise<void> {
-	await initLnSocket()
-}
 
 async function getInfo(): Promise<GetinfoResponse> {
 	const result = await rpcRequest({ method: 'getinfo' })
@@ -289,7 +285,6 @@ async function listFunds(): Promise<ListfundsResponse> {
 }
 
 export default {
-	init,
 	getInfo,
 	createInvoice,
 	waitForInvoicePayment,

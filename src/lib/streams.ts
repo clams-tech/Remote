@@ -61,11 +61,12 @@ credentials$
 		filter(({ connection, rune }) => !!(connection && rune)),
 		take(1)
 	)
-	.subscribe(async () => {
+	.subscribe(async (credentials) => {
+		localStorage.setItem('credentials', JSON.stringify(credentials))
+
 		coreLightning
 			.getInfo()
 			.then((data) => {
-				console.log(data)
 				nodeInfo$.next({ loading: false, data })
 			})
 			.catch((error) => {
@@ -75,7 +76,6 @@ credentials$
 		coreLightning
 			.getPayments()
 			.then((data) => {
-				console.log(data)
 				payments$.next({ loading: false, data })
 			})
 			.catch((error) => {
@@ -85,7 +85,6 @@ credentials$
 		coreLightning
 			.listFunds()
 			.then((data) => {
-				console.log(data)
 				funds$.next({ loading: false, data })
 			})
 			.catch((error) => {
