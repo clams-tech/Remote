@@ -24,6 +24,7 @@
 	]
 
 	$: balanceMsat = $funds$.data && calculateBalance($funds$.data)
+
 	$: balancePrimaryDenom =
 		balanceMsat &&
 		convertValue({
@@ -66,11 +67,11 @@
 		<Value value={balancePrimaryDenom} readonly />
 	{/if}
 
-	<div class="flex items-center justify-around w-full max-w-lg p-4 mt-4">
+	<div class="flex items-center justify-around w-full max-w-sm p-4 mt-4">
 		{#each buttons as { key, icon, props } (key)}
 			<a
 				href={`/${key}`}
-				class=" w-1/4 h-24 border rounded flex flex-col justify-center items-center"
+				class=" w-24 h-24 border rounded flex flex-col justify-center items-center"
 			>
 				<div class="w-8">
 					<svelte:component this={icon} {...props} />
