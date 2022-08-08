@@ -41,7 +41,7 @@
 </svelte:head>
 
 <div in:fade class="p-4 w-full h-full flex flex-col justify-center items-center">
-	<div class="w-full flex flex-col items-start">
+	<div class="w-full flex flex-col justify-start items-center">
 		<h1 class="text-5xl mt-2 mb-8 pb-2 border-b-4 rounded border-b-purple-500">
 			{$t('app.titles.connect')}
 		</h1>
