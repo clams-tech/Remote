@@ -1,7 +1,24 @@
 import { lnsocketProxy } from '$lib/constants'
 import { credentials$ } from '$lib/streams'
 import type { Payment } from '$lib/types'
-import type { LNRequest, LNResponse, InvoiceStatus } from './types'
+import type { LNRequest, LNResponse, InvoiceStatus, Socket, ConnectOptions } from './types'
+
+export async function connect({ publicKey, wsUrl }: ConnectOptions): Promise<Socket> {
+	const LNSocket = await (window as any).lnsocket_init()
+	const lnsocket = LNSocket()
+	lnsocket.genkey()
+
+	await lnsocket.connect_and_init(publicKey, wsUrl)
+
+	return lnsocket
+}
+
+export function connectionToConnectOptions(connection: string): ConnectOptions {
+	const [publicKey, host] = connection.split('@')
+	const wsUrl = `${lnsocketProxy}/${host}`
+
+	return { publicKey, wsUrl }
+}
 
 export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
 	const credentials = credentials$.getValue()
@@ -10,14 +27,9 @@ export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
 		throw new Error('Credentials must be set before making rpc requests')
 	}
 
-	const LNSocket = await (window as any).lnsocket_init()
-	const lnsocket = LNSocket()
-	lnsocket.genkey()
-
 	const { connection, rune } = credentials
-	const [publicKey, host] = connection.split('@')
-
-	await lnsocket.connect_and_init(publicKey, `${lnsocketProxy}/${host}`)
+	const connectOptions = connectionToConnectOptions(connection)
+	const lnsocket = await connect(connectOptions)
 
 	const response = await lnsocket.rpc({ ...request, rune })
 

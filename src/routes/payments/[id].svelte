@@ -4,7 +4,7 @@
 	export const load: Load = ({ params }) => {
 		if (!credentials$.getValue().connection) {
 			return {
-				redirect: '/connect',
+				redirect: '/welcome',
 				status: 302
 			}
 		} else {

@@ -1,10 +1,16 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
-import { invoiceStatusToPaymentStatus, rpcRequest } from './utils'
 import type { Payment, PaymentStatus } from '$lib/types'
 import { formatDecodedInvoice, sortPaymentsMostRecent } from '$lib/utils'
 import { firstValueFrom, timer } from 'rxjs'
 import { switchMap, filter, map } from 'rxjs/operators'
+
+import {
+	invoiceStatusToPaymentStatus,
+	rpcRequest,
+	connect,
+	connectionToConnectOptions
+} from './utils'
 
 import type {
 	GetinfoResponse,
@@ -291,5 +297,7 @@ export default {
 	payInvoice,
 	payKeysend,
 	getPayments,
-	listFunds
+	listFunds,
+	connect,
+	connectionToConnectOptions
 }

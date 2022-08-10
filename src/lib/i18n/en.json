@@ -4,7 +4,7 @@
 		"send": "Send",
 		"receive": "Receive",
 		"scan": "Scan",
-		"connect": "Connect",
+		"welcome": "Welcome",
 		"payments": "Payments",
 		"payment": "Payment",
 		"settings": "Settings",
@@ -64,7 +64,7 @@
 		"scan": "Scan",
 		"receive": "Receive",
 		"create_instant": "Create Instant Wallet",
-		"connect": "Connect",
+		"welcome": "Welcome",
 		"connect_to_camera": "Connect to Camera",
 		"view_summary": "View Summary",
 		"back": "Back",
@@ -112,5 +112,13 @@
 		"incoming_transactions": "Incoming Transactions",
 		"commonly_used": "Commonly Used",
 		"all_options": "All Options"
+	},
+	"welcome": {
+		"idle": "Connect",
+		"connecting": "Connecting",
+		"fail": "Try Again",
+		"success": "Success!",
+		"connect": "Connect",
+		"rune": "Rune"
 	}
 }
