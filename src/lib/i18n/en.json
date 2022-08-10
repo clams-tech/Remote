@@ -4,7 +4,9 @@
 		"send": "Send",
 		"receive": "Receive",
 		"scan": "Scan",
+		"welcome": "Welcome",
 		"connect": "Connect",
+		"rune": "Rune",
 		"payments": "Payments",
 		"payment": "Payment",
 		"settings": "Settings",
@@ -25,6 +27,16 @@
 		"terms_conditions": {
 			"agree": "I agree to the",
 			"terms": "terms and conditions"
+		},
+		"node_connect": {
+			"label": "Address",
+			"placeholder": "02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735",
+			"invalid": "Invalid node connection address"
+		},
+		"add_rune": {
+			"label": "Rune",
+			"placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
+			"success": "Connect success"
 		}
 	},
 	"labels": {
@@ -37,7 +49,10 @@
 		"created_started_at": "{{direction; receive:Created; send:Started;}} At:",
 		"description": "Description:",
 		"payment_id": "Payment ID:",
-		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:"
+		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:",
+		"id": "ID:",
+		"hash": "Hash:",
+		"restrictions": "Restrictions"
 	},
 	"time": {
 		"mins": "mins"
@@ -52,7 +67,8 @@
 		"one_of": "Must be one of the following values: {{values}}"
 	},
 	"errors": {
-		"camera_connection": "There was an error connecting to your camera, please try again."
+		"camera_connection": "There was an error connecting to your camera, please try again.",
+		"node_connect": "Connection error"
 	},
 	"buttons": {
 		"create_invoice": "Create Invoice",
@@ -64,14 +80,23 @@
 		"scan": "Scan",
 		"receive": "Receive",
 		"create_instant": "Create Instant Wallet",
-		"connect": "Connect",
+		"welcome": "Welcome",
 		"connect_to_camera": "Connect to Camera",
 		"view_summary": "View Summary",
 		"back": "Back",
 		"edit": "Edit",
 		"cancel": "Cancel",
 		"save": "Save",
-		"log_out": "Log out"
+		"log_out": "Log out",
+		"connect": "Connect",
+		"try_again": "Try Again",
+		"add_rune": "Add a Rune"
+	},
+	"hints": {
+		"unrestricted": "unrestricted!"
+	},
+	"headings": {
+		"summary": "Summary"
 	},
 	"payment": {
 		"amount": {

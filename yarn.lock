@@ -1722,7 +1722,7 @@ run-parallel@^1.1.9:
 
 "rune-decoder@https://github.com/clams-tech/rune-decoder":
   version "0.0.1"
-  resolved "https://github.com/clams-tech/rune-decoder#b4ca48fbdbad5749716f0b785a2a57e58d3dbcac"
+  resolved "https://github.com/clams-tech/rune-decoder#f61422ae8f4a17f30e1f348b350153152186323a"
   dependencies:
     typescript "^4.7.4"
 

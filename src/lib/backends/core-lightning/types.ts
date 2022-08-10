@@ -12,6 +12,11 @@ export type Socket = {
 	destroy: () => void
 }
 
+export type ConnectOptions = {
+	publicKey: string
+	wsUrl: string
+}
+
 // ==== REQUESTS ==== //
 
 export type GetinfoRequest = {

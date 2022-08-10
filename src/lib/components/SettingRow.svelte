@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
-	export let index: number = 0
+	export let index = 0
 	export let label: string
-	export let route: string = ''
+	export let route = ''
 </script>
 
 <div
@@ -15,7 +15,7 @@
 	}}
 >
 	<div
-		class="flex items-center justify-between w-full py-3 mx-6 border-neutral-70"
+		class="flex items-center justify-between w-full py-3 mx-6 border-neutral-100"
 		class:border-t={index !== 0}
 	>
 		<p>{label}</p>

@@ -18,7 +18,7 @@
 		<BackButton on:click={back} />
 	{/if}
 
-	<div in:fly={{ x }} class="flex items-center justify-center h-full overflow-hidden">
+	<div in:fly={{ x }} class="flex justify-center h-full overflow-hidden">
 		<slot />
 	</div>
 </div>

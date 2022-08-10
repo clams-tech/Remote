@@ -143,3 +143,8 @@ export function addPayment(payment: Payment): void {
 export async function getBitcoinExchangeRate(): Promise<{ bitcoin: BitcoinExchangeRates }> {
 	return fetch(BITCOIN_EXCHANGE_RATE_ENDPOINT).then((res) => res.json())
 }
+
+export function updateCredentials(update: Partial<CoreLnCredentials>): void {
+	const currentCredentials = credentials$.getValue()
+	credentials$.next({ ...currentCredentials, ...update })
+}

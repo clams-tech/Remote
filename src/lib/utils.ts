@@ -184,6 +184,7 @@ export async function writeClipboardValue(text: string): Promise<boolean> {
 
 export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
+const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentType(value: string): PaymentType | null {
 	if (nodePublicKeyRegex.test(value)) {
@@ -321,7 +322,7 @@ export const load: Load = async () => {
 
 	if (!credentials.connection) {
 		return {
-			redirect: '/connect',
+			redirect: '/welcome',
 			status: 302
 		}
 	}
@@ -347,3 +348,19 @@ export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
 			new Date(a.completedAt || a.startedAt).getTime()
 		)
 	})
+
+export function validateConnectionString(connect: string): boolean {
+	const [publicKey, host] = connect.split('@')
+	if (!publicKey || !host) return false
+
+	const [ip, port] = host.split(':')
+	if (!ip || !port) return false
+
+	const portNumber = parseInt(port)
+	if (portNumber < 1 || portNumber > 65535) return false
+
+	if (!publicKey.match(nodePublicKeyRegex)) return false
+	if (!ip.match(ipRegex)) return false
+
+	return true
+}
