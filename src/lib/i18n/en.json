@@ -35,7 +35,8 @@
 		},
 		"add_rune": {
 			"label": "Rune",
-			"placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA=="
+			"placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
+			"success": "Connect success"
 		}
 	},
 	"labels": {
@@ -48,7 +49,10 @@
 		"created_started_at": "{{direction; receive:Created; send:Started;}} At:",
 		"description": "Description:",
 		"payment_id": "Payment ID:",
-		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:"
+		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:",
+		"id": "ID:",
+		"hash": "Hash:",
+		"restrictions": "Restrictions"
 	},
 	"time": {
 		"mins": "mins"
@@ -64,7 +68,7 @@
 	},
 	"errors": {
 		"camera_connection": "There was an error connecting to your camera, please try again.",
-		"": "Invalid connection address"
+		"node_connect": "Connection error"
 	},
 	"buttons": {
 		"create_invoice": "Create Invoice",
@@ -87,6 +91,12 @@
 		"connect": "Connect",
 		"try_again": "Try Again",
 		"add_rune": "Add a Rune"
+	},
+	"hints": {
+		"unrestricted": "unrestricted!"
+	},
+	"headings": {
+		"summary": "Summary"
 	},
 	"payment": {
 		"amount": {

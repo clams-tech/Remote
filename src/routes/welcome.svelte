@@ -26,11 +26,14 @@
 	import Button from '$lib/elements/Button.svelte'
 	import { credentials$, updateCredentials } from '$lib/streams'
 	import { coreLightning, type Socket } from '$lib/backends'
-	import { validateConnectionString } from '$lib/utils'
+	import { truncateValue, validateConnectionString } from '$lib/utils'
 	import Check from '$lib/icons/Check.svelte'
 	import Close from '$lib/icons/Close.svelte'
 	import Arrow from '$lib/icons/Arrow.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
+	import { map } from 'rxjs'
+	import Warning from '$lib/icons/Warning.svelte'
 
 	type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
 	type Step = 'connect' | 'rune'
@@ -103,12 +106,18 @@
 
 						<div in:fade class="flex items-center absolute bottom-10 right-2">
 							{#if connectStatus === 'success'}
-								<div class="w-6 text-utility-success">
-									<Check />
+								<div class="flex items-center">
+									<span class="text-utility-success">{$t('app.inputs.add_rune.success')}</span>
+									<div class="w-6 text-utility-success">
+										<Check />
+									</div>
 								</div>
 							{:else if connectStatus === 'fail'}
-								<div class="w-6 text-utility-error">
-									<Close />
+								<div class="flex items-center">
+									<span class="text-utility-error">{$t('app.errors.node_connect')}</span>
+									<div class="w-6 text-utility-error">
+										<Close />
+									</div>
 								</div>
 							{/if}
 						</div>
@@ -149,6 +158,51 @@
 					</div>
 
 					{#if decodedRune}
+						<div class="w-full mb-6">
+							<h4 class="font-semibold mb-4">{$t('app.headings.summary')}</h4>
+
+							<SummaryRow>
+								<span slot="label">{$t('app.labels.id')}</span>
+								<span slot="value">{decodedRune.id}</span>
+							</SummaryRow>
+
+							<SummaryRow>
+								<span slot="label">{$t('app.labels.hash')}</span>
+								<span slot="value">{truncateValue(decodedRune.hash)}</span>
+							</SummaryRow>
+
+							<SummaryRow>
+								<span slot="label">{$t('app.labels.restrictions')}</span>
+								<p slot="value">
+									{#if decodedRune.restrictions.length === 0}
+										<div class="flex items-center">
+											<div class="w-4 mr-2 text-utility-pending">
+												<Warning />
+											</div>
+											<span class="text-utility-pending">{$t('app.hints.unrestricted')}</span>
+										</div>
+									{:else}
+										{@html decodedRune.restrictions
+											.map(({ summary }) => {
+												const alternatives = summary.split(' OR ')
+
+												return alternatives
+													.map((alternative) => {
+														const words = alternative.split(' ')
+														const wordsBold = words.map((w, i) =>
+															i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
+														)
+
+														return wordsBold.join(' ')
+													})
+													.join('<i>&nbsp;OR&nbsp;</i>')
+											})
+											.join('<i>&nbsp;AND&nbsp;</i>')}
+									{/if}
+								</p>
+							</SummaryRow>
+						</div>
+
 						<Button on:click={saveRune} text={$t('app.buttons.save')}>
 							<div slot="iconRight" class="w-6">
 								<Arrow direction="right" />
