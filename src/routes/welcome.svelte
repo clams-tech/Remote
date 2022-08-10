@@ -26,7 +26,6 @@
 	import Button from '$lib/elements/Button.svelte'
 	import { credentials$, updateCredentials } from '$lib/streams'
 	import { coreLightning, type Socket } from '$lib/backends'
-	import Spinner from '$lib/elements/Spinner.svelte'
 	import { validateConnectionString } from '$lib/utils'
 	import Check from '$lib/icons/Check.svelte'
 	import Close from '$lib/icons/Close.svelte'
@@ -62,7 +61,7 @@
 
 			const lnsocket = await Promise.race([
 				coreLightning.connect(connectOptions),
-				new Promise((res, reject) => setTimeout(reject, 5000))
+				new Promise((res, reject) => setTimeout(reject, 10000))
 			])
 
 			connectStatus = 'success'
@@ -85,7 +84,7 @@
 
 <div class="p-4 w-full h-full flex flex-col items-center">
 	<h1 class="text-lg w-full text-center mt-2 mb-8 pb-2 font-bold">
-		{$t(`app.welcome.${step}`)}
+		{$t(`app.titles.${step}`)}
 	</h1>
 	{#if step === 'connect'}
 		<Slide>
@@ -96,9 +95,9 @@
 							name="connection"
 							type="textarea"
 							rows={6}
-							label="Address"
-							invalid={rune && decodedRune === null ? 'Invalid rune' : ''}
-							placeholder="02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735"
+							label={$t('app.inputs.node_connect.label')}
+							invalid={connection && !validConnection ? $t('app.inputs.node_connect.invalid') : ''}
+							placeholder={$t('app.inputs.node_connect.placeholder')}
 							bind:value={connection}
 						/>
 
@@ -116,7 +115,7 @@
 					</div>
 
 					{#if connectStatus === 'success'}
-						<Button on:click={() => (step = 'rune')} text="Add a Rune">
+						<Button on:click={() => (step = 'rune')} text={$t('app.buttons.add_rune')}>
 							<div slot="iconRight" class="w-6">
 								<Arrow direction="right" />
 							</div>
@@ -126,7 +125,7 @@
 							disabled={!validConnection}
 							on:click={attemptConnect}
 							requesting={connectStatus === 'connecting'}
-							text={$t(`app.welcome.${connectStatus}`)}
+							text={$t(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
 						/>
 					{/if}
 				</div>
@@ -143,14 +142,14 @@
 							name="rune"
 							type="textarea"
 							rows={6}
-							label="Rune"
-							placeholder="7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA=="
+							label={$t('app.inputs.add_rune.label')}
+							placeholder={$t('app.inputs.add_rune.placeholder')}
 							bind:value={rune}
 						/>
 					</div>
 
 					{#if decodedRune}
-						<Button on:click={saveRune} text="Save">
+						<Button on:click={saveRune} text={$t('app.buttons.save')}>
 							<div slot="iconRight" class="w-6">
 								<Arrow direction="right" />
 							</div>

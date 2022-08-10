@@ -5,6 +5,8 @@
 		"receive": "Receive",
 		"scan": "Scan",
 		"welcome": "Welcome",
+		"connect": "Connect",
+		"rune": "Rune",
 		"payments": "Payments",
 		"payment": "Payment",
 		"settings": "Settings",
@@ -25,6 +27,15 @@
 		"terms_conditions": {
 			"agree": "I agree to the",
 			"terms": "terms and conditions"
+		},
+		"node_connect": {
+			"label": "Address",
+			"placeholder": "02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735",
+			"invalid": "Invalid node connection address"
+		},
+		"add_rune": {
+			"label": "Rune",
+			"placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA=="
 		}
 	},
 	"labels": {
@@ -52,7 +63,8 @@
 		"one_of": "Must be one of the following values: {{values}}"
 	},
 	"errors": {
-		"camera_connection": "There was an error connecting to your camera, please try again."
+		"camera_connection": "There was an error connecting to your camera, please try again.",
+		"": "Invalid connection address"
 	},
 	"buttons": {
 		"create_invoice": "Create Invoice",
@@ -71,7 +83,10 @@
 		"edit": "Edit",
 		"cancel": "Cancel",
 		"save": "Save",
-		"log_out": "Log out"
+		"log_out": "Log out",
+		"connect": "Connect",
+		"try_again": "Try Again",
+		"add_rune": "Add a Rune"
 	},
 	"payment": {
 		"amount": {
@@ -112,13 +127,5 @@
 		"incoming_transactions": "Incoming Transactions",
 		"commonly_used": "Commonly Used",
 		"all_options": "All Options"
-	},
-	"welcome": {
-		"idle": "Connect",
-		"connecting": "Connecting",
-		"fail": "Try Again",
-		"success": "Success!",
-		"connect": "Connect",
-		"rune": "Rune"
 	}
 }
