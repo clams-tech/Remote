@@ -32,7 +32,6 @@
 	import Arrow from '$lib/icons/Arrow.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import SummaryRow from '$lib/elements/SummaryRow.svelte'
-	import { map } from 'rxjs'
 	import Warning from '$lib/icons/Warning.svelte'
 
 	type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
