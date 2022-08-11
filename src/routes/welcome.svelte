@@ -86,7 +86,7 @@
 </svelte:head>
 
 <div class="p-4 w-full h-full flex flex-col items-center">
-	<h1 class="text-lg w-full text-center mt-2 mb-8 pb-2 font-bold">
+	<h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
 		{$t(`app.titles.${step}`)}
 	</h1>
 	{#if step === 'connect'}
@@ -195,9 +195,9 @@
 
 														return wordsBold.join(' ')
 													})
-													.join('<i>&nbsp;OR&nbsp;</i>')
+													.join('<i><br>OR<br></i>')
 											})
-											.join('<i>&nbsp;AND&nbsp;</i>')}
+											.join('<i><br>AND<br></i>')}
 									{/if}
 								</p>
 							</SummaryRow>
