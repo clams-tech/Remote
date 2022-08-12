@@ -7,10 +7,24 @@ import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
 import { formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-import type { CoreLnCredentials, ListfundsResponse } from './backends'
-import { type Denomination, type PaymentType, type Settings, Language, type Payment } from './types'
-import { credentials$ } from './streams'
+import { coreLightning, type CoreLnCredentials, type ListfundsResponse } from './backends'
+import {
+	COINBASE_PRICE_ENDPOINT,
+	COIN_GECKO_PRICE_ENDPOINT,
+	DEFAULT_SETTINGS,
+	SETTINGS_STORAGE_KEY
+} from './constants'
+
+import {
+	type Denomination,
+	type PaymentType,
+	type Settings,
+	Language,
+	type Payment,
+	type BitcoinExchangeRates
+} from './types'
+
+import { credentials$, payments$ } from './streams'
 
 import {
 	ar,
@@ -363,4 +377,51 @@ export function validateConnectionString(connect: string): boolean {
 	if (!ip.match(ipRegex)) return false
 
 	return true
+}
+
+export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
+	try {
+		const updatedPayment = await coreLightning.waitForInvoicePayment(payment)
+
+		const currentPayments = payments$.getValue().data
+
+		const paymentsUpdate = currentPayments
+			? currentPayments.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
+			: [updatedPayment]
+
+		payments$.next({ data: paymentsUpdate })
+	} catch (error) {
+		console.log('Error waiting for invoice payment:', error)
+	}
+}
+
+export function addPayment(payment: Payment): void {
+	const currentPayments = payments$.getValue().data || []
+	payments$.next({ data: [...currentPayments, payment] })
+}
+
+/** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
+export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
+	try {
+		const coinGecko = await fetch(COIN_GECKO_PRICE_ENDPOINT).then((res) => res.json())
+		return coinGecko.bitcoin
+	} catch (error) {
+		try {
+			const coinbase: { data: { rates: BitcoinExchangeRates } } = await fetch(
+				COINBASE_PRICE_ENDPOINT
+			).then((res) => res.json())
+
+			return Object.entries(coinbase.data.rates).reduce((acc, [key, value]) => {
+				acc[key.toLowerCase() as keyof BitcoinExchangeRates] = value
+				return acc
+			}, {} as BitcoinExchangeRates)
+		} catch (error) {
+			return null
+		}
+	}
+}
+
+export function updateCredentials(update: Partial<CoreLnCredentials>): void {
+	const currentCredentials = credentials$.getValue()
+	credentials$.next({ ...currentCredentials, ...update })
 }

@@ -9,10 +9,10 @@
 	import Slide from '$lib/elements/Slide.svelte'
 	import Summary from '$lib/components/Summary.svelte'
 	import { BitcoinDenomination, type Payment } from '$lib/types'
-	import { addPayment, settings$ } from '$lib/streams'
+	import { settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
 	import { coreLightning, type ErrorResponse } from '$lib/backends'
-	import { formatDecodedInvoice, SvelteSubject } from '$lib/utils'
+	import { formatDecodedInvoice, SvelteSubject, addPayment } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 
 	let requesting = false
