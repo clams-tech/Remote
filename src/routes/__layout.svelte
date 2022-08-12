@@ -17,6 +17,7 @@
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
 	import { lastPath$ } from '$lib/streams'
+	import registerSideEffects from '$lib/side-effects'
 	import '../app.css'
 
 	beforeNavigate(({ from }) => {
@@ -27,6 +28,8 @@
 
 	let innerHeight = window.innerHeight
 	let innerWidth = window.innerWidth
+
+	registerSideEffects()
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />
