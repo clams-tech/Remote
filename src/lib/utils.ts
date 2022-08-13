@@ -397,7 +397,7 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 
 export function addPayment(payment: Payment): void {
 	const currentPayments = payments$.getValue().data || []
-	payments$.next({ data: [...currentPayments, payment] })
+	payments$.next({ data: [payment, ...currentPayments] })
 }
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */

@@ -5,7 +5,7 @@
 
 	export let type: InputType = 'text'
 	export let value: string | number
-	export let label: string = ''
+	export let label = ''
 	export let name: string
 	export let invalid = ''
 	export let placeholder = ''
@@ -36,7 +36,7 @@
 	// autofill:bg-transparent
 </script>
 
-<div style="width: {width};" class="flex flex-col relative mb-6">
+<div style="width: {width};" class="flex flex-col relative">
 	{#if label || hint}
 		<div class="flex items-center mb-2 font-medium">
 			<label class="text-sm w-1/2 text-{disabled ? 'neutral-300' : 'inherit'}" for={name}
@@ -126,8 +126,8 @@
 	</div>
 
 	<div
-		class="flex items-center mt-2 transition-all overflow-hidden text-utility-error h-{invalid
-			? '4'
+		class="flex items-center transition-all overflow-hidden text-utility-error h-{invalid
+			? '6'
 			: '0'}"
 	>
 		<span class="w-4 mr-2"><Warning /></span>

@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte'
 
 	export let description = ''
-	export let error: string = ''
+	export let error = ''
 	export let next: () => void
 	export let readonly = false
 
@@ -23,16 +23,18 @@
 		<p class="text-neutral-600 italic">{$t('app.payment.description.subheading')}</p>
 	</div>
 
-	<TextInput
-		type="textarea"
-		bind:value={description}
-		{readonly}
-		name="description"
-		invalid={error}
-		maxlength={100}
-		rows={2}
-		bind:focus={focusInput}
-	/>
+	<div class="mb-4">
+		<TextInput
+			type="textarea"
+			bind:value={description}
+			{readonly}
+			name="description"
+			invalid={error}
+			maxlength={100}
+			rows={2}
+			bind:focus={focusInput}
+		/>
+	</div>
 
 	<Button text={$t('app.buttons.view_summary')} on:click={next}>
 		<div slot="iconRight" class="w-6">

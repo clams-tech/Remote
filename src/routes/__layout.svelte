@@ -41,7 +41,7 @@
 	<header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
 
 	<!-- CONTENT -->
-	<main class="flex flex-grow w-full flex-col items-center bg-inherit">
+	<main class="flex flex-grow w-full flex-col items-center bg-inherit overflow-hidden">
 		<slot />
 	</main>
 </div>
