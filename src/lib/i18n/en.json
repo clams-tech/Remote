@@ -52,7 +52,8 @@
 		"fee": "{{feeType; receive:Receive; network:Network;}} Fee:",
 		"id": "ID:",
 		"hash": "Hash:",
-		"restrictions": "Restrictions"
+		"restrictions": "Restrictions",
+		"direction": "{{direction; receive:}}"
 	},
 	"time": {
 		"mins": "mins"
@@ -115,7 +116,7 @@
 			"expiry": "Expires in:"
 		},
 		"details": {
-			"action": "{{direction; receive:{{status; pending:Invoiced; expired:Invoiced; complete:Received}}; send:{{status; pending:Sending; complete:Sent}};}}"
+			"action": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
 		}
 	},
 	"modals": {

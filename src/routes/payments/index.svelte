@@ -3,92 +3,37 @@
 </script>
 
 <script lang="ts">
+	import Fuse from 'fuse.js'
 	import { lastPath$, payments$ } from '$lib/streams'
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
 	import PaymentRow from '$lib/components/PaymentRow.svelte'
 	import TextInput from '$lib/elements/TextInput.svelte'
-	import Checkbox from '$lib/elements/Checkbox.svelte'
-	import Caret from '$lib/icons/Caret.svelte'
-	import type { Payment } from '$lib/types'
 	import { t } from '$lib/i18n/translations'
 	import Spinner from '$lib/elements/Spinner.svelte'
-
-	let showFilters = false
-
-	let directionFilters: Record<string, boolean> = {
-		receive: true,
-		send: true
-	}
-
-	let statusFilters: Record<string, boolean> = {
-		pending: true,
-		complete: true,
-		expired: true,
-		failed: true
-	}
+	import type { Payment } from '$lib/types'
+	import Search from '$lib/icons/Search.svelte'
 
 	let searchTerm = ''
+	let searcher: Fuse<Payment>
 	let filteredPayments: Payment[] = []
 
-	$: payments = $payments$.data || []
+	$: payments = $payments$.data
 
-	$: {
+	$: if (payments) {
 		filteredPayments = payments
-			// direction
-			?.filter(
-				(payment) =>
-					(directionFilters.send && payment.direction === 'send') ||
-					(directionFilters.receive && payment.direction === 'receive')
-			)
-			// status
-			?.filter(
-				(payment) =>
-					(statusFilters.pending && payment.status === 'pending') ||
-					(statusFilters.complete && payment.status === 'complete') ||
-					(statusFilters.expired && payment.status === 'expired') ||
-					(statusFilters.failed && payment.status === 'failed')
-			)
-			// description
-			.filter((payment) => payment.description?.toLowerCase().includes(searchTerm.toLowerCase()))
+
+		searcher = new Fuse(payments, {
+			keys: ['description', 'status', 'direction', 'type', 'value'],
+			ignoreLocation: true
+		})
 	}
 
-	let sorts = ['newest', 'oldest', 'largest', 'smallest']
-	let sortBy = 'newest'
-
-	$: {
-		if (sortBy === 'newest') {
-			filteredPayments = filteredPayments?.sort((a, b) => {
-				const dateA = new Date(a.startedAt)
-				const timestampA = dateA.getTime()
-				const dateB = new Date(b.startedAt)
-				const timestampB = dateB.getTime()
-				return timestampB - timestampA
-			})
-		}
-
-		if (sortBy === 'oldest') {
-			filteredPayments = filteredPayments?.sort((a, b) => {
-				const dateA = new Date(a.startedAt)
-				const timestampA = dateA.getTime()
-				const dateB = new Date(b.startedAt)
-				const timestampB = dateB.getTime()
-				return timestampA - timestampB
-			})
-		}
-
-		if (sortBy === 'largest') {
-			filteredPayments = filteredPayments?.sort((a, b) => {
-				return Number(b.value) - Number(a.value)
-			})
-		}
-
-		if (sortBy === 'smallest') {
-			filteredPayments = filteredPayments?.sort((a, b) => {
-				return Number(a.value) - Number(b.value)
-			})
-		}
+	$: if (searchTerm) {
+		filteredPayments = searcher.search(searchTerm).map(({ item }) => item)
+	} else {
+		filteredPayments = payments || []
 	}
 </script>
 
@@ -102,70 +47,14 @@
 	}}
 	direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-	<section in:fade class="flex flex-col items-center w-full p-8 max-w-xl">
-		<h2 class="text-2xl font-bold mb-5">Payments</h2>
+	<section in:fade class="flex flex-col items-center justify-start w-full p-4 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
+			{$t('app.titles.payments')}
+		</h1>
 
-		<div class="mb-6 w-full">
-			<TextInput
-				bind:value={searchTerm}
-				placeholder="Filter by description"
-				type="text"
-				name="filter"
-			/>
-			<!-- Sorting -->
-			<div class="flex flex-wrap justify-between">
-				{#each sorts as sort}
-					<Checkbox
-						checked={sortBy === sort}
-						name={sort}
-						label={sort}
-						handleChange={() => {
-							sortBy = sort
-						}}
-					/>
-				{/each}
-			</div>
-
-			<div class="flex justify-center cursor-pointer" on:click={() => (showFilters = !showFilters)}>
-				<p>Filters</p>
-				<div class="w-7">
-					{#if showFilters}
-						<Caret direction="down" />
-					{:else}
-						<Caret direction="up" />
-					{/if}
-				</div>
-			</div>
-			{#if showFilters}
-				<div class="flex flex-wrap justify-between pt-4">
-					<!-- Direction filtering -->
-					{#if payments.some((payment) => payment.direction === 'send') && payments.some((payment) => payment.direction === 'receive')}
-						{#each Object.keys(directionFilters) as direction}
-							<div class="mr-2">
-								<Checkbox
-									name={direction}
-									checked={directionFilters[direction]}
-									label={direction}
-									handleChange={() => (directionFilters[direction] = !directionFilters[direction])}
-								/>
-							</div>
-						{/each}
-					{/if}
-					<!-- Status filtering -->
-					{#each Object.keys(statusFilters) as status}
-						{#if payments.some((payment) => payment.status === status)}
-							<div class="mr-2">
-								<Checkbox
-									name={status}
-									checked={statusFilters[status]}
-									label={status}
-									handleChange={() => (statusFilters[status] = !statusFilters[status])}
-								/>
-							</div>
-						{/if}
-					{/each}
-				</div>
-			{/if}
+		<div class="w-full mt-2 mb-6 relative flex items-center shadow-md">
+			<TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
+			<div class="absolute right-1 w-8 text-neutral-400"><Search /></div>
 		</div>
 
 		{#if $payments$.loading}
@@ -173,10 +62,12 @@
 		{:else if $payments$.error}
 			<!-- @TODO - Render error correctly -->
 			<span>{$payments$.error}</span>
-		{:else}
-			{#each filteredPayments as payment (payment.id)}
-				<PaymentRow {payment} />
-			{/each}
+		{:else if filteredPayments}
+			<div class="w-full overflow-auto">
+				{#each filteredPayments as payment (payment.id)}
+					<PaymentRow {payment} />
+				{/each}
+			</div>
 		{/if}
 	</section>
 </Slide>

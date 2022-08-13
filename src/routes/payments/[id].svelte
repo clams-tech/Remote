@@ -55,7 +55,7 @@
 			<span>{$payments$.error}</span>
 		</div>
 	{:else if payment}
-		<div class="flex w-full">
+		<div class="flex w-full h-full overflow-auto">
 			<PaymentDetails {payment} />
 		</div>
 	{/if}
