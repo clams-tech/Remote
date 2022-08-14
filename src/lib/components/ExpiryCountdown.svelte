@@ -1,34 +1,38 @@
 <script lang="ts">
+	import { filter, map, startWith, take, takeUntil, timer } from 'rxjs'
 	import { t } from '$lib/i18n/translations'
-
-	import { onDestroy$ } from '$lib/utils'
-
-	import { map, takeUntil, takeWhile, timer } from 'rxjs'
+	import { formatCountdown, onDestroy$ } from '$lib/utils'
+	import { settings$ } from '$lib/streams'
+	import { createEventDispatcher } from 'svelte'
 
 	export let expiry: Date
 	export let label = true
 
+	const dispatch = createEventDispatcher()
+
 	const msToExpire$ = timer(0, 1000).pipe(
 		map(() => {
-			const msLeft = expiry.getTime() - Date.now()
-			const msLeftDate = new Date(msLeft)
-			const minutes = msLeftDate.getMinutes()
-			const seconds = msLeftDate.getSeconds()
-
-			return msLeft <= 1000
-				? 'expired'
-				: `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}`
+			return formatCountdown({ date: expiry, language: settings$.getValue().language })
 		}),
-		takeWhile((val) => val !== 'expired', true),
-		takeUntil(onDestroy$)
+		takeUntil(onDestroy$),
+		startWith('')
 	)
+
+	msToExpire$
+		.pipe(
+			filter((val) => val.includes('ago')),
+			take(1)
+		)
+		.subscribe(() => {
+			dispatch('expired')
+		})
+
+	// text-utility-error
 </script>
 
-{#if $msToExpire$ === 'expired'}
-	<span class="text-utility-error">{$t('app.labels.expired')}</span>
-{:else}
+<div class="text-sm" class:text-utility-error={$msToExpire$.includes('ago')}>
 	{#if label}
-		<span>{$t('app.labels.expires_in')}</span>
+		<span>{$t(`app.labels.${$msToExpire$.includes('ago') ? 'expired' : 'expires'}`)}</span>
 	{/if}
-	<span>{$msToExpire$} {$t('app.time.mins')}</span>
-{/if}
+	<span>{$msToExpire$}</span>
+</div>
