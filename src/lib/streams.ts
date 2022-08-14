@@ -40,3 +40,5 @@ export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityCh
 	startWith(true),
 	shareReplay(1)
 )
+
+export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false)

@@ -5,9 +5,11 @@ import { take, takeUntil } from 'rxjs/operators'
 import Big from 'big.js'
 import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
-import { formatRelative, type Locale } from 'date-fns'
+import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { coreLightning, type CoreLnCredentials, type ListfundsResponse } from './backends'
+import { invoiceToPayment } from './backends/core-lightning/utils'
+
 import {
 	COINBASE_PRICE_ENDPOINT,
 	COIN_GECKO_PRICE_ENDPOINT,
@@ -313,6 +315,17 @@ export function formatDate(options: { date: string; language: string; type?: 're
 	}
 }
 
+export function formatCountdown(options: { date: Date; language: string }) {
+	const { date, language } = options
+
+	const settingsLocale =
+		Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
+
+	const locale = locales[settingsLocale] || enGB
+
+	return formatDistanceToNowStrict(date, { locale, addSuffix: true })
+}
+
 export function formatDestination(destination: string, type: PaymentType): string {
 	switch (type) {
 		case 'payment_request':
@@ -381,23 +394,26 @@ export function validateConnectionString(connect: string): boolean {
 
 export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	try {
-		const updatedPayment = await coreLightning.waitForInvoicePayment(payment)
-
-		const currentPayments = payments$.getValue().data
-
-		const paymentsUpdate = currentPayments
-			? currentPayments.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
-			: [updatedPayment]
-
-		payments$.next({ data: paymentsUpdate })
+		const update = await coreLightning.waitForInvoicePayment(payment)
+		updatePayment(update)
 	} catch (error) {
 		console.log('Error waiting for invoice payment:', error)
 	}
 }
 
-export function addPayment(payment: Payment): void {
-	const currentPayments = payments$.getValue().data || []
-	payments$.next({ data: [payment, ...currentPayments] })
+export function updatePayment(payment: Payment): void {
+	const payments = payments$.getValue().data || []
+	const paymentIndex = payments.findIndex(({ hash }) => hash === payment.hash)
+
+	if (paymentIndex !== -1) {
+		// if exists, the replace with update
+		payments[paymentIndex] = payment
+	} else {
+		// otherwise put in the front of payments list
+		payments.unshift(payment)
+	}
+
+	payments$.next({ data: payments })
 }
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
@@ -424,4 +440,19 @@ export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | n
 export function updateCredentials(update: Partial<CoreLnCredentials>): void {
 	const currentCredentials = credentials$.getValue()
 	credentials$.next({ ...currentCredentials, ...update })
+}
+
+export async function listenForAllInvoiceUpdates(payIndex?: string): Promise<void> {
+	const lastPayIndex = payIndex || localStorage.getItem('lastpay_index')
+	const invoice = await coreLightning.waitAnyInvoice(lastPayIndex ? parseInt(lastPayIndex) : 0)
+
+	if (invoice.status !== 'unpaid') {
+		const payment = invoiceToPayment(invoice)
+		updatePayment(payment)
+	}
+
+	const newLastPayIndex = invoice.pay_index ? invoice.pay_index.toString() : lastPayIndex || '0'
+	localStorage.setItem('lastpay_index', newLastPayIndex)
+
+	return listenForAllInvoiceUpdates(newLastPayIndex)
 }

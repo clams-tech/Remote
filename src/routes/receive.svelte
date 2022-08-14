@@ -6,8 +6,8 @@
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import Summary from '$lib/components/Summary.svelte'
-	import { settings$ } from '$lib/streams'
-	import { SvelteSubject, waitForAndUpdatePayment, addPayment } from '$lib/utils'
+	import { listeningForAllInvoiceUpdates$, settings$ } from '$lib/streams'
+	import { SvelteSubject, waitForAndUpdatePayment, updatePayment } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 	import { goto } from '$app/navigation'
 	import { BitcoinDenomination } from '$lib/types'
@@ -67,10 +67,12 @@
 			})
 
 			// add to payments
-			addPayment(payment)
+			updatePayment(payment)
 
-			// track invoice payment
-			waitForAndUpdatePayment(payment)
+			if (!$listeningForAllInvoiceUpdates$) {
+				// track invoice payment
+				waitForAndUpdatePayment(payment)
+			}
 
 			console.log(payment.bolt11)
 
