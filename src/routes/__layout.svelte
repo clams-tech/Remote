@@ -35,8 +35,8 @@
 
 	async function listen() {
 		try {
-			await listenForAllInvoiceUpdates()
 			listeningForAllInvoiceUpdates$.next(true)
+			await listenForAllInvoiceUpdates()
 		} catch (error) {
 			console.log('error listening to invoice updates:', error)
 			listeningForAllInvoiceUpdates$.next(false)

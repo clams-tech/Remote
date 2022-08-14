@@ -7,7 +7,12 @@ import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
-import { coreLightning, type CoreLnCredentials, type ListfundsResponse } from './backends'
+import {
+	coreLightning,
+	type CoreLnCredentials,
+	type ListfundsResponse,
+	type WaitAnyInvoiceResponse
+} from './backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 
 import {
@@ -402,6 +407,7 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 }
 
 export function updatePayment(payment: Payment): void {
+	console.log('updating payment:', payment)
 	const payments = payments$.getValue().data || []
 	const paymentIndex = payments.findIndex(({ hash }) => hash === payment.hash)
 
@@ -444,15 +450,29 @@ export function updateCredentials(update: Partial<CoreLnCredentials>): void {
 
 export async function listenForAllInvoiceUpdates(payIndex?: string): Promise<void> {
 	const lastPayIndex = payIndex || localStorage.getItem('lastpay_index')
-	const invoice = await coreLightning.waitAnyInvoice(lastPayIndex ? parseInt(lastPayIndex) : 0)
+	try {
+		const invoice = await coreLightning.waitAnyInvoice(lastPayIndex ? parseInt(lastPayIndex) : 0)
 
-	if (invoice.status !== 'unpaid') {
-		const payment = invoiceToPayment(invoice)
-		updatePayment(payment)
+		if (invoice.status !== 'unpaid') {
+			const payment = invoiceToPayment(invoice)
+			updatePayment(payment)
+		}
+
+		const newLastPayIndex = invoice.pay_index ? invoice.pay_index.toString() : lastPayIndex || '0'
+		localStorage.setItem('lastpay_index', newLastPayIndex)
+
+		return listenForAllInvoiceUpdates(newLastPayIndex)
+	} catch (error) {
+		// handle expired invoice
+		const { code, data } = (error as { code: number; data: WaitAnyInvoiceResponse }) || {}
+		if (code === 903) {
+			const payment = (payments$.getValue().data || []).find(
+				({ hash }) => hash === data.payment_hash
+			)
+			payment && updatePayment({ ...payment, status: 'expired' })
+			return listenForAllInvoiceUpdates(payIndex)
+		}
+
+		throw error
 	}
-
-	const newLastPayIndex = invoice.pay_index ? invoice.pay_index.toString() : lastPayIndex || '0'
-	localStorage.setItem('lastpay_index', newLastPayIndex)
-
-	return listenForAllInvoiceUpdates(newLastPayIndex)
 }
