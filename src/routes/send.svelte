@@ -8,7 +8,7 @@
 	import Summary from '$lib/components/Summary.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
-	import { SvelteSubject, addPayment } from '$lib/utils'
+	import { SvelteSubject, updatePayment } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 	import { settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
@@ -87,7 +87,7 @@
 							: undefined
 					})
 
-					addPayment(payment)
+					updatePayment(payment)
 					paymentId = payment.id
 
 					break
@@ -108,7 +108,7 @@
 							.toString()
 					})
 
-					addPayment(payment)
+					updatePayment(payment)
 					paymentId = payment.id
 
 					break

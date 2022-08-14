@@ -70,6 +70,13 @@ export type WaitInvoiceRequest = {
 	}
 }
 
+export type WaitAnyInvoiceRequest = {
+	method: 'waitanyinvoice'
+	params: {
+		lastpay_index: number
+	}
+}
+
 export interface KeysendRequest {
 	method: 'keysend'
 	params: {
@@ -94,6 +101,7 @@ export type LNRequest =
 	| ListpaysRequest
 	| InvoiceRequest
 	| WaitInvoiceRequest
+	| WaitAnyInvoiceRequest
 	| KeysendRequest
 	| ListfundsRequest
 
@@ -546,6 +554,7 @@ export type ErrorResponse = {
 }
 
 export type WaitInvoiceResponse = Invoice
+export type WaitAnyInvoiceResponse = Invoice
 
 export type LNResponse =
 	| InvoiceResponse
@@ -556,3 +565,4 @@ export type LNResponse =
 	| GetinfoResponse
 	| KeysendResponse
 	| WaitInvoiceResponse
+	| WaitAnyInvoiceResponse

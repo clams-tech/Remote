@@ -14,6 +14,7 @@
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import type { Payment } from '$lib/types'
 	import Search from '$lib/icons/Search.svelte'
+	import { updatePayment } from '$lib/utils'
 
 	let searchTerm = ''
 	let searcher: Fuse<Payment>
@@ -22,8 +23,21 @@
 	$: payments = $payments$.data
 
 	$: if (payments) {
+		// check for expired invoices that need status updated
+		const expiredPayments = payments.filter(({ status, expiresAt }) => {
+			if (status === 'pending' && expiresAt && Date.now() > new Date(expiresAt).getTime()) {
+				return true
+			}
+
+			return false
+		})
+
+		expiredPayments.forEach((payment) => updatePayment({ ...payment, status: 'expired' }))
+
+		// set filtered payments to current payments
 		filteredPayments = payments
 
+		// create searcher to filter payments with
 		searcher = new Fuse(payments, {
 			keys: ['description', 'status', 'direction', 'type', 'value'],
 			ignoreLocation: true
@@ -52,7 +66,7 @@
 			{$t('app.titles.payments')}
 		</h1>
 
-		<div class="w-full mt-2 mb-6 relative flex items-center shadow-md">
+		<div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">
 			<TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
 			<div class="absolute right-1 w-8 text-neutral-400"><Search /></div>
 		</div>

@@ -12,7 +12,13 @@
 	import Check from '$lib/icons/Check.svelte'
 	import Warning from '$lib/icons/Warning.svelte'
 	import { convertValue } from '$lib/conversion'
-	import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
+	import {
+		formatDate,
+		formatValueForDisplay,
+		truncateValue,
+		updatePayment,
+		writeClipboardValue
+	} from '$lib/utils'
 
 	export let payment: Payment
 
@@ -57,6 +63,10 @@
 				}, 2000)
 			}
 		}
+	}
+
+	function handlePaymentExpire() {
+		updatePayment({ ...payment, status: 'expired' })
 	}
 
 	// text-utility-success
@@ -105,7 +115,7 @@
 			<Qr value={payment.bolt11} />
 			{#if payment.expiresAt}
 				<div class="mt-2">
-					<ExpiryCountdown expiry={new Date(payment.expiresAt)} />
+					<ExpiryCountdown on:expired={handlePaymentExpire} expiry={new Date(payment.expiresAt)} />
 				</div>
 			{/if}
 		</div>

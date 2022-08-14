@@ -1,15 +1,13 @@
 import Big from 'big.js'
-import { decode } from 'light-bolt11-decoder'
-import type { Payment, PaymentStatus } from '$lib/types'
-import { formatDecodedInvoice, sortPaymentsMostRecent } from '$lib/utils'
-import { firstValueFrom, timer } from 'rxjs'
-import { switchMap, filter, map } from 'rxjs/operators'
+import type { Payment } from '$lib/types'
+import { sortPaymentsMostRecent } from '$lib/utils'
 
 import {
-	invoiceStatusToPaymentStatus,
 	rpcRequest,
 	connect,
-	connectionToConnectOptions
+	connectionToConnectOptions,
+	invoiceToPayment,
+	payToPayment
 } from './utils'
 
 import type {
@@ -20,7 +18,9 @@ import type {
 	ListfundsResponse,
 	ListinvoicesResponse,
 	ListpaysResponse,
-	PayResponse
+	PayResponse,
+	WaitAnyInvoiceResponse,
+	WaitInvoiceResponse
 } from './types'
 
 async function getInfo(): Promise<GetinfoResponse> {
@@ -58,55 +58,33 @@ async function createInvoice(params: InvoiceRequest['params']): Promise<Payment>
 	return payment
 }
 
-// async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
-// 	const { id } = payment
-
-// 	const result = await rpcRequest({
-// 		method: 'waitinvoice',
-// 		params: {
-// 			label: id
-// 		}
-// 	})
-
-// 	const { status, amount_received_msat, paid_at, payment_preimage } = result as WaitInvoiceResponse
-
-// 	return {
-// 		...payment,
-// 		status: status === 'paid' ? 'complete' : 'expired',
-// 		value: amount_received_msat || payment.value,
-// 		completedAt: new Date((paid_at as number) * 1000).toISOString(),
-// 		preimage: payment_preimage
-// 	}
-// }
-
-// need to poll for the moment due to current limitations in lnsocket library
 async function waitForInvoicePayment(payment: Payment): Promise<Payment> {
-	const result$ = timer(0, 1000).pipe(
-		switchMap(() =>
-			rpcRequest({
-				method: 'listinvoices',
-				params: {
-					label: payment.id
-				}
-			})
-		),
-		map((result) => {
-			const { invoices } = result as ListinvoicesResponse
-			return invoices[0]
-		}),
-		filter((invoice) => invoice.status !== 'unpaid'),
-		map(({ status, amount_received_msat, paid_at, payment_preimage }) => {
-			return {
-				...payment,
-				status: (status === 'paid' ? 'complete' : 'expired') as PaymentStatus,
-				value: amount_received_msat || payment.value,
-				completedAt: new Date((paid_at as number) * 1000).toISOString(),
-				preimage: payment_preimage
-			}
-		})
-	)
+	const { id } = payment
 
-	return firstValueFrom(result$)
+	const result = await rpcRequest({
+		method: 'waitinvoice',
+		params: {
+			label: id
+		}
+	})
+
+	const { status, amount_received_msat, paid_at, payment_preimage } = result as WaitInvoiceResponse
+
+	return {
+		...payment,
+		status: status === 'paid' ? 'complete' : 'expired',
+		value: amount_received_msat || payment.value,
+		completedAt: new Date((paid_at as number) * 1000).toISOString(),
+		preimage: payment_preimage
+	}
+}
+
+async function waitAnyInvoice(lastPayIndex: number): Promise<WaitAnyInvoiceResponse> {
+	const response = await rpcRequest({
+		method: 'waitanyinvoice',
+		params: { lastpay_index: lastPayIndex }
+	})
+	return response as WaitAnyInvoiceResponse
 }
 
 async function payInvoice(options: {
@@ -197,80 +175,8 @@ async function payKeysend(options: {
 
 async function getPayments(): Promise<Payment[]> {
 	const [{ invoices }, { pays }] = await Promise.all([listInvoices(), listPays()])
-
-	const invoicePayments: Payment[] = invoices.map(
-		({
-			label,
-			bolt11,
-			payment_hash,
-			amount_received_msat,
-			amount_msat,
-			status,
-			paid_at,
-			payment_preimage,
-			description,
-			expires_at
-		}) => {
-			const decodedInvoice = decode(bolt11)
-			const { timestamp } = formatDecodedInvoice(decodedInvoice)
-
-			return {
-				id: label || payment_hash,
-				bolt11: bolt11 || null,
-				hash: payment_hash,
-				direction: 'receive',
-				type: 'payment_request',
-				preimage: payment_preimage,
-				value: (amount_received_msat || amount_msat) as string,
-				status: invoiceStatusToPaymentStatus(status),
-				completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
-				expiresAt: new Date(expires_at * 1000).toISOString(),
-				description,
-				destination: undefined,
-				fee: null,
-				startedAt: new Date(timestamp * 1000).toISOString()
-			}
-		}
-	)
-
-	const sentPayments: Payment[] = pays.map(
-		({
-			bolt11,
-			destination,
-			payment_hash,
-			status,
-			created_at,
-			label,
-			preimage,
-			amount_msat,
-			amount_sent_msat
-		}) => {
-			const timestamp = new Date(created_at * 1000).toISOString()
-
-			const decodedInvoice = bolt11 && decode(bolt11)
-
-			const { description } = decodedInvoice
-				? formatDecodedInvoice(decodedInvoice)
-				: { description: undefined }
-
-			return {
-				id: label || payment_hash,
-				destination,
-				bolt11: bolt11 || null,
-				status,
-				startedAt: timestamp,
-				hash: payment_hash,
-				preimage,
-				value: amount_msat,
-				fee: Big(amount_sent_msat).minus(amount_msat).toString(),
-				direction: 'send',
-				type: bolt11 ? 'payment_request' : 'node_public_key',
-				expiresAt: null,
-				completedAt: timestamp,
-				description
-			}
-		}
-	)
+	const invoicePayments: Payment[] = invoices.map(invoiceToPayment)
+	const sentPayments: Payment[] = pays.map(payToPayment)
 
 	return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))
 }
@@ -294,6 +200,7 @@ export default {
 	getInfo,
 	createInvoice,
 	waitForInvoicePayment,
+	waitAnyInvoice,
 	payInvoice,
 	payKeysend,
 	getPayments,

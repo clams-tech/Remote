@@ -16,9 +16,10 @@
 <script lang="ts">
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
-	import { lastPath$ } from '$lib/streams'
+	import { lastPath$, listeningForAllInvoiceUpdates$ } from '$lib/streams'
 	import registerSideEffects from '$lib/side-effects'
 	import '../app.css'
+	import { listenForAllInvoiceUpdates } from '$lib/utils'
 
 	beforeNavigate(({ from }) => {
 		if (from) {
@@ -30,6 +31,17 @@
 	let innerWidth = window.innerWidth
 
 	registerSideEffects()
+	listen()
+
+	async function listen() {
+		try {
+			listeningForAllInvoiceUpdates$.next(true)
+			await listenForAllInvoiceUpdates()
+		} catch (error) {
+			console.log('error listening to invoice updates:', error)
+			listeningForAllInvoiceUpdates$.next(false)
+		}
+	}
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />

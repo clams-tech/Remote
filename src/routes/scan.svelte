@@ -12,7 +12,7 @@
 	import { settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
 	import { coreLightning, type ErrorResponse } from '$lib/backends'
-	import { formatDecodedInvoice, SvelteSubject, addPayment } from '$lib/utils'
+	import { formatDecodedInvoice, SvelteSubject, updatePayment } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 
 	let requesting = false
@@ -80,7 +80,7 @@
 
 		try {
 			const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
-			addPayment(payment)
+			updatePayment(payment)
 			goto(`/payments/${payment.id}`)
 		} catch (error) {
 			errorMsg = (error as ErrorResponse).message

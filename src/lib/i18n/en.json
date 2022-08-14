@@ -41,7 +41,7 @@
 	},
 	"labels": {
 		"expired": "Expired",
-		"expires_in": "Expires in:",
+		"expires": "Expires",
 		"invoice": "Invoice:",
 		"destination": "Destination:",
 		"status": "Status:",
