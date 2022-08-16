@@ -77,7 +77,11 @@ function registerSideEffects() {
 		)
 		.subscribe((listening) => {
 			if (!listening) {
-				listenForAllInvoiceUpdates().catch(console.log)
+				listeningForAllInvoiceUpdates$.next(true)
+				listenForAllInvoiceUpdates().catch(() => {
+					console.log('error listening for invoice updates')
+					listeningForAllInvoiceUpdates$.next(false)
+				})
 			}
 		})
 }
