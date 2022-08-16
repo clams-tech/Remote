@@ -11,15 +11,8 @@
 	export let value: string
 	export let readonly = false
 
-	$: displayValue = value
-		? formatValueForDisplay({
-				value,
-				denomination: settings$.value.primaryDenomination
-		  })
-		: '0'
-
-	$: if (displayValue && input) {
-		input.style.width = displayValue.length + 'ch'
+	$: if (value && input) {
+		input.style.width = value.length + 'ch'
 	}
 
 	let input: HTMLInputElement
@@ -27,7 +20,7 @@
 	onMount(() => {
 		setTimeout(() => {
 			if (input) {
-				input.value = displayValue
+				input.value = value
 				input.focus()
 			}
 		}, 500)
@@ -56,7 +49,7 @@
 	}
 
 	$: secondaryValue = value
-		? value !== '0'
+		? value !== '0' && value !== '0.'
 			? convertValue({
 					value,
 					from: $settings$.primaryDenomination,
@@ -66,50 +59,42 @@
 		: '0'
 
 	function handleInput(e: Event) {
-		let { value: newValue } = e.target as HTMLInputElement
 		const { data } = e as InputEvent
+
+		// backspace, so remove last value
+		if (data === null) {
+			const newValue = value.length === 1 ? '0' : value.slice(0, -1)
+			value = newValue
+			input.value = newValue
+
+			return
+		}
+
 		const { primaryDenomination } = settings$.value
-		const decimalIndex = newValue.indexOf('.')
 
-		if (primaryDenomination === 'sats' && decimalIndex > 0) {
-			input.value = newValue.slice(0, decimalIndex)
-			return
-		}
-
+		// handle invalid input
 		if (
-			data === null &&
-			decimalIndex === -1 &&
-			displayValue.includes('.') &&
-			displayValue.slice(-1) !== '.'
+			// not a number or decimal point
+			!/[0-9.]/.test(data) ||
+			// sats cannot have decimals, so remove
+			(primaryDenomination === 'sats' && data === '.') ||
+			// max length
+			value.length >= 9 ||
+			// no double decimal points
+			(data === '.' && value.includes('.'))
 		) {
-			newValue = `${newValue}.`
-		}
-
-		if (data === '.') {
-			if (primaryDenomination !== 'sats') {
-				value = `${value}${data}`
-			}
-
+			input.value = value
 			return
 		}
 
-		if (newValue.length >= 10) {
+		// remove leading 0 if not decimal
+		if (value.length && value[0] === '0' && value[1] !== '.' && data !== '.') {
+			input.value = data
+			value = data
 			return
 		}
 
-		if (newValue && newValue.length > 1 && newValue[0] === '0') {
-			if (newValue.indexOf('.') !== 1) {
-				input.value = newValue.slice(1)
-				newValue = input.value
-			}
-		}
-
-		if (decimalIndex > 0 && newValue.slice(decimalIndex + 1).length > 2) {
-			input.value = newValue.slice(0, decimalIndex + 3)
-			return
-		}
-
-		value = newValue
+		value = `${value}${data}`
 	}
 </script>
 
@@ -118,7 +103,7 @@
 		<div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded">
 			<div class="flex items-end">
 				<div class="relative flex items-center">
-					<div class="text-4xl font-semibold cursor-pointer font-mono">{displayValue}</div>
+					<div class="text-4xl font-semibold cursor-pointer font-mono">{value}</div>
 					{#if !readonly}
 						<input
 							bind:this={input}
