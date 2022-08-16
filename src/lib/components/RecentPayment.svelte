@@ -30,8 +30,8 @@
 					>{$t('app.payment.details.action', {
 						status: payment.status,
 						direction: payment.direction
-					})}</span
-				>
+					})}:
+				</span>
 				<span
 					>{formatValueForDisplay({
 						value: primaryValue,
