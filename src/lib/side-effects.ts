@@ -1,16 +1,19 @@
 import { from, timer } from 'rxjs'
-import { filter, skip, switchMap, take } from 'rxjs/operators'
+import { filter, pluck, skip, switchMap, take, withLatestFrom } from 'rxjs/operators'
 import { coreLightning } from './backends'
 import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { getBitcoinExchangeRate, listenForAllInvoiceUpdates } from './utils'
+
 import {
+	appVisible$,
 	bitcoinExchangeRates$,
 	credentials$,
 	funds$,
+	listeningForAllInvoiceUpdates$,
 	nodeInfo$,
 	payments$,
 	settings$
 } from './streams'
-import { getBitcoinExchangeRate } from './utils'
 
 function registerSideEffects() {
 	// once we have credentials, go ahead and fetch initial data
@@ -64,6 +67,19 @@ function registerSideEffects() {
 	timer(0, 1 * MIN_IN_MS)
 		.pipe(switchMap(() => from(getBitcoinExchangeRate())))
 		.subscribe(bitcoinExchangeRates$)
+
+	// when app is focused, start listening if not already
+	appVisible$
+		.pipe(
+			filter((x) => x),
+			withLatestFrom(listeningForAllInvoiceUpdates$),
+			pluck('1')
+		)
+		.subscribe((listening) => {
+			if (!listening) {
+				listenForAllInvoiceUpdates().catch(console.log)
+			}
+		})
 }
 
 export default registerSideEffects
