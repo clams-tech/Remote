@@ -66,8 +66,7 @@
 
 		// handle backspace
 		if (data === null) {
-			// @TODO - NEED TO HANDLE A BACKSPACE THAT IS NOT AT THE END OF THE VALUE
-			const newValue = value.length === 1 ? '0' : value.slice(0, -1)
+			const newValue = value.length === 1 ? '0' : input.value
 			value = newValue
 			input.value = newValue.slice(-1) === '.' ? `${newValue.slice(0, -1)}0` : newValue
 
@@ -110,7 +109,12 @@
 			return
 		}
 
-		value = `${value}${data}`
+		input.value = formatValueForDisplay({
+			value: input.value,
+			denomination: $settings$.primaryDenomination
+		})
+
+		value = input.value
 	}
 </script>
 
