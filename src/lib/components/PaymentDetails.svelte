@@ -12,6 +12,7 @@
 	import Check from '$lib/icons/Check.svelte'
 	import Warning from '$lib/icons/Warning.svelte'
 	import { convertValue } from '$lib/conversion'
+
 	import {
 		formatDate,
 		formatValueForDisplay,
@@ -92,14 +93,16 @@
 						: 'text-current'}"
 					>{payment.direction === 'receive' ? '+' : '-'}{formatValueForDisplay({
 						value: primaryValue,
-						denomination: primaryDenomination
+						denomination: primaryDenomination,
+						commas: true
 					})}
 					{primaryDenomination}</span
 				>
 				<span class="text-neutral-600"
 					>{payment.direction === 'receive' ? '+' : '-'}{formatValueForDisplay({
 						value: secondaryValue || '0',
-						denomination: secondaryDenomination
+						denomination: secondaryDenomination,
+						commas: true
 					})}
 					{secondaryDenomination}</span
 				>

@@ -7,13 +7,10 @@ import Hammer from 'hammerjs'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
-import {
-	coreLightning,
-	type CoreLnCredentials,
-	type ListfundsResponse,
-	type WaitAnyInvoiceResponse
-} from './backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
+import { credentials$, payments$ } from './streams'
+
+import { coreLightning, type CoreLnCredentials, type ListfundsResponse } from './backends'
 
 import {
 	COINBASE_PRICE_ENDPOINT,
@@ -30,8 +27,6 @@ import {
 	type Payment,
 	type BitcoinExchangeRates
 } from './types'
-
-import { credentials$, payments$ } from './streams'
 
 import {
 	ar,
@@ -146,30 +141,54 @@ export function getSettings(): Settings {
 
 export function formatValueForDisplay({
 	value,
-	denomination
+	denomination,
+	commas = false
 }: {
 	value: string | null
 	denomination: Denomination
+	commas?: boolean
 }): string {
 	if (!value) return ''
 
 	switch (denomination) {
 		case 'btc': {
-			const newValue = Big(value).round(8).toString()
-			if (newValue === '0') return value
-			return newValue
+			const formatted = value === '0' ? value : Big(value).round(8).toString()
+			return commas ? formatWithCommas(formatted) : formatted
 		}
 
 		case 'sats':
-		case 'msats':
-			return Big(value).round().toString()
+		case 'msats': {
+			const formatted = Big(value).round().toString()
+			return commas ? formatWithCommas(formatted) : formatted
+		}
 
 		// fiat
-		default:
-			return String(value).includes('.') && value.indexOf('.') <= value.length - 4
-				? Big(value).round(2).toString()
-				: value
+		default: {
+			let formatted
+
+			if (String(value).includes('.')) {
+				const rounded = Big(value).round(2).toString()
+				const decimalIndex = rounded.indexOf('.')
+				formatted =
+					decimalIndex >= 1 && decimalIndex === rounded.length - 2 ? `${rounded}0` : rounded
+			} else {
+				formatted = value
+			}
+
+			return commas ? formatWithCommas(formatted) : formatted
+		}
 	}
+}
+
+export function formatWithCommas(val: string, commasAfterDecimal?: boolean) {
+	if (commasAfterDecimal) {
+		return val.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+	}
+
+	const parts = val.split('.')
+	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+	return parts.join('.')
 }
 
 export async function getClipboardPermissions(): Promise<boolean> {

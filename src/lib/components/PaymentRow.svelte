@@ -70,12 +70,20 @@
 	<div class="flex flex-col text-right">
 		<p class="font-bold">
 			{abs}
-			{formatValueForDisplay({ denomination: $settings$.bitcoinDenomination, value: primaryValue })}
+			{formatValueForDisplay({
+				denomination: $settings$.bitcoinDenomination,
+				value: primaryValue,
+				commas: true
+			})}
 			{$settings$.bitcoinDenomination}
 		</p>
 		<p class="text-slate-400">
 			{abs}
-			{formatValueForDisplay({ denomination: $settings$.fiatDenomination, value: secondaryValue })}
+			{formatValueForDisplay({
+				denomination: $settings$.fiatDenomination,
+				value: secondaryValue,
+				commas: true
+			})}
 			{$settings$.fiatDenomination}
 		</p>
 	</div>

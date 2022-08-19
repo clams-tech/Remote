@@ -124,7 +124,11 @@
 			<div class="flex items-end">
 				<div class="relative flex items-center">
 					<div class="text-4xl font-semibold cursor-pointer font-mono">
-						{formatValueForDisplay({ value, denomination: $settings$.primaryDenomination })}
+						{formatValueForDisplay({
+							value,
+							denomination: $settings$.primaryDenomination,
+							commas: readonly
+						})}
 					</div>
 					{#if !readonly}
 						<input
@@ -155,7 +159,8 @@
 			<span class="text-base font-mono">
 				{formatValueForDisplay({
 					value: secondaryValue,
-					denomination: $settings$.secondaryDenomination
+					denomination: $settings$.secondaryDenomination,
+					commas: true
 				})}
 			</span>
 			<span class="text-xs">
