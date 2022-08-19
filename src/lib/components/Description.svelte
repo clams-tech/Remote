@@ -23,7 +23,7 @@
 		<p class="text-neutral-600 italic">{$t('app.subheadings.description')}</p>
 	</div>
 
-	<div class="mb-4">
+	<div class="mb-6">
 		<TextInput
 			type="textarea"
 			bind:value={description}
