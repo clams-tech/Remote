@@ -21,20 +21,9 @@
 
 	let input: HTMLInputElement | HTMLTextAreaElement
 
-	$: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 focus-visible:outline-${
+	$: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 focus:outline-none focus:ring focus:border-white focus:ring-${
 		invalid ? 'utility-error' : 'purple-500'
 	}`
-
-	// ==== 👇 comments are need to prevent styles from being stripped from build when used dynamically 👇 ==== //
-	// focus-visible:outline-purple-500
-	// focus-visible:outline-utility-error
-	// text-neutral-300
-	// text-inherit
-	// h-0
-	// h-6
-	// read-only:border-0
-	// read-only:outline-0
-	// autofill:bg-transparent
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
