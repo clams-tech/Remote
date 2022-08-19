@@ -13,7 +13,7 @@
 	export let destination: string | null = ''
 	export let direction: 'send' | 'receive'
 	export let value: string | null
-	export let description: string = ''
+	export let description = ''
 	export let expiry: number | null
 	export let timestamp: number | null = null
 	export let requesting: boolean
@@ -39,16 +39,17 @@
 	}
 </script>
 
-<section class="flex flex-col justify-between w-full h-full px-4 pb-4 pt-12 max-w-xl">
-	<div>
-		<h1 class="font-bold text-lg mb-8 w-full text-center">
-			{$t('app.payment.summary.heading', { direction })}
-		</h1>
+<section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+	<div class="w-full">
+		<div class="mb-6">
+			<h1 class="text-4xl font-bold mb-4">{$t('app.headings.summary', { direction })}</h1>
+			<p class="text-neutral-600 italic">{$t('app.subheadings.summary')}</p>
+		</div>
 
 		<!-- DESTINATION -->
 		{#if direction === 'send' && destination}
 			<SummaryRow>
-				<span slot="label">{$t('app.payment.summary.destination')}</span>
+				<span slot="label">{$t('app.labels.destination')}</span>
 				<span slot="value">
 					{#if type}
 						{formatDestination(destination, type)}
@@ -59,18 +60,22 @@
 
 		<!-- AMOUNT -->
 		<SummaryRow>
-			<span slot="label">{$t('app.payment.summary.amount')}</span>
+			<span slot="label">{$t('app.labels.amount')}</span>
 			<span slot="value">
 				{#if value}
-					{formatValueForDisplay({ value, denomination: $settings$.primaryDenomination })}
-					{$settings$.primaryDenomination}
+					{#if direction === 'receive' && value === '0'}
+						{$t('app.labels.any')}
+					{:else}
+						{formatValueForDisplay({ value, denomination: $settings$.primaryDenomination })}
+						{$settings$.primaryDenomination}
+					{/if}
 				{/if}
 			</span>
 		</SummaryRow>
 
 		<!-- DESCRIPTION -->
 		<SummaryRow>
-			<span slot="label">{$t('app.payment.summary.description')}</span>
+			<span slot="label">{$t('app.labels.description')}</span>
 			<span slot="value">
 				{description}
 			</span>
@@ -79,7 +84,7 @@
 		<!-- EXPIRY -->
 		{#if type === 'payment_request'}
 			<SummaryRow>
-				<span slot="label">{$t('app.payment.summary.expiry')}</span>
+				<span slot="label">{$t('app.labels.expiry')}</span>
 				<span class="flex items-center" slot="value">
 					{#if direction === 'receive'}
 						<input
@@ -100,7 +105,7 @@
 		{/if}
 	</div>
 
-	<div class="mt-6">
+	<div class="mt-6 w-full">
 		<Button
 			{requesting}
 			primary

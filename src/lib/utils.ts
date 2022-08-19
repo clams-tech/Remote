@@ -154,8 +154,11 @@ export function formatValueForDisplay({
 	if (!value) return ''
 
 	switch (denomination) {
-		case 'btc':
-			return Big(value).round(8).toString()
+		case 'btc': {
+			const newValue = Big(value).round(8).toString()
+			if (newValue === '0') return value
+			return newValue
+		}
 
 		case 'sats':
 		case 'msats':
@@ -166,7 +169,6 @@ export function formatValueForDisplay({
 			return String(value).includes('.') && value.indexOf('.') <= value.length - 4
 				? Big(value).round(2).toString()
 				: value
-		// return Big(value).toFixed(2)
 	}
 }
 

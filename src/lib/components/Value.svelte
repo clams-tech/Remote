@@ -4,6 +4,7 @@
 	import { formatValueForDisplay } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 	import { onMount } from 'svelte'
+	import { FiatDenomination } from '$lib/types'
 
 	/**
 	 * value must be converted to primaryDenomination when passed in
@@ -35,14 +36,15 @@
 			secondaryDenomination: currentSettings.primaryDenomination
 		})
 
-		value = secondaryValue as string
+		const newValue = formatValueForDisplay({
+			value: secondaryValue,
+			denomination: currentSettings.secondaryDenomination
+		})
+
+		value = newValue
 
 		if (input) {
-			input.value = formatValueForDisplay({
-				value,
-				denomination: currentSettings.secondaryDenomination
-			})
-
+			input.value = newValue
 			input.focus()
 			input.scrollIntoView()
 		}
@@ -60,12 +62,14 @@
 
 	function handleInput(e: Event) {
 		const { data } = e as InputEvent
+		const decimalIndex = value.indexOf('.')
 
-		// backspace, so remove last value
+		// handle backspace
 		if (data === null) {
+			// @TODO - NEED TO HANDLE A BACKSPACE THAT IS NOT AT THE END OF THE VALUE
 			const newValue = value.length === 1 ? '0' : value.slice(0, -1)
 			value = newValue
-			input.value = newValue
+			input.value = newValue.slice(-1) === '.' ? `${newValue.slice(0, -1)}0` : newValue
 
 			return
 		}
@@ -78,10 +82,22 @@
 			!/[0-9.]/.test(data) ||
 			// sats cannot have decimals, so remove
 			(primaryDenomination === 'sats' && data === '.') ||
-			// max length
-			value.length >= 9 ||
+			// sats max length is 9
+			(primaryDenomination === 'sats' && value.length >= 9) ||
+			// max length for btc and fiat
+			value.length >= 10 ||
 			// no double decimal points
-			(data === '.' && value.includes('.'))
+			(data === '.' && value.includes('.')) ||
+			// fiat value and already two values after decimal point
+			($settings$.primaryDenomination in FiatDenomination &&
+				data &&
+				decimalIndex >= 1 &&
+				decimalIndex === value.length - 3) ||
+			// btc value and already 8 values after decimal point
+			($settings$.primaryDenomination === 'btc' &&
+				data &&
+				decimalIndex >= 1 &&
+				decimalIndex === value.length - 9)
 		) {
 			input.value = value
 			return
@@ -103,12 +119,15 @@
 		<div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded">
 			<div class="flex items-end">
 				<div class="relative flex items-center">
-					<div class="text-4xl font-semibold cursor-pointer font-mono">{value}</div>
+					<div class="text-4xl font-semibold cursor-pointer font-mono">
+						{formatValueForDisplay({ value, denomination: $settings$.primaryDenomination })}
+					</div>
 					{#if !readonly}
 						<input
 							bind:this={input}
 							on:input={handleInput}
 							type="number"
+							step="any"
 							class="absolute caret-black dark:caret-white h-12 top-0 left-0 w-1 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
 						/>
 					{/if}

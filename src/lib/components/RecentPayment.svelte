@@ -27,7 +27,7 @@
 		<div class="flex flex-col items-center justify-center">
 			<span>
 				<span
-					>{$t('app.payment.details.action', {
+					>{$t('app.payment.status', {
 						status: payment.status,
 						direction: payment.direction
 					})}:

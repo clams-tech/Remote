@@ -17,13 +17,14 @@
 		readClipboardValue,
 		getPaymentType
 	} from '$lib/utils'
+	import Arrow from '$lib/icons/Arrow.svelte'
 
 	export let value: string
 	export let type: PaymentType | null
 	export let description = ''
 	export let expiry: number | null = null
 	export let timestamp: number | null = null
-	export let amount = ''
+	export let amount = '0'
 	export let next: () => void
 	export let readonly = false
 
@@ -37,6 +38,7 @@
 			try {
 				const decodedInvoice = decode(value)
 				;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
+				amount = amount || '0'
 			} catch (e) {
 				error = $t('app.inputs.destination.invalid_invoice')
 			}
@@ -101,32 +103,37 @@
 	})
 </script>
 
-<section class="w-full max-w-lg p-4 h-full flex flex-col justify-between">
-	<div class="w-full flex flex-col items-center">
-		<h1 class="text-5xl mt-2 mb-8 pb-2 border-b-4 rounded border-b-purple-500">
-			{$t('app.titles.send')}
-		</h1>
-
-		<TextInput
-			bind:focus={focusInput}
-			label={$t('app.inputs.destination.label')}
-			hint={type ? $t('app.inputs.destination.hint', { paymentType: type }) : ''}
-			placeholder={$t('app.inputs.destination.placeholder')}
-			type="textarea"
-			rows={8}
-			bind:value
-			name="to"
-			{readonly}
-			on:blur={validate}
-			invalid={error}
-		>
-			<div on:click={paste} class="w-6 absolute right-2 bottom-2">
-				<Paste />
-			</div>
-		</TextInput>
+<section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+	<div class="mb-6">
+		<h1 class="text-4xl font-bold mb-4">{$t('app.headings.destination')}</h1>
+		<p class="text-neutral-600 italic">{$t('app.subheadings.destination')}</p>
 	</div>
 
-	<Button on:click={next} text={$t('app.buttons.next')} primary disabled={!!error} />
+	<TextInput
+		bind:focus={focusInput}
+		label={$t('app.inputs.destination.label')}
+		hint={type ? $t('app.inputs.destination.hint', { paymentType: type }) : ''}
+		placeholder={$t('app.inputs.destination.placeholder')}
+		type="textarea"
+		rows={8}
+		bind:value
+		name="to"
+		{readonly}
+		on:blur={validate}
+		invalid={error}
+	>
+		<div on:click|stopPropagation={paste} class="w-6 absolute right-2 bottom-2">
+			<Paste />
+		</div>
+	</TextInput>
+
+	<div class="mt-6 w-full">
+		<Button on:click={next} text={$t('app.buttons.next')} primary disabled={!!error}>
+			<div slot="iconRight" class="w-6">
+				<Arrow direction="right" />
+			</div>
+		</Button>
+	</div>
 
 	{#if $modal$ === Modals.clipboard && clipboard}
 		<Modal>

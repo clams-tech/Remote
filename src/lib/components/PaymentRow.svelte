@@ -55,7 +55,7 @@
 			{/if}
 		</div>
 		<div class="flex flex-col">
-			<span class="font-bold">{$t('app.payment.details.action', { direction, status })}</span>
+			<span class="font-bold">{$t('app.payment.status', { direction, status })}</span>
 
 			{#if description}
 				<span class="text-sm italic text-slate-500 max-w-[200px] mt-1">{description}</span>

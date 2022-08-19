@@ -61,7 +61,7 @@
 	}}
 	direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-	<section in:fade class="flex flex-col items-center justify-start w-full p-4 max-w-xl">
+	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
 		<h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
 			{$t('app.titles.payments')}
 		</h1>
@@ -77,7 +77,7 @@
 			<!-- @TODO - Render error correctly -->
 			<span>{$payments$.error}</span>
 		{:else if filteredPayments}
-			<div class="w-full overflow-auto">
+			<div class="w-full overflow-auto payments">
 				{#each filteredPayments as payment (payment.id)}
 					<PaymentRow {payment} />
 				{/each}
@@ -85,3 +85,16 @@
 		{/if}
 	</section>
 </Slide>
+
+<style>
+	/* Hide scrollbar for Chrome, Safari and Opera */
+	.payments::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* Hide scrollbar for IE, Edge and Firefox */
+	.payments {
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
+	}
+</style>

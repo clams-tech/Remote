@@ -19,10 +19,19 @@
 
 	function setBitcoinUnit(key: BitcoinDenomination) {
 		const currentSettings = settings$.value
+		const val = BitcoinDenomination[key]
 
 		settings$.next({
 			...currentSettings,
-			bitcoinDenomination: BitcoinDenomination[key]
+			bitcoinDenomination: val,
+			primaryDenomination:
+				currentSettings.primaryDenomination in BitcoinDenomination
+					? val
+					: currentSettings.primaryDenomination,
+			secondaryDenomination:
+				currentSettings.secondaryDenomination in BitcoinDenomination
+					? val
+					: currentSettings.secondaryDenomination
 		})
 	}
 </script>

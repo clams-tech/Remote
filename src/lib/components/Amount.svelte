@@ -13,15 +13,15 @@
 
 <section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
 	<div class="mb-6">
-		<h1 class="text-4xl font-bold mb-4">{$t('app.payment.amount.heading')}</h1>
-		<p class="text-neutral-600 italic">{$t('app.payment.amount.subheading', { direction })}</p>
+		<h1 class="text-4xl font-bold mb-4">{$t('app.headings.amount')}</h1>
+		<p class="text-neutral-600 italic">{$t('app.subheadings.amount', { direction })}</p>
 	</div>
 
 	<div class="my-4 w-full">
 		<Value bind:value {readonly} />
 	</div>
 
-	<div class="mt-4 w-full">
+	<div class="mt-6 w-full">
 		<Button
 			disabled={required && (!value || value === '0')}
 			text={$t('app.buttons.next')}

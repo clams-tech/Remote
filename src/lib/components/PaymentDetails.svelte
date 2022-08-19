@@ -74,11 +74,11 @@
 	// text-utility-error
 </script>
 
-<div class="w-full px-6 pt-12 pb-4">
+<div class="w-full px-8 pt-12 pb-4">
 	<!-- AMOUNT -->
 	<div class="flex flex-col items-center justify-center">
 		<span
-			>{$t('app.payment.details.action', {
+			>{$t('app.payment.status', {
 				status: payment.status,
 				direction: payment.direction
 			})}</span
@@ -123,43 +123,42 @@
 
 	<!--------------- DETAILS ----------------------->
 	<div class="mt-8">
-		<!-- TO / REQUEST -->
-		{#if payment.direction === 'send'}
-			{#if payment.bolt11}
-				<SummaryRow on:click={handleCopy(payment.bolt11)}>
-					<span class="cursor-pointer" slot="label">{$t('app.labels.invoice')}</span>
-					<span class="flex items-center" slot="value">
-						{truncateValue(payment.bolt11)}
-						{#if copySuccess === payment.bolt11}
-							<div in:fade class="w-6 text-utility-success">
-								<Check />
-							</div>
-						{:else}
-							<div in:fade class="w-6 cursor-pointer">
-								<Copy />
-							</div>
-						{/if}
-					</span>
-				</SummaryRow>
-			{:else if payment.destination}
-				<SummaryRow on:click={handleCopy(payment.destination)}>
-					<span slot="label">{$t('app.labels.destination')}</span>
-					<span slot="value" class="flex items-center">
-						{payment.destination.length > 30
-							? truncateValue(payment.destination)
-							: payment.destination}
-						{#if copySuccess === payment.destination}
-							<div in:fade class="w-6 text-utility-success">
-								<Check />
-							</div>
-						{:else}
-							<div in:fade class="w-6 cursor-pointer">
-								<Copy />
-							</div>
-						{/if}
-					</span>
-				</SummaryRow>
-			{/if}
+		<!-- INVOICE -->
+		{#if payment.bolt11}
+			<SummaryRow on:click={handleCopy(payment.bolt11)}>
+				<span class="cursor-pointer" slot="label">{$t('app.labels.invoice')}</span>
+				<span class="flex items-center" slot="value">
+					{truncateValue(payment.bolt11)}
+					{#if copySuccess === payment.bolt11}
+						<div in:fade class="w-6 text-utility-success">
+							<Check />
+						</div>
+					{:else}
+						<div in:fade class="w-6 cursor-pointer">
+							<Copy />
+						</div>
+					{/if}
+				</span>
+			</SummaryRow>
+			<!-- DESTINATION -->
+		{:else if payment.destination}
+			<SummaryRow on:click={handleCopy(payment.destination)}>
+				<span slot="label">{$t('app.labels.destination')}</span>
+				<span slot="value" class="flex items-center">
+					{payment.destination.length > 30
+						? truncateValue(payment.destination)
+						: payment.destination}
+					{#if copySuccess === payment.destination}
+						<div in:fade class="w-6 text-utility-success">
+							<Check />
+						</div>
+					{:else}
+						<div in:fade class="w-6 cursor-pointer">
+							<Copy />
+						</div>
+					{/if}
+				</span>
+			</SummaryRow>
 		{/if}
 
 		<!-- STATUS -->

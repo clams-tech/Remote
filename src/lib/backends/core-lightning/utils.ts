@@ -88,7 +88,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
 		direction: 'receive',
 		type: 'payment_request',
 		preimage: payment_preimage,
-		value: (amount_received_msat || amount_msat) as string,
+		value: (amount_received_msat || amount_msat || 'any') as string,
 		status: invoiceStatusToPaymentStatus(status),
 		completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
 		expiresAt: new Date(expires_at * 1000).toISOString(),

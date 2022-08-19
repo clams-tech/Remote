@@ -22,7 +22,7 @@
 			"hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
 			"error": "Not a valid payment destination",
 			"invalid_invoice": "Invalid Lightning Invoice",
-			"placeholder": "Invoice or Node Public Key"
+			"placeholder": "Bolt11 Invoice / Node Public Key"
 		},
 		"terms_conditions": {
 			"agree": "I agree to the",
@@ -53,7 +53,10 @@
 		"id": "ID:",
 		"hash": "Hash:",
 		"restrictions": "Restrictions",
-		"direction": "{{direction; receive:}}"
+		"direction": "{{direction; receive:}}",
+		"any": "any",
+		"amount": "Amount:",
+		"expiry": "Expires in:"
 	},
 	"time": {
 		"mins": "mins"
@@ -97,27 +100,23 @@
 		"unrestricted": "unrestricted!"
 	},
 	"headings": {
-		"summary": "Summary"
+		"summary": "{{direction; receive:Receive; send:Send;}} Payment",
+		"amount": "Amount",
+		"description": "Description",
+		"destination": "Destination",
+		"connect": "Connect",
+		"rune": "Add a rune to give Clams permissions to interact with your node"
+	},
+	"subheadings": {
+		"summary": "Confirm payment details",
+		"amount": "How much would you like to {{direction; receive:receive; send:send;}}?",
+		"description": "What is this payment for?",
+		"destination": "Where would you like to send a payment?",
+		"connect": "Enter your node connection details",
+		"rune": "Add a rune to give Clams permissions to interact with your node"
 	},
 	"payment": {
-		"amount": {
-			"heading": "Amount",
-			"subheading": "How much would you like to {{direction; receive:receive; send:send;}}?"
-		},
-		"description": {
-			"heading": "Description",
-			"subheading": "What is this payment for?"
-		},
-		"summary": {
-			"heading": "{{direction; receive:Receive; send:Send;}} Payment",
-			"destination": "Destination:",
-			"amount": "Amount:",
-			"description": "Description:",
-			"expiry": "Expires in:"
-		},
-		"details": {
-			"action": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
-		}
+		"status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
 	},
 	"modals": {
 		"clipboard": {

@@ -40,7 +40,15 @@
 
 		settings$.next({
 			...currentSettings,
-			fiatDenomination: val
+			fiatDenomination: val,
+			primaryDenomination:
+				currentSettings.primaryDenomination in FiatDenomination
+					? val
+					: currentSettings.primaryDenomination,
+			secondaryDenomination:
+				currentSettings.secondaryDenomination in FiatDenomination
+					? val
+					: currentSettings.secondaryDenomination
 		})
 	}
 </script>

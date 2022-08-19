@@ -31,6 +31,7 @@
 	// text-neutral-300
 	// text-inherit
 	// h-0
+	// h-6
 	// read-only:border-0
 	// read-only:outline-0
 	// autofill:bg-transparent
@@ -126,9 +127,7 @@
 	</div>
 
 	<div
-		class="flex items-center transition-all overflow-hidden text-utility-error h-{invalid
-			? '6'
-			: '0'}"
+		class="flex items-end transition-all overflow-hidden text-utility-error h-{invalid ? '6' : '0'}"
 	>
 		<span class="w-4 mr-2"><Warning /></span>
 		<span class="text-xs font-medium">{invalid}</span>

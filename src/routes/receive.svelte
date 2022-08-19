@@ -60,7 +60,7 @@
 			requesting = true
 
 			const payment = await coreLightning.createInvoice({
-				amount_msat,
+				amount_msat: amount_msat === '0' ? 'any' : amount_msat,
 				description,
 				expiry,
 				label: crypto.randomUUID()
@@ -73,8 +73,6 @@
 				// track invoice payment
 				waitForAndUpdatePayment(payment)
 			}
-
-			console.log(payment.bolt11)
 
 			// route to payment route
 			goto(`/payments/${payment.id}`)

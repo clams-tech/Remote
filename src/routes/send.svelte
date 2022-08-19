@@ -35,9 +35,8 @@
 	}
 
 	let requesting = false
-	let errorMsg = ''
-
 	// @TODO - handle error message
+	let errorMsg = ''
 
 	type SendPayment = {
 		destination: string
@@ -56,7 +55,7 @@
 		expiry: null,
 		timestamp: null,
 		amount: '',
-		value: ''
+		value: '0'
 	})
 
 	async function sendPayment() {
@@ -137,7 +136,11 @@
 	>
 		<Destination
 			next={() =>
-				$sendPayment$.type === 'payment_request' && $sendPayment$.amount ? to(3) : next()}
+				$sendPayment$.type === 'payment_request' &&
+				$sendPayment$.amount &&
+				$sendPayment$.amount !== '0'
+					? to(3)
+					: next()}
 			bind:value={$sendPayment$.destination}
 			bind:type={$sendPayment$.type}
 			bind:description={$sendPayment$.description}

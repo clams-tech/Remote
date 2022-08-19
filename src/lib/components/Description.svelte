@@ -19,8 +19,8 @@
 
 <section class="flex flex-col justify-center w-full p-8 max-w-xl">
 	<div class="mb-6">
-		<h1 class="text-4xl font-bold mb-4">{$t('app.payment.description.heading')}</h1>
-		<p class="text-neutral-600 italic">{$t('app.payment.description.subheading')}</p>
+		<h1 class="text-4xl font-bold mb-4">{$t('app.headings.description')}</h1>
+		<p class="text-neutral-600 italic">{$t('app.subheadings.description')}</p>
 	</div>
 
 	<div class="mb-4">
