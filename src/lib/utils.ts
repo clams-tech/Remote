@@ -142,11 +142,13 @@ export function getSettings(): Settings {
 export function formatValueForDisplay({
 	value,
 	denomination,
-	commas = false
+	commas = false,
+	input = false
 }: {
 	value: string | null
 	denomination: Denomination
 	commas?: boolean
+	input?: boolean
 }): string {
 	if (!value) return ''
 
@@ -166,7 +168,10 @@ export function formatValueForDisplay({
 		default: {
 			let formatted
 
-			if (String(value).includes('.')) {
+			// if live input don't round or format just yet
+			if (input) {
+				formatted = value
+			} else if (String(value).includes('.')) {
 				const rounded = Big(value).round(2).toString()
 				const decimalIndex = rounded.indexOf('.')
 				formatted =

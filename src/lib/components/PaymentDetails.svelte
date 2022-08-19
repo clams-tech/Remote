@@ -70,12 +70,14 @@
 		updatePayment({ ...payment, status: 'expired' })
 	}
 
+	$: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
+
 	// text-utility-success
 	// text-utility-pending
 	// text-utility-error
 </script>
 
-<div class="w-full px-8 pt-12 pb-4">
+<div class="w-full h-full flex flex-col justify-center px-8 pt-12 pb-4">
 	<!-- AMOUNT -->
 	<div class="flex flex-col items-center justify-center">
 		<span
@@ -91,7 +93,7 @@
 					payment.status === 'complete'
 						? 'text-utility-success'
 						: 'text-current'}"
-					>{payment.direction === 'receive' ? '+' : '-'}{formatValueForDisplay({
+					>{abs}{formatValueForDisplay({
 						value: primaryValue,
 						denomination: primaryDenomination,
 						commas: true
@@ -99,7 +101,7 @@
 					{primaryDenomination}</span
 				>
 				<span class="text-neutral-600"
-					>{payment.direction === 'receive' ? '+' : '-'}{formatValueForDisplay({
+					>{abs}{formatValueForDisplay({
 						value: secondaryValue || '0',
 						denomination: secondaryDenomination,
 						commas: true
@@ -176,7 +178,7 @@
 				{/if}
 
 				{#if payment.status === 'complete'}
-					<div class="w-4 ml-1 border rounded-full">
+					<div class="w-4 ml-1 border border-utility-success rounded-full">
 						<Check />
 					</div>
 				{/if}

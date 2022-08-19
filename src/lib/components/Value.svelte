@@ -111,23 +111,25 @@
 
 		input.value = formatValueForDisplay({
 			value: input.value,
-			denomination: $settings$.primaryDenomination
+			denomination: $settings$.primaryDenomination,
+			input: true
 		})
 
 		value = input.value
 	}
 </script>
 
-<div class="flex items-center p-4 w-full justify-center">
-	<div class="flex flex-col items-end">
-		<div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded">
-			<div class="flex items-end">
+<div class="flex items-center w-full justify-center">
+	<div class="flex flex-col items-end w-full">
+		<div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full">
+			<div class="flex items-end w-full">
 				<div class="relative flex items-center">
 					<div class="text-4xl font-semibold cursor-pointer font-mono">
 						{formatValueForDisplay({
 							value,
 							denomination: $settings$.primaryDenomination,
-							commas: readonly
+							commas: readonly,
+							input: !readonly
 						})}
 					</div>
 					{#if !readonly}
@@ -136,11 +138,11 @@
 							on:input={handleInput}
 							type="number"
 							step="any"
-							class="absolute caret-black dark:caret-white h-12 top-0 left-0 w-1 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
+							class="absolute caret-black dark:caret-white h-12 top-0 left-0 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
 						/>
 					{/if}
 				</div>
-				<span class="ml-2 text-lg leading-1 font-semibold pb-1">
+				<span class="ml-2 text-lg leading-1 font-semibold">
 					{$settings$.primaryDenomination.toUpperCase()}
 				</span>
 			</div>

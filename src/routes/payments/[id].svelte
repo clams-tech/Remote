@@ -42,7 +42,7 @@
 	<title>{$t('app.titles.payment')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-start items-center w-full h-full max-w-xl">
+<section in:fade class="flex flex-col justify-center items-center w-full h-full max-w-xl">
 	<BackButton on:click={handleClose} />
 
 	{#if $payments$.loading}
