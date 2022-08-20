@@ -7,7 +7,6 @@
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { Language } from '$lib/types'
-	import SettingRow from '$lib/components/SettingRow.svelte'
 	import { settings$ } from '$lib/streams'
 	import Check from '$lib/icons/Check.svelte'
 	import { t } from '$lib/i18n/translations'
@@ -36,14 +35,14 @@
 		<div class="border-y border-neutral-70">
 			{#each Object.values(Language) as val, index}
 				{#if $settings$.language === val}
-					<SettingRow label={val} {index}>
+					<!-- <SettingRow label={val} {index}>
 						<div class="w-7" slot="element">
 							<Check />
 						</div>
-					</SettingRow>
+					</SettingRow> -->
 				{:else}
 					<div on:click={() => setLanguage(val)}>
-						<SettingRow label={val} {index} />
+						<!-- <SettingRow label={val} {index} /> -->
 					</div>
 				{/if}
 			{/each}

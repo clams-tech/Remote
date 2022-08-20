@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { settings$ } from '$lib/streams'
 	import Spinner from './Spinner.svelte'
 
-	export let text: string = ''
+	export let text = ''
 	export let disabled = false
 	export let requesting = false
 	export let small = false
@@ -21,9 +22,11 @@
 		? 'purple-500'
 		: 'current'} active:shadow-sm shadow-sm hover:shadow-md  disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center rounded-md py-3 px-{small
 		? '2'
-		: '4'} border-2 border-solid transition-all font-semibold {primary
-		? 'border-purple-500'
-		: 'border-current'}"
+		: '4'} border-2 border-solid border-{primary
+		? 'purple-500'
+		: $settings$.darkmode
+		? 'neutral-50'
+		: 'black'} transition-all font-semibold"
 	disabled={disabled || requesting}
 >
 	{#if requesting}

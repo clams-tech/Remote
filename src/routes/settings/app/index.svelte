@@ -6,24 +6,24 @@
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
-	import SettingRow from '$lib/components/SettingRow.svelte'
 	import { settings$ } from '$lib/streams'
 	import Toggle from '$lib/elements/Toggle.svelte'
 	import { t } from '$lib/i18n/translations'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
 	let settings = [
 		{
-			label: $t('app.settings.language'),
+			label: $t('app.labels.language'),
 			route: '/settings/app/language',
 			value: $settings$.language
 		},
 		{
-			label: $t('app.settings.local_currency'),
+			label: $t('app.labels.local_currency'),
 			route: '/settings/app/currency',
 			value: $settings$.fiatDenomination.toLocaleUpperCase()
 		},
 		{
-			label: $t('app.settings.bitcoin_unit'),
+			label: $t('app.labels.bitcoin_unit'),
 			route: '/settings/app/unit',
 			value: $settings$.bitcoinDenomination
 		}
@@ -48,24 +48,27 @@
 		goto('/settings')
 	}}
 >
-	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">{$t('app.settings.app')}</h1>
-		<div class="border-y border-neutral-70">
+	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+			{$t('app.titles.settings_app')}
+		</h1>
+		<div class="w-full">
 			{#each settings as { label, route, value }, index}
-				<SettingRow {label} {route} {index}>
-					<p slot="element" class="">{value}</p>
-				</SettingRow>
+				<a href={route}>
+					<SummaryRow>
+						<span slot="label">{label}</span>
+						<p slot="value" class="">{value}</p>
+					</SummaryRow>
+				</a>
 			{/each}
-			<div class="flex py-3 px-6 border-y border-neutral-70">
-				<p>{$t('app.settings.notifications')}</p>
-			</div>
-			<SettingRow label={$t('app.settings.incoming_transactions')}>
+			<SummaryRow>
+				<span slot="label">{$t('app.labels.notifications')}</span>
 				<Toggle
-					slot="element"
+					slot="value"
 					toggled={$settings$.notifications}
 					handleChange={toggleNotifications}
 				/>
-			</SettingRow>
+			</SummaryRow>
 		</div>
 	</section>
 </Slide>

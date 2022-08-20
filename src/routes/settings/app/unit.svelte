@@ -7,7 +7,6 @@
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination } from '$lib/types'
-	import SettingRow from '$lib/components/SettingRow.svelte'
 	import { settings$ } from '$lib/streams'
 	import Check from '$lib/icons/Check.svelte'
 	import { t } from '$lib/i18n/translations'
@@ -50,14 +49,14 @@
 		<div class="border-y border-neutral-70">
 			{#each bitcoinDenominations as { value, label }, index}
 				{#if $settings$.bitcoinDenomination === value}
-					<SettingRow {label} {index}>
+					<!-- <SettingRow {label} {index}>
 						<div class="w-7" slot="element">
 							<Check />
 						</div>
-					</SettingRow>
+					</SettingRow> -->
 				{:else}
 					<div on:click={() => setBitcoinUnit(value)}>
-						<SettingRow {label} {index} />
+						<!-- <SettingRow {label} {index} /> -->
 					</div>
 				{/if}
 			{/each}

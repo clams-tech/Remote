@@ -11,9 +11,8 @@
 	import { t } from '$lib/i18n/translations'
 
 	let options = [
-		{ label: $t('app.settings.community'), href: '@TODO', icon: Discord },
-		{ label: '@clamstech', href: 'https://twitter.com/clamstech', icon: Twitter },
-		{ label: 'support@clams.tech', href: 'support@clams.tech' }
+		{ label: $t('app.labels.community'), href: '@TODO', icon: Discord },
+		{ label: '@clamstech', href: 'https://twitter.com/clamstech', icon: Twitter }
 	]
 </script>
 
@@ -26,9 +25,11 @@
 		goto('/settings')
 	}}
 >
-	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">{$t('app.settings.help_and_support')}</h1>
-		<div class="flex flex-col items-center border-y border-neutral-70 pb-5">
+	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+			{$t('app.titles.settings_help')}
+		</h1>
+		<div class="w-full">
 			{#each options as { label, href, icon }}
 				<a class="mt-5 flex items-center w-full justify-center" {href}>
 					{#if icon}

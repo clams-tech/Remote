@@ -7,7 +7,6 @@
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { FiatDenomination } from '$lib/types'
-	import SettingRow from '$lib/components/SettingRow.svelte'
 	import { settings$ } from '$lib/streams'
 	import Check from '$lib/icons/Check.svelte'
 	import { t } from '$lib/i18n/translations'
@@ -71,14 +70,14 @@
 			{#each Object.entries(FiatDenomination) as [key, val], index}
 				{#if index < 2}
 					{#if $settings$.fiatDenomination === val}
-						<SettingRow label={labels[key] || key} {index}>
+						<!-- <SettingRow label={labels[key] || key} {index}>
 							<div class="w-7" slot="element">
 								<Check />
 							</div>
-						</SettingRow>
+						</SettingRow> -->
 					{:else}
 						<div on:click={() => setLocalCurrency(val)}>
-							<SettingRow label={labels[key] || key} {index} />
+							<!-- <SettingRow label={labels[key] || key} {index} /> -->
 						</div>
 					{/if}
 				{/if}
@@ -88,14 +87,14 @@
 			</div>
 			{#each Object.entries(FiatDenomination).sort( ([a], [b]) => a.localeCompare(b) ) as [key, val], index}
 				{#if $settings$.fiatDenomination === val}
-					<SettingRow label={labels[key] || key} {index}>
+					<!-- <SettingRow label={labels[key] || key} {index}>
 						<div class="w-7" slot="element">
 							<Check />
 						</div>
-					</SettingRow>
+					</SettingRow> -->
 				{:else}
 					<div on:click={() => setLocalCurrency(val)}>
-						<SettingRow label={labels[key] || key} {index} />
+						<!-- <SettingRow label={labels[key] || key} {index} /> -->
 					</div>
 				{/if}
 			{/each}

@@ -56,7 +56,17 @@
 		"direction": "{{direction; receive:}}",
 		"any": "any",
 		"amount": "Amount:",
-		"expiry": "Expires in:"
+		"expiry": "Expires in:",
+		"help_and_support": "Help & Support",
+		"dark_mode": "Dark Mode",
+		"language": "Language",
+		"local_currency": "Local Currency",
+		"bitcoin_unit": "Bitcoin Unit",
+		"app": "App",
+		"community": "Community",
+		"notifications": "Notifications",
+		"commonly_used": "Commonly Used",
+		"all_options": "All Options"
 	},
 	"time": {
 		"mins": "mins"
@@ -123,19 +133,5 @@
 			"paragraph_one": "You have a {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} on your clipboard.",
 			"paragraph_two": "Would you like to use this {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} for a transaction?"
 		}
-	},
-	"settings": {
-		"settings": "Settings",
-		"app": "App",
-		"help_and_support": "Help & Support",
-		"dark_mode": "Dark Mode",
-		"language": "Language",
-		"local_currency": "Local Currency",
-		"bitcoin_unit": "Bitcoin Unit",
-		"community": "Community",
-		"notifications": "Notifications",
-		"incoming_transactions": "Incoming Transactions",
-		"commonly_used": "Commonly Used",
-		"all_options": "All Options"
 	}
 }

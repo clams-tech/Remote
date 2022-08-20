@@ -6,18 +6,18 @@
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
-	import SettingRow from '$lib/components/SettingRow.svelte'
 	import Caret from '$lib/icons/Caret.svelte'
 	import { settings$ } from '$lib/streams'
 	import Toggle from '$lib/elements/Toggle.svelte'
 	import { t } from '$lib/i18n/translations'
 	import Button from '$lib/elements/Button.svelte'
 	import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
 	let settings = [
-		{ label: $t('app.settings.app'), route: '/settings/app' },
-		{ label: $t('app.settings.help_and_support'), route: 'settings/help' },
-		{ label: $t('app.settings.dark_mode') }
+		{ label: $t('app.labels.app'), route: '/settings/app' },
+		{ label: $t('app.labels.help_and_support'), route: 'settings/help' },
+		{ label: $t('app.labels.dark_mode') }
 	]
 
 	const toggleDarkmode = () => {
@@ -39,22 +39,28 @@
 		goto('/')
 	}}
 >
-	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">{$t('app.settings.settings')}</h1>
-		<div class="border-y border-neutral-70">
-			{#each settings as { label, route }, index}
+	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+			{$t('app.titles.settings')}
+		</h1>
+		<div class="w-full">
+			{#each settings as { label, route }}
 				{#if label === 'Dark Mode'}
-					<SettingRow {label} {index}>
-						<Toggle slot="element" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
-					</SettingRow>
+					<SummaryRow>
+						<span slot="label">{label}</span>
+						<Toggle slot="value" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
+					</SummaryRow>
 				{:else}
-					<SettingRow {label} {route} {index}>
-						<div class="w-7" slot="element"><Caret direction="right" /></div>
-					</SettingRow>
+					<a href={route}>
+						<SummaryRow>
+							<span slot="label">{label}</span>
+							<div class="w-6" slot="value"><Caret direction="right" /></div>
+						</SummaryRow>
+					</a>
 				{/if}
 			{/each}
 		</div>
-		<div class="m-6">
+		<div class="w-full mt-6">
 			<Button
 				text={$t('app.buttons.log_out')}
 				on:click={() => {
