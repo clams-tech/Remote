@@ -9,10 +9,13 @@
 	import Discord from '$lib/icons/Discord.svelte'
 	import Twitter from '$lib/icons/Twitter.svelte'
 	import { t } from '$lib/i18n/translations'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
+	import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
 
 	let options = [
-		{ label: $t('app.labels.community'), href: '@TODO', icon: Discord },
-		{ label: '@clamstech', href: 'https://twitter.com/clamstech', icon: Twitter }
+		{ label: $t('app.labels.docs'), href: 'https://docs.clams.tech', icon: ClamsIcon },
+		{ label: $t('app.labels.discord'), href: '@TODO', icon: Discord },
+		{ label: $t('app.labels.twitter'), href: 'https://twitter.com/clamstech', icon: Twitter }
 	]
 </script>
 
@@ -25,20 +28,25 @@
 		goto('/settings')
 	}}
 >
-	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+	<section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
 		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
 			{$t('app.titles.settings_help')}
 		</h1>
 		<div class="w-full">
 			{#each options as { label, href, icon }}
-				<a class="mt-5 flex items-center w-full justify-center" {href}>
-					{#if icon}
-						<div class="w-12 mr-2">
+				<a
+					class="flex items-center w-full justify-center"
+					{href}
+					rel="noopener noreferrer"
+					target="_blank"
+				>
+					<SummaryRow>
+						<span slot="label">{label}</span>
+						<div slot="value" class="w-10 flex justify-center">
 							<svelte:component this={icon} />
 						</div>
-					{/if}
-					{label}</a
-				>
+					</SummaryRow>
+				</a>
 			{/each}
 		</div>
 	</section>

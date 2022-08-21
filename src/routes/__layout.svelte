@@ -37,7 +37,7 @@
 
 <div
 	style="width: {innerWidth}px; height: {innerHeight}px;"
-	class="flex flex-col text-black dark:text-white dark:bg-black"
+	class="flex flex-col text-black dark:text-white dark:bg-black bg-white"
 >
 	<header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
 

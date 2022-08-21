@@ -13,6 +13,9 @@
 	// hover:shadow-purple-500
 	// hover:shadow-md
 	// hover:shadow-current
+	// border-purple-500
+	// border-neutral-50
+	// border-black
 </script>
 
 <button

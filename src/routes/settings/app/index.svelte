@@ -29,8 +29,16 @@
 		}
 	]
 
-	const toggleNotifications = () => {
+	const toggleNotifications = async () => {
 		const currentSettings = settings$.value
+
+		if (currentSettings.notifications === false) {
+			try {
+				await Notification.requestPermission()
+			} catch (error) {
+				//
+			}
+		}
 
 		settings$.next({
 			...currentSettings,
@@ -48,12 +56,12 @@
 		goto('/settings')
 	}}
 >
-	<section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+	<section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
 		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
 			{$t('app.titles.settings_app')}
 		</h1>
 		<div class="w-full">
-			{#each settings as { label, route, value }, index}
+			{#each settings as { label, route, value }}
 				<a href={route}>
 					<SummaryRow>
 						<span slot="label">{label}</span>

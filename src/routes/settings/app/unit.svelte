@@ -10,6 +10,7 @@
 	import { settings$ } from '$lib/streams'
 	import Check from '$lib/icons/Check.svelte'
 	import { t } from '$lib/i18n/translations'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
 	const bitcoinDenominations = [
 		{ value: BitcoinDenomination.btc, label: 'Bitcoin (BTC, ₿)' },
@@ -44,21 +45,22 @@
 		goto('/settings/app')
 	}}
 >
-	<section in:fade class="w-full h-full ">
-		<h1 class="text-center my-4">{$t('app.settings.bitcoin_unit')}</h1>
-		<div class="border-y border-neutral-70">
-			{#each bitcoinDenominations as { value, label }, index}
-				{#if $settings$.bitcoinDenomination === value}
-					<!-- <SettingRow {label} {index}>
-						<div class="w-7" slot="element">
-							<Check />
+	<section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+			{$t('app.titles.settings_unit')}
+		</h1>
+		<div class="w-full">
+			{#each bitcoinDenominations as { value, label }}
+				<div on:click={() => setBitcoinUnit(value)} class="cursor-pointer">
+					<SummaryRow>
+						<span slot="label">{label}</span>
+						<div class="w-6" slot="value">
+							{#if $settings$.bitcoinDenomination === value}
+								<Check />
+							{/if}
 						</div>
-					</SettingRow> -->
-				{:else}
-					<div on:click={() => setBitcoinUnit(value)}>
-						<!-- <SettingRow {label} {index} /> -->
-					</div>
-				{/if}
+					</SummaryRow>
+				</div>
 			{/each}
 		</div>
 	</section>

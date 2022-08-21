@@ -29,7 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	invoiceExpiry: DEFAULT_INVOICE_EXPIRY,
 	sendMaxFeePercent: 0.5,
 	sendTimeoutSeconds: 120,
-	notifications: true,
+	notifications: false,
 	darkmode: false
 }
 

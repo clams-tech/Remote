@@ -10,6 +10,7 @@
 	import { settings$ } from '$lib/streams'
 	import Check from '$lib/icons/Check.svelte'
 	import { t } from '$lib/i18n/translations'
+	import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
 	const labels: Record<string, string> = {
 		usd: 'US Dollar (USD, $)',
@@ -61,43 +62,59 @@
 		goto('/settings/app')
 	}}
 >
-	<section in:fade class="w-full h-full">
-		<h1 class="text-center my-4">{$t('app.settings.local_currency')}</h1>
-		<div class="border-y border-neutral-70">
-			<div class="flex py-3 px-6 border-b border-neutral-70">
-				<p>{$t('app.settings.commonly_used')}</p>
-			</div>
+	<section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+			{$t('app.titles.settings_currency')}
+		</h1>
+		<div class="w-full h-full overflow-auto currency">
+			<SummaryRow>
+				<span slot="label" class="font-bold">{$t('app.labels.commonly_used')}</span>
+			</SummaryRow>
+
 			{#each Object.entries(FiatDenomination) as [key, val], index}
 				{#if index < 2}
-					{#if $settings$.fiatDenomination === val}
-						<!-- <SettingRow label={labels[key] || key} {index}>
-							<div class="w-7" slot="element">
-								<Check />
+					<div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
+						<SummaryRow>
+							<span slot="label" class="ml-4">{labels[key] || key}</span>
+							<div class="w-6" slot="value">
+								{#if $settings$.fiatDenomination === val}
+									<Check />
+								{/if}
 							</div>
-						</SettingRow> -->
-					{:else}
-						<div on:click={() => setLocalCurrency(val)}>
-							<!-- <SettingRow label={labels[key] || key} {index} /> -->
-						</div>
-					{/if}
-				{/if}
-			{/each}
-			<div class="flex py-3 px-6 border-y border-neutral-70">
-				<p>{$t('app.settings.all_options')}</p>
-			</div>
-			{#each Object.entries(FiatDenomination).sort( ([a], [b]) => a.localeCompare(b) ) as [key, val], index}
-				{#if $settings$.fiatDenomination === val}
-					<!-- <SettingRow label={labels[key] || key} {index}>
-						<div class="w-7" slot="element">
-							<Check />
-						</div>
-					</SettingRow> -->
-				{:else}
-					<div on:click={() => setLocalCurrency(val)}>
-						<!-- <SettingRow label={labels[key] || key} {index} /> -->
+						</SummaryRow>
 					</div>
 				{/if}
+			{/each}
+
+			<SummaryRow>
+				<span slot="label" class="font-bold">{$t('app.labels.all_options')}</span>
+			</SummaryRow>
+
+			{#each Object.entries(FiatDenomination).sort( ([a], [b]) => a.localeCompare(b) ) as [key, val], index}
+				<div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
+					<SummaryRow>
+						<span slot="label" class="ml-4">{labels[key] || key}</span>
+						<div class="w-6" slot="value">
+							{#if $settings$.fiatDenomination === val}
+								<Check />
+							{/if}
+						</div>
+					</SummaryRow>
+				</div>
 			{/each}
 		</div>
 	</section>
 </Slide>
+
+<style>
+	/* Hide scrollbar for Chrome, Safari and Opera */
+	.currency::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* Hide scrollbar for IE, Edge and Firefox */
+	.currency {
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
+	}
+</style>

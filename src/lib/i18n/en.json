@@ -63,7 +63,9 @@
 		"local_currency": "Local Currency",
 		"bitcoin_unit": "Bitcoin Unit",
 		"app": "App",
-		"community": "Community",
+		"discord": "Discord Server",
+		"docs": "Documentation",
+		"twitter": "Twitter",
 		"notifications": "Notifications",
 		"commonly_used": "Commonly Used",
 		"all_options": "All Options"
