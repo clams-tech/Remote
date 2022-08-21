@@ -7,6 +7,7 @@
 
 	export let expiry: Date
 	export let label = true
+	export let small = true
 
 	const dispatch = createEventDispatcher()
 
@@ -28,9 +29,10 @@
 		})
 
 	// text-utility-error
+	// text-small
 </script>
 
-<div class="text-sm" class:text-utility-error={$msToExpire$.includes('ago')}>
+<div class:text-sm={small} class:text-utility-error={$msToExpire$.includes('ago')}>
 	{#if label}
 		<span>{$t(`app.labels.${$msToExpire$.includes('ago') ? 'expired' : 'expires'}`)}</span>
 	{/if}

@@ -8,9 +8,9 @@
 	import Summary from '$lib/components/Summary.svelte'
 	import Slide from '$lib/elements/Slide.svelte'
 	import { BitcoinDenomination, type PaymentType } from '$lib/types'
-	import { SvelteSubject, updatePayment } from '$lib/utils'
+	import { SvelteSubject } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
-	import { settings$ } from '$lib/streams'
+	import { paymentUpdates$, settings$ } from '$lib/streams'
 	import Amount from '$lib/components/Amount.svelte'
 	import Description from '$lib/components/Description.svelte'
 	import { t } from '$lib/i18n/translations'
@@ -55,12 +55,12 @@
 		expiry: null,
 		timestamp: null,
 		amount: '',
-		value: '0'
+		value: ''
 	})
 
 	async function sendPayment() {
 		requesting = true
-		const { destination, value, type } = sendPayment$.getValue()
+		const { destination, value, type, description } = sendPayment$.getValue()
 		const { primaryDenomination } = $settings$
 
 		try {
@@ -86,7 +86,7 @@
 							: undefined
 					})
 
-					updatePayment(payment)
+					paymentUpdates$.next({ ...payment, description })
 					paymentId = payment.id
 
 					break
@@ -107,7 +107,7 @@
 							.toString()
 					})
 
-					updatePayment(payment)
+					paymentUpdates$.next(payment)
 					paymentId = payment.id
 
 					break

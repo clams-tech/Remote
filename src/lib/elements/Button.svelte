@@ -7,6 +7,7 @@
 	export let requesting = false
 	export let small = false
 	export let primary = false
+	export let darkmode = $settings$.darkmode
 
 	// ==== 👇 comments are need to prevent styles from being stripped from build when used dynamically 👇 ==== //
 	// px-2
@@ -27,7 +28,7 @@
 		? '2'
 		: '4'} border-2 border-solid border-{primary
 		? 'purple-500'
-		: $settings$.darkmode
+		: darkmode
 		? 'neutral-50'
 		: 'black'} transition-all font-semibold"
 	disabled={disabled || requesting}

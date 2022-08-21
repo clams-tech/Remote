@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import Fuse from 'fuse.js'
-	import { lastPath$, payments$ } from '$lib/streams'
+	import { lastPath$, payments$, paymentUpdates$ } from '$lib/streams'
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
@@ -14,7 +14,6 @@
 	import Spinner from '$lib/elements/Spinner.svelte'
 	import type { Payment } from '$lib/types'
 	import Search from '$lib/icons/Search.svelte'
-	import { updatePayment } from '$lib/utils'
 
 	let searchTerm = ''
 	let searcher: Fuse<Payment>
@@ -32,7 +31,7 @@
 			return false
 		})
 
-		expiredPayments.forEach((payment) => updatePayment({ ...payment, status: 'expired' }))
+		expiredPayments.forEach((payment) => paymentUpdates$.next({ ...payment, status: 'expired' }))
 
 		// set filtered payments to current payments
 		filteredPayments = payments

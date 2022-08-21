@@ -43,7 +43,7 @@
 	<div class="w-full">
 		<div class="mb-6">
 			<h1 class="text-4xl font-bold mb-4">{$t('app.headings.summary', { direction })}</h1>
-			<p class="text-neutral-600 italic">{$t('app.subheadings.summary')}</p>
+			<p class="text-neutral-600 dark:text-neutral-400 italic">{$t('app.subheadings.summary')}</p>
 		</div>
 
 		<!-- DESTINATION -->
@@ -98,7 +98,7 @@
 						{expiryMinutes}
 						{$t('app.time.mins')}
 					{:else if expiresAt}
-						<ExpiryCountdown label={false} expiry={new Date(expiresAt)} />
+						<ExpiryCountdown small={false} label={false} expiry={new Date(expiresAt)} />
 					{/if}
 				</span>
 			</SummaryRow>

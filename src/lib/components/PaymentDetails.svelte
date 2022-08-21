@@ -4,7 +4,7 @@
 	import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
 	import type { Payment } from '$lib/types'
 	import { BitcoinDenomination } from '$lib/types'
-	import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
+	import { bitcoinExchangeRates$, paymentUpdates$, settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
 	import SummaryRow from '$lib/elements/SummaryRow.svelte'
 	import Spinner from '$lib/elements/Spinner.svelte'
@@ -12,14 +12,7 @@
 	import Check from '$lib/icons/Check.svelte'
 	import Warning from '$lib/icons/Warning.svelte'
 	import { convertValue } from '$lib/conversion'
-
-	import {
-		formatDate,
-		formatValueForDisplay,
-		truncateValue,
-		updatePayment,
-		writeClipboardValue
-	} from '$lib/utils'
+	import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
 
 	export let payment: Payment
 
@@ -67,7 +60,7 @@
 	}
 
 	function handlePaymentExpire() {
-		updatePayment({ ...payment, status: 'expired' })
+		paymentUpdates$.next({ ...payment, status: 'expired' })
 	}
 
 	$: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
@@ -100,7 +93,7 @@
 					})}
 					{primaryDenomination}</span
 				>
-				<span class="text-neutral-600"
+				<span class="text-neutral-600 dark:text-neutral-400"
 					>{abs}{formatValueForDisplay({
 						value: secondaryValue || '0',
 						denomination: secondaryDenomination,
@@ -131,8 +124,8 @@
 		<!-- INVOICE -->
 		{#if payment.bolt11}
 			<SummaryRow on:click={handleCopy(payment.bolt11)}>
-				<span class="cursor-pointer" slot="label">{$t('app.labels.invoice')}</span>
-				<span class="flex items-center" slot="value">
+				<span slot="label">{$t('app.labels.invoice')}</span>
+				<span class="flex items-center cursor-pointer" slot="value">
 					{truncateValue(payment.bolt11)}
 					{#if copySuccess === payment.bolt11}
 						<div in:fade class="w-6 text-utility-success">

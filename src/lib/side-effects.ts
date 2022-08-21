@@ -1,8 +1,28 @@
 import { from, timer } from 'rxjs'
-import { filter, pluck, skip, switchMap, take, withLatestFrom } from 'rxjs/operators'
+
+import {
+	distinctUntilKeyChanged,
+	filter,
+	pluck,
+	skip,
+	switchMap,
+	take,
+	withLatestFrom
+} from 'rxjs/operators'
+
 import { coreLightning } from './backends'
 import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { getBitcoinExchangeRate, listenForAllInvoiceUpdates } from './utils'
+import { t } from './i18n/translations'
+import { get } from 'svelte/store'
+import { convertValue } from './conversion'
+import { BitcoinDenomination, Modals } from './types'
+
+import {
+	formatValueForDisplay,
+	getBitcoinExchangeRate,
+	listenForAllInvoiceUpdates,
+	updatePayments
+} from './utils'
 
 import {
 	appVisible$,
@@ -10,8 +30,10 @@ import {
 	credentials$,
 	funds$,
 	listeningForAllInvoiceUpdates$,
+	modal$,
 	nodeInfo$,
 	payments$,
+	paymentUpdates$,
 	settings$
 } from './streams'
 
@@ -23,6 +45,7 @@ function registerSideEffects() {
 			take(1)
 		)
 		.subscribe(async (credentials) => {
+			// store credentials
 			localStorage.setItem('credentials', JSON.stringify(credentials))
 
 			coreLightning
@@ -53,10 +76,64 @@ function registerSideEffects() {
 				})
 		})
 
+	// update payments when payment update comes through
+	paymentUpdates$.subscribe(updatePayments)
+
+	// handle notifications for payment updates
+	paymentUpdates$
+		.pipe(
+			filter(({ status }) => status !== 'pending'),
+			withLatestFrom(settings$)
+		)
+		.subscribe(async ([payment, settings]) => {
+			const { notifications, primaryDenomination } = settings
+
+			if (notifications && Notification.permission === 'granted') {
+				const { status, direction, value, description } = payment
+
+				const convertedValue = convertValue({
+					value,
+					from: BitcoinDenomination.msats,
+					to: primaryDenomination
+				})
+
+				const img = '/clams-icon.png'
+
+				const text = `${get(t)('app.payment.status', {
+					direction,
+					status
+				})} ${formatValueForDisplay({
+					value: convertedValue,
+					denomination: primaryDenomination
+				})} for ${description || 'unknown'}`
+
+				new Notification('Payment', { body: text, icon: img })
+			}
+		})
+
 	// handle dark mode toggle
-	settings$.subscribe(({ darkmode }) => {
+	settings$.pipe(distinctUntilKeyChanged('darkmode')).subscribe(({ darkmode }) => {
 		document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
 	})
+
+	// handle notifications toggle
+	settings$
+		.pipe(filter(({ notifications }) => !!notifications))
+		.subscribe(async (currentSettings) => {
+			try {
+				const permission = await Notification.requestPermission()
+
+				if (permission === 'denied') {
+					modal$.next(Modals.notificationsDisabled)
+				}
+
+				if (permission !== 'granted') {
+					settings$.next({ ...currentSettings, notifications: false })
+				}
+			} catch (error) {
+				settings$.next({ ...currentSettings, notifications: false })
+			}
+		})
 
 	// update settings in storage
 	settings$

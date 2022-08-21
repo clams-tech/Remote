@@ -1,14 +1,20 @@
-import { BehaviorSubject, fromEvent } from 'rxjs'
+import { BehaviorSubject, fromEvent, Subject } from 'rxjs'
 import { map, shareReplay, startWith } from 'rxjs/operators'
 import type { CoreLnCredentials, GetinfoResponse, ListfundsResponse } from './backends'
 import { CORE_LN_CREDENTIALS_INITIAL } from './constants'
 import { Modals, type BitcoinExchangeRates, type Payment, type Settings } from './types'
-import { getCredentialsFromStorage, getPageVisibilityParams, getSettings } from './utils'
+import {
+	getCredentialsFromStorage,
+	getPageVisibilityParams,
+	getSettings,
+	SvelteSubject
+} from './utils'
 
 export const lastPath$ = new BehaviorSubject('/')
-export const settings$ = new BehaviorSubject<Settings>(getSettings())
+export const settings$ = new SvelteSubject<Settings>(getSettings())
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 export const modal$ = new BehaviorSubject<Modals>(Modals.none)
+export const paymentUpdates$ = new Subject<Payment>()
 
 export const credentials$ = new BehaviorSubject<CoreLnCredentials>(
 	getCredentialsFromStorage() || CORE_LN_CREDENTIALS_INITIAL

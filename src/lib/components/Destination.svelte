@@ -8,7 +8,7 @@
 	import Button from '$lib/elements/Button.svelte'
 	import Modal, { closeModal } from '../elements/Modal.svelte'
 	import { t } from '$lib/i18n/translations'
-	import { modal$ } from '$lib/streams'
+	import { modal$, settings$ } from '$lib/streams'
 	import { Modals } from '$lib/types'
 
 	import {
@@ -39,6 +39,7 @@
 				const decodedInvoice = decode(value)
 				;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
 				amount = amount || '0'
+				expiry = expiry || 3600
 			} catch (e) {
 				error = $t('app.inputs.destination.invalid_invoice')
 			}
@@ -106,7 +107,7 @@
 <section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
 	<div class="mb-6">
 		<h1 class="text-4xl font-bold mb-4">{$t('app.headings.destination')}</h1>
-		<p class="text-neutral-600 italic">{$t('app.subheadings.destination')}</p>
+		<p class="text-neutral-600 dark:text-neutral-400 italic">{$t('app.subheadings.destination')}</p>
 	</div>
 
 	<TextInput
@@ -147,8 +148,12 @@
 				</p>
 
 				<div class="flex w-full items-center mt-4">
-					<div class="w-1/2 mr-2">
-						<Button on:click={closeModal} text={$t('app.buttons.no')} />
+					<div class="w-1/2 mr-2 text-black">
+						<Button
+							darkmode={!$settings$.darkmode}
+							on:click={closeModal}
+							text={$t('app.buttons.no')}
+						/>
 					</div>
 
 					<div class="w-1/2">

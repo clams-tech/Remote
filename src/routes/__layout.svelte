@@ -16,10 +16,9 @@
 <script lang="ts">
 	import { locale, loadTranslations } from '$lib/i18n/translations'
 	import { beforeNavigate } from '$app/navigation'
-	import { lastPath$, listeningForAllInvoiceUpdates$ } from '$lib/streams'
+	import { lastPath$ } from '$lib/streams'
 	import registerSideEffects from '$lib/side-effects'
 	import '../app.css'
-	import { listenForAllInvoiceUpdates } from '$lib/utils'
 
 	beforeNavigate(({ from }) => {
 		if (from) {
@@ -42,7 +41,7 @@
 	<header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
 
 	<!-- CONTENT -->
-	<main class="flex flex-grow w-full flex-col items-center bg-inherit overflow-hidden">
+	<main class="flex flex-grow w-full flex-col items-center bg-inherit">
 		<slot />
 	</main>
 </div>

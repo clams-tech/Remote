@@ -6,10 +6,12 @@
 	import { goto } from '$app/navigation'
 	import { fade } from 'svelte/transition'
 	import Slide from '$lib/elements/Slide.svelte'
-	import { settings$ } from '$lib/streams'
+	import { modal$, settings$ } from '$lib/streams'
 	import Toggle from '$lib/elements/Toggle.svelte'
 	import { t } from '$lib/i18n/translations'
 	import SummaryRow from '$lib/elements/SummaryRow.svelte'
+	import { Modals } from '$lib/types'
+	import Modal from '$lib/elements/Modal.svelte'
 
 	let settings = [
 		{
@@ -28,23 +30,6 @@
 			value: $settings$.bitcoinDenomination
 		}
 	]
-
-	const toggleNotifications = async () => {
-		const currentSettings = settings$.value
-
-		if (currentSettings.notifications === false) {
-			try {
-				await Notification.requestPermission()
-			} catch (error) {
-				//
-			}
-		}
-
-		settings$.next({
-			...currentSettings,
-			notifications: !currentSettings.notifications
-		})
-	}
 </script>
 
 <svelte:head>
@@ -71,12 +56,17 @@
 			{/each}
 			<SummaryRow>
 				<span slot="label">{$t('app.labels.notifications')}</span>
-				<Toggle
-					slot="value"
-					toggled={$settings$.notifications}
-					handleChange={toggleNotifications}
-				/>
+				<Toggle slot="value" bind:toggled={$settings$.notifications} />
 			</SummaryRow>
 		</div>
 	</section>
 </Slide>
+
+{#if $modal$ === Modals.notificationsDisabled}
+	<Modal>
+		<div>
+			<h2 class="text-lg font-bold mb-4">{$t('app.modals.notifications.heading')}</h2>
+			<p>{$t('app.modals.notifications.description')}</p>
+		</div>
+	</Modal>
+{/if}

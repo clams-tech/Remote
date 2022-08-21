@@ -8,7 +8,7 @@ import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
 import { invoiceToPayment } from './backends/core-lightning/utils'
-import { credentials$, payments$ } from './streams'
+import { credentials$, payments$, paymentUpdates$ } from './streams'
 
 import { coreLightning, type CoreLnCredentials, type ListfundsResponse } from './backends'
 
@@ -136,7 +136,11 @@ export function truncateValue(request: string): string {
 export function getSettings(): Settings {
 	const value = localStorage.getItem(SETTINGS_STORAGE_KEY)
 	const settingsInStorage: Settings | null = value && JSON.parse(value)
-	return settingsInStorage || DEFAULT_SETTINGS
+
+	return {
+		...(settingsInStorage || DEFAULT_SETTINGS),
+		notifications: Notification.permission === 'granted'
+	}
 }
 
 export function formatValueForDisplay({
@@ -426,14 +430,13 @@ export function validateConnectionString(connect: string): boolean {
 export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
 	try {
 		const update = await coreLightning.waitForInvoicePayment(payment)
-		updatePayment(update)
+		paymentUpdates$.next(update)
 	} catch (error) {
 		console.log('Error waiting for invoice payment:', error)
 	}
 }
 
-export function updatePayment(payment: Payment): void {
-	console.log('updating payment:', payment)
+export function updatePayments(payment: Payment): void {
 	const payments = payments$.getValue().data || []
 	const paymentIndex = payments.findIndex(({ hash }) => hash === payment.hash)
 
@@ -480,7 +483,7 @@ export async function listenForAllInvoiceUpdates(payIndex?: string): Promise<voi
 
 	if (invoice.status !== 'unpaid') {
 		const payment = invoiceToPayment(invoice)
-		updatePayment(payment)
+		paymentUpdates$.next(payment)
 	}
 
 	const newLastPayIndex = invoice.pay_index ? invoice.pay_index.toString() : lastPayIndex || '0'

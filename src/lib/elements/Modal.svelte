@@ -51,7 +51,7 @@
 		on:click|stopPropagation={closeModal}
 		class="{backgroundStyles} justify-center"
 	>
-		<div on:click|stopPropagation class="{modalStyles} rounded-3xl max-w-sm">
+		<div on:click|stopPropagation class="{modalStyles} rounded-3xl max-w-sm py-8">
 			<div on:click={closeModal} class="absolute top-1 right-1 w-8 cursor-pointer text-neutral-400">
 				<Close />
 			</div>

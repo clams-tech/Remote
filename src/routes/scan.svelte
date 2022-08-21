@@ -9,10 +9,10 @@
 	import Slide from '$lib/elements/Slide.svelte'
 	import Summary from '$lib/components/Summary.svelte'
 	import { BitcoinDenomination, type Payment } from '$lib/types'
-	import { settings$ } from '$lib/streams'
+	import { paymentUpdates$, settings$ } from '$lib/streams'
 	import { t } from '$lib/i18n/translations'
 	import { coreLightning, type ErrorResponse } from '$lib/backends'
-	import { formatDecodedInvoice, SvelteSubject, updatePayment } from '$lib/utils'
+	import { formatDecodedInvoice, SvelteSubject } from '$lib/utils'
 	import { convertValue } from '$lib/conversion'
 
 	let requesting = false
@@ -80,7 +80,7 @@
 
 		try {
 			const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
-			updatePayment(payment)
+			paymentUpdates$.next(payment)
 			goto(`/payments/${payment.id}`)
 		} catch (error) {
 			errorMsg = (error as ErrorResponse).message

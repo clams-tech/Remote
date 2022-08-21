@@ -2,7 +2,9 @@
 	export let label = ''
 	export let toggled = false
 
-	export let handleChange = () => {}
+	export let handleChange = () => {
+		//
+	}
 </script>
 
 <div class="cursor-pointer flex items-center">
@@ -10,7 +12,7 @@
 
 	<label on:click|stopPropagation class="relative inline-block m-0 w-8 h-4">
 		<input
-			checked={toggled}
+			bind:checked={toggled}
 			class="opacity-0 w-0 h-0 peer"
 			type="checkbox"
 			on:change={handleChange}

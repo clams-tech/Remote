@@ -134,6 +134,10 @@
 		"clipboard": {
 			"paragraph_one": "You have a {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} on your clipboard.",
 			"paragraph_two": "Would you like to use this {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} for a transaction?"
+		},
+		"notifications": {
+			"heading": "Notifications",
+			"description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
 		}
 	}
 }
