@@ -24,6 +24,12 @@
 	$: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 focus:outline-none focus:ring focus:border-white focus:ring-${
 		invalid ? 'utility-error' : 'purple-500'
 	}`
+
+	// focus:outline-none
+	// focus:ring
+	// focus:border-white
+	// focus:ring-utility-error
+	// focus:ring-purple-500
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
