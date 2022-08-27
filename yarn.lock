@@ -1727,9 +1727,7 @@ run-parallel@^1.1.9:
 
 "rune-decoder@https://github.com/clams-tech/rune-decoder":
   version "0.0.1"
-  resolved "https://github.com/clams-tech/rune-decoder#d13a0489f1027273af6f262c37911d62874e365f"
-  dependencies:
-    typescript "^4.7.4"
+  resolved "https://github.com/clams-tech/rune-decoder#57c2e76d1ef9ab7336f565b99de300da1c7b67ce"
 
 rxjs@^7.5.5, rxjs@^7.5.6:
   version "7.5.6"
@@ -2027,10 +2025,15 @@ type-fest@^0.21.3:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.21.3.tgz#d260a24b0198436e133fa26a524a6d65fa3b2e37"
   integrity sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==
 
-typescript@*, typescript@^4.7.4:
+typescript@*:
   version "4.7.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
   integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
+
+typescript@^4.8.2:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.2.tgz#e3b33d5ccfb5914e4eeab6699cf208adee3fd790"
+  integrity sha512-C0I1UsrrDHo2fYI5oaCGbSejwX4ch+9Y5jTQELvovfmFkK3HHSZJB8MSJcWLmCUBzQBchCrZ9rMRV6GuNrvGtw==
 
 ua-parser-js@^1.0.2:
   version "1.0.2"
