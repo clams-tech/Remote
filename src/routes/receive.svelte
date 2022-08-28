@@ -1,120 +1,126 @@
 <script lang="ts" context="module">
-	export { load } from '$lib/utils'
+  export { load } from '$lib/utils'
 </script>
 
 <script lang="ts">
-	import Amount from '$lib/components/Amount.svelte'
-	import Description from '$lib/components/Description.svelte'
-	import Summary from '$lib/components/Summary.svelte'
-	import { listeningForAllInvoiceUpdates$, paymentUpdates$, settings$ } from '$lib/streams'
-	import { SvelteSubject, waitForAndUpdatePayment } from '$lib/utils'
-	import { convertValue } from '$lib/conversion'
-	import { goto } from '$app/navigation'
-	import { BitcoinDenomination } from '$lib/types'
-	import Slide from '$lib/elements/Slide.svelte'
-	import { t } from '$lib/i18n/translations'
-	import { coreLightning } from '$lib/backends'
+  import Amount from '$lib/components/Amount.svelte'
+  import Description from '$lib/components/Description.svelte'
+  import Summary from '$lib/components/Summary.svelte'
+  import { convertValue } from '$lib/conversion'
+  import { goto } from '$app/navigation'
+  import { BitcoinDenomination } from '$lib/types'
+  import Slide from '$lib/elements/Slide.svelte'
+  import { translate } from '$lib/i18n/translations'
+  import { coreLightning } from '$lib/backends'
 
-	let requesting = false
+  import {
+    listeningForAllInvoiceUpdates$,
+    paymentUpdates$,
+    settings$,
+    SvelteSubject,
+    waitForAndUpdatePayment
+  } from '$lib/streams'
 
-	const { invoiceExpiry } = $settings$
+  let requesting = false
 
-	// @TODO - Display and handle error message
-	let errorMsg = ''
+  const { invoiceExpiry } = $settings$
 
-	let previousSlide = 0
-	let slide = 0
+  // @TODO - Display and handle error message
+  let errorMsg = ''
 
-	function next() {
-		previousSlide = slide
-		slide = slide + 1
-	}
+  let previousSlide = 0
+  let slide = 0
 
-	function prev() {
-		previousSlide = slide
-		slide = slide - 1
-	}
+  function next() {
+    previousSlide = slide
+    slide = slide + 1
+  }
 
-	const receivePayment$ = new SvelteSubject({
-		value: '0',
-		description: '',
-		expiry: invoiceExpiry
-	})
+  function prev() {
+    previousSlide = slide
+    slide = slide - 1
+  }
 
-	async function submit() {
-		const { value, description, expiry } = $receivePayment$
-		errorMsg = ''
+  const receivePayment$ = new SvelteSubject({
+    value: '0',
+    description: '',
+    expiry: invoiceExpiry
+  })
 
-		const amount_msat = convertValue({
-			value,
-			from: settings$.value.primaryDenomination,
-			to: BitcoinDenomination.msats
-		})
+  async function submit() {
+    const { value, description, expiry } = $receivePayment$
+    errorMsg = ''
 
-		if (!amount_msat) {
-			errorMsg = 'Something went wrong, please try again'
-			return
-		}
+    const amount_msat = convertValue({
+      value,
+      from: settings$.value.primaryDenomination,
+      to: BitcoinDenomination.msats
+    })
 
-		try {
-			requesting = true
+    if (!amount_msat) {
+      errorMsg = 'Something went wrong, please try again'
+      return
+    }
 
-			const payment = await coreLightning.createInvoice({
-				amount_msat: amount_msat === '0' ? 'any' : amount_msat,
-				description,
-				expiry,
-				label: crypto.randomUUID()
-			})
+    try {
+      requesting = true
 
-			// add to payments
-			paymentUpdates$.next(payment)
+      const payment = await coreLightning.createInvoice({
+        amount_msat: amount_msat === '0' ? 'any' : amount_msat,
+        description,
+        expiry,
+        label: crypto.randomUUID()
+      })
 
-			if (!$listeningForAllInvoiceUpdates$) {
-				// track invoice payment
-				waitForAndUpdatePayment(payment)
-			}
+      // add to payments
+      paymentUpdates$.next(payment)
 
-			// route to payment route
-			goto(`/payments/${payment.id}`)
-		} catch (error) {
-			requesting = false
-			errorMsg = (error as { message: string }).message
-			console.log({ error })
-		}
-	}
+      if (!$listeningForAllInvoiceUpdates$) {
+        // track invoice payment
+        waitForAndUpdatePayment(payment)
+      }
+
+      // route to payment route
+      goto(`/payments/${payment.id}`)
+    } catch (error) {
+      requesting = false
+      errorMsg = (error as { message: string }).message
+      console.log({ error })
+    }
+  }
 </script>
 
 <svelte:head>
-	<title>{$t('app.titles.receive')}</title>
+  <title>{$translate('app.titles.receive')}</title>
 </svelte:head>
 
 {#if slide === 0}
-	<Slide
-		back={() => {
-			goto('/')
-		}}
-		direction={previousSlide > slide ? 'right' : 'left'}
-	>
-		<Amount bind:value={$receivePayment$.value} {next} direction="receive" />
-	</Slide>
+  <Slide
+    back={() => {
+      goto('/')
+    }}
+    direction={previousSlide > slide ? 'right' : 'left'}
+  >
+    <Amount bind:value={$receivePayment$.value} {next} direction="receive" />
+  </Slide>
 {/if}
 
 {#if slide === 1}
-	<Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
-		<Description bind:description={$receivePayment$.description} {next} />
-	</Slide>
+  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+    <Description bind:description={$receivePayment$.description} {next} />
+  </Slide>
 {/if}
 
 {#if slide === 2}
-	<Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
-		<Summary
-			type="payment_request"
-			value={$receivePayment$.value}
-			description={$receivePayment$.description}
-			bind:expiry={$receivePayment$.expiry}
-			direction="receive"
-			{requesting}
-			on:complete={submit}
-		/>
-	</Slide>
+  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+    <Summary
+      type="payment_request"
+      value={$receivePayment$.value}
+      description={$receivePayment$.description}
+      bind:expiry={$receivePayment$.expiry}
+      direction="receive"
+      {requesting}
+      on:complete={submit}
+    />
+  </Slide>
 {/if}
