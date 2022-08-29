@@ -6,12 +6,11 @@
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
   import Slide from '$lib/elements/Slide.svelte'
-  import { modal$, settings$ } from '$lib/streams'
+  import { customNotifications$, settings$ } from '$lib/streams'
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
-  import { Modals } from '$lib/types'
-  import Modal from '$lib/elements/Modal.svelte'
+  import { supportsNotifications } from '$lib/utils'
 
   let settings = [
     {
@@ -30,6 +29,25 @@
       value: $settings$.bitcoinDenomination
     }
   ]
+
+  async function requestNotifications() {
+    try {
+      if ($settings$.notifications && supportsNotifications()) {
+        const permission = await Notification.requestPermission()
+
+        if (permission === 'denied') {
+          customNotifications$.next({
+            type: 'error',
+            heading: $translate('app.errors.permissions'),
+            message: $translate('app.errors.permissions_notifications'),
+            id: crypto.randomUUID()
+          })
+        }
+      }
+    } catch (error) {
+      //
+    }
+  }
 </script>
 
 <svelte:head>
@@ -56,17 +74,12 @@
       {/each}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.notifications')}</span>
-        <Toggle slot="value" bind:toggled={$settings$.notifications} />
+        <Toggle
+          handleChange={requestNotifications}
+          slot="value"
+          bind:toggled={$settings$.notifications}
+        />
       </SummaryRow>
     </div>
   </section>
 </Slide>
-
-{#if $modal$ === Modals.notificationsDisabled}
-  <Modal>
-    <div>
-      <h2 class="text-lg font-bold mb-4">{$translate('app.modals.notifications.heading')}</h2>
-      <p>{$translate('app.modals.notifications.description')}</p>
-    </div>
-  </Modal>
-{/if}

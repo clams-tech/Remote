@@ -51,7 +51,7 @@
     </div>
   {:else if $payments$.error}
     <div class="w-full h-full flex items-center justify-center">
-      <!-- @TODO - Render error correctly -->
+      <!-- @TODO - Ensure renders error correctly -->
       <span>{$payments$.error}</span>
     </div>
   {:else if payment}

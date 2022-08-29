@@ -3,7 +3,7 @@
   import { filter, withLatestFrom, map, switchMap, takeUntil } from 'rxjs/operators'
   import { flip } from 'svelte/animate'
   import { fly } from 'svelte/transition'
-  import { DIRECTION_RIGHT, DIRECTION_UP } from 'hammerjs'
+  import { DIRECTION_UP } from 'hammerjs'
   import { quintOut } from 'svelte/easing'
   import { customNotifications$, onDestroy$, paymentUpdates$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -11,6 +11,9 @@
   import { BitcoinDenomination, type Notification } from '$lib/types'
   import Close from '$lib/icons/Close.svelte'
   import { drag } from '$lib/utils'
+  import Check from '$lib/icons/Check.svelte'
+  import Info from '$lib/icons/Info.svelte'
+  import Alert from '$lib/icons/Alert.svelte'
 
   import {
     formatValueForDisplay,
@@ -25,17 +28,6 @@
   }
 
   let notificationsToRender: Notification[] = []
-
-  setTimeout(() => {
-    notificationsToRender = [
-      {
-        id: crypto.randomUUID(),
-        heading: 'Test',
-        message: 'This is a test notifications',
-        type: 'hint'
-      }
-    ]
-  }, 1000)
 
   const device = userAgent.getDevice()
 
@@ -59,7 +51,7 @@
       })} ${formatValueForDisplay({
         value: convertedValue,
         denomination: primaryDenomination
-      })} for ${description || 'unknown'}`
+      })} ${primaryDenomination} for ${description || 'unknown'}`
 
       const type = status === 'expired' || status === 'failed' ? 'error' : 'success'
 
@@ -104,26 +96,52 @@
 </script>
 
 {#if notificationsToRender.length}
-  <div class:w-full={device.type === 'mobile'} class="absolute top-0 right-0 p-4">
+  <div
+    class="absolute top-0 p-4 w-96"
+    class:right-0={device.type !== 'mobile'}
+    class:w-full={device.type === 'mobile'}
+  >
     {#each notificationsToRender as { id, heading, message, type } (id)}
       <div
         use:swipe={{
-          direction: device.type === 'mobile' ? DIRECTION_UP : DIRECTION_RIGHT,
+          direction: DIRECTION_UP,
           threshold: 50,
-          velocity: 0.4
+          velocity: 0.6
         }}
         on:swipe={() => removeNotification(id)}
-        use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
+        use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 70 }}
         animate:flip={{ duration: 500 }}
         in:fly={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
         out:fly={{ duration: 400, x: 0, y: -50, easing: quintOut }}
-        class="w-full bg-neutral-50 dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 dark:border dark:border-neutral-400 z-20 p-4 relative rounded-lg"
+        class="w-full cursor-grab bg-white dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 border border-neutral-100 dark:border-neutral-400 z-20 p-4 relative rounded-lg mb-2"
       >
-        <div on:click={() => removeNotification(id)} class="absolute top-0 right-0 w-8 p-1">
+        <div
+          on:click={() => removeNotification(id)}
+          class="absolute top-0 right-0 w-9 p-1 cursor-pointer"
+        >
           <Close />
         </div>
-        <h4>{heading}</h4>
-        <p>{message}</p>
+
+        <div class="flex items-start w-full">
+          <div
+            class="w-6 border-2 border-current rounded-full mr-4"
+            class:text-utility-success={type === 'success'}
+            class:text-utility-error={type === 'error'}
+          >
+            {#if type === 'success'}
+              <Check />
+            {:else if type === 'hint'}
+              <Info />
+            {:else}
+              <Alert />
+            {/if}
+          </div>
+
+          <div class="w-4/5">
+            <h4 class="font-bold leading-4 mb-2">{heading}</h4>
+            <p class="text-sm">{message}</p>
+          </div>
+        </div>
       </div>
     {/each}
   </div>

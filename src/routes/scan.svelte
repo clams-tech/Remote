@@ -9,7 +9,7 @@
   import Slide from '$lib/elements/Slide.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import { BitcoinDenomination, type Payment } from '$lib/types'
-  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { customNotifications$, paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import { coreLightning, type ErrorResponse } from '$lib/backends'
   import { formatDecodedInvoice } from '$lib/utils'
@@ -47,7 +47,13 @@
     }
 
     if (!invoice) {
-      alert('Not a valid Lightning invoice.')
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.scan'),
+        message: $translate('app.errors.invalid_invoice'),
+        id: crypto.randomUUID()
+      })
+
       return
     }
 
@@ -66,7 +72,12 @@
 
       next()
     } catch (error) {
-      console.log({ error })
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.scan'),
+        message: $translate('app.errors.invalid_invoice'),
+        id: crypto.randomUUID()
+      })
     }
   }
 

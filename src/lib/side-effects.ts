@@ -77,21 +77,6 @@ function registerSideEffects() {
     document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
   })
 
-  // handle notifications toggle
-  settings$.pipe(filter(({ notifications }) => !!notifications)).subscribe(async () => {
-    try {
-      if (supportsNotifications()) {
-        const permission = await Notification.requestPermission()
-
-        if (permission === 'denied') {
-          modal$.next(Modals.notificationsDisabled)
-        }
-      }
-    } catch (error) {
-      //
-    }
-  })
-
   // update settings in storage
   settings$
     .pipe(skip(1))
@@ -108,8 +93,8 @@ function registerSideEffects() {
     .subscribe(([visible, listening, credentials]) => {
       if (visible && credentials.rune && !listening) {
         listeningForAllInvoiceUpdates$.next(true)
+
         listenForAllInvoiceUpdates().catch(() => {
-          console.log('error listening for invoice updates')
           listeningForAllInvoiceUpdates$.next(false)
         })
       }

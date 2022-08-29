@@ -1,4 +1,3 @@
-import Big from 'big.js'
 import Hammer, {
   DIRECTION_ALL,
   DIRECTION_DOWN,
@@ -9,9 +8,13 @@ import Hammer, {
   DIRECTION_VERTICAL,
   Pan
 } from 'hammerjs'
+
+import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { Load } from '@sveltejs/kit'
+import { credentials$ } from './streams'
+import type { CoreLnCredentials, ListfundsResponse } from './backends'
 
 import {
   COINBASE_PRICE_ENDPOINT,
@@ -49,8 +52,6 @@ import {
   ta,
   ko
 } from 'date-fns/locale'
-import { credentials$ } from './streams'
-import type { CoreLnCredentials, ListfundsResponse } from './backends'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
@@ -167,7 +168,6 @@ export async function readClipboardValue(): Promise<string | null> {
     const clipboardText = await navigator.clipboard.readText()
     return clipboardText || null
   } catch (error) {
-    console.log({ error })
     return null
   }
 }
@@ -244,7 +244,7 @@ export function drag(
   hammer.on('pan', (ev: HammerInput) => {
     const { deltaX, deltaY, deltaTime } = ev
 
-    const beyondMaxDragX = Math.abs(deltaX) < maxDrag
+    const beyondMaxDragX = Math.abs(deltaX) > maxDrag
     const beyondMaxDragY = Math.abs(deltaY) > maxDrag
 
     if (

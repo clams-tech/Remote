@@ -68,7 +68,7 @@
     {#if $payments$.loading}
       <Spinner />
     {:else if $payments$.error}
-      <!-- @TODO - Render error correctly -->
+      <!-- @TODO - Ensure renders error correctly -->
       <span>{$payments$.error}</span>
     {:else if filteredPayments}
       <div class="w-full overflow-auto payments">

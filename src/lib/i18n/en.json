@@ -65,10 +65,12 @@
     "app": "App",
     "discord": "Discord Server",
     "docs": "Documentation",
+    "github": "Github",
     "twitter": "Twitter",
     "notifications": "Notifications",
     "commonly_used": "Commonly Used",
-    "all_options": "All Options"
+    "all_options": "All Options",
+    "summary": "Summary"
   },
   "time": {
     "mins": "mins"
@@ -84,7 +86,24 @@
   },
   "errors": {
     "camera_connection": "There was an error connecting to your camera, please try again.",
-    "node_connect": "Connection error"
+    "node_connect": "Connection error",
+    "invalid_invoice": "Not a valid bolt11 invoice.",
+    "scan": "Scan Error",
+    "send": "Send Error",
+    "receive": "Receive Error",
+    "permissions": "Permissions Error",
+    "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
+    "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
+    "-1": "Oops something went wrong.",
+    "201": "Already paid with this hash using a different amount or destination.",
+    "203": "There was a permanent failure at the destination.",
+    "205": "Unable to find a route.",
+    "206": "Route too expensive.",
+    "207": "Invoice has expired before payment could be completed.",
+    "210": "Payment timed out.",
+    "900": "An invoice with the given label already exists",
+    "901": "An invoice with the given preimage already exists",
+    "902": "None of the specified private channels were usable"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -130,7 +149,7 @@
     "destination": "Where would you like to send a payment?",
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
     "rune": "Add a rune to give Clams permissions to interact with your node.",
-    "welcome": "Interact with your CoreLN node directly over the Lightning network."
+    "welcome": "Control your CoreLN node securely and directly over the Lightning network."
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"

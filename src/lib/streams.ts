@@ -108,7 +108,7 @@ export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
     const update = await coreLightning.waitForInvoicePayment(payment)
     paymentUpdates$.next(update)
   } catch (error) {
-    console.log('Error waiting for invoice payment:', error)
+    //
   }
 }
 

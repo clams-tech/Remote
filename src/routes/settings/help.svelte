@@ -11,10 +11,16 @@
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
+  import Github from '$lib/icons/Github.svelte'
 
   let options = [
-    { label: $translate('app.labels.docs'), href: 'https://docs.clams.tech', icon: ClamsIcon },
+    { label: $translate('app.labels.docs'), href: 'https://clams.tech/docs', icon: ClamsIcon },
     { label: $translate('app.labels.discord'), href: '@TODO', icon: Discord },
+    {
+      label: $translate('app.labels.github'),
+      href: 'https://github.com/clams-tech/browser-app',
+      icon: Github
+    },
     {
       label: $translate('app.labels.twitter'),
       href: 'https://twitter.com/clamstech',
@@ -46,7 +52,7 @@
         >
           <SummaryRow>
             <span slot="label">{label}</span>
-            <div slot="value" class="w-10 flex justify-center">
+            <div slot="value" class="w-10 h-10 flex justify-center items-center">
               <svelte:component this={icon} />
             </div>
           </SummaryRow>

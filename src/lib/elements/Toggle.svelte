@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { noop } from 'svelte/internal'
+
   export let label = ''
   export let toggled = false
 
-  export let handleChange = () => {
-    //
-  }
+  export let handleChange = noop
 </script>
 
 <div class="cursor-pointer flex items-center">

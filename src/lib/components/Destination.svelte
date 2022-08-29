@@ -8,7 +8,7 @@
   import Button from '$lib/elements/Button.svelte'
   import Modal, { closeModal } from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { modal$ } from '$lib/streams'
+  import { customNotifications$, modal$ } from '$lib/streams'
   import { Modals } from '$lib/types'
 
   import {
@@ -19,7 +19,7 @@
   } from '$lib/utils'
   import Arrow from '$lib/icons/Arrow.svelte'
 
-  export let value: string
+  export let destination: string
   export let type: PaymentType | null
   export let description = ''
   export let expiry: number | null = null
@@ -30,13 +30,13 @@
 
   let error = ''
 
-  $: if (value) {
+  $: if (destination) {
     error = ''
-    type = getPaymentType(value) || null
+    type = getPaymentType(destination) || null
 
     if (type === 'payment_request') {
       try {
-        const decodedInvoice = decode(value)
+        const decodedInvoice = decode(destination)
         ;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
         amount = amount || '0'
         expiry = expiry || 3600
@@ -49,7 +49,7 @@
   }
 
   function validate() {
-    error = !value ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
+    error = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
   }
 
   const debouncedValidate = lodashDebounce(validate, 500)
@@ -80,8 +80,15 @@
     const clipboardValue = await checkClipboard()
 
     if (clipboardValue) {
-      value = clipboardValue.value
+      destination = clipboardValue.value
       type = clipboardValue.type
+    } else {
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.permissions'),
+        message: $translate('app.errors.permissions_clipboard'),
+        id: crypto.randomUUID()
+      })
     }
   }
 
@@ -89,7 +96,7 @@
     // wait for animation to complete to focus
     setTimeout(focusInput, 500)
 
-    if (value) return
+    if (destination) return
 
     const clipboardPermission = await getClipboardPermissions()
 
@@ -119,7 +126,7 @@
     placeholder={$translate('app.inputs.destination.placeholder')}
     type="textarea"
     rows={8}
-    bind:value
+    bind:value={destination}
     name="to"
     {readonly}
     on:blur={validate}
@@ -158,7 +165,7 @@
             <Button
               on:click={() => {
                 if (clipboard) {
-                  value = clipboard.value
+                  destination = clipboard.value
                   type = clipboard.type
                   closeModal()
                 }

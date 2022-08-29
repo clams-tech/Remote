@@ -4,7 +4,7 @@
   import Arrow from '$lib/icons/Arrow.svelte'
   import Value from './Value.svelte'
 
-  export let value: string
+  export let value = '0'
   export let direction: 'send' | 'receive'
   export let next: () => void
   export let readonly = false

@@ -43,7 +43,7 @@
         ? 'border-utility-pending text-utility-pending'
         : status === 'expired' || status === 'failed'
         ? 'border-utility-error text-utility-error'
-        : 'border-slate-900'} font-bold"
+        : 'border-current'} font-bold"
     >
       {#if status === 'complete'}
         <Lightning />

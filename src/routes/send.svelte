@@ -9,7 +9,7 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { BitcoinDenomination, type PaymentType } from '$lib/types'
   import { convertValue } from '$lib/conversion'
-  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { customNotifications$, paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -34,8 +34,6 @@
   }
 
   let requesting = false
-  // @TODO - handle error message
-  let errorMsg = ''
 
   type SendPayment = {
     destination: string
@@ -54,7 +52,7 @@
     expiry: null,
     timestamp: null,
     amount: '',
-    value: ''
+    value: '0'
   })
 
   async function sendPayment() {
@@ -64,7 +62,6 @@
 
     try {
       let paymentId
-      errorMsg = ''
 
       switch (type) {
         case 'payment_request': {
@@ -72,17 +69,18 @@
           const payment = await coreLightning.payInvoice({
             id,
             bolt11: destination,
-            amount_msat: value
-              ? Big(
-                  convertValue({
-                    value,
-                    from: primaryDenomination,
-                    to: BitcoinDenomination.msats
-                  }) as string
-                )
-                  .round()
-                  .toString()
-              : undefined
+            amount_msat:
+              value && value !== '0'
+                ? Big(
+                    convertValue({
+                      value,
+                      from: primaryDenomination,
+                      to: BitcoinDenomination.msats
+                    }) as string
+                  )
+                    .round()
+                    .toString()
+                : undefined
           })
 
           paymentUpdates$.next({ ...payment, description })
@@ -116,8 +114,15 @@
       goto(`/payments/${paymentId}`)
     } catch (error) {
       requesting = false
-      errorMsg = (error as ErrorResponse).message
-      console.log('send payment error:', error)
+
+      const { code, message } = error as { code: number; message: string }
+
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.send'),
+        message: code === -32602 ? message : $translate(`app.errors.${code}`),
+        id: crypto.randomUUID()
+      })
     }
   }
 </script>
@@ -140,7 +145,7 @@
         $sendPayment$.amount !== '0'
           ? to(3)
           : next()}
-      bind:value={$sendPayment$.destination}
+      bind:destination={$sendPayment$.destination}
       bind:type={$sendPayment$.type}
       bind:description={$sendPayment$.description}
       bind:expiry={$sendPayment$.expiry}
@@ -176,12 +181,13 @@
       description={$sendPayment$.description}
       expiry={$sendPayment$.expiry}
       timestamp={$sendPayment$.timestamp}
-      value={$sendPayment$.value ||
-        convertValue({
-          value: $sendPayment$.amount,
-          from: BitcoinDenomination.msats,
-          to: $settings$.primaryDenomination
-        })}
+      value={$sendPayment$.value && $sendPayment$.value !== '0'
+        ? $sendPayment$.value
+        : convertValue({
+            value: $sendPayment$.amount,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          })}
       {requesting}
       on:complete={sendPayment}
     />

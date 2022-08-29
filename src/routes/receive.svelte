@@ -14,6 +14,7 @@
   import { coreLightning } from '$lib/backends'
 
   import {
+    customNotifications$,
     listeningForAllInvoiceUpdates$,
     paymentUpdates$,
     settings$,
@@ -24,9 +25,6 @@
   let requesting = false
 
   const { invoiceExpiry } = $settings$
-
-  // @TODO - Display and handle error message
-  let errorMsg = ''
 
   let previousSlide = 0
   let slide = 0
@@ -49,7 +47,6 @@
 
   async function submit() {
     const { value, description, expiry } = $receivePayment$
-    errorMsg = ''
 
     const amount_msat = convertValue({
       value,
@@ -58,7 +55,13 @@
     })
 
     if (!amount_msat) {
-      errorMsg = 'Something went wrong, please try again'
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.receive'),
+        message: $translate('app.errors.-1'),
+        id: crypto.randomUUID()
+      })
+
       return
     }
 
@@ -84,8 +87,15 @@
       goto(`/payments/${payment.id}`)
     } catch (error) {
       requesting = false
-      errorMsg = (error as { message: string }).message
-      console.log({ error })
+
+      const { code, message } = error as { code: number; message: string }
+
+      customNotifications$.next({
+        type: 'error',
+        heading: $translate('app.errors.receive'),
+        message: code === -32602 ? message : $translate(`app.errors.${code}`),
+        id: crypto.randomUUID()
+      })
     }
   }
 </script>

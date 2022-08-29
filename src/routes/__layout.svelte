@@ -3,7 +3,6 @@
 
   export const load: Load = async ({ url }) => {
     const { pathname } = url
-    // @TODO check with language settings
     const defaultLocale = 'en'
     const initLocale = locale.get() || defaultLocale
 

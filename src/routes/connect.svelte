@@ -34,6 +34,7 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Warning from '$lib/icons/Warning.svelte'
   import { onMount } from 'svelte'
+  import Info from '$lib/icons/Info.svelte'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
   type Step = 'connect' | 'rune'
@@ -90,7 +91,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.welcome')}</title>
+  <title>{$translate('app.titles.connect')}</title>
 </svelte:head>
 
 {#if step === 'connect'}
@@ -103,9 +104,9 @@
         </p>
       </div>
 
-      <div class="flex items-center mb-6 font-thin text-sm text-utility-pending">
-        <div class="w-5 mr-2">
-          <Warning />
+      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
+        <div class="w-5 mr-2 border-2 rounded-full border-current">
+          <Info />
         </div>
         <a
           href="https://clams.tech/docs/connect"
@@ -122,9 +123,6 @@
             type="textarea"
             rows={6}
             label={$translate('app.inputs.node_connect.label')}
-            hint="<a href='https://clams.tech/docs/connecting-your-node' target='_blank' rel='noreferrer noopener'>{$translate(
-              'app.hints.help'
-            )}</a>"
             invalid={connection && !validConnection
               ? $translate('app.inputs.node_connect.invalid')
               : ''}
@@ -192,12 +190,12 @@
         <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
       </div>
 
-      <div class="flex items-center mb-6 font-thin text-sm text-utility-pending">
-        <div class="w-5 mr-2">
-          <Warning />
+      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
+        <div class="w-5 mr-2 border-2 rounded-full border-current">
+          <Info />
         </div>
         <a
-          href="https://clams.tech/docs/runes"
+          href="https://clams.tech/docs/connect"
           target="_blank"
           class="hover:underline"
           rel="noopener noreferrer">{$translate('app.hints.how')}</a
@@ -212,9 +210,6 @@
             rows={6}
             label={$translate('app.inputs.add_rune.label')}
             placeholder={$translate('app.inputs.add_rune.placeholder')}
-            hint="<a href='https://clams.tech/docs/runes' target='_blank' rel='noreferrer noopener'>{$translate(
-              'app.hints.help'
-            )}</a>"
             bind:value={rune}
             bind:focus={focusRuneInput}
           />
@@ -222,7 +217,7 @@
 
         {#if decodedRune}
           <div in:fade class="w-full mt-6">
-            <h4 class="font-semibold mb-4">{$translate('app.headings.rune')}</h4>
+            <h4 class="font-semibold mb-2">{$translate('app.labels.summary')}</h4>
 
             <SummaryRow>
               <span slot="label">{$translate('app.labels.id')}</span>

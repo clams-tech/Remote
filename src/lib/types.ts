@@ -68,8 +68,7 @@ export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
 export enum Modals {
   none = 0,
-  clipboard,
-  notificationsDisabled
+  clipboard
 }
 
 export type PaymentType = 'node_public_key' | 'payment_request' | 'lightning_address' | 'lnurl'
