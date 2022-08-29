@@ -21,7 +21,7 @@
 
   let input: HTMLInputElement | HTMLTextAreaElement
 
-  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 focus:outline-none focus:ring focus:border-white focus:ring-${
+  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 appearance-none focus:outline-none focus:ring focus:border-white focus:ring-${
     invalid ? 'utility-error' : 'purple-500'
   }`
 
