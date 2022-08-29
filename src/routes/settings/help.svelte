@@ -1,53 +1,63 @@
 <script lang="ts" context="module">
-	export { load } from '$lib/utils'
+  export { load } from '$lib/utils'
 </script>
 
 <script lang="ts">
-	import { goto } from '$app/navigation'
-	import { fade } from 'svelte/transition'
-	import Slide from '$lib/elements/Slide.svelte'
-	import Discord from '$lib/icons/Discord.svelte'
-	import Twitter from '$lib/icons/Twitter.svelte'
-	import { t } from '$lib/i18n/translations'
-	import SummaryRow from '$lib/elements/SummaryRow.svelte'
-	import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
+  import { goto } from '$app/navigation'
+  import { fade } from 'svelte/transition'
+  import Slide from '$lib/elements/Slide.svelte'
+  import Discord from '$lib/icons/Discord.svelte'
+  import Twitter from '$lib/icons/Twitter.svelte'
+  import { translate } from '$lib/i18n/translations'
+  import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
+  import Github from '$lib/icons/Github.svelte'
 
-	let options = [
-		{ label: $t('app.labels.docs'), href: 'https://docs.clams.tech', icon: ClamsIcon },
-		{ label: $t('app.labels.discord'), href: '@TODO', icon: Discord },
-		{ label: $t('app.labels.twitter'), href: 'https://twitter.com/clamstech', icon: Twitter }
-	]
+  let options = [
+    { label: $translate('app.labels.docs'), href: 'https://clams.tech/docs', icon: ClamsIcon },
+    { label: $translate('app.labels.discord'), href: '@TODO', icon: Discord },
+    {
+      label: $translate('app.labels.github'),
+      href: 'https://github.com/clams-tech/browser-app',
+      icon: Github
+    },
+    {
+      label: $translate('app.labels.twitter'),
+      href: 'https://twitter.com/clamstech',
+      icon: Twitter
+    }
+  ]
 </script>
 
 <svelte:head>
-	<title>{$t('app.titles.settings_help')}</title>
+  <title>{$translate('app.titles.settings_help')}</title>
 </svelte:head>
 
 <Slide
-	back={() => {
-		goto('/settings')
-	}}
+  back={() => {
+    goto('/settings')
+  }}
 >
-	<section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
-		<h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
-			{$t('app.titles.settings_help')}
-		</h1>
-		<div class="w-full">
-			{#each options as { label, href, icon }}
-				<a
-					class="flex items-center w-full justify-center"
-					{href}
-					rel="noopener noreferrer"
-					target="_blank"
-				>
-					<SummaryRow>
-						<span slot="label">{label}</span>
-						<div slot="value" class="w-10 flex justify-center">
-							<svelte:component this={icon} />
-						</div>
-					</SummaryRow>
-				</a>
-			{/each}
-		</div>
-	</section>
+  <section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+    <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+      {$translate('app.titles.settings_help')}
+    </h1>
+    <div class="w-full">
+      {#each options as { label, href, icon }}
+        <a
+          class="flex items-center w-full justify-center"
+          {href}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <SummaryRow>
+            <span slot="label">{label}</span>
+            <div slot="value" class="w-10 h-10 flex justify-center items-center">
+              <svelte:component this={icon} />
+            </div>
+          </SummaryRow>
+        </a>
+      {/each}
+    </div>
+  </section>
 </Slide>
