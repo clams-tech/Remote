@@ -48,6 +48,12 @@
       //
     }
   }
+
+  function toggleNotifications() {
+    const currentSettings = settings$.getValue()
+    settings$.next({ ...currentSettings, notifications: !currentSettings.notifications })
+    requestNotifications()
+  }
 </script>
 
 <svelte:head>
@@ -72,14 +78,17 @@
           </SummaryRow>
         </a>
       {/each}
-      <SummaryRow>
-        <span slot="label">{$translate('app.labels.notifications')}</span>
-        <Toggle
-          handleChange={requestNotifications}
-          slot="value"
-          bind:toggled={$settings$.notifications}
-        />
-      </SummaryRow>
+
+      <div class="cursor-pointer" on:click={toggleNotifications}>
+        <SummaryRow>
+          <span slot="label">{$translate('app.labels.notifications')}</span>
+          <Toggle
+            handleChange={requestNotifications}
+            slot="value"
+            bind:toggled={$settings$.notifications}
+          />
+        </SummaryRow>
+      </div>
     </div>
   </section>
 </Slide>
