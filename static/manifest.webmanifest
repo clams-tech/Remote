@@ -4,23 +4,23 @@
 	"start_url": "/",
 	"display": "fullscreen",
   "description": "A user interface for your Core Lightning node",
-	"theme_color": "#000",
-	"background_color": "#000000",
+	"theme_color": "#6305f0",
+	"background_color": "#ffffffff",
 	"icons": [
 		{
-			"src": "/favicon.svg",
-			"type": "image/svg+xml",
+			"src": "/clams-icon.png",
+			"type": "image/png",
 			"sizes": "512x512",
 			"purpose": "any"
 		},
 		{
-			"src": "/favicon.svg",
-			"type": "image/svg+xml",
+			"src": "/clams-icon.png",
+			"type": "image/png",
 			"sizes": "512x512",
 			"purpose": "maskable"
 		},
     {
-      "src": "/clams-logo.png",
+      "src": "/clams-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
