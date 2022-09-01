@@ -46,10 +46,12 @@
     <div class="w-full">
       {#each settings as { label, route }}
         {#if label === 'Dark Mode'}
-          <SummaryRow>
-            <span slot="label">{label}</span>
-            <Toggle slot="value" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
-          </SummaryRow>
+          <div class="cursor-pointer" on:click={toggleDarkmode}>
+            <SummaryRow>
+              <span slot="label">{label}</span>
+              <Toggle slot="value" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
+            </SummaryRow>
+          </div>
         {:else}
           <a href={route}>
             <SummaryRow>
