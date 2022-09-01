@@ -84,6 +84,7 @@ async function waitAnyInvoice(lastPayIndex: number): Promise<WaitAnyInvoiceRespo
     method: 'waitanyinvoice',
     params: { lastpay_index: lastPayIndex }
   })
+
   return response as WaitAnyInvoiceResponse
 }
 
