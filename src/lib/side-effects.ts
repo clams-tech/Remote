@@ -1,4 +1,4 @@
-import { from, timer } from 'rxjs'
+import { combineLatest, from, timer } from 'rxjs'
 
 import {
   distinctUntilKeyChanged,
@@ -11,9 +11,7 @@ import {
 
 import { coreLightning } from './backends'
 import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { Modals } from './types'
-
-import { getBitcoinExchangeRate, supportsNotifications } from './utils'
+import { deriveLastPayIndex, getBitcoinExchangeRate } from './utils'
 
 import {
   appVisible$,
@@ -21,7 +19,6 @@ import {
   credentials$,
   funds$,
   listeningForAllInvoiceUpdates$,
-  modal$,
   nodeInfo$,
   payments$,
   paymentUpdates$,
@@ -42,6 +39,15 @@ function registerSideEffects() {
       localStorage.setItem('credentials', JSON.stringify(credentials))
 
       coreLightning
+        .listFunds()
+        .then((data) => {
+          funds$.next({ loading: false, data })
+        })
+        .catch((error) => {
+          funds$.next({ loading: false, data: null, error: error && error.message })
+        })
+
+      coreLightning
         .getInfo()
         .then((data) => {
           nodeInfo$.next({ loading: false, data })
@@ -57,15 +63,6 @@ function registerSideEffects() {
         })
         .catch((error) => {
           payments$.next({ loading: false, data: null, error: error && error.message })
-        })
-
-      coreLightning
-        .listFunds()
-        .then((data) => {
-          funds$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          funds$.next({ loading: false, data: null, error: error && error.message })
         })
     })
 
@@ -87,14 +84,20 @@ function registerSideEffects() {
     .pipe(switchMap(() => from(getBitcoinExchangeRate())))
     .subscribe(bitcoinExchangeRates$)
 
-  // when app is focused, start listening if not already
-  appVisible$
-    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$, credentials$))
-    .subscribe(([visible, listening, credentials]) => {
-      if (visible && credentials.rune && !listening) {
+  // when app is focused and have credentials and have paymentss, start listening if not already
+  combineLatest([appVisible$, credentials$, payments$])
+    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$, payments$))
+    .subscribe(([[visible, credentials, payments], listening]) => {
+      if (payments.data && !payments.error && visible && credentials.rune && !listening) {
+        const storedPayIndex = localStorage.getItem('lastpay_index')
+
+        const lastPayIndex = storedPayIndex
+          ? parseInt(storedPayIndex)
+          : deriveLastPayIndex(payments.data)
+
         listeningForAllInvoiceUpdates$.next(true)
 
-        listenForAllInvoiceUpdates().catch(() => {
+        listenForAllInvoiceUpdates(lastPayIndex).catch(() => {
           listeningForAllInvoiceUpdates$.next(false)
         })
       }

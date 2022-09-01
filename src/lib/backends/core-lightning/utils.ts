@@ -76,7 +76,8 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     paid_at,
     payment_preimage,
     description,
-    expires_at
+    expires_at,
+    pay_index
   } = invoice
 
   const decodedInvoice = decode(bolt11)
@@ -96,7 +97,8 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     description,
     destination: undefined,
     fee: null,
-    startedAt: new Date(timestamp * 1000).toISOString()
+    startedAt: new Date(timestamp * 1000).toISOString(),
+    payIndex: pay_index
   }
 }
 
