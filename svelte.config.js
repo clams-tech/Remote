@@ -14,7 +14,7 @@ const config = {
       fallback: null
     }),
     prerender: {
-      default: false
+      default: true
     }
   }
 }
