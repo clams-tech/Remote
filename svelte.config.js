@@ -9,12 +9,10 @@ const config = {
 
   kit: {
     adapter: adapter({
-      pages: 'build',
-      assets: 'build',
-      fallback: null
+      fallback: '200.html'
     }),
     prerender: {
-      default: true
+      default: false
     }
   }
 }
