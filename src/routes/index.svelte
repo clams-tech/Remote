@@ -45,7 +45,7 @@
     </div>
   </a>
 
-  <a href="/" class="w-24 absolute top-1 left-1">
+  <a href="/" class="w-24 absolute top-2 left-2">
     <ClamsLogo />
   </a>
 

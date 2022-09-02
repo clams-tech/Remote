@@ -32,7 +32,8 @@ export function connectionToConnectOptions(connection: string): ConnectOptions {
   return { publicKey, wsUrl }
 }
 
-export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
+export async function rpcRequest(request: LNRequest): Promise<LNResponse | null> {
+  if (typeof window === 'undefined') return null
   const credentials = credentials$.getValue()
 
   if (!credentials.rune) {
@@ -76,7 +77,8 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     paid_at,
     payment_preimage,
     description,
-    expires_at
+    expires_at,
+    pay_index
   } = invoice
 
   const decodedInvoice = decode(bolt11)
@@ -96,7 +98,8 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     description,
     destination: undefined,
     fee: null,
-    startedAt: new Date(timestamp * 1000).toISOString()
+    startedAt: new Date(timestamp * 1000).toISOString(),
+    payIndex: pay_index
   }
 }
 

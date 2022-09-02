@@ -28,6 +28,7 @@
   }
 
   let notificationsToRender: Notification[] = []
+  let containerHeight: number
 
   const device = userAgent.getDevice()
 
@@ -82,7 +83,7 @@
         try {
           new Notification(notification.heading, {
             body: notification.message,
-            icon: '/clams-icon.png'
+            icon: '/icons/android-chrome-256x256.png'
           })
         } catch (error) {
           //
@@ -97,7 +98,9 @@
 
 {#if notificationsToRender.length}
   <div
-    class="absolute top-0 p-4 w-96"
+    class="absolute top-0 p-4 w-96 max-h-screen overflow-hidden"
+    class:overflow-y-auto={containerHeight && containerHeight >= window.innerHeight}
+    bind:clientHeight={containerHeight}
     class:right-0={device.type !== 'mobile'}
     class:w-full={device.type === 'mobile'}
   >

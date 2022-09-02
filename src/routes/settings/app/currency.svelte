@@ -66,7 +66,7 @@
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings_currency')}
     </h1>
-    <div class="w-full h-full overflow-auto currency">
+    <div class="w-full h-full overflow-y-auto overflow-x-hidden currency">
       <SummaryRow>
         <span slot="label" class="font-bold">{$translate('app.labels.commonly_used')}</span>
       </SummaryRow>

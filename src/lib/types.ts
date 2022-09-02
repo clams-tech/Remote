@@ -88,6 +88,7 @@ export type Payment = {
   hash: string
   preimage?: string
   destination?: string
+  payIndex?: number
 }
 
 type PaymentDirection = 'receive' | 'send'

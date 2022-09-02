@@ -467,3 +467,11 @@ export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | n
 }
 
 export const noop = () => {}
+
+export function deriveLastPayIndex(payments: Payment[]): number {
+  return payments.length
+    ? payments.reduce((currentHighestIndex, { payIndex }) => {
+        return payIndex && payIndex > currentHighestIndex ? payIndex : currentHighestIndex
+      }, 0)
+    : 0
+}

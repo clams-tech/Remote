@@ -31,7 +31,10 @@
     goto('/settings/app')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+  <section
+    in:fade
+    class="flex flex-col items-center justify-center w-full p-8 max-w-xl overflow-y-auto"
+  >
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings_language')}
     </h1>
@@ -52,3 +55,16 @@
     </div>
   </section>
 </Slide>
+
+<style>
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  section::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  section {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+</style>
