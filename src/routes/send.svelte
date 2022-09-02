@@ -13,7 +13,7 @@
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning, type ErrorResponse } from '$lib/backends'
+  import { coreLightning } from '$lib/backends'
   import Big from 'big.js'
 
   let previousSlide = 0
