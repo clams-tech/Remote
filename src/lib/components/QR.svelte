@@ -33,7 +33,7 @@
         }
       },
       backgroundOptions: { color: '#ffffff' },
-      image: '/clams-icon.png',
+      image: '/icons/android-chrome-256x256.png',
       cornersSquareOptions: { type: 'extra-rounded', color: '#6305f0' },
       cornersDotOptions: { type: 'dot', color: '#000000' }
     })

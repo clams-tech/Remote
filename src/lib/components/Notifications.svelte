@@ -83,7 +83,7 @@
         try {
           new Notification(notification.heading, {
             body: notification.message,
-            icon: '/clams-icon.png'
+            icon: '/icons/android-chrome-256x256.png'
           })
         } catch (error) {
           //
