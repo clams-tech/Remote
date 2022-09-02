@@ -32,7 +32,8 @@ export function connectionToConnectOptions(connection: string): ConnectOptions {
   return { publicKey, wsUrl }
 }
 
-export async function rpcRequest(request: LNRequest): Promise<LNResponse> {
+export async function rpcRequest(request: LNRequest): Promise<LNResponse | null> {
+  if (typeof window === 'undefined') return null
   const credentials = credentials$.getValue()
 
   if (!credentials.rune) {
