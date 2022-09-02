@@ -71,7 +71,7 @@
       <!-- @TODO - Ensure renders error correctly -->
       <span>{$payments$.error}</span>
     {:else if filteredPayments}
-      <div class="w-full overflow-auto payments">
+      <div class="w-full overflow-y-auto overflow-x-hidden payments">
         {#each filteredPayments as payment (payment.id)}
           <PaymentRow {payment} />
         {/each}

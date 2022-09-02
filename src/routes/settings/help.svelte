@@ -14,7 +14,11 @@
   import Github from '$lib/icons/Github.svelte'
 
   let options = [
-    { label: $translate('app.labels.docs'), href: 'https://clams.tech/docs', icon: ClamsIcon },
+    {
+      label: $translate('app.labels.docs'),
+      href: 'https://clams.tech/docs',
+      icon: ClamsIcon
+    },
     { label: $translate('app.labels.discord'), href: '@TODO', icon: Discord },
     {
       label: $translate('app.labels.github'),
