@@ -2,7 +2,7 @@
   import { merge, Observable } from 'rxjs'
   import { filter, withLatestFrom, map, switchMap, takeUntil } from 'rxjs/operators'
   import { flip } from 'svelte/animate'
-  import { fly } from 'svelte/transition'
+  import { fly, fade } from 'svelte/transition'
   import { DIRECTION_UP } from 'hammerjs'
   import { quintOut } from 'svelte/easing'
   import { customNotifications$, onDestroy$, paymentUpdates$, settings$ } from '$lib/streams'
@@ -108,14 +108,14 @@
       <div
         use:swipe={{
           direction: DIRECTION_UP,
-          threshold: 50,
-          velocity: 0.6
+          threshold: 30,
+          velocity: 0.2
         }}
         on:swipe={() => removeNotification(id)}
-        use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 70 }}
-        animate:flip={{ duration: 500 }}
+        use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
+        animate:flip={{ duration: 700 }}
         in:fly={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
-        out:fly={{ duration: 400, x: 0, y: -50, easing: quintOut }}
+        out:fade={{ duration: 500, easing: quintOut }}
         class="w-full cursor-grab bg-white dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 border border-neutral-100 dark:border-neutral-400 z-20 p-4 relative rounded-lg mb-2"
       >
         <div
