@@ -28,7 +28,7 @@
   <title>{$translate('app.titles.welcome')}</title>
 </svelte:head>
 
-<section class="flex flex-col justify-center items-start w-full p-8 max-w-xl h-full">
+<section class="flex flex-col justify-center items-start w-full p-6 max-w-xl h-full">
   <div class="w-full flex justify-center mb-8">
     <div class="w-1/2 max-w-4xl">
       <ClamsLogo />
