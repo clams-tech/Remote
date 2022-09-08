@@ -52,7 +52,7 @@
       })} ${formatValueForDisplay({
         value: convertedValue,
         denomination: primaryDenomination
-      })} ${primaryDenomination} for ${description || 'unknown'}`
+      })} ${primaryDenomination}${description ? ` for ${description}` : ''}`
 
       const type = status === 'expired' || status === 'failed' ? 'error' : 'success'
 

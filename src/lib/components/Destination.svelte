@@ -37,9 +37,12 @@
     if (type === 'payment_request') {
       try {
         const decodedInvoice = decode(destination)
-        ;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
-        amount = amount || '0'
-        expiry = expiry || 3600
+        const formattedInvoice = formatDecodedInvoice(decodedInvoice)
+
+        amount = formattedInvoice.amount || '0'
+        expiry = formattedInvoice.expiry || 3600
+        description = formattedInvoice.description || ''
+        timestamp = formattedInvoice.timestamp
       } catch (e) {
         error = $translate('app.inputs.destination.invalid_invoice')
       }

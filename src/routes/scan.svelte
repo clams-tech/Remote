@@ -65,7 +65,7 @@
       sendPayment$.next({
         bolt11: paymentRequest,
         description,
-        expiry,
+        expiry: expiry || 3600,
         value: amount,
         timestamp
       })
@@ -82,7 +82,7 @@
   }
 
   async function sendPayment() {
-    const { bolt11 } = sendPayment$.getValue()
+    const { bolt11, description } = sendPayment$.getValue()
 
     errorMsg = ''
     requesting = true
@@ -91,7 +91,7 @@
 
     try {
       const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
-      paymentUpdates$.next(payment)
+      paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
       errorMsg = (error as ErrorResponse).message

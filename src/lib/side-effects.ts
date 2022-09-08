@@ -86,7 +86,7 @@ function registerSideEffects() {
 
   // when app is focused and have credentials and have paymentss, start listening if not already
   combineLatest([appVisible$, credentials$, payments$])
-    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$, payments$))
+    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
     .subscribe(([[visible, credentials, payments], listening]) => {
       if (payments.data && !payments.error && visible && credentials.rune && !listening) {
         const storedPayIndex = localStorage.getItem('lastpay_index')

@@ -24,8 +24,12 @@
         input.value = value
         input.focus()
       }
-    }, 500)
+    }, 250)
   })
+
+  function focus() {
+    input && input.focus()
+  }
 
   function switchDenomination() {
     const currentSettings = settings$.value
@@ -42,12 +46,6 @@
     })
 
     value = newValue
-
-    if (input) {
-      input.value = newValue
-      input.focus()
-      input.scrollIntoView()
-    }
   }
 
   $: secondaryValue = value
@@ -121,7 +119,10 @@
 
 <div class="flex items-center w-full justify-center">
   <div class="flex flex-col items-end w-full">
-    <div class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full">
+    <div
+      on:click={focus}
+      class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full"
+    >
       <div class="flex items-end w-full">
         <div class="relative flex items-center">
           <div class="text-4xl font-semibold cursor-pointer font-mono">
@@ -147,7 +148,7 @@
         </span>
       </div>
       <div
-        on:click={switchDenomination}
+        on:click|stopPropagation={switchDenomination}
         class="w-6 ml-6 p-1 box-content text-slate-400 hover:text-slate-600 hover:border-slate-600 transition-all rotate-90 cursor-pointer"
       >
         <Exchange />
