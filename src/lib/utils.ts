@@ -475,3 +475,7 @@ export function deriveLastPayIndex(payments: Payment[]): number {
       }, 0)
     : 0
 }
+
+export function isPWA(): boolean {
+  return window.matchMedia('(display-mode: standalone)').matches
+}
