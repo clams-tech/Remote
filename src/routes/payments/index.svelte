@@ -71,7 +71,7 @@
       <!-- @TODO - Ensure renders error correctly -->
       <span>{$payments$.error}</span>
     {:else if filteredPayments}
-      <div class="w-full overflow-y-auto overflow-x-hidden payments">
+      <div class="w-full overflow-y-auto overflow-x-hidden">
         {#each filteredPayments as payment (payment.id)}
           <PaymentRow {payment} />
         {/each}
@@ -79,16 +79,3 @@
     {/if}
   </section>
 </Slide>
-
-<style>
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .payments::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .payments {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-</style>
