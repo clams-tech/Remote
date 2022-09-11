@@ -14,7 +14,7 @@ test('Logged out user gets kicked to welcome page', async ({ page }) => {
   await expect(page).toHaveURL('/welcome')
 })
 
-// Login flow
+// Login
 test('Allow connection to node with valid address', async ({ page }) => {
   await page.goto('/connect')
 
