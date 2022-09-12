@@ -14,6 +14,8 @@
   import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
+  let version = __APP_VERSION__
+
   let settings = [
     { label: $translate('app.labels.app'), route: '/settings/app' },
     { label: $translate('app.labels.help_and_support'), route: 'settings/help' },
@@ -61,6 +63,11 @@
           </a>
         {/if}
       {/each}
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.version')}</span>
+        <span slot="value">{version}</span>
+      </SummaryRow>
     </div>
     <div class="w-full mt-6">
       <Button

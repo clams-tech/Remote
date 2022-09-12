@@ -70,7 +70,8 @@
     "notifications": "Notifications",
     "commonly_used": "Commonly Used",
     "all_options": "All Options",
-    "summary": "Summary"
+    "summary": "Summary",
+    "version": "Version"
   },
   "time": {
     "mins": "mins"
