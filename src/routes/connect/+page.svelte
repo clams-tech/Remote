@@ -1,22 +1,3 @@
-<script lang="ts" context="module">
-  import type { Load } from '@sveltejs/kit'
-
-  let loaded = false
-
-  export const load: Load = async () => {
-    if (!loaded) {
-      loaded = true
-
-      if (credentials$.getValue().connection) {
-        return {
-          redirect: '/',
-          status: 302
-        }
-      }
-    }
-  }
-</script>
-
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
@@ -24,7 +5,7 @@
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { credentials$, updateCredentials } from '$lib/streams'
+  import { updateCredentials } from '$lib/streams'
   import { coreLightning, type Socket } from '$lib/backends'
   import { truncateValue, validateConnectionString } from '$lib/utils'
   import Check from '$lib/icons/Check.svelte'

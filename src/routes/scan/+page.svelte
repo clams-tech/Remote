@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import Scanner from '$lib/components/Scanner.svelte'
   import { goto } from '$app/navigation'

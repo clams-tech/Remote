@@ -1,19 +1,4 @@
-<script lang="ts" context="module">
-  import type { Load } from '@sveltejs/kit'
-
-  export const load: Load = async ({ url }) => {
-    const { pathname } = url
-    const defaultLocale = 'en'
-    const initLocale = locale.get() || defaultLocale
-
-    await loadTranslations(initLocale, pathname)
-
-    return {}
-  }
-</script>
-
 <script lang="ts">
-  import { locale, loadTranslations } from '$lib/i18n/translations'
   import { beforeNavigate } from '$app/navigation'
   import { lastPath$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
@@ -22,7 +7,7 @@
 
   beforeNavigate(({ from }) => {
     if (from) {
-      lastPath$.next(from.pathname)
+      lastPath$.next(from.url.pathname)
     }
   })
 
