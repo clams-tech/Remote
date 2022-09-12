@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { lastPath$, payments$, paymentUpdates$ } from '$lib/streams'
   import { goto } from '$app/navigation'

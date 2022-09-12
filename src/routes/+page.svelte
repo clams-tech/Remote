@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'

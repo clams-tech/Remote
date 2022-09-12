@@ -12,7 +12,7 @@ import Hammer, {
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { Load } from '@sveltejs/kit'
+import { redirect, type Load } from '@sveltejs/kit'
 import { credentials$ } from './streams'
 import type { CoreLnCredentials, ListfundsResponse } from './backends'
 
@@ -401,10 +401,7 @@ export const load: Load = async () => {
   const credentials = credentials$.getValue()
 
   if (!credentials.connection) {
-    return {
-      redirect: '/welcome',
-      status: 302
-    }
+    throw redirect(302, '/welcome')
   }
 }
 

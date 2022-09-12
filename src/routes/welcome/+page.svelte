@@ -1,27 +1,7 @@
-<script lang="ts" context="module">
-  import type { Load } from '@sveltejs/kit'
-
-  let loaded = false
-
-  export const load: Load = async () => {
-    if (!loaded) {
-      loaded = true
-
-      if (credentials$.getValue().connection) {
-        return {
-          redirect: '/',
-          status: 302
-        }
-      }
-    }
-  }
-</script>
-
 <script lang="ts">
   import { translate } from '$lib/i18n/translations'
   import Button from '$lib/elements/Button.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import { credentials$ } from '$lib/streams'
 </script>
 
 <svelte:head>

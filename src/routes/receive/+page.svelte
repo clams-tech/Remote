@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
