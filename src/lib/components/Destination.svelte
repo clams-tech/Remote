@@ -8,8 +8,10 @@
   import Button from '$lib/elements/Button.svelte'
   import Modal, { closeModal } from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { customNotifications$, modal$ } from '$lib/streams'
+  import { modal$ } from '$lib/streams'
   import { Modals } from '$lib/types'
+  import Arrow from '$lib/icons/Arrow.svelte'
+  import { createEventDispatcher } from 'svelte'
 
   import {
     formatDecodedInvoice,
@@ -17,7 +19,6 @@
     readClipboardValue,
     getPaymentType
   } from '$lib/utils'
-  import Arrow from '$lib/icons/Arrow.svelte'
 
   export let destination: string
   export let type: PaymentType | null
@@ -29,6 +30,8 @@
   export let readonly = false
 
   let error = ''
+
+  const dispatch = createEventDispatcher()
 
   $: if (destination) {
     error = ''
@@ -86,12 +89,7 @@
       destination = clipboardValue.value
       type = clipboardValue.type
     } else {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.permissions'),
-        message: $translate('app.errors.permissions_clipboard'),
-        id: crypto.randomUUID()
-      })
+      dispatch('clipboardError', $translate('app.errors.permissions_clipboard'))
     }
   }
 

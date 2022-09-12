@@ -8,8 +8,9 @@
   import { decode } from 'light-bolt11-decoder'
   import Slide from '$lib/elements/Slide.svelte'
   import Summary from '$lib/components/Summary.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { BitcoinDenomination, type Payment } from '$lib/types'
-  import { customNotifications$, paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import { coreLightning, type ErrorResponse } from '$lib/backends'
   import { formatDecodedInvoice } from '$lib/utils'
@@ -47,13 +48,7 @@
     }
 
     if (!invoice) {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.scan'),
-        message: $translate('app.errors.invalid_invoice'),
-        id: crypto.randomUUID()
-      })
-
+      errorMsg = $translate('app.errors.invalid_invoice')
       return
     }
 
@@ -72,12 +67,7 @@
 
       next()
     } catch (error) {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.scan'),
-        message: $translate('app.errors.invalid_invoice'),
-        id: crypto.randomUUID()
-      })
+      errorMsg = $translate('app.errors.invalid_invoice')
     }
   }
 
@@ -94,7 +84,8 @@
       paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
-      errorMsg = (error as ErrorResponse).message
+      const { code, message } = error as ErrorResponse
+      errorMsg = $translate(`app.errors.${code}`) || message
     } finally {
       requesting = false
     }
@@ -145,3 +136,7 @@
     />
   </Slide>
 {/if}
+
+<div class="absolute bottom-4">
+  <ErrorMsg bind:message={errorMsg} />
+</div>
