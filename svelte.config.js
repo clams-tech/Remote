@@ -12,11 +12,17 @@ const config = {
       fallback: '200.html'
     }),
     csp: {
+      mode: 'hash',
       directives: {
-        'script-src': ['self']
+        'script-src': [
+          'self',
+          'unsafe-eval' // needed for lnsocket script
+        ]
       },
       reportOnly: {
-        'script-src': ['self']
+        'script-src': ['self'],
+        'report-to': ['self'],
+        'report-uri': ['self']
       }
     },
     csrf: {
