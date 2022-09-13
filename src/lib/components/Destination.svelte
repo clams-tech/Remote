@@ -8,8 +8,10 @@
   import Button from '$lib/elements/Button.svelte'
   import Modal, { closeModal } from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { customNotifications$, modal$ } from '$lib/streams'
+  import { modal$ } from '$lib/streams'
   import { Modals } from '$lib/types'
+  import Arrow from '$lib/icons/Arrow.svelte'
+  import { createEventDispatcher } from 'svelte'
 
   import {
     formatDecodedInvoice,
@@ -17,7 +19,6 @@
     readClipboardValue,
     getPaymentType
   } from '$lib/utils'
-  import Arrow from '$lib/icons/Arrow.svelte'
 
   export let destination: string
   export let type: PaymentType | null
@@ -30,6 +31,8 @@
 
   let error = ''
 
+  const dispatch = createEventDispatcher()
+
   $: if (destination) {
     error = ''
     type = getPaymentType(destination) || null
@@ -37,9 +40,12 @@
     if (type === 'payment_request') {
       try {
         const decodedInvoice = decode(destination)
-        ;({ description, timestamp, expiry, amount } = formatDecodedInvoice(decodedInvoice))
-        amount = amount || '0'
-        expiry = expiry || 3600
+        const formattedInvoice = formatDecodedInvoice(decodedInvoice)
+
+        amount = formattedInvoice.amount || '0'
+        expiry = formattedInvoice.expiry || 3600
+        description = formattedInvoice.description || ''
+        timestamp = formattedInvoice.timestamp
       } catch (e) {
         error = $translate('app.inputs.destination.invalid_invoice')
       }
@@ -83,12 +89,7 @@
       destination = clipboardValue.value
       type = clipboardValue.type
     } else {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.permissions'),
-        message: $translate('app.errors.permissions_clipboard'),
-        id: crypto.randomUUID()
-      })
+      dispatch('clipboardError', $translate('app.errors.permissions_clipboard'))
     }
   }
 
@@ -111,7 +112,7 @@
   })
 </script>
 
-<section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+<section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
   <div class="mb-6">
     <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.destination')}</h1>
     <p class="text-neutral-600 dark:text-neutral-400 italic">
@@ -157,7 +158,7 @@
         </p>
 
         <div class="flex w-full items-center mt-4">
-          <div class="w-1/2 mr-2 text-black">
+          <div class="w-1/2 mr-2">
             <Button on:click={closeModal} text={$translate('app.buttons.no')} />
           </div>
 

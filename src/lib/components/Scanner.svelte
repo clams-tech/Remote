@@ -37,13 +37,11 @@
   })
 </script>
 
-<div class="container relative items-center flex justify-center w-full bg-[#000000]">
-  <div class="text-white">
-    <BackButton on:click={() => goto('/')} />
-  </div>
+<div class="container relative items-center flex justify-center w-full">
+  <BackButton on:click={() => goto('/')} />
 
   <!-- svelte-ignore a11y-media-has-caption -->
-  <video bind:this={videoEl} />
+  <video bind:this={videoEl} class="rounded-xl overflow-hidden" />
 
   {#if displayError}
     <div>

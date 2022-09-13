@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { lastPath$, payments$, paymentUpdates$ } from '$lib/streams'
   import { goto } from '$app/navigation'
@@ -13,6 +9,7 @@
   import Spinner from '$lib/elements/Spinner.svelte'
   import type { Payment } from '$lib/types'
   import Search from '$lib/icons/Search.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   let searchTerm = ''
   let filteredPayments: Payment[] = []
@@ -55,7 +52,7 @@
   }}
   direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-  <section in:fade class="flex flex-col items-center justify-start w-full p-8 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-start w-full p-6 max-w-xl">
     <h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
       {$translate('app.titles.payments')}
     </h1>
@@ -68,10 +65,9 @@
     {#if $payments$.loading}
       <Spinner />
     {:else if $payments$.error}
-      <!-- @TODO - Ensure renders error correctly -->
-      <span>{$payments$.error}</span>
+      <ErrorMsg message={$payments$.error} />
     {:else if filteredPayments}
-      <div class="w-full overflow-y-auto overflow-x-hidden payments">
+      <div class="w-full overflow-y-auto overflow-x-hidden">
         {#each filteredPayments as payment (payment.id)}
           <PaymentRow {payment} />
         {/each}
@@ -79,16 +75,3 @@
     {/if}
   </section>
 </Slide>
-
-<style>
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .payments::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .payments {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-</style>

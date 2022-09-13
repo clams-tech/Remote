@@ -40,3 +40,10 @@ export const CORE_LN_CREDENTIALS_INITIAL: CoreLnCredentials = {
   connection: '',
   rune: ''
 }
+
+export const DOCS_LINK = 'https://clams.tech/docs'
+export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'
+export const DOCS_RUNE_LINK = 'https://clams.tech/docs/runes'
+export const TWITTER_LINK = 'https://twitter.com/clamstech'
+export const GITHUB_LINK = 'https://github.com/clams-tech'
+export const DISCORD_LINK = '@TODO'

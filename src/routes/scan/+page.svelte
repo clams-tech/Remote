@@ -1,15 +1,12 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import Scanner from '$lib/components/Scanner.svelte'
   import { goto } from '$app/navigation'
   import { decode } from 'light-bolt11-decoder'
   import Slide from '$lib/elements/Slide.svelte'
   import Summary from '$lib/components/Summary.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { BitcoinDenomination, type Payment } from '$lib/types'
-  import { customNotifications$, paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import { coreLightning, type ErrorResponse } from '$lib/backends'
   import { formatDecodedInvoice } from '$lib/utils'
@@ -47,13 +44,7 @@
     }
 
     if (!invoice) {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.scan'),
-        message: $translate('app.errors.invalid_invoice'),
-        id: crypto.randomUUID()
-      })
-
+      errorMsg = $translate('app.errors.invalid_invoice')
       return
     }
 
@@ -65,24 +56,19 @@
       sendPayment$.next({
         bolt11: paymentRequest,
         description,
-        expiry,
+        expiry: expiry || 3600,
         value: amount,
         timestamp
       })
 
       next()
     } catch (error) {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.scan'),
-        message: $translate('app.errors.invalid_invoice'),
-        id: crypto.randomUUID()
-      })
+      errorMsg = $translate('app.errors.invalid_invoice')
     }
   }
 
   async function sendPayment() {
-    const { bolt11 } = sendPayment$.getValue()
+    const { bolt11, description } = sendPayment$.getValue()
 
     errorMsg = ''
     requesting = true
@@ -91,10 +77,11 @@
 
     try {
       const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
-      paymentUpdates$.next(payment)
+      paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
-      errorMsg = (error as ErrorResponse).message
+      const { code, message } = error as ErrorResponse
+      errorMsg = $translate(`app.errors.${code}`) || message
     } finally {
       requesting = false
     }
@@ -145,3 +132,7 @@
     />
   </Slide>
 {/if}
+
+<div class="absolute bottom-4">
+  <ErrorMsg bind:message={errorMsg} />
+</div>

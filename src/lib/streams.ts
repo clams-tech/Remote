@@ -128,21 +128,17 @@ export function updatePayments(payment: Payment): void {
 }
 
 export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void> {
-  try {
-    const invoice = await coreLightning.waitAnyInvoice(payIndex)
+  const invoice = await coreLightning.waitAnyInvoice(payIndex)
 
-    if (invoice.status !== 'unpaid') {
-      const payment = invoiceToPayment(invoice)
-      paymentUpdates$.next(payment)
-    }
-
-    const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
-    localStorage.setItem('lastpay_index', newLastPayIndex.toString())
-
-    return listenForAllInvoiceUpdates(newLastPayIndex)
-  } catch (error) {
-    console.log({ error })
+  if (invoice.status !== 'unpaid') {
+    const payment = invoiceToPayment(invoice)
+    paymentUpdates$.next(payment)
   }
+
+  const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
+  localStorage.setItem('lastpay_index', newLastPayIndex.toString())
+
+  return listenForAllInvoiceUpdates(newLastPayIndex)
 }
 
 export function updateCredentials(update: Partial<CoreLnCredentials>): void {

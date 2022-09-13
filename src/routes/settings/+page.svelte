@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
@@ -13,6 +9,8 @@
   import Button from '$lib/elements/Button.svelte'
   import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+
+  let version = __APP_VERSION__
 
   let settings = [
     { label: $translate('app.labels.app'), route: '/settings/app' },
@@ -39,7 +37,7 @@
     goto('/')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings')}
     </h1>
@@ -61,6 +59,11 @@
           </a>
         {/if}
       {/each}
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.version')}</span>
+        <span slot="value">{version}</span>
+      </SummaryRow>
     </div>
     <div class="w-full mt-6">
       <Button

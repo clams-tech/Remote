@@ -1,30 +1,16 @@
-<script lang="ts" context="module">
-  import type { Load } from './__types/[id]'
-
-  export const load: Load = ({ params }) => {
-    if (!credentials$.getValue().connection) {
-      return {
-        redirect: '/welcome',
-        status: 302
-      }
-    } else {
-      return { props: { id: params.id } }
-    }
-  }
-</script>
-
 <script lang="ts">
   import { fade } from 'svelte/transition'
-  import { credentials$, lastPath$, payments$ } from '$lib/streams'
+  import { lastPath$, payments$ } from '$lib/streams'
   import { goto } from '$app/navigation'
   import PaymentDetails from '$lib/components/PaymentDetails.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
-  export let id: string // payment id
+  export let data: { id: string } // payment id
 
-  $: payment = $payments$.data && $payments$.data.find((p) => p.id === id)
+  $: payment = $payments$.data && $payments$.data.find((p) => p.id === data.id)
 
   function handleClose() {
     const path = lastPath$.value
@@ -42,7 +28,7 @@
   <title>{$translate('app.titles.payment')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-center items-center w-full h-full max-w-xl">
+<section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-xl">
   <BackButton on:click={handleClose} />
 
   {#if $payments$.loading}
@@ -51,12 +37,9 @@
     </div>
   {:else if $payments$.error}
     <div class="w-full h-full flex items-center justify-center">
-      <!-- @TODO - Ensure renders error correctly -->
-      <span>{$payments$.error}</span>
+      <ErrorMsg message={$payments$.error} />
     </div>
   {:else if payment}
-    <div class="flex w-full h-full">
-      <PaymentDetails {payment} />
-    </div>
+    <PaymentDetails {payment} />
   {/if}
 </section>

@@ -1,22 +1,3 @@
-<script lang="ts" context="module">
-  import type { Load } from '@sveltejs/kit'
-
-  let loaded = false
-
-  export const load: Load = async () => {
-    if (!loaded) {
-      loaded = true
-
-      if (credentials$.getValue().connection) {
-        return {
-          redirect: '/',
-          status: 302
-        }
-      }
-    }
-  }
-</script>
-
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
@@ -24,7 +5,7 @@
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { credentials$, updateCredentials } from '$lib/streams'
+  import { updateCredentials } from '$lib/streams'
   import { coreLightning, type Socket } from '$lib/backends'
   import { truncateValue, validateConnectionString } from '$lib/utils'
   import Check from '$lib/icons/Check.svelte'
@@ -35,6 +16,7 @@
   import Warning from '$lib/icons/Warning.svelte'
   import { onMount } from 'svelte'
   import Info from '$lib/icons/Info.svelte'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
   type Step = 'connect' | 'rune'
@@ -96,7 +78,7 @@
 
 {#if step === 'connect'}
   <Slide>
-    <section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+    <section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">
@@ -109,7 +91,7 @@
           <Info />
         </div>
         <a
-          href="https://clams.tech/docs/connect"
+          href={DOCS_CONNECT_LINK}
           target="_blank"
           class="hover:underline"
           rel="noopener noreferrer">{$translate('app.hints.how')}</a
@@ -184,7 +166,7 @@
       step = 'connect'
     }}
   >
-    <section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+    <section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
@@ -194,11 +176,8 @@
         <div class="w-5 mr-2 border-2 rounded-full border-current">
           <Info />
         </div>
-        <a
-          href="https://clams.tech/docs/connect"
-          target="_blank"
-          class="hover:underline"
-          rel="noopener noreferrer">{$translate('app.hints.how')}</a
+        <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
+          >{$translate('app.hints.how')}</a
         >
       </div>
 

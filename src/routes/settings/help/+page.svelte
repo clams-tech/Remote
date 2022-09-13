@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
@@ -12,22 +8,23 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
   import Github from '$lib/icons/Github.svelte'
+  import { DISCORD_LINK, DOCS_LINK, GITHUB_LINK, TWITTER_LINK } from '$lib/constants'
 
   let options = [
     {
       label: $translate('app.labels.docs'),
-      href: 'https://clams.tech/docs',
+      href: DOCS_LINK,
       icon: ClamsIcon
     },
-    { label: $translate('app.labels.discord'), href: '@TODO', icon: Discord },
+    { label: $translate('app.labels.discord'), href: DISCORD_LINK, icon: Discord },
     {
       label: $translate('app.labels.github'),
-      href: 'https://github.com/clams-tech/browser-app',
+      href: GITHUB_LINK,
       icon: Github
     },
     {
       label: $translate('app.labels.twitter'),
-      href: 'https://twitter.com/clamstech',
+      href: TWITTER_LINK,
       icon: Twitter
     }
   ]
@@ -42,7 +39,7 @@
     goto('/settings')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings_help')}
     </h1>

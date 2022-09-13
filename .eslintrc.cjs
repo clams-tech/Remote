@@ -19,5 +19,6 @@ module.exports = {
   },
   rules: {
     '@typescript-eslint/no-empty-function': 'off'
-  }
+  },
+  globals: { __APP_VERSION__: true }
 }

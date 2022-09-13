@@ -39,7 +39,7 @@
   }
 </script>
 
-<section class="flex flex-col justify-center items-start w-full p-8 max-w-xl">
+<section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
   <div class="w-full">
     <div class="mb-6">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.summary', { direction })}</h1>

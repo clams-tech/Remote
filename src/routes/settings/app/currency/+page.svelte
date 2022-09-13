@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
@@ -62,11 +58,11 @@
     goto('/settings/app')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-8 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings_currency')}
     </h1>
-    <div class="w-full h-full overflow-y-auto overflow-x-hidden currency">
+    <div class="w-full h-full overflow-y-auto overflow-x-hidden">
       <SummaryRow>
         <span slot="label" class="font-bold">{$translate('app.labels.commonly_used')}</span>
       </SummaryRow>
@@ -105,16 +101,3 @@
     </div>
   </section>
 </Slide>
-
-<style>
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .currency::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .currency {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-</style>

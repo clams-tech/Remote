@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import { goto } from '$app/navigation'
   import Destination from '$lib/components/Destination.svelte'
@@ -9,15 +5,18 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { BitcoinDenomination, type PaymentType } from '$lib/types'
   import { convertValue } from '$lib/conversion'
-  import { customNotifications$, paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import { coreLightning } from '$lib/backends'
   import Big from 'big.js'
 
   let previousSlide = 0
   let slide = 0
+
+  let errorMsg = ''
 
   function next() {
     previousSlide = slide
@@ -117,12 +116,7 @@
 
       const { code, message } = error as { code: number; message: string }
 
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.send'),
-        message: code === -32602 ? message : $translate(`app.errors.${code}`),
-        id: crypto.randomUUID()
-      })
+      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`)
     }
   }
 </script>
@@ -151,6 +145,7 @@
       bind:expiry={$sendPayment$.expiry}
       bind:timestamp={$sendPayment$.timestamp}
       bind:amount={$sendPayment$.amount}
+      on:clipboardError={({ detail }) => (errorMsg = detail)}
     />
   </Slide>
 {/if}
@@ -173,7 +168,10 @@
 {/if}
 
 {#if slide === 3}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+  <Slide
+    back={() => ($sendPayment$.amount ? to(0) : prev())}
+    direction={previousSlide > slide ? 'right' : 'left'}
+  >
     <Summary
       direction="send"
       type={$sendPayment$.type}
@@ -193,3 +191,7 @@
     />
   </Slide>
 {/if}
+
+<div class="absolute bottom-4">
+  <ErrorMsg bind:message={errorMsg} />
+</div>

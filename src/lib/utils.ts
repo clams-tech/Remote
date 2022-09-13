@@ -12,8 +12,6 @@ import Hammer, {
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { Load } from '@sveltejs/kit'
-import { credentials$ } from './streams'
 import type { CoreLnCredentials, ListfundsResponse } from './backends'
 
 import {
@@ -397,17 +395,6 @@ export function getCredentialsFromStorage(): CoreLnCredentials | null {
   return credentialsJson ? JSON.parse(credentialsJson) : null
 }
 
-export const load: Load = async () => {
-  const credentials = credentials$.getValue()
-
-  if (!credentials.connection) {
-    return {
-      redirect: '/welcome',
-      status: 302
-    }
-  }
-}
-
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
   const offChain = funds.channels.reduce(
@@ -474,4 +461,8 @@ export function deriveLastPayIndex(payments: Payment[]): number {
         return payIndex && payIndex > currentHighestIndex ? payIndex : currentHighestIndex
       }, 0)
     : 0
+}
+
+export function isPWA(): boolean {
+  return window.matchMedia('(display-mode: standalone)').matches
 }

@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-  export { load } from '$lib/utils'
-</script>
-
 <script lang="ts">
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
@@ -14,13 +10,13 @@
   import { coreLightning } from '$lib/backends'
 
   import {
-    customNotifications$,
     listeningForAllInvoiceUpdates$,
     paymentUpdates$,
     settings$,
     SvelteSubject,
     waitForAndUpdatePayment
   } from '$lib/streams'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   let requesting = false
 
@@ -28,6 +24,8 @@
 
   let previousSlide = 0
   let slide = 0
+
+  let receiveError = ''
 
   function next() {
     previousSlide = slide
@@ -46,6 +44,7 @@
   })
 
   async function submit() {
+    receiveError = ''
     const { value, description, expiry } = $receivePayment$
 
     const amount_msat = convertValue({
@@ -55,13 +54,7 @@
     })
 
     if (!amount_msat) {
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.receive'),
-        message: $translate('app.errors.-1'),
-        id: crypto.randomUUID()
-      })
-
+      receiveError = $translate('app.errors.-1')
       return
     }
 
@@ -90,12 +83,7 @@
 
       const { code, message } = error as { code: number; message: string }
 
-      customNotifications$.next({
-        type: 'error',
-        heading: $translate('app.errors.receive'),
-        message: code === -32602 ? message : $translate(`app.errors.${code}`),
-        id: crypto.randomUUID()
-      })
+      receiveError = code === -32602 ? message : $translate(`app.errors.${code}`)
     }
   }
 </script>
@@ -134,3 +122,7 @@
     />
   </Slide>
 {/if}
+
+<div class="absolute bottom-4">
+  <ErrorMsg bind:message={receiveError} />
+</div>
