@@ -57,10 +57,10 @@
       <span class="font-bold">{$translate('app.payment.status', { direction, status })}</span>
 
       {#if description}
-        <span class="text-sm italic text-slate-500 max-w-[200px] mt-1">{description}</span>
+        <span class="text-sm italic text-neutral-500 max-w-[200px] mt-1">{description}</span>
       {/if}
 
-      <span class="text-sm text-slate-400 mt-1"
+      <span class="text-sm text-neutral-400 mt-1"
         >{formatDate({ date: startedAt, language: $settings$.language })}</span
       >
     </div>
@@ -76,7 +76,7 @@
       })}
       {$settings$.bitcoinDenomination}
     </p>
-    <p class="text-slate-400">
+    <p class="text-neutral-400">
       {abs}
       {formatValueForDisplay({
         denomination: $settings$.fiatDenomination,
