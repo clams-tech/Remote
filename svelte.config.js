@@ -16,13 +16,16 @@ const config = {
       directives: {
         'script-src': [
           'self',
-          'unsafe-eval' // needed for lnsocket script
-        ]
+          'unsafe-eval', // needed for lnsocket script
+          'unsafe-inline'
+        ],
+        'object-src': ['self']
       },
       reportOnly: {
-        'script-src': ['self'],
+        'script-src': ['self', 'unsafe-eval'],
         'report-to': ['self'],
-        'report-uri': ['self']
+        'report-uri': ['self'],
+        'object-src': ['self']
       }
     },
     csrf: {
