@@ -30,6 +30,7 @@
   // focus:border-white
   // focus:ring-utility-error
   // focus:ring-purple-500
+  // h-6
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
@@ -122,7 +123,9 @@
   </div>
 
   <div
-    class="flex items-end transition-all overflow-hidden text-utility-error h-{invalid ? '6' : '0'}"
+    class="flex items-center transition-all overflow-hidden text-utility-error h-{invalid
+      ? '6'
+      : '0'}"
   >
     <span class="w-4 mr-2"><Warning /></span>
     <span class="text-xs font-medium">{invalid}</span>

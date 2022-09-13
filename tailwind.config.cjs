@@ -19,15 +19,11 @@ module.exports = {
           orange: '#f2a900'
         },
         utility: {
-          success: '#05F063',
-          // success: '#04d759',
-          // success: '#92f005',
-          error: '#f0051d',
-          // error: '#f00592',
-          // pending: '#ffc540'
-          pending: '#ff9000'
+          success: '#39F35B',
+          error: '#FF1F39',
+          pending: '#FCBA04'
         },
-        black: '#121212',
+        black: '#000000',
         white: '#ffffff',
         transparent: 'transparent'
       }

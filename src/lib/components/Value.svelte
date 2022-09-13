@@ -139,7 +139,7 @@
               on:input={handleInput}
               type="number"
               step="any"
-              class="absolute caret-black dark:caret-white h-12 top-0 left-0 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
+              class="absolute caret-neutral-900 dark:caret-white h-12 top-0 left-0 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
             />
           {/if}
         </div>

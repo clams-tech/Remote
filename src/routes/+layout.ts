@@ -1,6 +1,8 @@
 import type { LayoutLoad } from './$types'
 import { locale, loadTranslations } from '$lib/i18n/translations'
 
+export const ssr = false
+
 export const load: LayoutLoad = async ({ url }) => {
   const { pathname } = url
   const defaultLocale = 'en'
@@ -10,6 +12,3 @@ export const load: LayoutLoad = async ({ url }) => {
 
   return {}
 }
-
-export const prerender = false
-export const ssr = false
