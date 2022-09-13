@@ -158,7 +158,7 @@
         </p>
 
         <div class="flex w-full items-center mt-4">
-          <div class="w-1/2 mr-2 text-black">
+          <div class="w-1/2 mr-2">
             <Button on:click={closeModal} text={$translate('app.buttons.no')} />
           </div>
 

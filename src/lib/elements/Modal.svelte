@@ -19,10 +19,10 @@
   const device = userAgent.getDevice()
 
   const backgroundStyles =
-    'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-black/40 flex flex-col items-center'
+    'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-neutral-900/40 flex flex-col items-center'
 
   const modalStyles =
-    'bg-neutral-50 dark:text-black shadow-lg p-4 relative flex items-center justify-center flex-col'
+    'bg-neutral-50 dark:text-neutral-900 shadow-lg p-4 relative flex items-center justify-center flex-col'
 </script>
 
 {#if device.type === 'mobile'}

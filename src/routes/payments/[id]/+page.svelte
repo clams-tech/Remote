@@ -6,6 +6,7 @@
   import BackButton from '$lib/elements/BackButton.svelte'
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   export let data: { id: string } // payment id
 
@@ -27,7 +28,7 @@
   <title>{$translate('app.titles.payment')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-center items-center w-full h-full max-w-xl">
+<section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-xl">
   <BackButton on:click={handleClose} />
 
   {#if $payments$.loading}
@@ -36,12 +37,9 @@
     </div>
   {:else if $payments$.error}
     <div class="w-full h-full flex items-center justify-center">
-      <!-- @TODO - Ensure renders error correctly -->
-      <span>{$payments$.error}</span>
+      <ErrorMsg message={$payments$.error} />
     </div>
   {:else if payment}
-    <div class="flex w-full h-full">
-      <PaymentDetails {payment} />
-    </div>
+    <PaymentDetails {payment} />
   {/if}
 </section>

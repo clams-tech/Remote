@@ -9,6 +9,7 @@
   import Spinner from '$lib/elements/Spinner.svelte'
   import type { Payment } from '$lib/types'
   import Search from '$lib/icons/Search.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   let searchTerm = ''
   let filteredPayments: Payment[] = []
@@ -64,8 +65,7 @@
     {#if $payments$.loading}
       <Spinner />
     {:else if $payments$.error}
-      <!-- @TODO - Ensure renders error correctly -->
-      <span>{$payments$.error}</span>
+      <ErrorMsg message={$payments$.error} />
     {:else if filteredPayments}
       <div class="w-full overflow-y-auto overflow-x-hidden">
         {#each filteredPayments as payment (payment.id)}

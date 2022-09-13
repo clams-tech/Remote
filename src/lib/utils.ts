@@ -12,8 +12,6 @@ import Hammer, {
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import { redirect, type Load } from '@sveltejs/kit'
-import { credentials$ } from './streams'
 import type { CoreLnCredentials, ListfundsResponse } from './backends'
 
 import {
@@ -395,14 +393,6 @@ export function getCredentialsFromStorage(): CoreLnCredentials | null {
   const credentialsJson = localStorage.getItem('credentials')
 
   return credentialsJson ? JSON.parse(credentialsJson) : null
-}
-
-export const load: Load = async () => {
-  const credentials = credentials$.getValue()
-
-  if (!credentials.connection) {
-    throw redirect(302, '/welcome')
-  }
 }
 
 // limited to offchain funds for the moment
