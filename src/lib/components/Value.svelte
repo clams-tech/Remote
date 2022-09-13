@@ -149,14 +149,14 @@
       </div>
       <div
         on:click|stopPropagation={switchDenomination}
-        class="w-6 ml-6 p-1 box-content text-slate-400 hover:text-slate-600 hover:border-slate-600 transition-all rotate-90 cursor-pointer"
+        class="w-6 ml-6 p-1 box-content text-neutral-400 hover:text-neutral-600 hover:border-neutral-600 transition-all rotate-90 cursor-pointer"
       >
         <Exchange />
       </div>
     </div>
 
     <div
-      class="cursor-pointer text-slate-400 hover:text-slate-600 mt-3"
+      class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3"
       on:click={switchDenomination}
     >
       <span class="text-base font-mono">

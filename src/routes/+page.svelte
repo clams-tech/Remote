@@ -41,9 +41,9 @@
     </div>
   </a>
 
-  <a href="/" class="w-24 absolute top-2 left-2">
+  <div class="w-24 absolute top-2 left-2">
     <ClamsLogo />
-  </a>
+  </div>
 
   {#if $nodeInfo$.data}
     <span in:fade class="flex items-center"
