@@ -116,7 +116,7 @@
 
       const { code, message } = error as { code: number; message: string }
 
-      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`)
+      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
     }
   }
 </script>

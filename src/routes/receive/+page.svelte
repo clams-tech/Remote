@@ -83,7 +83,8 @@
 
       const { code, message } = error as { code: number; message: string }
 
-      receiveError = code === -32602 ? message : $translate(`app.errors.${code}`)
+      receiveError =
+        code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
     }
   }
 </script>
@@ -123,6 +124,6 @@
   </Slide>
 {/if}
 
-<div class="absolute bottom-4">
+<div class="absolute bottom-0 p-4">
   <ErrorMsg bind:message={receiveError} />
 </div>

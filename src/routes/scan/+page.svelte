@@ -81,7 +81,7 @@
       goto(`/payments/${payment.id}`)
     } catch (error) {
       const { code, message } = error as ErrorResponse
-      errorMsg = $translate(`app.errors.${code}`) || message
+      errorMsg = $translate(`app.errors.${code}`, { default: message })
     } finally {
       requesting = false
     }

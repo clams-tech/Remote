@@ -100,7 +100,8 @@
     "210": "Payment timed out.",
     "900": "An invoice with the given label already exists",
     "901": "An invoice with the given preimage already exists",
-    "902": "None of the specified private channels were usable"
+    "902": "None of the specified private channels were usable",
+    "19537": "Provided rune does not have valid permissions for this request."
   },
   "buttons": {
     "create_invoice": "Create Invoice",
