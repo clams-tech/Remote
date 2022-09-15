@@ -353,17 +353,15 @@ const locales: Record<string, Locale> = {
   ko // Korean
 }
 
-export function formatDate(options: { date: string; language: string; type?: 'relative' }) {
-  const { date, language, type = 'relative' } = options
+export function formatDate(options: { date: string; language: string }): string {
+  const { date, language } = options
 
   const settingsLocale =
     Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
 
   const locale = locales[settingsLocale] || enGB
 
-  if (type === 'relative') {
-    return formatRelative(new Date(date), new Date(), { locale })
-  }
+  return formatRelative(new Date(date), new Date(), { locale })
 }
 
 export function formatCountdown(options: { date: Date; language: string }) {
