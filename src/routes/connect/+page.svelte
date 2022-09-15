@@ -5,9 +5,9 @@
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { updateCredentials } from '$lib/streams'
+  import { settings$, updateCredentials } from '$lib/streams'
   import { coreLightning, type Socket } from '$lib/backends'
-  import { truncateValue, validateConnectionString } from '$lib/utils'
+  import { formatDate, truncateValue, validateConnectionString } from '$lib/utils'
   import Check from '$lib/icons/Check.svelte'
   import Close from '$lib/icons/Close.svelte'
   import Arrow from '$lib/icons/Arrow.svelte'
@@ -225,7 +225,29 @@
 
                       return alternatives
                         .map((alternative) => {
-                          const words = alternative.split(' ')
+                          let words = alternative.split(' ')
+                          const lastIndex = words.length - 1
+                          const lastValue = words[lastIndex]
+
+                          // format rate limit
+                          if (words[0] === 'rate') {
+                            words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+                          }
+
+                          // format time
+                          if (words[0] === 'time') {
+                            const timeMs = parseInt(lastValue) * 1000
+
+                            words = [
+                              'valid',
+                              'until',
+                              formatDate({
+                                date: new Date(timeMs).toISOString(),
+                                language: $settings$.language
+                              })
+                            ]
+                          }
+
                           const wordsBold = words.map((w, i) =>
                             i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
                           )
