@@ -8,11 +8,9 @@ const file = fileURLToPath(new URL('package.json', import.meta.url))
 const json = readFileSync(file, 'utf8')
 const pkg = JSON.parse(json)
 
-export default defineConfig(({ command }) => {
-  const devPlugins = command === 'serve' ? [basicSsl()] : []
-
+export default defineConfig(() => {
   const config = {
-    plugins: [sveltekit(), ...devPlugins],
+    plugins: [sveltekit(), basicSsl()],
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version)
     }

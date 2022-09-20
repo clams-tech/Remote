@@ -38,14 +38,14 @@ function registerSideEffects() {
       // store credentials
       localStorage.setItem('credentials', JSON.stringify(credentials))
 
-      coreLightning
-        .listFunds()
-        .then((data) => {
-          funds$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          funds$.next({ loading: false, data: null, error: error && error.message })
-        })
+      // coreLightning
+      //   .listFunds()
+      //   .then((data) => {
+      //     funds$.next({ loading: false, data })
+      //   })
+      //   .catch((error) => {
+      //     funds$.next({ loading: false, data: null, error: error && error.message })
+      //   })
 
       coreLightning
         .getInfo()
@@ -56,14 +56,14 @@ function registerSideEffects() {
           nodeInfo$.next({ loading: false, data: null, error: error && error.message })
         })
 
-      coreLightning
-        .getPayments()
-        .then((data) => {
-          payments$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          payments$.next({ loading: false, data: null, error: error && error.message })
-        })
+      // coreLightning
+      //   .getPayments()
+      //   .then((data) => {
+      //     payments$.next({ loading: false, data })
+      //   })
+      //   .catch((error) => {
+      //     payments$.next({ loading: false, data: null, error: error && error.message })
+      //   })
     })
 
   // update payments when payment update comes through

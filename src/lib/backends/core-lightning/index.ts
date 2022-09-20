@@ -2,13 +2,7 @@ import Big from 'big.js'
 import type { Payment } from '$lib/types'
 import { sortPaymentsMostRecent } from '$lib/utils'
 
-import {
-  rpcRequest,
-  connect,
-  connectionToConnectOptions,
-  invoiceToPayment,
-  payToPayment
-} from './utils'
+import { rpcRequest, connectionToConnectOptions, invoiceToPayment, payToPayment } from './utils'
 
 import type {
   GetinfoResponse,
@@ -206,6 +200,5 @@ export default {
   payKeysend,
   getPayments,
   listFunds,
-  connect,
   connectionToConnectOptions
 }

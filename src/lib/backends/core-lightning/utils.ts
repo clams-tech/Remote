@@ -4,26 +4,9 @@ import { lnsocketProxy } from '$lib/constants'
 import { credentials$ } from '$lib/streams'
 import type { Payment } from '$lib/types'
 import { formatDecodedInvoice } from '$lib/utils'
+import { connect } from './commando'
 
-import type {
-  LNRequest,
-  LNResponse,
-  InvoiceStatus,
-  Socket,
-  ConnectOptions,
-  Invoice,
-  Pay
-} from './types'
-
-export async function connect({ publicKey, wsUrl }: ConnectOptions): Promise<Socket> {
-  const LNSocket = await window.lnsocket_init()
-  const lnsocket = LNSocket()
-  lnsocket.genkey()
-
-  await lnsocket.connect_and_init(publicKey, wsUrl)
-
-  return lnsocket
-}
+import type { LNRequest, LNResponse, InvoiceStatus, ConnectOptions, Invoice, Pay } from './types'
 
 export function connectionToConnectOptions(connection: string): ConnectOptions {
   const [publicKey, host] = connection.split('@')
@@ -33,7 +16,6 @@ export function connectionToConnectOptions(connection: string): ConnectOptions {
 }
 
 export async function rpcRequest(request: LNRequest): Promise<LNResponse | null> {
-  if (typeof window === 'undefined') return null
   const credentials = credentials$.getValue()
 
   if (!credentials.rune) {
@@ -42,17 +24,11 @@ export async function rpcRequest(request: LNRequest): Promise<LNResponse | null>
 
   const { connection, rune } = credentials
   const connectOptions = connectionToConnectOptions(connection)
-  const lnsocket = await connect(connectOptions)
+  const commando = connect(connectOptions)
 
-  const response = await lnsocket.rpc({ ...request, rune })
+  commando.call({ ...request, rune })
 
-  lnsocket.destroy()
-
-  if (response.error) {
-    throw response.error
-  }
-
-  return response.result
+  return null
 }
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {

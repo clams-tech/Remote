@@ -17,3 +17,4 @@ declare namespace svelte.JSX {
 }
 
 declare module 'light-bolt11-decoder'
+declare module 'chacha'

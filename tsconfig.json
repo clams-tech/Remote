@@ -9,6 +9,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "lib": ["es2020", "DOM", "webworker"]
+    "lib": ["es2020", "DOM", "webworker"],
+    "strictPropertyInitialization": false
   }
 }

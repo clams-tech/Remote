@@ -49,21 +49,21 @@
 
   async function attemptConnect() {
     connectStatus = 'connecting'
+    // @TODO
+    // try {
+    //   const connectOptions = coreLightning.connectionToConnectOptions(connection)
 
-    try {
-      const connectOptions = coreLightning.connectionToConnectOptions(connection)
+    //   const lnsocket = await Promise.race([
+    //     coreLightning.connect(connectOptions),
+    //     new Promise((res, reject) => setTimeout(reject, 10000))
+    //   ])
 
-      const lnsocket = await Promise.race([
-        coreLightning.connect(connectOptions),
-        new Promise((res, reject) => setTimeout(reject, 10000))
-      ])
-
-      connectStatus = 'success'
-      ;(lnsocket as Socket).destroy()
-      updateCredentials({ connection })
-    } catch (error) {
-      connectStatus = 'fail'
-    }
+    //   connectStatus = 'success'
+    //   ;(lnsocket as Socket).destroy()
+    //   updateCredentials({ connection })
+    // } catch (error) {
+    //   connectStatus = 'fail'
+    // }
   }
 
   function saveRune() {
