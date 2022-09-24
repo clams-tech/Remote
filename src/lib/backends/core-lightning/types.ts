@@ -35,6 +35,7 @@ export type ListinvoicesRequest = {
 
 export type ListpaysRequest = {
   method: 'listpays'
+  params: []
 }
 
 export type InvoiceRequest = {
@@ -92,6 +93,7 @@ export interface KeysendRequest {
 
 export type ListfundsRequest = {
   method: 'listfunds'
+  params: []
 }
 
 export type LNRequest =

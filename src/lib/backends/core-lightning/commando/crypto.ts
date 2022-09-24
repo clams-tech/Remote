@@ -1,9 +1,11 @@
 import CryptoJS from 'crypto-js'
 import { Buffer } from 'buffer'
 import * as secp from '@noble/secp256k1'
+import secp256k1 from 'secp256k1'
+import { createCipher, createDecipher } from './chacha/aead'
 
 export function ecdh(pubkey: Uint8Array, privkey: Uint8Array) {
-  return Buffer.from(secp.getSharedSecret(privkey, pubkey))
+  return Buffer.from(secp256k1.ecdh(pubkey, privkey))
 }
 
 export function hmacHash(key: Buffer, input: Buffer) {
@@ -43,40 +45,53 @@ export function getPublicKey(privKey: Buffer, compressed = true) {
   return Buffer.from(secp.getPublicKey(privKey, compressed))
 }
 
-export async function ccpEncrypt(k: Buffer, n: Buffer, ad: Buffer, plaintext: Buffer) {
-  console.log('before createCipher')
-  const { createCipher } = await import('chacha')
-  console.log('after createCipher')
+/**
+ * Encrypt data using authenticated encryption with associated data (AEAD)
+ * ChaCha20-Poly1305.
+ *
+ * @param k private key, 64-bytes
+ * @param n nonce, 12-bytes
+ * @param ad associated data
+ * @param plaintext raw data to encrypt
+ * @returns encrypted data + tag as a variable length buffer
+ */
+export function ccpEncrypt(k: Buffer, n: Buffer, ad: Buffer, plaintext: Buffer): Buffer {
   const cipher = createCipher(k, n)
   cipher.setAAD(ad)
+
   const pad = cipher.update(plaintext)
-  cipher.final()
+
+  cipher.final && cipher.final()
   const tag = cipher.getAuthTag()
   return Buffer.concat([pad, tag])
 }
 
-export async function ccpDecrypt(
-  k: Buffer,
-  n: Buffer,
-  ad: Buffer,
-  ciphertext: Buffer
-): Promise<Buffer> {
-  console.log('before createDecipher')
-  const { createDecipher } = await import('chacha')
-  console.log('after createDecipher')
+/**
+ * Decrypt data uusing authenticated encryption with associated data (AEAD)
+ * ChaCha20-Poly1305
+ *
+ * @param k private key, 64-bytes
+ * @param n nonce, 12-bytes
+ * @param ad associated data, variable length
+ * @param ciphertext encrypted data to decrypt
+ * @returns decrypteed data as a variable length Buffer
+ */
+export function ccpDecrypt(k: Buffer, n: Buffer, ad: Buffer, ciphertext: Buffer) {
   const decipher = createDecipher(k, n)
-  decipher.setAAD(ad, undefined)
+
+  decipher.setAAD(ad)
 
   if (ciphertext.length === 16) {
     decipher.setAuthTag(ciphertext)
-    return decipher.final()
-  } else {
+    return decipher.final && decipher.final()
+  }
+  if (ciphertext.length > 16) {
     const tag = ciphertext.subarray(ciphertext.length - 16)
     const pad = ciphertext.subarray(0, ciphertext.length - 16)
     decipher.setAuthTag(tag)
     let m = decipher.update(pad)
-    const f = decipher.final()
-    m = Buffer.concat([m, f])
+    const f = decipher.final && decipher.final()
+    m = Buffer.concat([m as Buffer, f as Buffer])
     return m
   }
 }

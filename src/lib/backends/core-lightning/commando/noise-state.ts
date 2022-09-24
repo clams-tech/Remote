@@ -116,12 +116,15 @@ export class NoiseState {
 
     // 3. es = ECDH(e.priv, rs)
     const ss = ecdh(this.rpk, this.es)
+
     // 4. ck, temp_k1 = HKDF(ck, es)
     const tempK1 = hkdf(ss, 64, this.ck)
     this.ck = tempK1.subarray(0, 32)
     this.tempK1 = tempK1.subarray(32)
+
     // 5. c = encryptWithAD(temp_k1, 0, h, zero)
-    const c = await ccpEncrypt(this.tempK1, Buffer.alloc(12), this.h, Buffer.alloc(0))
+    const c = ccpEncrypt(this.tempK1, Buffer.alloc(12), this.h, Buffer.alloc(0))
+
     // 6. h = SHA-256(h || c)
     this.h = await sha256(Buffer.concat([this.h, c]))
     // 7. m = 0 || epk || c
@@ -136,7 +139,6 @@ export class NoiseState {
    * @param m 50-byte message from responder's act1
    */
   public async initiatorAct2(m: Buffer) {
-    console.log('INITIATOR ACT 2')
     // 1. read exactly 50 bytes off the stream
     if (m.length !== 50) throw new Error('ACT2_READ_FAILED')
     // 2. parse th read message m into v, re, and c
@@ -156,7 +158,7 @@ export class NoiseState {
     this.ck = tempK2.subarray(0, 32)
     this.tempK2 = tempK2.subarray(32)
     // 7. p = decryptWithAD()
-    await ccpDecrypt(this.tempK2, Buffer.alloc(12), this.h, c)
+    ccpDecrypt(this.tempK2, Buffer.alloc(12), this.h, c)
     // 8. h = sha256(h || c)
     this.h = await sha256(Buffer.concat([this.h, c]))
   }
@@ -168,7 +170,7 @@ export class NoiseState {
    */
   public async initiatorAct3() {
     // 1. c = encryptWithAD(temp_k2, 1, h, lpk)
-    const c = await ccpEncrypt(
+    const c = ccpEncrypt(
       this.tempK2,
       Buffer.from([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]),
       this.h,
@@ -183,7 +185,7 @@ export class NoiseState {
     this.ck = tempK3.subarray(0, 32)
     this.tempK3 = tempK3.subarray(32)
     // 5. t = encryptWithAD(temp_k3, 0, h, zero)
-    const t = await ccpEncrypt(this.tempK3, Buffer.alloc(12), this.h, Buffer.alloc(0))
+    const t = ccpEncrypt(this.tempK3, Buffer.alloc(12), this.h, Buffer.alloc(0))
     // 6. sk, rk = hkdf(ck, zero)
     const sk = hkdf(Buffer.alloc(0), 64, this.ck)
     this.rk = sk.subarray(32)
@@ -220,7 +222,7 @@ export class NoiseState {
     this.ck = tempK1.subarray(0, 32)
     this.tempK1 = tempK1.subarray(32)
     // 7. p = decryptWithAD(temp_k1, 0, h, c)
-    await ccpDecrypt(this.tempK1, Buffer.alloc(12), this.h, c)
+    ccpDecrypt(this.tempK1, Buffer.alloc(12), this.h, c)
     // 8. h = sha256(h || c)
     this.h = await sha256(Buffer.concat([this.h, c]))
   }
@@ -239,7 +241,7 @@ export class NoiseState {
     this.ck = tempK2.subarray(0, 32)
     this.tempK2 = tempK2.subarray(32)
     // 5. c = encryptWithAd(temp_k2, 0, h, zero)
-    const c = await ccpEncrypt(this.tempK2, Buffer.alloc(12), this.h, Buffer.alloc(0))
+    const c = ccpEncrypt(this.tempK2, Buffer.alloc(12), this.h, Buffer.alloc(0))
     // 6. h = sha256(h || c)
     this.h = await sha256(Buffer.concat([this.h, c]))
     // 7. m = 0 || e.pub.compressed() Z|| c
@@ -262,13 +264,8 @@ export class NoiseState {
     // 3. validate v is recognized
     if (v !== 0) throw new Error('ACT3_BAD_VERSION')
     // 4. rs = decryptWithAD(temp_k2, 1, h, c)
-    const rs = await ccpDecrypt(
-      this.tempK2,
-      Buffer.from('000000000100000000000000', 'hex'),
-      this.h,
-      c
-    )
-    this.rpk = rs
+    const rs = ccpDecrypt(this.tempK2, Buffer.from('000000000100000000000000', 'hex'), this.h, c)
+    this.rpk = rs as Buffer
     // 5. h = sha256(h || c)
     this.h = await sha256(Buffer.concat([this.h, c]))
     // 6. ss = ECDH(rs, e.priv)
@@ -278,7 +275,7 @@ export class NoiseState {
     this.ck = tempK3.subarray(0, 32)
     this.tempK3 = tempK3.subarray(32)
     // 8. p = decryptWithAD(temp_k3, 0, h, t)
-    await ccpDecrypt(this.tempK3, Buffer.alloc(12), this.h, t)
+    ccpDecrypt(this.tempK3, Buffer.alloc(12), this.h, t)
     // 9. rk, sk = hkdf(ck, zero)
     const sk = hkdf(Buffer.alloc(0), 64, this.ck)
     this.rk = sk.subarray(0, 32)
@@ -298,11 +295,11 @@ export class NoiseState {
     const l = Buffer.alloc(2)
     l.writeUInt16BE(m.length, 0)
     // step 3. encrypt l, using chachapoly1305, sn, sk)
-    const lc = await ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), l)
+    const lc = ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), l)
     // step 3a: increment sn
     if (this._incrementSendingNonce() >= 1000) this._rotateSendingKeys()
     // step 4 encrypt m using chachapoly1305, sn, sk
-    const c = await ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), m)
+    const c = ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), m)
     // step 4a: increment sn
     if (this._incrementSendingNonce() >= 1000) this._rotateSendingKeys()
     // step 5 return m to be sent
@@ -313,7 +310,7 @@ export class NoiseState {
    * The receiving key is rotated every 1000 messages.
    */
   public async decryptLength(lc: Buffer): Promise<number> {
-    const l = await ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), lc)
+    const l = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), lc) as Buffer
     if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys()
     return l.readUInt16BE(0)
   }
@@ -322,22 +319,24 @@ export class NoiseState {
    * key is rotated every 1000 messages.
    */
   public async decryptMessage(c: Buffer) {
-    const m = await ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), c)
+    const m = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), c)
     if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys()
-    return m
+    return m as Buffer
   }
   /////////////////////////////////////
   /**
    * Initializes the noise state prior to Act1.
    */
   private async _initialize(pubkey: Buffer) {
-    console.log('INIT')
     // 1. h = SHA-256(protocolName)
     this.h = await sha256(Buffer.from(this.protocolName))
+
     // 2. ck = h
     this.ck = this.h
+
     // 3. h = SHA-256(h || prologue)
     this.h = await sha256(Buffer.concat([this.h, this.prologue]))
+
     // 4. h = SHA-256(h || pubkey)
     this.h = await sha256(Buffer.concat([this.h, pubkey]))
   }

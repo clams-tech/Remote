@@ -3,6 +3,7 @@ import type { Payment } from '$lib/types'
 import { sortPaymentsMostRecent } from '$lib/utils'
 
 import { rpcRequest, connectionToConnectOptions, invoiceToPayment, payToPayment } from './utils'
+import { connect } from './commando'
 
 import type {
   GetinfoResponse,
@@ -182,12 +183,12 @@ async function listInvoices(): Promise<ListinvoicesResponse> {
 }
 
 async function listPays(): Promise<ListpaysResponse> {
-  const result = await rpcRequest({ method: 'listpays' })
+  const result = await rpcRequest({ method: 'listpays', params: [] })
   return result as ListpaysResponse
 }
 
 async function listFunds(): Promise<ListfundsResponse> {
-  const result = await rpcRequest({ method: 'listfunds' })
+  const result = await rpcRequest({ method: 'listfunds', params: [] })
   return result as ListfundsResponse
 }
 
@@ -200,5 +201,6 @@ export default {
   payKeysend,
   getPayments,
   listFunds,
-  connectionToConnectOptions
+  connectionToConnectOptions,
+  connect
 }
