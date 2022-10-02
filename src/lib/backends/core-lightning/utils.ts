@@ -1,35 +1,9 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
-import { lnsocketProxy } from '$lib/constants'
-import { credentials$ } from '$lib/streams'
 import type { Payment } from '$lib/types'
 import { formatDecodedInvoice } from '$lib/utils'
-import { connect } from './commando'
 
-import type { LNRequest, LNResponse, InvoiceStatus, ConnectOptions, Invoice, Pay } from './types'
-
-export function connectionToConnectOptions(connection: string): ConnectOptions {
-  const [publicKey, host] = connection.split('@')
-  const wsUrl = `${lnsocketProxy}/${host}`
-
-  return { publicKey, wsUrl }
-}
-
-export async function rpcRequest(request: LNRequest): Promise<LNResponse | null> {
-  const credentials = credentials$.getValue()
-
-  if (!credentials.rune) {
-    throw new Error('Credentials must be set before making rpc requests')
-  }
-
-  const { connection, rune } = credentials
-  const connectOptions = connectionToConnectOptions(connection)
-  const commando = connect(connectOptions)
-
-  commando.call({ ...request, rune })
-
-  return null
-}
+import type { InvoiceStatus, Invoice, Pay } from './types'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {

@@ -1,21 +1,4 @@
-export type CoreLnCredentials = {
-  connection: string
-  rune: string
-}
-
-export type Socket = {
-  connect_and_init: (publicKey: string, endpoint: string) => Promise<void>
-  rpc: (
-    request: LNRequest & { rune: string }
-  ) => Promise<{ result: LNResponse; error: ErrorResponse }>
-  genkey: () => void
-  destroy: () => void
-}
-
-export type ConnectOptions = {
-  publicKey: string
-  wsUrl: string
-}
+import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 // ==== REQUESTS ==== //
 
@@ -35,7 +18,6 @@ export type ListinvoicesRequest = {
 
 export type ListpaysRequest = {
   method: 'listpays'
-  params: []
 }
 
 export type InvoiceRequest = {
@@ -93,7 +75,6 @@ export interface KeysendRequest {
 
 export type ListfundsRequest = {
   method: 'listfunds'
-  params: []
 }
 
 export type LNRequest =
@@ -568,3 +549,5 @@ export type LNResponse =
   | KeysendResponse
   | WaitInvoiceResponse
   | WaitAnyInvoiceResponse
+
+export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

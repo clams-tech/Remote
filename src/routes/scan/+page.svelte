@@ -8,7 +8,7 @@
   import { BitcoinDenomination, type Payment } from '$lib/types'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning, type ErrorResponse } from '$lib/backends'
+  import { coreLn, type ErrorResponse } from '$lib/backends'
   import { formatDecodedInvoice } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
 
@@ -76,7 +76,7 @@
     const id = crypto.randomUUID()
 
     try {
-      const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
+      const payment = await coreLn.payInvoice({ bolt11: bolt11 as string, id })
       paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {

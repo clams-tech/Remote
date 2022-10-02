@@ -1,13 +1,12 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
+  import LnMessage from 'lnmessage'
   import { goto } from '$app/navigation'
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { settings$, updateCredentials } from '$lib/streams'
-  import { coreLightning, type Socket } from '$lib/backends'
-  import { formatDate, truncateValue, validateConnectionString } from '$lib/utils'
+  import { connection$, settings$, updateAuth } from '$lib/streams'
   import Check from '$lib/icons/Check.svelte'
   import Close from '$lib/icons/Close.svelte'
   import Arrow from '$lib/icons/Arrow.svelte'
@@ -16,10 +15,17 @@
   import Warning from '$lib/icons/Warning.svelte'
   import { onMount } from 'svelte'
   import Info from '$lib/icons/Info.svelte'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, lnsocketProxy } from '$lib/constants'
+
+  import {
+    formatDate,
+    parseNodeAddress,
+    truncateValue,
+    validateParsedNodeAddress
+  } from '$lib/utils'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
-  type Step = 'connect' | 'rune'
+  type Step = 'connect' | 'token'
 
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
@@ -31,43 +37,58 @@
 
   let step: Step = 'connect'
 
-  let connection = ''
-  let validConnection = false
+  let address = ''
+  let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
+  let sessionPublicKey: string
 
-  $: if (connection) {
+  $: if (address) {
     connectStatus = 'idle'
-    validConnection = validateConnectionString(connection)
+
+    try {
+      validAddress = validateParsedNodeAddress(parseNodeAddress(address))
+    } catch {
+      validAddress = false
+    }
   }
 
-  let rune = ''
+  let token = ''
   let decodedRune: DecodedRune | null = null
 
-  $: if (rune) {
-    decodedRune = decode(rune)
+  $: if (token) {
+    decodedRune = decode(token)
   }
 
   async function attemptConnect() {
     connectStatus = 'connecting'
 
     try {
-      // const connectOptions = coreLightning.connectionToConnectOptions(connection)
+      const { publicKey, ip, port } = parseNodeAddress(address)
 
-      // const lnsocket = await Promise.race([
-      //   coreLightning.connect(connectOptions),
-      //   new Promise((res, reject) => setTimeout(reject, 10000))
-      // ])
+      // create connection to node
+      const ln = new LnMessage({
+        remoteNodePublicKey: publicKey,
+        wsProxy: lnsocketProxy,
+        ip,
+        port: port || 9735
+      })
 
-      connectStatus = 'success'
-      // ;(lnsocket as Socket).destroy()
-      updateCredentials({ connection })
+      const connected = await ln.connect()
+
+      connectStatus = connected ? 'success' : 'fail'
+
+      if (connectStatus === 'success') {
+        sessionPublicKey = ln.publicKey
+        updateAuth({ address, sessionSecret: ln.privateKey })
+        connection$.next(ln)
+      }
     } catch (error) {
-      // connectStatus = 'fail'
+      connectStatus = 'fail'
     }
   }
 
   function saveRune() {
-    updateCredentials({ rune })
+    updateAuth({ token })
     goto('/')
   }
 </script>
@@ -101,15 +122,13 @@
       <div class="w-full">
         <div class="relative w-full flex flex-col">
           <TextInput
-            name="connection"
+            name="address"
             type="textarea"
             rows={6}
             label={$translate('app.inputs.node_connect.label')}
-            invalid={connection && !validConnection
-              ? $translate('app.inputs.node_connect.invalid')
-              : ''}
+            invalid={address && !validAddress ? $translate('app.inputs.node_connect.invalid') : ''}
             placeholder={$translate('app.inputs.node_connect.placeholder')}
-            bind:value={connection}
+            bind:value={address}
             bind:focus={focusConnectionInput}
           />
 
@@ -137,7 +156,7 @@
           {#if connectStatus === 'success'}
             <Button
               on:click={() => {
-                step = 'rune'
+                step = 'token'
                 setTimeout(focusRuneInput, 500)
               }}
               text={$translate('app.buttons.add_rune')}
@@ -148,7 +167,7 @@
             </Button>
           {:else}
             <Button
-              disabled={!validConnection}
+              disabled={!validAddress}
               on:click={attemptConnect}
               requesting={connectStatus === 'connecting'}
               text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
@@ -160,7 +179,7 @@
   </Slide>
 {/if}
 
-{#if step === 'rune'}
+{#if step === 'token'}
   <Slide
     back={() => {
       step = 'connect'
@@ -181,15 +200,19 @@
         >
       </div>
 
+      {#if sessionPublicKey}
+        <div>Session Public Key: {sessionPublicKey}</div>
+      {/if}
+
       <div class="w-full">
         <div class="relative w-full">
           <TextInput
-            name="rune"
+            name="token"
             type="textarea"
             rows={6}
             label={$translate('app.inputs.add_rune.label')}
             placeholder={$translate('app.inputs.add_rune.placeholder')}
-            bind:value={rune}
+            bind:value={token}
             bind:focus={focusRuneInput}
           />
         </div>

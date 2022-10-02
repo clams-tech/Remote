@@ -1,4 +1,4 @@
-import type { CoreLnCredentials } from './backends'
+import type { Auth } from './types'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
@@ -33,13 +33,14 @@ export const DEFAULT_SETTINGS: Settings = {
   darkmode: false
 }
 
-export const CREDENTIALS_STORAGE_KEY = 'credentials'
-export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
-
-export const CORE_LN_CREDENTIALS_INITIAL: CoreLnCredentials = {
-  connection: '',
-  rune: ''
+export const AUTH_INTITIAL_STATE: Auth = {
+  address: '',
+  token: '',
+  sessionSecret: ''
 }
+
+export const AUTH_STORAGE_KEY = 'clams-app:auth'
+export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
 
 export const DOCS_LINK = 'https://clams.tech/docs'
 export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'

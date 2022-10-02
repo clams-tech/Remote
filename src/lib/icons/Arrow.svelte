@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let direction: 'up' | 'down' | 'right' | 'left' = 'down'
+  export let direction: 'up' | 'down' | 'right' | 'left' | string = 'down'
 
   const rotateStyle =
     direction === 'up'

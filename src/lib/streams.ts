@@ -2,24 +2,19 @@ import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
 import { map, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { invoiceToPayment } from './backends/core-lightning/utils'
-import { CORE_LN_CREDENTIALS_INITIAL } from './constants'
-
-import {
-  coreLightning,
-  type CoreLnCredentials,
-  type GetinfoResponse,
-  type ListfundsResponse
-} from './backends'
+import { AUTH_INTITIAL_STATE } from './constants'
+import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
+import { getAuthFromStorage, getPageVisibilityParams, getSettingsFromStorage } from './utils'
 
 import {
   Modals,
   type BitcoinExchangeRates,
   type Notification,
   type Payment,
-  type Settings
+  type Settings,
+  type Auth
 } from './types'
-
-import { getCredentialsFromStorage, getPageVisibilityParams, getSettingsFromStorage } from './utils'
+import type LnMessage from 'lnmessage'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -64,9 +59,10 @@ export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 export const paymentUpdates$ = new Subject<Payment>()
 
 // core ln credentials
-export const credentials$ = new BehaviorSubject<CoreLnCredentials>(
-  getCredentialsFromStorage() || CORE_LN_CREDENTIALS_INITIAL
-)
+export const auth$ = new BehaviorSubject<Auth>(getAuthFromStorage() || AUTH_INTITIAL_STATE)
+
+// connection to core ln node
+export const connection$ = new BehaviorSubject<LnMessage | null>(null)
 
 // ==== NODE DATA ==== //
 export const nodeInfo$ = new BehaviorSubject<{
@@ -105,7 +101,7 @@ export const customNotifications$ = new Subject<Notification>()
 /** ==== STATE UPDATERS ==== */
 export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
   try {
-    const update = await coreLightning.waitForInvoicePayment(payment)
+    const update = await coreLn.waitForInvoicePayment(payment)
     paymentUpdates$.next(update)
   } catch (error) {
     //
@@ -128,7 +124,7 @@ export function updatePayments(payment: Payment): void {
 }
 
 export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void> {
-  const invoice = await coreLightning.waitAnyInvoice(payIndex)
+  const invoice = await coreLn.waitAnyInvoice(payIndex)
 
   if (invoice.status !== 'unpaid') {
     const payment = invoiceToPayment(invoice)
@@ -136,12 +132,11 @@ export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void
   }
 
   const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
-  localStorage.setItem('lastpay_index', newLastPayIndex.toString())
 
   return listenForAllInvoiceUpdates(newLastPayIndex)
 }
 
-export function updateCredentials(update: Partial<CoreLnCredentials>): void {
-  const currentCredentials = credentials$.getValue()
-  credentials$.next({ ...currentCredentials, ...update })
+export function updateAuth(update: Partial<Auth>): void {
+  const currentAuth = auth$.getValue()
+  auth$.next({ ...currentAuth, ...update })
 }

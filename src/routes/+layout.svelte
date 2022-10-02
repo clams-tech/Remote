@@ -2,7 +2,7 @@
   import { beforeNavigate, goto } from '$app/navigation'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
-  import { credentials$, lastPath$ } from '$lib/streams'
+  import { auth$, lastPath$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
@@ -21,7 +21,7 @@
   registerSideEffects()
 
   if (browser) {
-    checkCredentials()
+    checkAuth()
   }
 
   function isProtectedRoute(route: string): boolean {
@@ -34,17 +34,17 @@
     }
   }
 
-  async function checkCredentials(): Promise<void> {
-    const { connection, rune } = credentials$.getValue()
-    const connected = !!(connection && rune)
+  async function checkAuth(): Promise<void> {
+    const { address, token } = auth$.getValue()
+    const savedAuth = !!(address && token)
     const { pathname } = $page.url
     const protectedRoute = isProtectedRoute(pathname)
 
-    if (connected && !protectedRoute) {
+    if (savedAuth && !protectedRoute) {
       await goto('/')
     }
 
-    if (!connected && protectedRoute) {
+    if (!savedAuth && protectedRoute) {
       await goto('/connect')
     }
 

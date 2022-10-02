@@ -1967,6 +1967,16 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
+lnmessage@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.0.2.tgz#d76855658fe2693cef5231422e3e01449a068254"
+  integrity sha512-cNjkxNRtNtwxPkY08aH4cHFQcqTaN4yvgXbouSgTvgG3sUyUrjuK6X1kyxa/AFOGKpPMRnk2K2xk7CLwTlU+LQ==
+  dependencies:
+    buffer "^6.0.3"
+    crypto-js "^4.1.1"
+    rxjs "^7.5.7"
+    secp256k1 "^4.0.3"
+
 locate-path@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-6.0.0.tgz#55321eb309febbc59c4801d931a72452a681d286"
@@ -2706,6 +2716,13 @@ rxjs@^7.5.5, rxjs@^7.5.6:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.5.6.tgz#0446577557862afd6903517ce7cae79ecb9662bc"
   integrity sha512-dnyv2/YsXhnm461G+R/Pe5bWP41Nm6LBXEYWI6eiFP4fiwx6WRI/CD0zbdVAudd9xwLEF2IDcKXLHit0FYjUzw==
+  dependencies:
+    tslib "^2.1.0"
+
+rxjs@^7.5.7:
+  version "7.5.7"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.5.7.tgz#2ec0d57fdc89ece220d2e702730ae8f1e49def39"
+  integrity sha512-z9MzKh/UcOqB3i20H6rtrlaE/CgjLOvheWK/9ILrbhROGTweAi1BaFsTT9FbwZi5Trr1qNRs+MXkhmR06awzQA==
   dependencies:
     tslib "^2.1.0"
 
