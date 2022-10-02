@@ -15,15 +15,16 @@
   export let readonly = false
   export let rows = 1
   export let maxlength = 1000
+  export let cursorPointer = false
 
   export const focus = () => input && input.focus()
   export const select = () => input && input.select()
 
   let input: HTMLInputElement | HTMLTextAreaElement
 
-  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded read-only:border-0 read-only:outline-0 appearance-none focus:outline-none focus:ring focus:border-white focus:ring-${
+  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none focus:ring focus:border-white focus:ring-${
     invalid ? 'utility-error' : 'purple-500'
-  }`
+  } ${cursorPointer ? 'cursor-pointer' : ''}`
 
   // focus:outline-none
   // focus:ring
@@ -31,14 +32,13 @@
   // focus:ring-utility-error
   // focus:ring-purple-500
   // h-6
+  // cursor-pointer
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
   {#if label || hint}
     <div class="flex items-center mb-2 font-medium">
-      <label class="text-sm w-1/2 text-{disabled ? 'neutral-300' : 'inherit'}" for={name}
-        >{label || ''}</label
-      >
+      <label class="text-sm w-1/2 text-inherit" for={name}>{label || ''}</label>
       <span class="flex justify-end text-neutral-400 text-xs w-1/2">{@html hint}</span>
     </div>
   {/if}

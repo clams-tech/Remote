@@ -12,9 +12,10 @@ import Hammer, {
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { CoreLnCredentials, ListfundsResponse } from './backends'
+import type { ListfundsResponse } from './backends'
 
 import {
+  AUTH_STORAGE_KEY,
   COINBASE_PRICE_ENDPOINT,
   COIN_GECKO_PRICE_ENDPOINT,
   DEFAULT_SETTINGS,
@@ -28,7 +29,9 @@ import {
   Language,
   type Payment,
   type BitcoinExchangeRates,
-  type FormattedSections
+  type FormattedSections,
+  type Auth,
+  type ParsedNodeAddress
 } from './types'
 
 import {
@@ -387,10 +390,11 @@ export function formatDestination(destination: string, type: PaymentType): strin
 
 export const userAgent = new UAParser(navigator.userAgent)
 
-export function getCredentialsFromStorage(): CoreLnCredentials | null {
-  const credentialsJson = localStorage.getItem('credentials')
+export function getAuthFromStorage(): Auth | null {
+  if (typeof window === 'undefined') return null
 
-  return credentialsJson ? JSON.parse(credentialsJson) : null
+  const authJson = localStorage.getItem(AUTH_STORAGE_KEY)
+  return authJson ? JSON.parse(authJson) : null
 }
 
 // limited to offchain funds for the moment
@@ -413,22 +417,6 @@ export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
       new Date(a.completedAt || a.startedAt).getTime()
     )
   })
-
-export function validateConnectionString(connect: string): boolean {
-  const [publicKey, host] = connect.split('@')
-  if (!publicKey || !host) return false
-
-  const [ip, port] = host.split(':')
-  if (!ip || !port) return false
-
-  const portNumber = parseInt(port)
-  if (portNumber < 1 || portNumber > 65535) return false
-
-  if (!publicKey.match(nodePublicKeyRegex)) return false
-  if (!ip.match(ipRegex)) return false
-
-  return true
-}
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
 export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
@@ -463,4 +451,22 @@ export function deriveLastPayIndex(payments: Payment[]): number {
 
 export function isPWA(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches
+}
+
+export function parseNodeAddress(address: string): ParsedNodeAddress {
+  const [publicKey, host] = address.split('@')
+  const [ip, port] = host.split(':')
+
+  return { publicKey, ip, port: port ? parseInt(port) : undefined }
+}
+
+export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAddress): boolean {
+  if (!publicKey || !ip) return false
+
+  if (port && (port < 1 || port > 65535)) return false
+
+  if (!publicKey.match(nodePublicKeyRegex)) return false
+  if (!ip.match(ipRegex)) return false
+
+  return true
 }

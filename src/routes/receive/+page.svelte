@@ -7,7 +7,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import Slide from '$lib/elements/Slide.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning } from '$lib/backends'
+  import { coreLn } from '$lib/backends'
 
   import {
     listeningForAllInvoiceUpdates$,
@@ -61,7 +61,7 @@
     try {
       requesting = true
 
-      const payment = await coreLightning.createInvoice({
+      const payment = await coreLn.createInvoice({
         amount_msat: amount_msat === '0' ? 'any' : amount_msat,
         description,
         expiry,

@@ -10,7 +10,7 @@
   import Description from '$lib/components/Description.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning } from '$lib/backends'
+  import { coreLn } from '$lib/backends'
   import Big from 'big.js'
 
   let previousSlide = 0
@@ -65,7 +65,7 @@
       switch (type) {
         case 'payment_request': {
           const id = crypto.randomUUID()
-          const payment = await coreLightning.payInvoice({
+          const payment = await coreLn.payInvoice({
             id,
             bolt11: destination,
             amount_msat:
@@ -89,7 +89,7 @@
         }
         case 'node_public_key': {
           const id = crypto.randomUUID()
-          const payment = await coreLightning.payKeysend({
+          const payment = await coreLn.payKeysend({
             id,
             destination,
             amount_msat: Big(
