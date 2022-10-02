@@ -52,9 +52,16 @@ function registerSideEffects() {
           ip,
           port: port || 9735,
           privateKey: sessionSecret
+          // logger: {
+          //   info: console.log,
+          //   warn: console.warn,
+          //   error: console.error
+          // }
         })
 
         await ln.connect()
+
+        connection$.next(ln)
       }
 
       // init coreLn service
@@ -120,6 +127,19 @@ function registerSideEffects() {
           listeningForAllInvoiceUpdates$.next(false)
         })
       }
+    })
+
+  combineLatest([appVisible$, connection$])
+    .pipe(
+      filter(
+        // app is visible, we have a connection, but it is not currently connected
+        ([visible, connection]) => !!(visible && connection && !connection.connected$.getValue())
+      )
+    )
+    .subscribe(async (values) => {
+      const ln = values[1]
+      console.log('RECONNECTING TO NODE')
+      await (ln as LnMessage).connect()
     })
 }
 
