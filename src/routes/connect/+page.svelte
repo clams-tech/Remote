@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
   import LnMessage from 'lnmessage'
@@ -13,7 +14,7 @@
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Warning from '$lib/icons/Warning.svelte'
-  import { onMount } from 'svelte'
+  import Copy from '$lib/icons/Copy.svelte'
   import Info from '$lib/icons/Info.svelte'
   import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, lnsocketProxy } from '$lib/constants'
 
@@ -21,7 +22,8 @@
     formatDate,
     parseNodeAddress,
     truncateValue,
-    validateParsedNodeAddress
+    validateParsedNodeAddress,
+    writeClipboardValue
   } from '$lib/utils'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
@@ -41,6 +43,8 @@
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
+  let copySuccess = false
+  let copyAnimationTimeout: NodeJS.Timeout
 
   $: if (address) {
     connectStatus = 'idle'
@@ -91,6 +95,18 @@
     updateAuth({ token })
     goto('/')
   }
+
+  async function copyPublicKey() {
+    copySuccess = await writeClipboardValue(sessionPublicKey)
+
+    if (copySuccess) {
+      copyAnimationTimeout = setTimeout(() => (copySuccess = false), 3000)
+    }
+  }
+
+  onDestroy(() => {
+    copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
+  })
 </script>
 
 <svelte:head>
@@ -201,7 +217,30 @@
       </div>
 
       {#if sessionPublicKey}
-        <div>Session Public Key: {sessionPublicKey}</div>
+        <div on:click={copyPublicKey} class="relative w-full mb-4 cursor-pointer">
+          <TextInput
+            name="session"
+            type="textarea"
+            readonly
+            rows={2}
+            label={'Session Public Key'}
+            hint="restrict rune to this key"
+            cursorPointer={true}
+            bind:value={sessionPublicKey}
+          />
+
+          <div class="absolute bottom-2 right-2" class:text-utility-success={copySuccess}>
+            {#if copySuccess}
+              <div in:fade class="w-8">
+                <Check />
+              </div>
+            {:else}
+              <div in:fade class="w-8">
+                <Copy />
+              </div>
+            {/if}
+          </div>
+        </div>
       {/if}
 
       <div class="w-full">
@@ -255,6 +294,11 @@
                           // format rate limit
                           if (words[0] === 'rate') {
                             words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+                          }
+
+                          // format id
+                          if (words[0] === 'id') {
+                            words[lastIndex] = truncateValue(lastValue)
                           }
 
                           // format time
