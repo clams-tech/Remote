@@ -7,8 +7,14 @@
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import Button from '$lib/elements/Button.svelte'
-  import { AUTH_STORAGE_KEY } from '$lib/constants'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+
+  import {
+    AUTH_STORAGE_KEY,
+    FUNDS_STORAGE_KEY,
+    INFO_STORAGE_KEY,
+    PAYMENTS_STORAGE_KEY
+  } from '$lib/constants'
 
   let version = __APP_VERSION__
 
@@ -70,6 +76,9 @@
         text={$translate('app.buttons.log_out')}
         on:click={() => {
           localStorage.removeItem(AUTH_STORAGE_KEY)
+          localStorage.removeItem(INFO_STORAGE_KEY)
+          localStorage.removeItem(FUNDS_STORAGE_KEY)
+          localStorage.removeItem(PAYMENTS_STORAGE_KEY)
           window.location.reload()
         }}
       />

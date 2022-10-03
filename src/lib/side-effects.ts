@@ -1,6 +1,7 @@
 import { combineLatest, from, timer } from 'rxjs'
 import { distinctUntilKeyChanged, filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
 import {
+  AUTH_STORAGE_KEY,
   FUNDS_STORAGE_KEY,
   INFO_STORAGE_KEY,
   MIN_IN_MS,
@@ -37,34 +38,65 @@ function registerSideEffects() {
 
   // update settings in storage
   settings$
-    .pipe(skip(1))
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
     .subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
 
-  // update info in storage
-  nodeInfo$.pipe(skip(1)).subscribe(({ data }) => {
-    const { encrypt } = settings$.getValue()
-    const pin = pin$.getValue()
-
-    const dataString = JSON.stringify(data)
-
-    localStorage.setItem(
-      INFO_STORAGE_KEY,
-      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+  // update auth in storage
+  auth$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
     )
-  })
+    .subscribe((auth) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(auth)
+
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update info in storage
+  nodeInfo$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        INFO_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
 
   // update funds in storage
-  funds$.pipe(skip(1)).subscribe(({ data }) => {
-    const { encrypt } = settings$.getValue()
-    const pin = pin$.getValue()
-
-    const dataString = JSON.stringify(data)
-
-    localStorage.setItem(
-      FUNDS_STORAGE_KEY,
-      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+  funds$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
     )
-  })
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        FUNDS_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
 
   // update payments in storage
   payments$.pipe(skip(1)).subscribe(({ data }) => {

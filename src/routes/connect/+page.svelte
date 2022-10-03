@@ -16,6 +16,7 @@
   import Warning from '$lib/icons/Warning.svelte'
   import Copy from '$lib/icons/Copy.svelte'
   import Info from '$lib/icons/Info.svelte'
+  import { initialiseData } from '$lib/data'
   import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
 
   import {
@@ -93,6 +94,7 @@
 
   function saveRune() {
     updateAuth({ token })
+    initialiseData()
     goto('/')
   }
 

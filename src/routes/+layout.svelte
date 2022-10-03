@@ -56,7 +56,7 @@
     }
 
     if (!storedAuth && protectedRoute) {
-      await goto('/connect')
+      await goto('/welcome')
     }
 
     if (storedAuth) {
