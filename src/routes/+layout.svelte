@@ -2,12 +2,14 @@
   import { beforeNavigate, goto } from '$app/navigation'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
-  import { lastPath$ } from '$lib/streams'
+  import { auth$, lastPath$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
-  import { checkDataIsStored } from '$lib/utils'
+  import { checkDataIsStored, getDataFromStorage } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
+  import { initialiseData } from '$lib/data'
+  import type { Auth } from '$lib/types'
 
   let checkingAuth = true
 
@@ -23,10 +25,14 @@
   registerSideEffects()
 
   if (browser) {
-    checkAuth()
+    initialise()
+  }
+
+  async function initialise() {
+    await checkAuth()
 
     if (!checkingAuth) {
-      // INIT
+      initialiseData()
     }
   }
 
@@ -51,6 +57,12 @@
 
     if (!storedAuth && protectedRoute) {
       await goto('/connect')
+    }
+
+    if (storedAuth) {
+      // try and decrypt storedAuth, will trigger pin modal if needed
+      const auth = (await getDataFromStorage(AUTH_STORAGE_KEY)) as Auth
+      auth && auth$.next(auth)
     }
 
     checkingAuth = false

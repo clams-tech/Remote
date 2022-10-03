@@ -16,7 +16,7 @@ import { firstValueFrom } from 'rxjs'
 import { skip } from 'rxjs/operators'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import { decryptionKey$, modal$ } from './streams'
+import { pin$, modal$ } from './streams'
 import { COINBASE_PRICE_ENDPOINT, COIN_GECKO_PRICE_ENDPOINT } from './constants'
 
 import {
@@ -217,11 +217,11 @@ export async function getDataFromStorage(storageKey: string): Promise<unknown | 
     return parsed
   } catch (error) {
     // could not parse which indicates that it is encrypted, so try and decrypt
-    let pin = decryptionKey$.getValue()
+    let pin = pin$.getValue()
 
     if (!pin) {
       modal$.next(Modals.pinEntry)
-      pin = await firstValueFrom(decryptionKey$.pipe(skip(1)))
+      pin = await firstValueFrom(pin$.pipe(skip(1)))
 
       // no pin entered, so return
       if (!pin) return null

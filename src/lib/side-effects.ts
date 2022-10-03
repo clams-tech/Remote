@@ -1,7 +1,13 @@
 import { combineLatest, from, timer } from 'rxjs'
 import { distinctUntilKeyChanged, filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
-import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { deriveLastPayIndex, getBitcoinExchangeRate } from './utils'
+import {
+  FUNDS_STORAGE_KEY,
+  INFO_STORAGE_KEY,
+  MIN_IN_MS,
+  PAYMENTS_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY
+} from './constants'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
 
 import {
   appVisible$,
@@ -13,7 +19,10 @@ import {
   settings$,
   updatePayments,
   listenForAllInvoiceUpdates,
-  connection$
+  connection$,
+  nodeInfo$,
+  funds$,
+  pin$
 } from './streams'
 import type LnMessage from 'lnmessage'
 
@@ -30,6 +39,45 @@ function registerSideEffects() {
   settings$
     .pipe(skip(1))
     .subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
+
+  // update info in storage
+  nodeInfo$.pipe(skip(1)).subscribe(({ data }) => {
+    const { encrypt } = settings$.getValue()
+    const pin = pin$.getValue()
+
+    const dataString = JSON.stringify(data)
+
+    localStorage.setItem(
+      INFO_STORAGE_KEY,
+      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+    )
+  })
+
+  // update funds in storage
+  funds$.pipe(skip(1)).subscribe(({ data }) => {
+    const { encrypt } = settings$.getValue()
+    const pin = pin$.getValue()
+
+    const dataString = JSON.stringify(data)
+
+    localStorage.setItem(
+      FUNDS_STORAGE_KEY,
+      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+    )
+  })
+
+  // update payments in storage
+  payments$.pipe(skip(1)).subscribe(({ data }) => {
+    const { encrypt } = settings$.getValue()
+    const pin = pin$.getValue()
+
+    const dataString = JSON.stringify(data)
+
+    localStorage.setItem(
+      PAYMENTS_STORAGE_KEY,
+      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+    )
+  })
 
   // get and update bitcoin exchange rate
   timer(0, 1 * MIN_IN_MS)

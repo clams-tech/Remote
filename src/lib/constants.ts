@@ -29,7 +29,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sendMaxFeePercent: 0.5,
   sendTimeoutSeconds: 120,
   notifications: true,
-  darkmode: false
+  darkmode: false,
+  encrypt: false
 }
 
 export const AUTH_STORAGE_KEY = 'clams-app:auth'

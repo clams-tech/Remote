@@ -21,6 +21,7 @@ export type Settings = {
   sendTimeoutSeconds: number
   notifications: boolean
   darkmode: boolean
+  encrypt: boolean
 }
 
 // locale => Display language

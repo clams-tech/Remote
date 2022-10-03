@@ -64,7 +64,7 @@ export const auth$ = new BehaviorSubject<Auth | null>(null)
 export const connection$ = new BehaviorSubject<LnMessage | null>(null)
 
 // key for decrypting stored data
-export const decryptionKey$ = new BehaviorSubject<string | null>(null)
+export const pin$ = new BehaviorSubject<string | null>(null)
 
 // ==== NODE DATA ==== //
 export const nodeInfo$ = new BehaviorSubject<{
