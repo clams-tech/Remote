@@ -35,7 +35,8 @@
         <span
           >{formatValueForDisplay({
             value: primaryValue,
-            denomination: $settings$.primaryDenomination
+            denomination: $settings$.primaryDenomination,
+            commas: true
           })}
           {$settings$.primaryDenomination}</span
         >
