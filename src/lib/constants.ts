@@ -1,10 +1,9 @@
-import type { Auth } from './types'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
 
-export const lnsocketProxy = 'wss://lnsocket.clams.tech'
+export const WS_PROXY = 'wss://lnsocket.clams.tech'
 
 export const COIN_GECKO_PRICE_ENDPOINT = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${Object.keys(
   FiatDenomination
@@ -33,14 +32,11 @@ export const DEFAULT_SETTINGS: Settings = {
   darkmode: false
 }
 
-export const AUTH_INTITIAL_STATE: Auth = {
-  address: '',
-  token: '',
-  sessionSecret: ''
-}
-
 export const AUTH_STORAGE_KEY = 'clams-app:auth'
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
+export const PAYMENTS_STORAGE_KEY = 'clams-app:payments'
+export const FUNDS_STORAGE_KEY = 'clams-app:funds'
+export const INFO_STORAGE_KEY = 'clams-app:info'
 
 export const DOCS_LINK = 'https://clams.tech/docs'
 export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'

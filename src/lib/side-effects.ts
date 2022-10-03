@@ -1,101 +1,23 @@
 import { combineLatest, from, timer } from 'rxjs'
-
-import {
-  distinctUntilKeyChanged,
-  filter,
-  skip,
-  switchMap,
-  take,
-  withLatestFrom
-} from 'rxjs/operators'
-
-import { coreLn } from './backends'
-import LnMessage from 'lnmessage'
-import { AUTH_STORAGE_KEY, lnsocketProxy, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { deriveLastPayIndex, getBitcoinExchangeRate, parseNodeAddress } from './utils'
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
+import { distinctUntilKeyChanged, filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
+import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { deriveLastPayIndex, getBitcoinExchangeRate } from './utils'
 
 import {
   appVisible$,
   bitcoinExchangeRates$,
   auth$,
   listeningForAllInvoiceUpdates$,
-  nodeInfo$,
   payments$,
   paymentUpdates$,
-  funds$,
   settings$,
   updatePayments,
   listenForAllInvoiceUpdates,
   connection$
 } from './streams'
+import type LnMessage from 'lnmessage'
 
 function registerSideEffects() {
-  // once we have credentials, go ahead and fetch initial data
-  auth$
-    .pipe(
-      filter(({ address, token }) => !!(address && token)),
-      withLatestFrom(connection$),
-      take(1)
-    )
-    .subscribe(async ([{ address, token, sessionSecret }, ln]) => {
-      // store credentials when they change
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ address, token, sessionSecret }))
-
-      const { publicKey, ip, port } = parseNodeAddress(address)
-
-      if (!ln) {
-        // create connection to node
-        ln = new LnMessage({
-          remoteNodePublicKey: publicKey,
-          wsProxy: lnsocketProxy,
-          ip,
-          port: port || 9735,
-          privateKey: sessionSecret
-          // logger: {
-          //   info: console.log,
-          //   warn: console.warn,
-          //   error: console.error
-          // }
-        })
-
-        await ln.connect()
-
-        connection$.next(ln)
-      }
-
-      // init coreLn service
-      coreLn.init({
-        request: (request: JsonRpcRequest & { rune: string }) =>
-          (ln as LnMessage).commando(request),
-        rune: token
-      })
-
-      try {
-        const funds = await coreLn.listFunds()
-        funds$.next({ loading: false, data: funds })
-      } catch (error) {
-        const { message } = error as Error
-        funds$.next({ loading: false, data: null, error: message })
-      }
-
-      try {
-        const info = await coreLn.getInfo()
-        nodeInfo$.next({ loading: false, data: info })
-      } catch (error) {
-        const { message } = error as Error
-        nodeInfo$.next({ loading: false, data: null, error: message })
-      }
-
-      try {
-        const payments = await coreLn.getPayments()
-        payments$.next({ loading: false, data: payments })
-      } catch (error) {
-        const { message } = error as Error
-        payments$.next({ loading: false, data: null, error: message })
-      }
-    })
-
   // update payments when payment update comes through
   paymentUpdates$.subscribe(updatePayments)
 
@@ -118,7 +40,7 @@ function registerSideEffects() {
   combineLatest([appVisible$, auth$, payments$])
     .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
     .subscribe(([[visible, auth, payments], listening]) => {
-      if (payments.data && !payments.error && visible && auth.token && !listening) {
+      if (payments.data && !payments.error && visible && auth && auth.token && !listening) {
         const lastPayIndex = deriveLastPayIndex(payments.data)
 
         listeningForAllInvoiceUpdates$.next(true)

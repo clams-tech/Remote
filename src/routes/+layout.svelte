@@ -2,12 +2,14 @@
   import { beforeNavigate, goto } from '$app/navigation'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
-  import { auth$, lastPath$ } from '$lib/streams'
+  import { lastPath$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
+  import { checkDataIsStored } from '$lib/utils'
+  import { AUTH_STORAGE_KEY } from '$lib/constants'
 
-  let loading = true
+  let checkingAuth = true
 
   beforeNavigate(({ from }) => {
     if (from) {
@@ -22,6 +24,10 @@
 
   if (browser) {
     checkAuth()
+
+    if (!checkingAuth) {
+      // INIT
+    }
   }
 
   function isProtectedRoute(route: string): boolean {
@@ -35,20 +41,19 @@
   }
 
   async function checkAuth(): Promise<void> {
-    const { address, token } = auth$.getValue()
-    const savedAuth = !!(address && token)
+    const storedAuth = checkDataIsStored(AUTH_STORAGE_KEY)
     const { pathname } = $page.url
     const protectedRoute = isProtectedRoute(pathname)
 
-    if (savedAuth && !protectedRoute) {
+    if (storedAuth && !protectedRoute) {
       await goto('/')
     }
 
-    if (!savedAuth && protectedRoute) {
+    if (!storedAuth && protectedRoute) {
       await goto('/connect')
     }
 
-    loading = false
+    checkingAuth = false
   }
 </script>
 
@@ -64,7 +69,7 @@
   <main
     class="flex flex-grow w-full flex-col items-center bg-inherit transition-all overflow-hidden"
   >
-    {#if !loading}
+    {#if !checkingAuth}
       <slot />
     {/if}
   </main>
