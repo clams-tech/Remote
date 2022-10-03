@@ -1,8 +1,8 @@
 <script lang="ts">
   import Exchange from '$lib/icons/Exchange.svelte'
-  import { settings$ } from '$lib/streams'
-  import { formatValueForDisplay } from '$lib/utils'
-  import { convertValue } from '$lib/conversion'
+  import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
+  import { formatValueForDisplay, getBitcoinExchangeRate } from '$lib/utils'
+  import { convertValue, getExchangeRate } from '$lib/conversion'
   import { onMount } from 'svelte'
   import { FiatDenomination } from '$lib/types'
 
@@ -50,7 +50,8 @@
 
   $: secondaryValue = value
     ? value !== '0' && value !== '0.'
-      ? convertValue({
+      ? $bitcoinExchangeRates$ &&
+        convertValue({
           value,
           from: $settings$.primaryDenomination,
           to: $settings$.secondaryDenomination

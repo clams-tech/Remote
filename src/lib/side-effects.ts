@@ -140,7 +140,6 @@ function registerSideEffects() {
     )
     .subscribe(async (values) => {
       const ln = values[1]
-      console.log('RECONNECTING TO NODE')
       await (ln as LnMessage).connect()
     })
 }

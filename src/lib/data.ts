@@ -20,14 +20,12 @@ export async function initialiseData() {
 
   // fetch new data if not stored
   if (!info || !funds || !payments) {
-    console.log('calling refresh')
     refreshData()
   }
 }
 
 export async function refreshData() {
   const auth = auth$.getValue()
-  console.log({ auth })
   if (!auth) return
 
   const { address, token, sessionSecret } = auth
