@@ -131,7 +131,8 @@
   "hints": {
     "unrestricted": "unrestricted!",
     "help": "Help?",
-    "how": "How does it work?"
+    "how": "How does it work?",
+    "forgot_pin": "Forgot your pin?"
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",
@@ -141,7 +142,8 @@
     "connect": "Connect",
     "welcome": "Welcome",
     "rune": "Permissions",
-    "decrypt": "Decrypt"
+    "decrypt": "Decrypt",
+    "encrypt": "Encryption Key"
   },
   "subheadings": {
     "summary": "Confirm payment details.",

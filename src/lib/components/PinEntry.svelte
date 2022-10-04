@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translate } from '$lib/i18n/translations'
   import Clear from '$lib/icons/Clear.svelte'
   import { resetApp } from '$lib/utils'
   import { createEventDispatcher } from 'svelte'
@@ -48,9 +49,9 @@
 
   {#if resetOption}
     <div class="mt-12 flex">
-      <span class="text-neutral-500">Forgot your pin?</span>
+      <span class="text-neutral-500">{$translate('app.hints.forgot_pin')}</span>
       <span on:click={resetApp} class="ml-1 underline text-purple-500 cursor-pointer"
-        >Reset App</span
+        >{$translate('app.buttons.reset_app')}</span
       >
     </div>
   {/if}

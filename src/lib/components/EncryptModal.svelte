@@ -1,5 +1,6 @@
 <script lang="ts">
   import Modal from '$lib/elements/Modal.svelte'
+  import { translate } from '$lib/i18n/translations'
   import { modal$, pin$ } from '$lib/streams'
   import { Modals } from '$lib/types'
   import { onDestroy } from 'svelte'
@@ -21,6 +22,6 @@
 </script>
 
 <Modal>
-  <h2 class="p-4 mb-6 font-semibold text-2xl">Encryption Key</h2>
+  <h2 class="p-4 mb-6 font-semibold text-2xl">{$translate('app.headings.encrypt')}</h2>
   <PinEntry {resetOption} bind:pin on:complete={savePin} />
 </Modal>
