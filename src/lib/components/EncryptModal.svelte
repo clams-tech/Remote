@@ -23,5 +23,6 @@
 
 <Modal>
   <h2 class="p-4 mb-6 font-semibold text-2xl">{$translate('app.headings.encrypt')}</h2>
+
   <PinEntry {resetOption} bind:pin on:complete={savePin} />
 </Modal>

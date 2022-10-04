@@ -7,6 +7,7 @@
   export let pin = ''
   export let length = 4
   export let resetOption = true
+
   export const reset = () => {
     pin = ''
   }
@@ -14,6 +15,7 @@
   const dispatch = createEventDispatcher()
 
   const pinEntries = [1, 2, 3, 4]
+
   const buttons = [
     { main: 1, sub: '' },
     { main: 2, sub: 'ABC' },
