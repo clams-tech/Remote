@@ -33,11 +33,19 @@ export const DEFAULT_SETTINGS: Settings = {
   encrypt: false
 }
 
-export const AUTH_STORAGE_KEY = 'clams-app:auth'
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
+export const AUTH_STORAGE_KEY = 'clams-app:auth'
 export const PAYMENTS_STORAGE_KEY = 'clams-app:payments'
 export const FUNDS_STORAGE_KEY = 'clams-app:funds'
 export const INFO_STORAGE_KEY = 'clams-app:info'
+
+export const ENCRYPTED_DATA_KEYS = [
+  AUTH_STORAGE_KEY,
+  PAYMENTS_STORAGE_KEY,
+  FUNDS_STORAGE_KEY,
+  INFO_STORAGE_KEY
+]
+export const ALL_DATA_KEYS = ENCRYPTED_DATA_KEYS.concat(SETTINGS_STORAGE_KEY)
 
 export const DOCS_LINK = 'https://clams.tech/docs'
 export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'

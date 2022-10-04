@@ -3,7 +3,7 @@ import { map, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
-import { DEFAULT_SETTINGS } from './constants'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 
 import {
   Modals,
@@ -45,8 +45,12 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
+const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+
 // app settings$
-export const settings$ = new SvelteSubject<Settings>(DEFAULT_SETTINGS)
+export const settings$ = new SvelteSubject<Settings>(
+  storedSettings ? JSON.parse(storedSettings) : DEFAULT_SETTINGS
+)
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)

@@ -4,6 +4,7 @@
     "send": "Send",
     "receive": "Receive",
     "scan": "Scan",
+    "decrypt": "Decrypt",
     "welcome": "Welcome",
     "connect": "Connect",
     "rune": "Rune",
@@ -59,6 +60,7 @@
     "expiry": "Expires in:",
     "help_and_support": "Help & Support",
     "dark_mode": "Dark Mode",
+    "encrypt": "Encrypt Local Data",
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
@@ -120,7 +122,7 @@
     "edit": "Edit",
     "cancel": "Cancel",
     "save": "Save",
-    "log_out": "Log out",
+    "reset_app": "Reset App",
     "connect": "Connect",
     "try_again": "Try Again",
     "add_rune": "Add a Rune",
@@ -138,7 +140,8 @@
     "destination": "Destination",
     "connect": "Connect",
     "welcome": "Welcome",
-    "rune": "Permissions"
+    "rune": "Permissions",
+    "decrypt": "Decrypt"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -147,7 +150,8 @@
     "destination": "Where would you like to send a payment?",
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
     "rune": "Add a rune to give Clams permissions to interact with your node.",
-    "welcome": "Control your CoreLN node securely and directly over the Lightning network."
+    "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
+    "decrypt": "Enter your 4 digit pin number to decrypt your local data."
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"

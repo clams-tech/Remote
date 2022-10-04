@@ -2,16 +2,17 @@
   import { beforeNavigate, goto } from '$app/navigation'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
-  import { auth$, lastPath$ } from '$lib/streams'
+  import { auth$, lastPath$, modal$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
-  import { checkDataIsStored, getDataFromStorage } from '$lib/utils'
+  import { getDataFromStorage } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
   import { initialiseData } from '$lib/data'
-  import type { Auth } from '$lib/types'
+  import { Modals, type Auth } from '$lib/types'
+  import EncryptModal from '$lib/components/EncryptModal.svelte'
 
-  let checkingAuth = true
+  let loading = true
 
   beforeNavigate(({ from }) => {
     if (from) {
@@ -29,11 +30,37 @@
   }
 
   async function initialise() {
-    await checkAuth()
+    const storedAuth = getDataFromStorage(AUTH_STORAGE_KEY)
+    const { pathname } = $page.url
+    const protectedRoute = isProtectedRoute(pathname)
 
-    if (!checkingAuth) {
+    if (storedAuth && !protectedRoute) {
+      // redirect from welcome and connect -> home page if has connected before
+      goto('/')
+    }
+
+    if (!storedAuth && protectedRoute) {
+      // tried to load a protected route and has not connected before
+      goto('/welcome')
+    }
+
+    let auth: Auth | null = null
+
+    if (storedAuth) {
+      try {
+        auth = JSON.parse(storedAuth)
+      } catch (error) {
+        // encrypted auth, so route to decrypt
+        goto('/decrypt')
+      }
+    }
+
+    if (auth) {
+      auth$.next(auth)
       initialiseData()
     }
+
+    loading = false
   }
 
   function isProtectedRoute(route: string): boolean {
@@ -44,28 +71,6 @@
       default:
         return true
     }
-  }
-
-  async function checkAuth(): Promise<void> {
-    const storedAuth = checkDataIsStored(AUTH_STORAGE_KEY)
-    const { pathname } = $page.url
-    const protectedRoute = isProtectedRoute(pathname)
-
-    if (storedAuth && !protectedRoute) {
-      await goto('/')
-    }
-
-    if (!storedAuth && protectedRoute) {
-      await goto('/welcome')
-    }
-
-    if (storedAuth) {
-      // try and decrypt storedAuth, will trigger pin modal if needed
-      const auth = (await getDataFromStorage(AUTH_STORAGE_KEY)) as Auth
-      auth && auth$.next(auth)
-    }
-
-    checkingAuth = false
   }
 </script>
 
@@ -81,10 +86,14 @@
   <main
     class="flex flex-grow w-full flex-col items-center bg-inherit transition-all overflow-hidden"
   >
-    {#if !checkingAuth}
+    {#if !loading}
       <slot />
     {/if}
   </main>
 
   <Notifications />
 </div>
+
+{#if $modal$ === Modals.pinEntry}
+  <EncryptModal resetOption={false} />
+{/if}

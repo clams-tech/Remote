@@ -1,5 +1,8 @@
 import { combineLatest, from, timer } from 'rxjs'
-import { distinctUntilKeyChanged, filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
+import { filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
+import type LnMessage from 'lnmessage'
+
 import {
   AUTH_STORAGE_KEY,
   FUNDS_STORAGE_KEY,
@@ -8,7 +11,6 @@ import {
   PAYMENTS_STORAGE_KEY,
   SETTINGS_STORAGE_KEY
 } from './constants'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
 
 import {
   appVisible$,
@@ -25,16 +27,10 @@ import {
   funds$,
   pin$
 } from './streams'
-import type LnMessage from 'lnmessage'
 
 function registerSideEffects() {
   // update payments when payment update comes through
   paymentUpdates$.subscribe(updatePayments)
-
-  // handle dark mode toggle
-  settings$.pipe(distinctUntilKeyChanged('darkmode')).subscribe(({ darkmode }) => {
-    document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
-  })
 
   // update settings in storage
   settings$

@@ -1,8 +1,8 @@
 <script lang="ts">
   import Exchange from '$lib/icons/Exchange.svelte'
   import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
-  import { formatValueForDisplay, getBitcoinExchangeRate } from '$lib/utils'
-  import { convertValue, getExchangeRate } from '$lib/conversion'
+  import { formatValueForDisplay } from '$lib/utils'
+  import { convertValue } from '$lib/conversion'
   import { onMount } from 'svelte'
   import { FiatDenomination } from '$lib/types'
 

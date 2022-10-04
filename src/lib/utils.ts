@@ -12,12 +12,15 @@ import Hammer, {
 import CryptoJS from 'crypto-js'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
-import { firstValueFrom } from 'rxjs'
-import { skip } from 'rxjs/operators'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import { pin$, modal$ } from './streams'
-import { COINBASE_PRICE_ENDPOINT, COIN_GECKO_PRICE_ENDPOINT } from './constants'
+
+import {
+  ALL_DATA_KEYS,
+  COINBASE_PRICE_ENDPOINT,
+  COIN_GECKO_PRICE_ENDPOINT,
+  ENCRYPTED_DATA_KEYS
+} from './constants'
 
 import {
   type Denomination,
@@ -27,7 +30,7 @@ import {
   type BitcoinExchangeRates,
   type FormattedSections,
   type ParsedNodeAddress,
-  Modals
+  type Auth
 } from './types'
 
 import {
@@ -201,40 +204,9 @@ export const decryptWithAES = (ciphertext: string, passphrase: string) => {
   return originalText
 }
 
-export function checkDataIsStored(storageKey: string): boolean {
-  return typeof window === 'undefined' || !!window.localStorage.getItem(storageKey)
-}
-
-export async function getDataFromStorage(storageKey: string): Promise<unknown | null> {
+export function getDataFromStorage(storageKey: string): string | null {
   if (typeof window === 'undefined') return null
-  const rawData = window.localStorage.getItem(storageKey)
-
-  if (!rawData) return null
-
-  // try and parse the raw data
-  try {
-    const parsed = JSON.parse(rawData)
-    return parsed
-  } catch (error) {
-    // could not parse which indicates that it is encrypted, so try and decrypt
-    let pin = pin$.getValue()
-
-    if (!pin) {
-      modal$.next(Modals.pinEntry)
-      pin = await firstValueFrom(pin$.pipe(skip(1)))
-
-      // no pin entered, so return
-      if (!pin) return null
-    }
-
-    try {
-      const decrypted = decryptWithAES(rawData, pin)
-      return JSON.parse(decrypted)
-    } catch (error) {
-      // could not decrypt so return
-      return null
-    }
-  }
+  return window.localStorage.getItem(storageKey)
 }
 
 type SwipeOptions = {
@@ -472,4 +444,31 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
   if (!ip.match(ipRegex)) return false
 
   return true
+}
+
+export function encryptAllData(pin: string) {
+  ENCRYPTED_DATA_KEYS.forEach((key) => {
+    const data = window.localStorage.getItem(key)
+
+    if (data) {
+      const encrypted = encryptWithAES(data, pin)
+      window.localStorage.setItem(key, encrypted)
+    }
+  })
+}
+
+export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
+  try {
+    const decryptedAuth = decryptWithAES(storedAuth, pin)
+    const auth = JSON.parse(decryptedAuth)
+    return auth
+  } catch (error) {
+    // could not decrypt
+    return null
+  }
+}
+
+export function resetApp() {
+  ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
+  window.location.reload()
 }

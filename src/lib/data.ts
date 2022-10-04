@@ -2,26 +2,41 @@ import LnMessage from 'lnmessage'
 import type { JsonRpcRequest } from 'lnmessage/dist/types'
 import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
 import { FUNDS_STORAGE_KEY, INFO_STORAGE_KEY, PAYMENTS_STORAGE_KEY, WS_PROXY } from './constants'
-import { auth$, connection$, funds$, nodeInfo$, payments$ } from './streams'
+import { auth$, connection$, funds$, nodeInfo$, payments$, pin$ } from './streams'
 import type { Payment } from './types'
-import { getDataFromStorage, parseNodeAddress } from './utils'
+import { decryptWithAES, getDataFromStorage, parseNodeAddress } from './utils'
 
 export async function initialiseData() {
-  // get and decrypt all data from local storage
-  const [info, funds, payments] = await Promise.all([
-    getDataFromStorage(INFO_STORAGE_KEY),
-    getDataFromStorage(FUNDS_STORAGE_KEY),
-    getDataFromStorage(PAYMENTS_STORAGE_KEY)
-  ])
+  const storedInfo = getDataFromStorage(INFO_STORAGE_KEY)
+  const storedFunds = getDataFromStorage(FUNDS_STORAGE_KEY)
+  const storedPayments = getDataFromStorage(PAYMENTS_STORAGE_KEY)
 
-  info && nodeInfo$.next({ data: info as GetinfoResponse, loading: false })
-  funds && funds$.next({ data: funds as ListfundsResponse, loading: false })
-  payments && payments$.next({ data: payments as Payment[], loading: false })
-
-  // fetch new data if not stored
-  if (!info || !funds || !payments) {
+  // no stored data, so get it from node
+  if (!storedInfo || !storedFunds || !storedPayments) {
     refreshData()
+    return
   }
+
+  let info: GetinfoResponse
+  let funds: ListfundsResponse
+  let payments: Payment[]
+
+  const pin = pin$.getValue()
+
+  if (pin) {
+    // decrypt data
+    info = JSON.parse(decryptWithAES(storedInfo, pin))
+    funds = JSON.parse(decryptWithAES(storedFunds, pin))
+    payments = JSON.parse(decryptWithAES(storedPayments, pin))
+  } else {
+    info = JSON.parse(storedInfo)
+    funds = JSON.parse(storedFunds)
+    payments = JSON.parse(storedPayments)
+  }
+
+  nodeInfo$.next({ data: info as GetinfoResponse, loading: false })
+  funds$.next({ data: funds as ListfundsResponse, loading: false })
+  payments$.next({ data: payments as Payment[], loading: false })
 }
 
 export async function refreshData() {
