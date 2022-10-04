@@ -2,17 +2,16 @@ import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
 import { map, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { invoiceToPayment } from './backends/core-lightning/utils'
-import { AUTH_INTITIAL_STATE } from './constants'
 import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
-import { getAuthFromStorage, getPageVisibilityParams, getSettingsFromStorage } from './utils'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 
 import {
   Modals,
   type BitcoinExchangeRates,
   type Notification,
   type Payment,
-  type Settings,
-  type Auth
+  type Auth,
+  type Settings
 } from './types'
 import type LnMessage from 'lnmessage'
 
@@ -46,8 +45,12 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
+const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+
 // app settings$
-export const settings$ = new SvelteSubject<Settings>(getSettingsFromStorage())
+export const settings$ = new SvelteSubject<Settings>(
+  storedSettings ? JSON.parse(storedSettings) : DEFAULT_SETTINGS
+)
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
@@ -59,10 +62,13 @@ export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 export const paymentUpdates$ = new Subject<Payment>()
 
 // core ln credentials
-export const auth$ = new BehaviorSubject<Auth>(getAuthFromStorage() || AUTH_INTITIAL_STATE)
+export const auth$ = new BehaviorSubject<Auth | null>(null)
 
 // connection to core ln node
 export const connection$ = new BehaviorSubject<LnMessage | null>(null)
+
+// key for decrypting stored data
+export const pin$ = new BehaviorSubject<string | null>(null)
 
 // ==== NODE DATA ==== //
 export const nodeInfo$ = new BehaviorSubject<{
@@ -83,7 +89,24 @@ export const funds$ = new BehaviorSubject<{
   error?: string
 }>({ loading: true, data: null })
 
-const pageVisibilityParams = getPageVisibilityParams()
+// browsers use different event names and hidden properties
+const pageVisibilityParams =
+  typeof document.hidden !== 'undefined'
+    ? {
+        hidden: 'hidden',
+        visibilityChange: 'visibilitychange'
+      }
+    : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    typeof document.msHidden !== 'undefined'
+    ? {
+        hidden: 'msHidden',
+        visibilityChange: 'msvisibilitychange'
+      }
+    : {
+        hidden: 'webkitHidden',
+        visibilityChange: 'webkitvisibilitychange'
+      }
 
 // indicates if the app is the current tab
 export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
@@ -136,7 +159,7 @@ export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void
   return listenForAllInvoiceUpdates(newLastPayIndex)
 }
 
-export function updateAuth(update: Partial<Auth>): void {
+export function updateAuth(update: Partial<Auth> | Auth): void {
   const currentAuth = auth$.getValue()
-  auth$.next({ ...currentAuth, ...update })
+  auth$.next(currentAuth ? { ...currentAuth, ...update } : (update as Auth))
 }

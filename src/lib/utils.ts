@@ -9,29 +9,28 @@ import Hammer, {
   Pan
 } from 'hammerjs'
 
+import CryptoJS from 'crypto-js'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
 
 import {
-  AUTH_STORAGE_KEY,
+  ALL_DATA_KEYS,
   COINBASE_PRICE_ENDPOINT,
   COIN_GECKO_PRICE_ENDPOINT,
-  DEFAULT_SETTINGS,
-  SETTINGS_STORAGE_KEY
+  ENCRYPTED_DATA_KEYS
 } from './constants'
 
 import {
   type Denomination,
   type PaymentType,
-  type Settings,
   Language,
   type Payment,
   type BitcoinExchangeRates,
   type FormattedSections,
-  type Auth,
-  type ParsedNodeAddress
+  type ParsedNodeAddress,
+  type Auth
 } from './types'
 
 import {
@@ -79,13 +78,6 @@ export function formatDecodedInvoice(decodedInvoice: {
 
 export function truncateValue(request: string): string {
   return `${request.slice(0, 9)}...${request.slice(-9)}`
-}
-
-export function getSettingsFromStorage(): Settings {
-  const value = localStorage.getItem(SETTINGS_STORAGE_KEY)
-  const settingsInStorage: Settings | null = value && JSON.parse(value)
-
-  return settingsInStorage || DEFAULT_SETTINGS
 }
 
 export function supportsNotifications(): boolean {
@@ -202,6 +194,21 @@ export function getPaymentType(value: string): PaymentType | null {
   return null
 }
 
+export const encryptWithAES = (text: string, passphrase: string) => {
+  return CryptoJS.AES.encrypt(text, passphrase).toString()
+}
+
+export const decryptWithAES = (ciphertext: string, passphrase: string) => {
+  const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase)
+  const originalText = bytes.toString(CryptoJS.enc.Utf8)
+  return originalText
+}
+
+export function getDataFromStorage(storageKey: string): string | null {
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem(storageKey)
+}
+
 type SwipeOptions = {
   direction: number
   threshold?: number
@@ -310,31 +317,6 @@ export function clickOutside(element: HTMLElement, callbackFunction: () => void)
   }
 }
 
-// browsers use different event names and hidden properties
-export function getPageVisibilityParams(): { hidden: string; visibilityChange: string } {
-  // Opera 12.10 and Firefox 18 and later support
-  if (typeof document.hidden !== 'undefined') {
-    return {
-      hidden: 'hidden',
-      visibilityChange: 'visibilitychange'
-    }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-  } else if (typeof document.msHidden !== 'undefined') {
-    return {
-      hidden: 'msHidden',
-      visibilityChange: 'msvisibilitychange'
-    }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-  } else {
-    return {
-      hidden: 'webkitHidden',
-      visibilityChange: 'webkitvisibilitychange'
-    }
-  }
-}
-
 // https://github.com/date-fns/date-fns/blob/9bb51691f201c3ec05ab832acbc5d478f2e5c47a/docs/i18nLocales.md
 const locales: Record<string, Locale> = {
   'en-GB': enGB, // British English
@@ -389,13 +371,6 @@ export function formatDestination(destination: string, type: PaymentType): strin
 }
 
 export const userAgent = new UAParser(navigator.userAgent)
-
-export function getAuthFromStorage(): Auth | null {
-  if (typeof window === 'undefined') return null
-
-  const authJson = localStorage.getItem(AUTH_STORAGE_KEY)
-  return authJson ? JSON.parse(authJson) : null
-}
 
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
@@ -469,4 +444,31 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
   if (!ip.match(ipRegex)) return false
 
   return true
+}
+
+export function encryptAllData(pin: string) {
+  ENCRYPTED_DATA_KEYS.forEach((key) => {
+    const data = window.localStorage.getItem(key)
+
+    if (data) {
+      const encrypted = encryptWithAES(data, pin)
+      window.localStorage.setItem(key, encrypted)
+    }
+  })
+}
+
+export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
+  try {
+    const decryptedAuth = decryptWithAES(storedAuth, pin)
+    const auth = JSON.parse(decryptedAuth)
+    return auth
+  } catch (error) {
+    // could not decrypt
+    return null
+  }
+}
+
+export function resetApp() {
+  ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
+  window.location.reload()
 }

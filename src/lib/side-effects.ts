@@ -1,113 +1,111 @@
 import { combineLatest, from, timer } from 'rxjs'
+import { filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
+import type LnMessage from 'lnmessage'
 
 import {
-  distinctUntilKeyChanged,
-  filter,
-  skip,
-  switchMap,
-  take,
-  withLatestFrom
-} from 'rxjs/operators'
-
-import { coreLn } from './backends'
-import LnMessage from 'lnmessage'
-import { AUTH_STORAGE_KEY, lnsocketProxy, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { deriveLastPayIndex, getBitcoinExchangeRate, parseNodeAddress } from './utils'
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
+  AUTH_STORAGE_KEY,
+  FUNDS_STORAGE_KEY,
+  INFO_STORAGE_KEY,
+  MIN_IN_MS,
+  PAYMENTS_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY
+} from './constants'
 
 import {
   appVisible$,
   bitcoinExchangeRates$,
   auth$,
   listeningForAllInvoiceUpdates$,
-  nodeInfo$,
   payments$,
   paymentUpdates$,
-  funds$,
   settings$,
   updatePayments,
   listenForAllInvoiceUpdates,
-  connection$
+  connection$,
+  nodeInfo$,
+  funds$,
+  pin$
 } from './streams'
 
 function registerSideEffects() {
-  // once we have credentials, go ahead and fetch initial data
-  auth$
-    .pipe(
-      filter(({ address, token }) => !!(address && token)),
-      withLatestFrom(connection$),
-      take(1)
-    )
-    .subscribe(async ([{ address, token, sessionSecret }, ln]) => {
-      // store credentials when they change
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ address, token, sessionSecret }))
-
-      const { publicKey, ip, port } = parseNodeAddress(address)
-
-      if (!ln) {
-        // create connection to node
-        ln = new LnMessage({
-          remoteNodePublicKey: publicKey,
-          wsProxy: lnsocketProxy,
-          ip,
-          port: port || 9735,
-          privateKey: sessionSecret
-          // logger: {
-          //   info: console.log,
-          //   warn: console.warn,
-          //   error: console.error
-          // }
-        })
-
-        await ln.connect()
-
-        connection$.next(ln)
-      }
-
-      // init coreLn service
-      coreLn.init({
-        request: (request: JsonRpcRequest & { rune: string }) =>
-          (ln as LnMessage).commando(request),
-        rune: token
-      })
-
-      try {
-        const funds = await coreLn.listFunds()
-        funds$.next({ loading: false, data: funds })
-      } catch (error) {
-        const { message } = error as Error
-        funds$.next({ loading: false, data: null, error: message })
-      }
-
-      try {
-        const info = await coreLn.getInfo()
-        nodeInfo$.next({ loading: false, data: info })
-      } catch (error) {
-        const { message } = error as Error
-        nodeInfo$.next({ loading: false, data: null, error: message })
-      }
-
-      try {
-        const payments = await coreLn.getPayments()
-        payments$.next({ loading: false, data: payments })
-      } catch (error) {
-        const { message } = error as Error
-        payments$.next({ loading: false, data: null, error: message })
-      }
-    })
-
   // update payments when payment update comes through
   paymentUpdates$.subscribe(updatePayments)
 
-  // handle dark mode toggle
-  settings$.pipe(distinctUntilKeyChanged('darkmode')).subscribe(({ darkmode }) => {
-    document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
-  })
-
   // update settings in storage
   settings$
-    .pipe(skip(1))
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
     .subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
+
+  // update auth in storage
+  auth$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe((auth) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(auth)
+
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update info in storage
+  nodeInfo$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        INFO_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update funds in storage
+  funds$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        FUNDS_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update payments in storage
+  payments$.pipe(skip(1)).subscribe(({ data }) => {
+    const { encrypt } = settings$.getValue()
+    const pin = pin$.getValue()
+
+    const dataString = JSON.stringify(data)
+
+    localStorage.setItem(
+      PAYMENTS_STORAGE_KEY,
+      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+    )
+  })
 
   // get and update bitcoin exchange rate
   timer(0, 1 * MIN_IN_MS)
@@ -118,7 +116,7 @@ function registerSideEffects() {
   combineLatest([appVisible$, auth$, payments$])
     .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
     .subscribe(([[visible, auth, payments], listening]) => {
-      if (payments.data && !payments.error && visible && auth.token && !listening) {
+      if (payments.data && !payments.error && visible && auth && auth.token && !listening) {
         const lastPayIndex = deriveLastPayIndex(payments.data)
 
         listeningForAllInvoiceUpdates$.next(true)
@@ -138,7 +136,6 @@ function registerSideEffects() {
     )
     .subscribe(async (values) => {
       const ln = values[1]
-      console.log('RECONNECTING TO NODE')
       await (ln as LnMessage).connect()
     })
 }

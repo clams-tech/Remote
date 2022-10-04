@@ -16,7 +16,8 @@
   import Warning from '$lib/icons/Warning.svelte'
   import Copy from '$lib/icons/Copy.svelte'
   import Info from '$lib/icons/Info.svelte'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, lnsocketProxy } from '$lib/constants'
+  import { initialiseData } from '$lib/data'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
 
   import {
     formatDate,
@@ -72,7 +73,7 @@
       // create connection to node
       const ln = new LnMessage({
         remoteNodePublicKey: publicKey,
-        wsProxy: lnsocketProxy,
+        wsProxy: WS_PROXY,
         ip,
         port: port || 9735
       })
@@ -93,6 +94,7 @@
 
   function saveRune() {
     updateAuth({ token })
+    initialiseData()
     goto('/')
   }
 

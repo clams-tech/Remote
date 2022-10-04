@@ -39,7 +39,7 @@
       in:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
       out:fly={{ y: modal.clientHeight, easing: quintOut, duration: 400 }}
       on:click|stopPropagation
-      class="{modalStyles} rounded-t-3xl"
+      class="{modalStyles} rounded-t-3xl w-full"
     >
       <div class="bg-neutral-300 w-8 h-1 rounded-full mt-2 top-0 absolute" />
       <div class="my-4">
