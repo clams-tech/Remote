@@ -516,6 +516,7 @@ export function isProtectedRoute(route: string): boolean {
   switch (route) {
     case '/connect':
     case '/welcome':
+    case '/decrypt':
       return false
     default:
       return true
