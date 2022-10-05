@@ -195,7 +195,8 @@ class CoreLn {
   }
 
   async getPayments(): Promise<Payment[]> {
-    const [{ invoices }, { pays }] = await Promise.all([this.listInvoices(), this.listPays()])
+    const { invoices } = await this.listInvoices()
+    const { pays } = await this.listPays()
     const invoicePayments: Payment[] = invoices.map(invoiceToPayment)
     const sentPayments: Payment[] = pays.map(payToPayment)
 

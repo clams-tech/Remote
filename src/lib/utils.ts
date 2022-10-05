@@ -13,13 +13,14 @@ import CryptoJS from 'crypto-js'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { ListfundsResponse } from './backends'
+import { coreLn, type ListfundsResponse } from './backends'
 
 import {
   ALL_DATA_KEYS,
   COINBASE_PRICE_ENDPOINT,
   COIN_GECKO_PRICE_ENDPOINT,
-  ENCRYPTED_DATA_KEYS
+  ENCRYPTED_DATA_KEYS,
+  WS_PROXY
 } from './constants'
 
 import {
@@ -52,6 +53,9 @@ import {
   ta,
   ko
 } from 'date-fns/locale'
+import { connection$ } from './streams'
+import LnMessage from 'lnmessage'
+import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
@@ -471,4 +475,39 @@ export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
 export function resetApp() {
   ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
   window.location.reload()
+}
+
+export async function initLn(auth: Auth) {
+  let ln = connection$.getValue()
+
+  // create connection to node if there is no connection
+  if (!ln) {
+    const { publicKey, ip, port } = parseNodeAddress(auth.address)
+
+    // create connection to node
+    ln = new LnMessage({
+      remoteNodePublicKey: publicKey,
+      wsProxy: WS_PROXY,
+      ip,
+      port: port || 9735,
+      privateKey: auth.sessionSecret
+      // logger: {
+      //   info: console.log,
+      //   warn: console.warn,
+      //   error: console.error
+      // }
+    })
+
+    await ln.connect()
+
+    connection$.next(ln)
+  }
+
+  // init coreLn service
+  coreLn.init({
+    request: (request: JsonRpcRequest & { rune: string }) => (ln as LnMessage).commando(request),
+    rune: auth.token
+  })
+
+  return coreLn
 }

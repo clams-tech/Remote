@@ -1,7 +1,6 @@
 import { combineLatest, from, timer } from 'rxjs'
 import { filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
-import type LnMessage from 'lnmessage'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, initLn } from './utils'
 
 import {
   AUTH_STORAGE_KEY,
@@ -27,6 +26,7 @@ import {
   funds$,
   pin$
 } from './streams'
+import type LnMessage from 'lnmessage'
 
 function registerSideEffects() {
   // update payments when payment update comes through
@@ -115,9 +115,11 @@ function registerSideEffects() {
   // when app is focused and have credentials and have payments, start listening if not already
   combineLatest([appVisible$, auth$, payments$])
     .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
-    .subscribe(([[visible, auth, payments], listening]) => {
+    .subscribe(async ([[visible, auth, payments], listening]) => {
       if (payments.data && !payments.error && visible && auth && auth.token && !listening) {
         const lastPayIndex = deriveLastPayIndex(payments.data)
+
+        initLn(auth)
 
         listeningForAllInvoiceUpdates$.next(true)
 
@@ -127,17 +129,17 @@ function registerSideEffects() {
       }
     })
 
-  combineLatest([appVisible$, connection$])
-    .pipe(
-      filter(
-        // app is visible, we have a connection, but it is not currently connected
-        ([visible, connection]) => !!(visible && connection && !connection.connected$.getValue())
-      )
-    )
-    .subscribe(async (values) => {
-      const ln = values[1]
-      await (ln as LnMessage).connect()
-    })
+  // combineLatest([appVisible$, connection$])
+  //   .pipe(
+  //     filter(
+  //       // app is visible, we have a connection, but it is not currently connected
+  //       ([visible, connection]) => !!(visible && connection && !connection.connected$.getValue())
+  //     )
+  //   )
+  //   .subscribe(async (values) => {
+  //     const ln = values[1]
+  //     await (ln as LnMessage).connect()
+  //   })
 }
 
 export default registerSideEffects

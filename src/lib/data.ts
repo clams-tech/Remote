@@ -1,10 +1,8 @@
-import LnMessage from 'lnmessage'
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
-import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
-import { FUNDS_STORAGE_KEY, INFO_STORAGE_KEY, PAYMENTS_STORAGE_KEY, WS_PROXY } from './constants'
-import { auth$, connection$, funds$, nodeInfo$, payments$, pin$ } from './streams'
+import type { GetinfoResponse, ListfundsResponse } from './backends'
+import { FUNDS_STORAGE_KEY, INFO_STORAGE_KEY, PAYMENTS_STORAGE_KEY } from './constants'
+import { auth$, funds$, nodeInfo$, payments$, pin$ } from './streams'
 import type { Payment } from './types'
-import { decryptWithAES, getDataFromStorage, parseNodeAddress } from './utils'
+import { decryptWithAES, getDataFromStorage, initLn } from './utils'
 
 export async function initialiseData() {
   const storedInfo = getDataFromStorage(INFO_STORAGE_KEY)
@@ -43,36 +41,7 @@ export async function refreshData() {
   const auth = auth$.getValue()
   if (!auth) return
 
-  const { address, token, sessionSecret } = auth
-  const { publicKey, ip, port } = parseNodeAddress(address)
-  let ln = connection$.getValue()
-
-  // create connection to node if there is no connection
-  if (!ln) {
-    // create connection to node
-    ln = new LnMessage({
-      remoteNodePublicKey: publicKey,
-      wsProxy: WS_PROXY,
-      ip,
-      port: port || 9735,
-      privateKey: sessionSecret
-      // logger: {
-      //   info: console.log,
-      //   warn: console.warn,
-      //   error: console.error
-      // }
-    })
-
-    await ln.connect()
-
-    connection$.next(ln)
-  }
-
-  // init coreLn service
-  coreLn.init({
-    request: (request: JsonRpcRequest & { rune: string }) => (ln as LnMessage).commando(request),
-    rune: token
-  })
+  const coreLn = await initLn(auth)
 
   try {
     funds$.next({ loading: true, data: funds$.getValue().data })

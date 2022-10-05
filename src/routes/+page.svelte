@@ -10,7 +10,6 @@
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import Settings from '$lib/icons/Settings.svelte'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
 
   const buttons = [
@@ -35,12 +34,6 @@
 </svelte:head>
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <a href="/settings">
-    <div class="w-8 absolute top-4 right-4">
-      <Settings />
-    </div>
-  </a>
-
   <div class="w-24 absolute top-2 left-2">
     <ClamsLogo />
   </div>

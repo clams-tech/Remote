@@ -11,6 +11,7 @@
   import { initialiseData } from '$lib/data'
   import { Modals, type Auth } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
+  import Menu from '$lib/components/Menu.svelte'
 
   let loading = true
 
@@ -81,6 +82,10 @@
   class="flex flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative"
 >
   <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
+
+  <div class="absolute top-4 right-4 z-20">
+    <Menu />
+  </div>
 
   <!-- CONTENT -->
   <main
