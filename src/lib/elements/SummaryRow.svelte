@@ -1,9 +1,9 @@
 <div
   on:click
-  class="w-full flex justify-between items-center border-b border-b-neutral-200 dark:border-b-neutral-700 py-3"
+  class="w-full flex justify-between items-baseline border-b border-b-neutral-200 dark:border-b-neutral-700 py-3"
 >
   <span class="mr-2"><slot name="label" /></span>
-  <p class="flex items-center">
+  <p class="flex items-center max-w-[50%]">
     <slot name="value" />
   </p>
 </div>

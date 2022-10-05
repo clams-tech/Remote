@@ -7,7 +7,7 @@
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { connection$, settings$, updateAuth } from '$lib/streams'
+  import { connection$, modal$, settings$, updateAuth } from '$lib/streams'
   import Check from '$lib/icons/Check.svelte'
   import Close from '$lib/icons/Close.svelte'
   import Arrow from '$lib/icons/Arrow.svelte'
@@ -16,6 +16,8 @@
   import Warning from '$lib/icons/Warning.svelte'
   import Copy from '$lib/icons/Copy.svelte'
   import Info from '$lib/icons/Info.svelte'
+  import Modal from '$lib/elements/Modal.svelte'
+  import { Modals } from '$lib/types'
   import { initialiseData } from '$lib/data'
   import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
 
@@ -32,6 +34,7 @@
 
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
+  let blurRuneInput: () => void
 
   onMount(async () => {
     // wait for animation to complete to focus
@@ -61,6 +64,11 @@
 
   $: if (token) {
     decodedRune = decode(token)
+
+    if (decodedRune) {
+      blurRuneInput()
+      modal$.next(Modals.runeSummary)
+    }
   }
 
   async function attemptConnect() {
@@ -84,7 +92,13 @@
       if (connectStatus === 'success') {
         sessionPublicKey = ln.publicKey
         sessionPrivateKey = ln.privateKey
+        step = 'token'
+
         connection$.next(ln)
+
+        setTimeout(() => {
+          focusRuneInput()
+        }, 500)
       }
     } catch (error) {
       connectStatus = 'fail'
@@ -109,21 +123,13 @@
     copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
   })
 
-  function addRune() {
-    step = 'token'
-    setTimeout(() => {
-      focusRuneInput()
-    }, 500)
-  }
-
   let connectButton: Button
-  let addRuneButton: Button
   let saveRuneButton: Button
 
   function handleKeyPress(ev: KeyboardEvent) {
     if (ev.key === 'Enter') {
       if (step === 'connect' && connectStatus !== 'connecting') {
-        validAddress && connectStatus === 'success' ? addRuneButton.click() : connectButton.click()
+        validAddress && connectButton.click()
         return
       }
 
@@ -197,25 +203,13 @@
         </div>
 
         <div class="w-full mt-6">
-          {#if connectStatus === 'success'}
-            <Button
-              on:click={addRune}
-              text={$translate('app.buttons.add_rune')}
-              bind:this={addRuneButton}
-            >
-              <div slot="iconRight" class="w-6">
-                <Arrow direction="right" />
-              </div>
-            </Button>
-          {:else}
-            <Button
-              bind:this={connectButton}
-              disabled={!validAddress}
-              on:click={attemptConnect}
-              requesting={connectStatus === 'connecting'}
-              text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
-            />
-          {/if}
+          <Button
+            bind:this={connectButton}
+            disabled={!validAddress}
+            on:click={attemptConnect}
+            requesting={connectStatus === 'connecting'}
+            text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
+          />
         </div>
       </div>
     </section>
@@ -228,37 +222,19 @@
       step = 'connect'
     }}
   >
-    <section class="flex flex-col justify-center items-start w-full h-full p-6 max-w-xl">
+    <section
+      class="flex flex-col justify-center items-start w-full h-full px-6 pb-4 pt-10 max-w-xl"
+    >
       <div class="h-8" />
-      <div class="mb-6">
-        <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
-        <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
-      </div>
 
-      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
-        <div class="w-5 mr-2 border-2 rounded-full border-current">
-          <Info />
-        </div>
-        <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
-          >{$translate('app.hints.how')}</a
-        >
-      </div>
+      <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
+      <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <div on:click={copyPublicKey} class="relative w-full mb-4">
-          <div class="w-full cursor-pointer">
-            <TextInput
-              name="session"
-              type="textarea"
-              readonly
-              label={'Session Public Key'}
-              hint="restrict rune to this key"
-              cursorPointer={true}
-              value={truncateValue(sessionPublicKey)}
-            />
-          </div>
+        <div on:click={copyPublicKey} class="relative flex items-center w-full my-4">
+          <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
 
-          <div class="absolute bottom-3 right-2" class:text-utility-success={copySuccess}>
+          <div class:text-utility-success={copySuccess}>
             {#if copySuccess}
               <div in:fade class="w-8">
                 <Check />
@@ -272,99 +248,35 @@
         </div>
       {/if}
 
-      <div class="w-full overflow-y-auto p-1">
+      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
+        <div class="w-5 mr-2 border-2 rounded-full border-current">
+          <Info />
+        </div>
+        <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
+          >{$translate('app.hints.how')}</a
+        >
+      </div>
+
+      <div class="w-full">
         <div class="relative w-full">
           <TextInput
             name="token"
             type="textarea"
+            rows={3}
             label={$translate('app.inputs.add_rune.label')}
             placeholder={$translate('app.inputs.add_rune.placeholder')}
             bind:value={token}
             bind:focus={focusRuneInput}
+            bind:blur={blurRuneInput}
           />
         </div>
-
-        {#if decodedRune}
-          <div in:fade class="w-full mt-6">
-            <h4 class="font-semibold mb-2">{$translate('app.labels.summary')}</h4>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.id')}</span>
-              <span slot="value">{decodedRune.id}</span>
-            </SummaryRow>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.hash')}</span>
-              <span slot="value">{truncateValue(decodedRune.hash)}</span>
-            </SummaryRow>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.restrictions')}</span>
-              <p slot="value">
-                {#if decodedRune.restrictions.length === 0}
-                  <div class="flex items-center">
-                    <div class="w-4 mr-2 text-utility-pending">
-                      <Warning />
-                    </div>
-                    <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
-                  </div>
-                {:else}
-                  {@html decodedRune.restrictions
-                    .map(({ summary }) => {
-                      const alternatives = summary.split(' OR ')
-
-                      return alternatives
-                        .map((alternative) => {
-                          let words = alternative.split(' ')
-                          const lastIndex = words.length - 1
-                          const lastValue = words[lastIndex]
-
-                          // format rate limit
-                          if (words[0] === 'rate') {
-                            words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
-                          }
-
-                          // format id
-                          if (words[0] === 'id') {
-                            words[lastIndex] = truncateValue(lastValue)
-                          }
-
-                          // format time
-                          if (words[0] === 'time') {
-                            const timeMs = parseInt(lastValue) * 1000
-
-                            words = [
-                              'valid',
-                              'until',
-                              formatDate({
-                                date: new Date(timeMs).toISOString(),
-                                language: $settings$.language
-                              })
-                            ]
-                          }
-
-                          const wordsBold = words.map((w, i) =>
-                            i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
-                          )
-
-                          return wordsBold.join(' ')
-                        })
-                        .join('<i><br>OR<br></i>')
-                    })
-                    .join('<i><br>AND<br></i>')}
-                {/if}
-              </p>
-            </SummaryRow>
-          </div>
-        {/if}
       </div>
 
-      <div class="mt-6 w-full">
+      <div class="w-full mt-6">
         <Button
           bind:this={saveRuneButton}
           on:click={saveRune}
           text={$translate('app.buttons.save')}
-          disabled={!decodedRune}
         >
           <div slot="iconRight" class="w-6">
             <Arrow direction="right" />
@@ -373,4 +285,80 @@
       </div>
     </section>
   </Slide>
+{/if}
+
+{#if $modal$ === Modals.runeSummary && decodedRune}
+  <Modal>
+    <div in:fade class="w-full">
+      <h4 class="font-semibold mb-2 w-full text-lg">{$translate('app.labels.rune_summary')}</h4>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.id')}</span>
+        <span slot="value">{decodedRune.id}</span>
+      </SummaryRow>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.hash')}</span>
+        <span slot="value">{truncateValue(decodedRune.hash)}</span>
+      </SummaryRow>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.restrictions')}</span>
+        <p slot="value">
+          {#if decodedRune.restrictions.length === 0}
+            <div class="flex items-center">
+              <div class="w-4 mr-2 text-utility-pending">
+                <Warning />
+              </div>
+              <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
+            </div>
+          {:else}
+            {@html decodedRune.restrictions
+              .map(({ summary }) => {
+                const alternatives = summary.split(' OR ')
+
+                return alternatives
+                  .map((alternative) => {
+                    let words = alternative.split(' ')
+                    const lastIndex = words.length - 1
+                    const lastValue = words[lastIndex]
+
+                    // format rate limit
+                    if (words[0] === 'rate') {
+                      words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+                    }
+
+                    // format id
+                    if (words[0] === 'id') {
+                      words[lastIndex] = truncateValue(lastValue)
+                    }
+
+                    // format time
+                    if (words[0] === 'time') {
+                      const timeMs = parseInt(lastValue) * 1000
+
+                      words = [
+                        'valid',
+                        'until',
+                        formatDate({
+                          date: new Date(timeMs).toISOString(),
+                          language: $settings$.language
+                        })
+                      ]
+                    }
+
+                    const wordsBold = words.map((w, i) =>
+                      i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
+                    )
+
+                    return wordsBold.join(' ')
+                  })
+                  .join('<i><br>OR<br></i>')
+              })
+              .join('<i><br>AND<br></i>')}
+          {/if}
+        </p>
+      </SummaryRow>
+    </div>
+  </Modal>
 {/if}

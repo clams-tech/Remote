@@ -53,7 +53,7 @@
     "fee": "{{feeType; receive:Receive; network:Network;}} Fee:",
     "id": "ID:",
     "hash": "Hash:",
-    "restrictions": "Restrictions",
+    "restrictions": "Restrictions:",
     "direction": "{{direction; receive:}}",
     "any": "any",
     "amount": "Amount:",
@@ -72,7 +72,7 @@
     "notifications": "Notifications",
     "commonly_used": "Commonly Used",
     "all_options": "All Options",
-    "summary": "Summary",
+    "rune_summary": "Rune Summary",
     "version": "Version"
   },
   "time": {
@@ -88,7 +88,8 @@
     "one_of": "Must be one of the following values: {{values}}"
   },
   "errors": {
-    "camera_connection": "There was an error connecting to your camera, please try again.",
+    "camera": "Camera Error",
+    "camera_connection": "There was an error connecting to your camera, try adjusting your browser preferences.",
     "node_connect": "Connection error",
     "invalid_invoice": "Not a valid bolt11 invoice.",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
@@ -151,7 +152,7 @@
     "description": "What is this payment for?",
     "destination": "Where would you like to send a payment?",
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
-    "rune": "Add a rune to give Clams permissions to interact with your node.",
+    "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
     "decrypt": "Enter your 4 digit pin number to decrypt your local data."
   },

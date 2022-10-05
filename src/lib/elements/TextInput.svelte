@@ -18,6 +18,7 @@
   export let cursorPointer = false
 
   export const focus = () => input && input.focus()
+  export const blur = () => input && input.blur()
   export const select = () => input && input.select()
 
   let input: HTMLInputElement | HTMLTextAreaElement

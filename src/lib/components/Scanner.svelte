@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
   import QrScanner from 'qr-scanner'
-  // https://github.com/nimiq/qr-scanner
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { goto } from '$app/navigation'
   import { noop } from '$lib/utils'
+  import { customNotifications$ } from '$lib/streams'
 
   export let onResult
   export let onError = noop
@@ -15,7 +15,6 @@
 
   let videoEl: HTMLVideoElement
   let qrScanner: QrScanner
-  let displayError = false
 
   onMount(async () => {
     try {
@@ -28,7 +27,12 @@
 
       await qrScanner.start()
     } catch (error) {
-      displayError = true
+      customNotifications$.next({
+        id: window.crypto.randomUUID(),
+        type: 'error',
+        heading: $translate('app.errors.camera'),
+        message: $translate('app.errors.camera_connection')
+      })
     }
   })
 
@@ -42,12 +46,6 @@
 
   <!-- svelte-ignore a11y-media-has-caption -->
   <video bind:this={videoEl} class="rounded-xl overflow-hidden" />
-
-  {#if displayError}
-    <div>
-      {$translate('app.errors.camera_connection')}
-    </div>
-  {/if}
 </div>
 
 <style>
