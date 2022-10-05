@@ -93,7 +93,7 @@
           <div class="cursor-pointer" on:click={toggle}>
             <SummaryRow>
               <span slot="label">{label}</span>
-              <Toggle slot="value" {toggled} />
+              <Toggle slot="value" {toggled} handleChange={toggle} />
             </SummaryRow>
           </div>
         {:else}

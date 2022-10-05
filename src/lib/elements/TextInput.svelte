@@ -31,7 +31,7 @@
   // focus:border-white
   // focus:ring-utility-error
   // focus:ring-purple-500
-  // h-6
+  // h-8
   // cursor-pointer
 </script>
 
@@ -39,7 +39,9 @@
   {#if label || hint}
     <div class="flex items-center mb-2 font-medium">
       <label class="text-sm w-1/2 text-inherit" for={name}>{label || ''}</label>
-      <span class="flex justify-end text-neutral-400 text-xs w-1/2">{@html hint}</span>
+      <span class="flex justify-end text-neutral-400 text-xs w-1/2 cursor-default"
+        >{@html hint}</span
+      >
     </div>
   {/if}
 
@@ -124,7 +126,7 @@
 
   <div
     class="flex items-center transition-all overflow-hidden text-utility-error h-{invalid
-      ? '6'
+      ? '8'
       : '0'}"
   >
     <span class="w-4 mr-2"><Warning /></span>

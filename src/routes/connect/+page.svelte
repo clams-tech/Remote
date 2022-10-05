@@ -44,6 +44,7 @@
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
+  let sessionPrivateKey: string
   let copySuccess = false
   let copyAnimationTimeout: NodeJS.Timeout
 
@@ -84,7 +85,7 @@
 
       if (connectStatus === 'success') {
         sessionPublicKey = ln.publicKey
-        updateAuth({ address, sessionSecret: ln.privateKey })
+        sessionPrivateKey = ln.privateKey
         connection$.next(ln)
       }
     } catch (error) {
@@ -93,7 +94,7 @@
   }
 
   function saveRune() {
-    updateAuth({ token })
+    updateAuth({ token, address, sessionSecret: sessionPrivateKey })
     initialiseData()
     goto('/')
   }
@@ -203,7 +204,8 @@
       step = 'connect'
     }}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
+    <section class="flex flex-col justify-center items-start w-full h-full p-6 max-w-xl">
+      <div class="h-8" />
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
@@ -219,19 +221,20 @@
       </div>
 
       {#if sessionPublicKey}
-        <div on:click={copyPublicKey} class="relative w-full mb-4 cursor-pointer">
-          <TextInput
-            name="session"
-            type="textarea"
-            readonly
-            rows={2}
-            label={'Session Public Key'}
-            hint="restrict rune to this key"
-            cursorPointer={true}
-            bind:value={sessionPublicKey}
-          />
+        <div on:click={copyPublicKey} class="relative w-full mb-4">
+          <div class="w-full cursor-pointer">
+            <TextInput
+              name="session"
+              type="textarea"
+              readonly
+              label={'Session Public Key'}
+              hint="restrict rune to this key"
+              cursorPointer={true}
+              value={truncateValue(sessionPublicKey)}
+            />
+          </div>
 
-          <div class="absolute bottom-2 right-2" class:text-utility-success={copySuccess}>
+          <div class="absolute bottom-3 right-2" class:text-utility-success={copySuccess}>
             {#if copySuccess}
               <div in:fade class="w-8">
                 <Check />
@@ -245,12 +248,11 @@
         </div>
       {/if}
 
-      <div class="w-full">
+      <div class="w-full overflow-y-auto p-1">
         <div class="relative w-full">
           <TextInput
             name="token"
             type="textarea"
-            rows={6}
             label={$translate('app.inputs.add_rune.label')}
             placeholder={$translate('app.inputs.add_rune.placeholder')}
             bind:value={token}
@@ -331,14 +333,14 @@
             </SummaryRow>
           </div>
         {/if}
+      </div>
 
-        <div class="mt-6">
-          <Button on:click={saveRune} text={$translate('app.buttons.save')} disabled={!decodedRune}>
-            <div slot="iconRight" class="w-6">
-              <Arrow direction="right" />
-            </div>
-          </Button>
-        </div>
+      <div class="mt-6 w-full">
+        <Button on:click={saveRune} text={$translate('app.buttons.save')} disabled={!decodedRune}>
+          <div slot="iconRight" class="w-6">
+            <Arrow direction="right" />
+          </div>
+        </Button>
       </div>
     </section>
   </Slide>
