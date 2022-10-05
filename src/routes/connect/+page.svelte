@@ -49,8 +49,6 @@
   let copyAnimationTimeout: NodeJS.Timeout
 
   $: if (address) {
-    connectStatus = 'idle'
-
     try {
       validAddress = validateParsedNodeAddress(parseNodeAddress(address))
     } catch {
@@ -110,11 +108,38 @@
   onDestroy(() => {
     copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
   })
+
+  function addRune() {
+    step = 'token'
+    setTimeout(() => {
+      focusRuneInput()
+    }, 500)
+  }
+
+  let connectButton: Button
+  let addRuneButton: Button
+  let saveRuneButton: Button
+
+  function handleKeyPress(ev: KeyboardEvent) {
+    if (ev.key === 'Enter') {
+      if (step === 'connect' && connectStatus !== 'connecting') {
+        validAddress && connectStatus === 'success' ? addRuneButton.click() : connectButton.click()
+        return
+      }
+
+      if (step === 'token') {
+        decodedRune && saveRuneButton.click()
+        return
+      }
+    }
+  }
 </script>
 
 <svelte:head>
   <title>{$translate('app.titles.connect')}</title>
 </svelte:head>
+
+<svelte:window on:keydown={handleKeyPress} />
 
 {#if step === 'connect'}
   <Slide>
@@ -174,11 +199,9 @@
         <div class="w-full mt-6">
           {#if connectStatus === 'success'}
             <Button
-              on:click={() => {
-                step = 'token'
-                setTimeout(focusRuneInput, 500)
-              }}
+              on:click={addRune}
               text={$translate('app.buttons.add_rune')}
+              bind:this={addRuneButton}
             >
               <div slot="iconRight" class="w-6">
                 <Arrow direction="right" />
@@ -186,6 +209,7 @@
             </Button>
           {:else}
             <Button
+              bind:this={connectButton}
               disabled={!validAddress}
               on:click={attemptConnect}
               requesting={connectStatus === 'connecting'}
@@ -336,7 +360,12 @@
       </div>
 
       <div class="mt-6 w-full">
-        <Button on:click={saveRune} text={$translate('app.buttons.save')} disabled={!decodedRune}>
+        <Button
+          bind:this={saveRuneButton}
+          on:click={saveRune}
+          text={$translate('app.buttons.save')}
+          disabled={!decodedRune}
+        >
           <div slot="iconRight" class="w-6">
             <Arrow direction="right" />
           </div>

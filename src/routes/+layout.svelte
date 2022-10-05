@@ -6,7 +6,7 @@
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
-  import { getDataFromStorage } from '$lib/utils'
+  import { getDataFromStorage, isProtectedRoute } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
   import { initialiseData } from '$lib/data'
   import { Modals, type Auth } from '$lib/types'
@@ -62,16 +62,6 @@
     }
 
     loading = false
-  }
-
-  function isProtectedRoute(route: string): boolean {
-    switch (route) {
-      case '/connect':
-      case '/welcome':
-        return false
-      default:
-        return true
-    }
   }
 </script>
 

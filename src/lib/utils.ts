@@ -511,3 +511,13 @@ export async function initLn(auth: Auth) {
 
   return coreLn
 }
+
+export function isProtectedRoute(route: string): boolean {
+  switch (route) {
+    case '/connect':
+    case '/welcome':
+      return false
+    default:
+      return true
+  }
+}
