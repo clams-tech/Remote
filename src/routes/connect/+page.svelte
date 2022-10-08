@@ -289,7 +289,7 @@
 
 {#if $modal$ === Modals.runeSummary && decodedRune}
   <Modal>
-    <div in:fade class="w-full min-w-[25rem]">
+    <div in:fade class="w-[25rem] max-w-full">
       <h4 class="font-semibold mb-2 w-full text-lg">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>

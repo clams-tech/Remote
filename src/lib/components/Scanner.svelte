@@ -19,11 +19,13 @@
   onMount(async () => {
     try {
       qrScanner = new QrScanner(videoEl, ({ data }) => debouncedOnResult(data), {
-        onDecodeError: onError,
+        onDecodeError: (err) => alert(err),
         preferredCamera: 'environment',
         highlightScanRegion: true,
         highlightCodeOutline: true
       })
+
+      qrScanner.setInversionMode('both')
 
       await qrScanner.start()
     } catch (error) {
@@ -38,19 +40,19 @@
 
   onDestroy(() => {
     qrScanner.stop()
+    qrScanner.destroy()
   })
 </script>
 
-<div class="container relative items-center flex justify-center w-full">
+<div class="container relative items-center flex-col pt-16 pb-4 flex justify-center w-full h-full">
   <BackButton on:click={() => goto('/')} />
 
   <!-- svelte-ignore a11y-media-has-caption -->
-  <video bind:this={videoEl} />
+  <video muted playsinline bind:this={videoEl} class="rounded-xl overflow-hidden" />
 </div>
 
 <style>
   .container {
-    min-height: 100vh;
     /* mobile viewport bug fix */
     min-height: -webkit-fill-available;
   }
