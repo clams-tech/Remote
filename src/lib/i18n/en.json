@@ -89,7 +89,8 @@
   },
   "errors": {
     "camera": "Camera Error",
-    "camera_connection": "There was an error connecting to your camera, try adjusting your browser preferences.",
+    "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
+    "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
     "node_connect": "Connection error",
     "invalid_invoice": "Not a valid bolt11 invoice.",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
