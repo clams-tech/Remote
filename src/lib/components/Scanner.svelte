@@ -45,7 +45,7 @@
   <BackButton on:click={() => goto('/')} />
 
   <!-- svelte-ignore a11y-media-has-caption -->
-  <video bind:this={videoEl} class="rounded-xl overflow-hidden" />
+  <video bind:this={videoEl} />
 </div>
 
 <style>
