@@ -3,6 +3,9 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import { coreLn, type ListfundsResponse } from './backends'
+import { connection$ } from './streams'
+import LnMessage from 'lnmessage'
+import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 import {
   ALL_DATA_KEYS,
@@ -42,9 +45,6 @@ import {
   ta,
   ko
 } from 'date-fns/locale'
-import { connection$ } from './streams'
-import LnMessage from 'lnmessage'
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string

@@ -119,7 +119,7 @@ function registerSideEffects() {
       if (payments.data && !payments.error && visible && auth && auth.token && !listening) {
         const lastPayIndex = deriveLastPayIndex(payments.data)
 
-        initLn(auth)
+        await initLn(auth)
 
         listeningForAllInvoiceUpdates$.next(true)
 
