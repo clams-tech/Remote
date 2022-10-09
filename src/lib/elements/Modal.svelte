@@ -9,7 +9,8 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition'
   import { quintInOut, quintOut } from 'svelte/easing'
-  import { swipe, drag, userAgent } from '$lib/utils'
+  import { userAgent } from '$lib/utils'
+  import { swipe, drag } from '$lib/touch'
   import Close from '$lib/icons/Close.svelte'
   import { modal$ } from '$lib/streams'
   import { DIRECTION_DOWN } from 'hammerjs'

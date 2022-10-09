@@ -3,7 +3,6 @@
   import { translate } from '$lib/i18n/translations'
   import QRIcon from '$lib/icons/Qr.svelte'
   import ArrowIcon from '$lib/icons/Arrow.svelte'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
   import { calculateBalance } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -11,6 +10,7 @@
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
+  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 
   const buttons = [
     { key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
@@ -35,7 +35,7 @@
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
   <div class="w-24 absolute top-2 left-2">
-    <ClamsLogo />
+    <ClamsLogo max={3} />
   </div>
 
   {#if $nodeInfo$.data}

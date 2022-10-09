@@ -10,7 +10,7 @@
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination, type Notification } from '$lib/types'
   import Close from '$lib/icons/Close.svelte'
-  import { drag } from '$lib/utils'
+  import { drag, swipe } from '$lib/touch'
   import Check from '$lib/icons/Check.svelte'
   import Info from '$lib/icons/Info.svelte'
   import Alert from '$lib/icons/Alert.svelte'
@@ -19,7 +19,6 @@
     formatValueForDisplay,
     notificationsPermissionsGranted,
     supportsNotifications,
-    swipe,
     userAgent
   } from '$lib/utils'
 

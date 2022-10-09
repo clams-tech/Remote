@@ -14,7 +14,6 @@
 
   let video: HTMLVideoElement
   let canvas: HTMLCanvasElement
-  let overlay: HTMLDivElement
   let scanRegion: { x: number; y: number; width: number; height: number }
   let copyRegion: { x: number; y: number; width: number; height: number }
   let tickTimeout: NodeJS.Timeout
@@ -183,7 +182,6 @@
       <div
         style={`width: ${scanRegion.width}px; height: ${scanRegion.height}px; top: ${scanRegion.y}; left: ${scanRegion.x};`}
         class="absolute box z-50"
-        bind:this={overlay}
       />
     {/if}
   </div>
@@ -222,6 +220,11 @@
     padding: var(--b);
     border-radius: var(--r);
     -webkit-mask: linear-gradient(0deg, #000 calc(2 * var(--b)), #0000 0) 50% var(--b) /
+        calc(100% - 2 * var(--w)) 100% repeat-y,
+      linear-gradient(-90deg, #000 calc(2 * var(--b)), #0000 0) var(--b) 50%/100%
+        calc(100% - 2 * var(--w)) repeat-x,
+      linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(0deg, #000 calc(2 * var(--b)), #0000 0) 50% var(--b) /
         calc(100% - 2 * var(--w)) 100% repeat-y,
       linear-gradient(-90deg, #000 calc(2 * var(--b)), #0000 0) var(--b) 50%/100%
         calc(100% - 2 * var(--w)) repeat-x,

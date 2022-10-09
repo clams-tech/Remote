@@ -12,6 +12,7 @@
   import { Modals, type Auth } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
+  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 
   let loading = true
 
@@ -71,22 +72,28 @@
   style="width: {innerWidth}px; height: {innerHeight}px;"
   class="flex flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative"
 >
-  <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
+  {#if loading}
+    <div class="w-full h-full flex items-center justify-center">
+      <div class="w-2/3 max-w-md">
+        <ClamsLogo />
+      </div>
+    </div>
+  {:else}
+    <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
 
-  <div class="absolute top-4 right-4 z-20">
-    <Menu />
-  </div>
+    <div class="absolute top-4 right-4 z-20">
+      <Menu />
+    </div>
 
-  <!-- CONTENT -->
-  <main
-    class="flex flex-grow w-full flex-col items-center bg-inherit transition-all overflow-hidden"
-  >
-    {#if !loading}
+    <!-- CONTENT -->
+    <main
+      class="flex flex-grow w-full flex-col items-center bg-inherit transition-all overflow-hidden"
+    >
       <slot />
-    {/if}
-  </main>
+    </main>
 
-  <Notifications />
+    <Notifications />
+  {/if}
 </div>
 
 {#if $modal$ === Modals.pinEntry}
