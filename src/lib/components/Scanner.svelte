@@ -18,6 +18,7 @@
   let scanRegion: { x: number; y: number; width: number; height: number }
   let copyRegion: { x: number; y: number; width: number; height: number }
   let tickTimeout: NodeJS.Timeout
+  let stream: MediaStream
 
   async function checkCameraSupport(): Promise<boolean> {
     if (!navigator.mediaDevices) {
@@ -51,12 +52,12 @@
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // const devices = await navigator.mediaDevices.enumerateDevices()
+      // const videoDevices = devices.filter(({ kind }) => kind === 'videoinput')
+
+      stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          advanced: [
-            { width: { min: 1024 }, facingMode: { exact: 'environment' } },
-            { width: { min: 768 }, facingMode: { exact: 'environment' } }
-          ]
+          facingMode: { ideal: 'environment' }
         },
         audio: false
       })
@@ -126,20 +127,22 @@
   }
 
   const updateJsQr = () => {
-    canvasContext.drawImage(
-      video,
-      copyRegion.x,
-      copyRegion.y,
-      copyRegion.width,
-      copyRegion.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    )
+    if (canvas) {
+      canvasContext.drawImage(
+        video,
+        copyRegion.x,
+        copyRegion.y,
+        copyRegion.width,
+        copyRegion.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
 
-    const { data, height, width } = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
-    qrWorker.postMessage({ data, height, width })
+      const { data, height, width } = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
+      qrWorker.postMessage({ data, height, width })
+    }
   }
 
   function tick() {
@@ -150,11 +153,12 @@
     qrWorker.removeEventListener('message', handleMessage)
     qrWorker.terminate()
     tickTimeout && clearTimeout(tickTimeout)
+    stream.getVideoTracks().forEach((track) => track.stop())
   })
 </script>
 
 <div
-  class="container relative items-center flex-col pt-16 pb-4 px-4 flex justify-center w-full h-full"
+  class="container relative items-center flex-col flex justify-center w-full h-full pt-16 pb-4 px-4"
 >
   <BackButton on:click={() => goto('/')} />
 
@@ -214,7 +218,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--c, red);
+    background: var(--c);
     padding: var(--b);
     border-radius: var(--r);
     -webkit-mask: linear-gradient(0deg, #000 calc(2 * var(--b)), #0000 0) 50% var(--b) /
