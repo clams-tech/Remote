@@ -38,3 +38,8 @@ section {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* Hide arrows on Firefox number input  */
+input[type=number] {
+  -moz-appearance: textfield;
+}
