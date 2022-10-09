@@ -76,7 +76,7 @@
   // text-utility-error
 </script>
 
-<div class="w-full flex flex-col px-8 pt-12 pb-4 max-h-screen overflow-auto">
+<div class="w-full flex flex-col px-6 pt-12 pb-4 max-h-screen overflow-auto">
   <!-- AMOUNT -->
   <div class="flex flex-col items-center justify-center">
     <span

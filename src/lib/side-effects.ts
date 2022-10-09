@@ -33,12 +33,10 @@ function registerSideEffects() {
   paymentUpdates$.subscribe(updatePayments)
 
   // update settings in storage
-  settings$
-    .pipe(
-      skip(1),
-      filter((x) => !!x)
-    )
-    .subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
+  settings$.pipe(filter((x) => !!x)).subscribe((update) => {
+    document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update))
+  })
 
   // update auth in storage
   auth$

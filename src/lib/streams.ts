@@ -1,5 +1,5 @@
-import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
-import { map, shareReplay, startWith, take } from 'rxjs/operators'
+import { BehaviorSubject, defer, fromEvent, of, Subject } from 'rxjs'
+import { map, shareReplay, startWith, switchMap, take, filter } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
@@ -66,6 +66,14 @@ export const auth$ = new BehaviorSubject<Auth | null>(null)
 
 // connection to core ln node
 export const connection$ = new BehaviorSubject<LnMessage | null>(null)
+
+export const connected$ = connection$.pipe(
+  filter((x) => !!x),
+  switchMap((ln) => (ln ? ln.connected$.asObservable() : of(false))),
+  startWith(false)
+)
+
+connected$.subscribe((c) => alert(`connected: ${c}`))
 
 // key for decrypting stored data
 export const pin$ = new BehaviorSubject<string | null>(null)

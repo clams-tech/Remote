@@ -1871,7 +1871,7 @@ rune-decoder@0.0.1:
   resolved "https://registry.yarnpkg.com/rune-decoder/-/rune-decoder-0.0.1.tgz#aece33c976de8d2f09c0ea806d691b6b15689521"
   integrity sha512-977HZgB9dcWrNVI0x8feAVXQ5GjkziHYBGin3P89+SISgyExxkE6s7ybxI5QlysYBeossoqUuw+7jqumz0uGAg==
 
-rxjs@^7.5.5, rxjs@^7.5.6:
+rxjs@^7.5.5:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.5.6.tgz#0446577557862afd6903517ce7cae79ecb9662bc"
   integrity sha512-dnyv2/YsXhnm461G+R/Pe5bWP41Nm6LBXEYWI6eiFP4fiwx6WRI/CD0zbdVAudd9xwLEF2IDcKXLHit0FYjUzw==

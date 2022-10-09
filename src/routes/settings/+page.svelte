@@ -69,8 +69,7 @@
   }
 
   function handleDarkModeToggle() {
-    const toggled = toggle('darkmode')
-    document.documentElement.classList[toggled ? 'add' : 'remove']('dark')
+    toggle('darkmode')
   }
 </script>
 

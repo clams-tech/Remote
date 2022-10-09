@@ -391,12 +391,12 @@ export async function initLn(auth: Auth) {
       wsProxy: WS_PROXY,
       ip,
       port: port || 9735,
-      privateKey: auth.sessionSecret
-      // logger: {
-      //   info: console.log,
-      //   warn: console.warn,
-      //   error: console.error
-      // }
+      privateKey: auth.sessionSecret,
+      logger: {
+        info: console.log,
+        warn: console.warn,
+        error: console.error
+      }
     })
 
     await ln.connect()
