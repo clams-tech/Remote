@@ -8,7 +8,7 @@
   import Notifications from '$lib/components/Notifications.svelte'
   import { getDataFromStorage, isProtectedRoute } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
-  import { initialiseData } from '$lib/data'
+  import { initialiseData } from '$lib/lightning'
   import { Modals, type Auth } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'

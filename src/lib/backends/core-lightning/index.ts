@@ -1,7 +1,9 @@
+import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Payment } from '$lib/types'
-import { sortPaymentsMostRecent } from '$lib/utils'
+import type { Auth, Payment } from '$lib/types'
+import { parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
+import { WS_PROXY } from '$lib/constants'
 
 import type {
   GetinfoResponse,
@@ -12,33 +14,45 @@ import type {
   ListinvoicesResponse,
   ListpaysResponse,
   PayResponse,
-  RpcRequest,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
+import type { Logger } from 'lnmessage/dist/types'
 
 class CoreLn {
-  public initialised: boolean
-  public request: RpcRequest
+  public connection: LnMessage
   public rune: string
 
-  constructor() {
-    this.initialised = false
-    this.request = () => {
-      throw new Error('Must initialise before calling rpc methods')
-    }
+  constructor(auth: Auth, wsProxy = WS_PROXY, logger?: Logger) {
+    const { address, token, sessionSecret } = auth
+    const { publicKey, ip, port } = parseNodeAddress(address)
+
+    this.connection = new LnMessage({
+      remoteNodePublicKey: publicKey,
+      wsProxy,
+      ip,
+      port: port || 9735,
+      privateKey: sessionSecret,
+      logger: logger
+    })
+
+    this.rune = token
   }
 
-  init(options: { request: RpcRequest; rune: string }) {
-    const { request, rune } = options
+  setToken(token: string) {
+    this.rune = token
+  }
 
-    this.request = request
-    this.rune = rune
-    this.initialised = true
+  async connect() {
+    return this.connection.connect()
+  }
+
+  disconnect() {
+    return this.connection.disconnect()
   }
 
   async getInfo(): Promise<GetinfoResponse> {
-    const result = await this.request({ method: 'getinfo', rune: this.rune })
+    const result = await this.connection.commando({ method: 'getinfo', rune: this.rune })
     return result as GetinfoResponse
   }
 
@@ -46,7 +60,7 @@ class CoreLn {
     const { label, amount_msat, description } = params
     const startedAt = new Date().toISOString()
 
-    const result = await this.request({
+    const result = await this.connection.commando({
       method: 'invoice',
       params,
       rune: this.rune
@@ -76,7 +90,7 @@ class CoreLn {
   async waitForInvoicePayment(payment: Payment): Promise<Payment> {
     const { id } = payment
 
-    const result = await this.request({
+    const result = await this.connection.commando({
       method: 'waitinvoice',
       params: {
         label: id
@@ -97,7 +111,7 @@ class CoreLn {
   }
 
   async waitAnyInvoice(lastPayIndex: number): Promise<WaitAnyInvoiceResponse> {
-    const response = await this.request({
+    const response = await this.connection.commando({
       method: 'waitanyinvoice',
       params: { lastpay_index: lastPayIndex },
       rune: this.rune
@@ -113,7 +127,7 @@ class CoreLn {
   }): Promise<Payment> {
     const { bolt11, id, amount_msat: send_msat } = options
 
-    const result = await this.request({
+    const result = await this.connection.commando({
       method: 'pay',
       params: {
         label: id,
@@ -157,7 +171,7 @@ class CoreLn {
   }): Promise<Payment> {
     const { destination: send_destination, id, amount_msat: send_msat } = options
 
-    const result = await this.request({
+    const result = await this.connection.commando({
       method: 'keysend',
       params: {
         label: id,
@@ -204,21 +218,19 @@ class CoreLn {
   }
 
   async listInvoices(): Promise<ListinvoicesResponse> {
-    const result = await this.request({ method: 'listinvoices', rune: this.rune })
+    const result = await this.connection.commando({ method: 'listinvoices', rune: this.rune })
     return result as ListinvoicesResponse
   }
 
   async listPays(): Promise<ListpaysResponse> {
-    const result = await this.request({ method: 'listpays', rune: this.rune })
+    const result = await this.connection.commando({ method: 'listpays', rune: this.rune })
     return result as ListpaysResponse
   }
 
   async listFunds(): Promise<ListfundsResponse> {
-    const result = await this.request({ method: 'listfunds', rune: this.rune })
+    const result = await this.connection.commando({ method: 'listfunds', rune: this.rune })
     return result as ListfundsResponse
   }
 }
 
-const coreLn = new CoreLn()
-
-export default coreLn
+export default CoreLn

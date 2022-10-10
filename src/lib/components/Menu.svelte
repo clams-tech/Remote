@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { page } from '$app/stores'
-  import { refreshData } from '$lib/data'
+  import { refreshData } from '$lib/lightning'
   import Home from '$lib/icons/Home.svelte'
   import Refresh from '$lib/icons/Refresh.svelte'
   import Settings from '$lib/icons/Settings.svelte'

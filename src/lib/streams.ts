@@ -1,8 +1,7 @@
-import { BehaviorSubject, defer, fromEvent, of, Subject } from 'rxjs'
-import { map, shareReplay, startWith, switchMap, take, filter } from 'rxjs/operators'
+import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
+import { map, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
-import { invoiceToPayment } from './backends/core-lightning/utils'
-import { coreLn, type GetinfoResponse, type ListfundsResponse } from './backends'
+import type { GetinfoResponse, ListfundsResponse } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 
 import {
@@ -13,7 +12,6 @@ import {
   type Auth,
   type Settings
 } from './types'
-import type LnMessage from 'lnmessage'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -63,17 +61,6 @@ export const paymentUpdates$ = new Subject<Payment>()
 
 // core ln credentials
 export const auth$ = new BehaviorSubject<Auth | null>(null)
-
-// connection to core ln node
-export const connection$ = new BehaviorSubject<LnMessage | null>(null)
-
-export const connected$ = connection$.pipe(
-  filter((x) => !!x),
-  switchMap((ln) => (ln ? ln.connected$.asObservable() : of(false))),
-  startWith(false)
-)
-
-connected$.subscribe((c) => alert(`connected: ${c}`))
 
 // key for decrypting stored data
 export const pin$ = new BehaviorSubject<string | null>(null)
@@ -129,16 +116,6 @@ export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false
 // for all custom notifications such as errors and hints
 export const customNotifications$ = new Subject<Notification>()
 
-/** ==== STATE UPDATERS ==== */
-export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
-  try {
-    const update = await coreLn.waitForInvoicePayment(payment)
-    paymentUpdates$.next(update)
-  } catch (error) {
-    //
-  }
-}
-
 export function updatePayments(payment: Payment): void {
   const payments = payments$.getValue().data || []
   const paymentIndex = payments.findIndex(({ hash }) => hash === payment.hash)
@@ -152,19 +129,6 @@ export function updatePayments(payment: Payment): void {
   }
 
   payments$.next({ data: payments })
-}
-
-export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void> {
-  const invoice = await coreLn.waitAnyInvoice(payIndex)
-
-  if (invoice.status !== 'unpaid') {
-    const payment = invoiceToPayment(invoice)
-    paymentUpdates$.next(payment)
-  }
-
-  const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
-
-  return listenForAllInvoiceUpdates(newLastPayIndex)
 }
 
 export function updateAuth(update: Partial<Auth> | Auth): void {

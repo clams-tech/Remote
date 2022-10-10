@@ -2,12 +2,11 @@
   import { onMount, onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
-  import LnMessage from 'lnmessage'
   import { goto } from '$app/navigation'
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { connection$, modal$, settings$, updateAuth } from '$lib/streams'
+  import { auth$, modal$, settings$, updateAuth } from '$lib/streams'
   import Check from '$lib/icons/Check.svelte'
   import Close from '$lib/icons/Close.svelte'
   import Arrow from '$lib/icons/Arrow.svelte'
@@ -18,8 +17,8 @@
   import Info from '$lib/icons/Info.svelte'
   import Modal from '$lib/elements/Modal.svelte'
   import { Modals } from '$lib/types'
-  import { initialiseData } from '$lib/data'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
+  import { getLn, initialiseData } from '$lib/lightning'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
 
   import {
     formatDate,
@@ -75,26 +74,18 @@
     connectStatus = 'connecting'
 
     try {
-      const { publicKey, ip, port } = parseNodeAddress(address)
+      // set auth details to allow connection
+      auth$.next({ address, token: 'empty' })
 
-      // create connection to node
-      const ln = new LnMessage({
-        remoteNodePublicKey: publicKey,
-        wsProxy: WS_PROXY,
-        ip,
-        port: port || 9735
-      })
-
-      const connected = await ln.connect()
+      const lnApi = await getLn()
+      const connected = await lnApi.connection.connect()
 
       connectStatus = connected ? 'success' : 'fail'
 
       if (connectStatus === 'success') {
-        sessionPublicKey = ln.publicKey
-        sessionPrivateKey = ln.privateKey
+        sessionPublicKey = lnApi.connection.publicKey
+        sessionPrivateKey = lnApi.connection.privateKey
         step = 'token'
-
-        connection$.next(ln)
 
         setTimeout(() => {
           focusRuneInput()
@@ -102,11 +93,20 @@
       }
     } catch (error) {
       connectStatus = 'fail'
+    } finally {
+      // reset auth back to null as the saveRune method will set it
+      auth$.next(null)
     }
   }
 
-  function saveRune() {
+  async function saveRune() {
+    // set auth details
     updateAuth({ token, address, sessionSecret: sessionPrivateKey })
+
+    // update token to proper one
+    const lnApi = await getLn()
+    lnApi.setToken(token)
+
     initialiseData()
     goto('/')
   }

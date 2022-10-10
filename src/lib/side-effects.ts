@@ -1,7 +1,7 @@
-import { combineLatest, from, timer } from 'rxjs'
-import { filter, skip, switchMap, withLatestFrom } from 'rxjs/operators'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, initLn } from './utils'
-import type LnMessage from 'lnmessage'
+import { from, timer } from 'rxjs'
+import { distinctUntilChanged, filter, skip, switchMap } from 'rxjs/operators'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
+import { getLn, listenForAllInvoiceUpdates, updateFunds } from '$lib/lightning'
 
 import {
   AUTH_STORAGE_KEY,
@@ -16,13 +16,10 @@ import {
   appVisible$,
   bitcoinExchangeRates$,
   auth$,
-  listeningForAllInvoiceUpdates$,
   payments$,
   paymentUpdates$,
   settings$,
   updatePayments,
-  listenForAllInvoiceUpdates,
-  connection$,
   nodeInfo$,
   funds$,
   pin$
@@ -30,7 +27,11 @@ import {
 
 function registerSideEffects() {
   // update payments when payment update comes through
-  paymentUpdates$.subscribe(updatePayments)
+  paymentUpdates$.subscribe(async (update) => {
+    updatePayments(update)
+    const lnApi = await getLn()
+    updateFunds(lnApi)
+  })
 
   // update settings in storage
   settings$.pipe(filter((x) => !!x)).subscribe((update) => {
@@ -110,35 +111,26 @@ function registerSideEffects() {
     .pipe(switchMap(() => from(getBitcoinExchangeRate())))
     .subscribe(bitcoinExchangeRates$)
 
-  // when app is focused and have credentials and have payments, start listening if not already
-  combineLatest([appVisible$, auth$, payments$])
-    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
-    .subscribe(async ([[visible, auth, payments], listening]) => {
-      if (payments.data && !payments.error && visible && auth && auth.token && !listening) {
-        const lastPayIndex = deriveLastPayIndex(payments.data)
+  // manage connection based on app visibility
+  appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
+    const lnApi = await getLn()
 
-        await initLn(auth)
+    if (visible) {
+      // reconnect
+      lnApi.connect()
 
-        listeningForAllInvoiceUpdates$.next(true)
+      const payments = payments$.getValue().data
 
-        listenForAllInvoiceUpdates(lastPayIndex).catch(() => {
-          listeningForAllInvoiceUpdates$.next(false)
-        })
+      if (payments) {
+        // start listening for payment updates again
+        const lastPayIndex = deriveLastPayIndex(payments)
+        listenForAllInvoiceUpdates(lastPayIndex)
       }
-    })
-
-  combineLatest([appVisible$, connection$])
-    .pipe(
-      filter(
-        // app is visible, we have a connection, but it is not currently connected
-        ([visible, connection]) => !!(visible && connection && !connection.connected$.getValue())
-      )
-    )
-    .subscribe(async (values) => {
-      const ln = values[1]
-      alert('RECONNECTING WEBSOCKET')
-      await (ln as LnMessage).connect()
-    })
+    } else {
+      // disconnect
+      lnApi.disconnect()
+    }
+  })
 }
 
 export default registerSideEffects

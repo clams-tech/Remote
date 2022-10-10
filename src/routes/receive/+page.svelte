@@ -6,17 +6,17 @@
   import { goto } from '$app/navigation'
   import { BitcoinDenomination } from '$lib/types'
   import Slide from '$lib/elements/Slide.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLn } from '$lib/backends'
+  import { getLn, waitForAndUpdatePayment } from '$lib/lightning'
 
   import {
     listeningForAllInvoiceUpdates$,
     paymentUpdates$,
     settings$,
-    SvelteSubject,
-    waitForAndUpdatePayment
+    SvelteSubject
   } from '$lib/streams'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import { createUUID } from '$lib/utils'
 
   let requesting = false
 
@@ -61,11 +61,13 @@
     try {
       requesting = true
 
-      const payment = await coreLn.createInvoice({
+      const lnApi = await getLn()
+
+      const payment = await lnApi.createInvoice({
         amount_msat: amount_msat === '0' ? 'any' : amount_msat,
         description,
         expiry,
-        label: crypto.randomUUID()
+        label: createUUID()
       })
 
       // add to payments

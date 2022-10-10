@@ -2,10 +2,10 @@
   import { goto } from '$app/navigation'
   import PinEntry from '$lib/components/PinEntry.svelte'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
-  import { initialiseData } from '$lib/data'
+  import { initialiseData } from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
   import { auth$, customNotifications$, lastPath$, pin$ } from '$lib/streams'
-  import { getDataFromStorage, parseStoredAuth } from '$lib/utils'
+  import { createUUID, getDataFromStorage, parseStoredAuth } from '$lib/utils'
 
   let pin: string
   let reset: () => void
@@ -23,7 +23,7 @@
       goto($lastPath$)
     } else {
       customNotifications$.next({
-        id: window.crypto.randomUUID(),
+        id: createUUID(),
         type: 'error',
         heading: 'Decryption Error',
         message: 'Incorrect pin number'

@@ -2,17 +2,13 @@ import CryptoJS from 'crypto-js'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import { coreLn, type ListfundsResponse } from './backends'
-import { connection$ } from './streams'
-import LnMessage from 'lnmessage'
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
+import type { ListfundsResponse } from './backends'
 
 import {
   ALL_DATA_KEYS,
   COINBASE_PRICE_ENDPOINT,
   COIN_GECKO_PRICE_ENDPOINT,
-  ENCRYPTED_DATA_KEYS,
-  WS_PROXY
+  ENCRYPTED_DATA_KEYS
 } from './constants'
 
 import {
@@ -67,6 +63,14 @@ export function formatDecodedInvoice(decodedInvoice: {
   }, {} as FormattedSections)
 
   return { paymentRequest, ...formattedSections }
+}
+
+export function deriveLastPayIndex(payments: Payment[]): number {
+  return payments.length
+    ? payments.reduce((currentHighestIndex, { payIndex }) => {
+        return payIndex && payIndex > currentHighestIndex ? payIndex : currentHighestIndex
+      }, 0)
+    : 0
 }
 
 export function truncateValue(request: string): string {
@@ -321,14 +325,6 @@ export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | n
 
 export const noop = () => {}
 
-export function deriveLastPayIndex(payments: Payment[]): number {
-  return payments.length
-    ? payments.reduce((currentHighestIndex, { payIndex }) => {
-        return payIndex && payIndex > currentHighestIndex ? payIndex : currentHighestIndex
-      }, 0)
-    : 0
-}
-
 export function isPWA(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches
 }
@@ -378,41 +374,6 @@ export function resetApp() {
   window.location.reload()
 }
 
-export async function initLn(auth: Auth) {
-  let ln = connection$.getValue()
-
-  // create connection to node if there is no connection
-  if (!ln) {
-    const { publicKey, ip, port } = parseNodeAddress(auth.address)
-
-    // create connection to node
-    ln = new LnMessage({
-      remoteNodePublicKey: publicKey,
-      wsProxy: WS_PROXY,
-      ip,
-      port: port || 9735,
-      privateKey: auth.sessionSecret,
-      logger: {
-        info: console.log,
-        warn: console.warn,
-        error: console.error
-      }
-    })
-
-    await ln.connect()
-
-    connection$.next(ln)
-  }
-
-  // init coreLn service
-  coreLn.init({
-    request: (request: JsonRpcRequest & { rune: string }) => (ln as LnMessage).commando(request),
-    rune: auth.token
-  })
-
-  return coreLn
-}
-
 export function isProtectedRoute(route: string): boolean {
   switch (route) {
     case '/connect':
@@ -422,4 +383,13 @@ export function isProtectedRoute(route: string): boolean {
     default:
       return true
   }
+}
+
+function toHexString(byteArray: Uint8Array) {
+  return byteArray.reduce((output, elem) => output + ('0' + elem.toString(16)).slice(-2), '')
+}
+
+export function createUUID() {
+  const bytes = new Uint8Array(32)
+  return toHexString(crypto.getRandomValues(bytes))
 }

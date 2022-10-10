@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Big from 'big.js'
   import { goto } from '$app/navigation'
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
@@ -10,8 +11,8 @@
   import Description from '$lib/components/Description.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLn } from '$lib/backends'
-  import Big from 'big.js'
+  import { getLn } from '$lib/lightning'
+  import { createUUID } from '$lib/utils'
 
   let previousSlide = 0
   let slide = 0
@@ -61,11 +62,13 @@
 
     try {
       let paymentId
+      const lnApi = await getLn()
 
       switch (type) {
         case 'payment_request': {
-          const id = crypto.randomUUID()
-          const payment = await coreLn.payInvoice({
+          const id = createUUID()
+
+          const payment = await lnApi.payInvoice({
             id,
             bolt11: destination,
             amount_msat:
@@ -88,8 +91,9 @@
           break
         }
         case 'node_public_key': {
-          const id = crypto.randomUUID()
-          const payment = await coreLn.payKeysend({
+          const id = createUUID()
+
+          const payment = await lnApi.payKeysend({
             id,
             destination,
             amount_msat: Big(

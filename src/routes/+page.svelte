@@ -48,7 +48,7 @@
     >
   {/if}
 
-  {#if $funds$.loading}
+  {#if $funds$.loading && !$funds$.data}
     <div in:fade class="p-6">
       <Spinner />
     </div>

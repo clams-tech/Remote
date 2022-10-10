@@ -62,7 +62,7 @@
       <div class="absolute right-1 w-8 text-neutral-400"><Search /></div>
     </div>
 
-    {#if $payments$.loading}
+    {#if $payments$.loading && !$payments$.data}
       <Spinner />
     {:else if $payments$.error}
       <ErrorMsg message={$payments$.error} />

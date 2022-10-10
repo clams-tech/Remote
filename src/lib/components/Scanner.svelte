@@ -4,7 +4,7 @@
   import { translate } from '$lib/i18n/translations'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { goto } from '$app/navigation'
-  import { userAgent } from '$lib/utils'
+  import { createUUID, userAgent } from '$lib/utils'
   import { customNotifications$ } from '$lib/streams'
 
   export let onResult
@@ -41,7 +41,7 @@
 
     if (!supported) {
       customNotifications$.next({
-        id: window.crypto.randomUUID(),
+        id: createUUID(),
         type: 'error',
         heading: $translate('app.errors.camera'),
         message: $translate('app.errors.camera_browser_support')
@@ -84,7 +84,7 @@
       tick()
     } catch (error) {
       customNotifications$.next({
-        id: window.crypto.randomUUID(),
+        id: createUUID(),
         type: 'error',
         heading: $translate('app.errors.camera'),
         message: $translate('app.errors.camera_permissions')
