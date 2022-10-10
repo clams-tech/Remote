@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition'
   import { goto } from '$app/navigation'
   import PinEntry from '$lib/components/PinEntry.svelte'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
@@ -38,7 +39,7 @@
   <title>{$translate('app.titles.decrypt')}</title>
 </svelte:head>
 
-<section class="flex flex-col justify-center items-start w-full h-full p-6 max-w-xl">
+<section in:fade class="flex flex-col justify-center items-start w-full h-full p-6 max-w-xl">
   <div class="mb-6">
     <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.decrypt')}</h1>
     <p class="text-neutral-600 dark:text-neutral-300 ">

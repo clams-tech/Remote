@@ -32,7 +32,8 @@ function registerSideEffects() {
 
     if (update.status === 'complete') {
       const lnApi = await getLn()
-      updateFunds(lnApi)
+      // delay 1 second to allow for updated data from node
+      setTimeout(() => updateFunds(lnApi), 1000)
     }
   })
 

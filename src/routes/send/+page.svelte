@@ -114,7 +114,8 @@
         }
       }
 
-      updateFunds(lnApi)
+      // delay to allow time for node to update
+      setTimeout(() => updateFunds(lnApi), 1000)
       goto(`/payments/${paymentId}`)
     } catch (error) {
       requesting = false

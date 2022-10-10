@@ -62,7 +62,9 @@
       initialiseData()
     }
 
-    loading = false
+    setTimeout(() => {
+      loading = false
+    }, 4000)
   }
 </script>
 
