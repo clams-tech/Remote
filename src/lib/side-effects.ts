@@ -29,8 +29,11 @@ function registerSideEffects() {
   // update payments when payment update comes through
   paymentUpdates$.subscribe(async (update) => {
     updatePayments(update)
-    const lnApi = await getLn()
-    updateFunds(lnApi)
+
+    if (update.status === 'complete') {
+      const lnApi = await getLn()
+      updateFunds(lnApi)
+    }
   })
 
   // update settings in storage

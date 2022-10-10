@@ -11,7 +11,7 @@
   import Description from '$lib/components/Description.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { getLn } from '$lib/lightning'
+  import { getLn, updateFunds } from '$lib/lightning'
   import { createUUID } from '$lib/utils'
 
   let previousSlide = 0
@@ -114,6 +114,7 @@
         }
       }
 
+      updateFunds(lnApi)
       goto(`/payments/${paymentId}`)
     } catch (error) {
       requesting = false
