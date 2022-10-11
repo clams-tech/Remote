@@ -16,7 +16,7 @@
     settings$,
     SvelteSubject
   } from '$lib/streams'
-  import { createUUID } from '$lib/utils'
+  import { createRandomHex } from '$lib/utils'
 
   let requesting = false
 
@@ -67,7 +67,7 @@
         amount_msat: amount_msat === '0' ? 'any' : amount_msat,
         description,
         expiry,
-        label: createUUID()
+        label: createRandomHex()
       })
 
       // add to payments

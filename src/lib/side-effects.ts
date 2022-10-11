@@ -1,6 +1,12 @@
 import { from, timer } from 'rxjs'
 import { distinctUntilChanged, filter, skip, switchMap } from 'rxjs/operators'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate } from './utils'
+import {
+  deriveLastPayIndex,
+  encryptWithAES,
+  formatLog,
+  getBitcoinExchangeRate,
+  logger
+} from './utils'
 import { getLn, listenForAllInvoiceUpdates, updateFunds } from '$lib/lightning'
 
 import {
@@ -22,7 +28,8 @@ import {
   updatePayments,
   nodeInfo$,
   funds$,
-  pin$
+  pin$,
+  disconnect$
 } from './streams'
 
 function registerSideEffects() {
@@ -120,6 +127,8 @@ function registerSideEffects() {
     const lnApi = await getLn()
 
     if (visible) {
+      logger.info(formatLog('INFO', 'App is visible, reconnecting to node'))
+
       // reconnect
       lnApi.connect()
 
@@ -131,8 +140,15 @@ function registerSideEffects() {
         listenForAllInvoiceUpdates(lastPayIndex)
       }
     } else {
+      logger.info(
+        formatLog(
+          'INFO',
+          'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
+        )
+      )
       // disconnect
       lnApi.disconnect()
+      disconnect$.next()
     }
   })
 }

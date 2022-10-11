@@ -18,7 +18,7 @@
   import Modal from '$lib/elements/Modal.svelte'
   import { Modals } from '$lib/types'
   import { getLn, initialiseData } from '$lib/lightning'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+  import { AUTH_STORAGE_KEY, DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
 
   import {
     formatDate,
@@ -96,6 +96,7 @@
     } finally {
       // reset auth back to null as the saveRune method will set it
       auth$.next(null)
+      localStorage.removeItem(AUTH_STORAGE_KEY)
     }
   }
 

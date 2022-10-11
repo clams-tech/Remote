@@ -40,7 +40,8 @@
       label: $translate('app.labels.dark_mode'),
       toggle: handleDarkModeToggle,
       toggled: $settings$.darkmode
-    }
+    },
+    { label: $translate('app.labels.logs'), route: 'settings/logs' }
   ]
 
   async function handleEncryptToggle() {

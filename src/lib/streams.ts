@@ -1,5 +1,5 @@
-import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
-import { map, shareReplay, startWith, take } from 'rxjs/operators'
+import { BehaviorSubject, defer, fromEvent, Observable, Subject } from 'rxjs'
+import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import type { GetinfoResponse, ListfundsResponse } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
@@ -64,6 +64,31 @@ export const auth$ = new BehaviorSubject<Auth | null>(null)
 
 // key for decrypting stored data
 export const pin$ = new BehaviorSubject<string | null>(null)
+
+// debug logs
+export const log$ = new Subject<string>()
+
+// disconnect from node event
+export const disconnect$ = new Subject<void>()
+
+export const recentLogs$: Observable<string[]> = log$.pipe(
+  scan((allLogs, newLog) => {
+    if (newLog === 'CLEAR_ALL_LOGS') return []
+
+    allLogs.push(newLog)
+
+    while (allLogs.length > 50) {
+      allLogs.shift()
+    }
+
+    return allLogs
+  }, [] as string[]),
+  shareReplay(1),
+  startWith([])
+)
+
+// subscribe to ensure that we start collecting logs
+recentLogs$.subscribe()
 
 // ==== NODE DATA ==== //
 export const nodeInfo$ = new BehaviorSubject<{

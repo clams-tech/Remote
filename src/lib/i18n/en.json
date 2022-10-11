@@ -15,7 +15,8 @@
     "settings_help": "Help",
     "settings_currency": "Currency Settings",
     "settings_language": "Language Settings",
-    "settings_unit": "Unit Settings"
+    "settings_unit": "Unit Settings",
+    "settings_logs": "Debug Logs"
   },
   "inputs": {
     "destination": {
@@ -73,7 +74,8 @@
     "commonly_used": "Commonly Used",
     "all_options": "All Options",
     "rune_summary": "Rune Summary",
-    "version": "Version"
+    "version": "Version",
+    "logs": "Debug Logs"
   },
   "time": {
     "mins": "mins"

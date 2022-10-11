@@ -41,6 +41,7 @@ import {
   ta,
   ko
 } from 'date-fns/locale'
+import { log$ } from './streams'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
@@ -378,7 +379,6 @@ export function isProtectedRoute(route: string): boolean {
   switch (route) {
     case '/connect':
     case '/welcome':
-    case '/decrypt':
       return false
     default:
       return true
@@ -389,7 +389,17 @@ function toHexString(byteArray: Uint8Array) {
   return byteArray.reduce((output, elem) => output + ('0' + elem.toString(16)).slice(-2), '')
 }
 
-export function createUUID() {
-  const bytes = new Uint8Array(32)
+export function createRandomHex(length = 32) {
+  const bytes = new Uint8Array(length)
   return toHexString(crypto.getRandomValues(bytes))
+}
+
+export function formatLog(type: 'INFO' | 'WARN' | 'ERROR', msg: string): string {
+  return `[${type} - ${new Date().toLocaleTimeString()}]: ${msg}`
+}
+
+export const logger = {
+  info: (msg: string) => log$.next(msg),
+  warn: (msg: string) => log$.next(msg),
+  error: (msg: string) => log$.next(msg)
 }

@@ -6,7 +6,7 @@
   import { initialiseData } from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
   import { auth$, customNotifications$, lastPath$, pin$ } from '$lib/streams'
-  import { createUUID, getDataFromStorage, parseStoredAuth } from '$lib/utils'
+  import { createRandomHex, getDataFromStorage, parseStoredAuth } from '$lib/utils'
 
   let pin: string
   let reset: () => void
@@ -24,7 +24,7 @@
       goto($lastPath$)
     } else {
       customNotifications$.next({
-        id: createUUID(),
+        id: createRandomHex(),
         type: 'error',
         heading: 'Decryption Error',
         message: 'Incorrect pin number'

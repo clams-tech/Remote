@@ -12,7 +12,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import { getLn, updateFunds } from '$lib/lightning'
-  import { createUUID } from '$lib/utils'
+  import { createRandomHex } from '$lib/utils'
 
   let previousSlide = 0
   let slide = 0
@@ -66,7 +66,7 @@
 
       switch (type) {
         case 'payment_request': {
-          const id = createUUID()
+          const id = createRandomHex()
 
           const payment = await lnApi.payInvoice({
             id,
@@ -91,7 +91,7 @@
           break
         }
         case 'node_public_key': {
-          const id = createUUID()
+          const id = createRandomHex()
 
           const payment = await lnApi.payKeysend({
             id,

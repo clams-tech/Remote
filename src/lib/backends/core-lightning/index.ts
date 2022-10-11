@@ -4,6 +4,7 @@ import type { Auth, Payment } from '$lib/types'
 import { parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
 import { WS_PROXY } from '$lib/constants'
+import type { Logger } from 'lnmessage/dist/types'
 
 import type {
   GetinfoResponse,
@@ -17,7 +18,6 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
-import type { Logger } from 'lnmessage/dist/types'
 
 class CoreLn {
   public connection: LnMessage

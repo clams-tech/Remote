@@ -9,7 +9,7 @@
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
-  import { createUUID, formatDecodedInvoice } from '$lib/utils'
+  import { createRandomHex, formatDecodedInvoice } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
   import { getLn } from '$lib/lightning'
 
@@ -74,7 +74,7 @@
     errorMsg = ''
     requesting = true
 
-    const id = createUUID()
+    const id = createRandomHex()
 
     try {
       const lnApi = await getLn()
