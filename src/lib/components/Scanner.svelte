@@ -51,9 +51,6 @@
     }
 
     try {
-      // const devices = await navigator.mediaDevices.enumerateDevices()
-      // const videoDevices = devices.filter(({ kind }) => kind === 'videoinput')
-      console.log('getting access to camera stream')
       stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' }
@@ -61,16 +58,12 @@
         audio: false
       })
 
-      console.log({ stream })
-
       video.disablePictureInPicture = true
       video.playsInline = true
       video.muted = true
       video.srcObject = stream
 
-      console.log('starting video playback')
       await video.play()
-      console.log('video playing')
 
       scanRegion = calculateScanRegion(video)
       copyRegion = calculateCopyRegion(video)

@@ -32,6 +32,20 @@
   $: if (pin.length === length) {
     setTimeout(() => dispatch('complete'), 250)
   }
+
+  function handlePinEntry(val: number) {
+    return () => {
+      if (pin.length < length) {
+        pin += val
+      }
+    }
+  }
+
+  function handleClear() {
+    if (pin.length > 0) {
+      pin = pin.slice(0, pin.length - 1)
+    }
+  }
 </script>
 
 <div class="flex flex-col items-center">
@@ -63,11 +77,7 @@
       <div
         class:justify-center={main === 0}
         class="flex flex-col items-center justify-start m-1 w-16 h-16 md:w-20 md:h-20 border rounded-lg p-2 md:p-4 active:bg-neutral-100 dark:active:bg-neutral-800 cursor-pointer transition-colors"
-        on:click={() => {
-          if (pin.length < length) {
-            pin += main
-          }
-        }}
+        on:pointerdown={handlePinEntry(main)}
       >
         <div class="text-xl md:text-2xl">{main}</div>
         <div class=" text-[12px] md:text-xs text-neutral-500">{sub}</div>
@@ -76,11 +86,7 @@
 
     <div
       class="w-16 h-16 md:w-20 md:h-20 border rounded absolute bottom-0 md:right-1 right-7 flex m-1 items-center justify-center cursor-pointer "
-      on:click={() => {
-        if (pin.length > 0) {
-          pin = pin.slice(0, pin.length - 1)
-        }
-      }}
+      on:pointerdown={handleClear}
     >
       <div class="w-6">
         <Clear />

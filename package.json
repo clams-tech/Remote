@@ -1,9 +1,10 @@
 {
   "name": "browser-app",
-  "version": "0.0.1-0.5.14",
+  "version": "0.0.1-0.6.14",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build-staging": "vite build --mode staging",
     "package": "svelte-kit package",
     "preview": "vite preview",
     "prepare": "husky install",

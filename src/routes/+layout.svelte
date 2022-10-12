@@ -6,16 +6,17 @@
   import registerSideEffects from '$lib/side-effects'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
-  import { getDataFromStorage, isProtectedRoute } from '$lib/utils'
+  import { getDataFromStorage, isProtectedRoute, loadVConsole } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
   import { initialiseData } from '$lib/lightning'
   import { Modals, type Auth } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import Vconsole from 'vconsole'
 
   let loading = true
+  let innerHeight = window.innerHeight
+  let innerWidth = window.innerWidth
 
   beforeNavigate(({ from }) => {
     if (from) {
@@ -27,7 +28,10 @@
 
   if (browser) {
     initialise()
-    new Vconsole()
+
+    if (import.meta.env.MODE === 'staging') {
+      loadVConsole()
+    }
   }
 
   async function initialise() {
@@ -63,17 +67,20 @@
 
     setTimeout(() => {
       loading = false
-    }, 4000)
+    }, 3200)
   }
 </script>
 
+<svelte:window bind:innerHeight bind:innerWidth />
+
 <div
-  class="flex w-screen h-screen flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative"
+  style="width: {innerWidth}px; height: {innerHeight}px;"
+  class="flex w-screen h-screen flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative overflow-hidden"
 >
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
       <div class="w-2/3 max-w-md">
-        <ClamsLogo />
+        <ClamsLogo min={1} max={4} />
       </div>
     </div>
   {:else}

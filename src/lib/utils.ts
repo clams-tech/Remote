@@ -399,7 +399,12 @@ export function formatLog(type: 'INFO' | 'WARN' | 'ERROR', msg: string): string 
 }
 
 export const logger = {
-  info: (msg: string) => log$.next(msg),
-  warn: (msg: string) => log$.next(msg),
-  error: (msg: string) => log$.next(msg)
+  info: (msg: string) => log$.next(formatLog('INFO', msg)),
+  warn: (msg: string) => log$.next(formatLog('WARN', msg)),
+  error: (msg: string) => log$.next(formatLog('ERROR', msg))
+}
+
+export async function loadVConsole() {
+  const { default: VConsole } = await import('vconsole')
+  new VConsole()
 }

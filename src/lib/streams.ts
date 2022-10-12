@@ -68,6 +68,11 @@ export const pin$ = new BehaviorSubject<string | null>(null)
 // debug logs
 export const log$ = new Subject<string>()
 
+// log to console in staging
+if (import.meta.env.MODE === 'staging') {
+  log$.subscribe(console.log)
+}
+
 // disconnect from node event
 export const disconnect$ = new Subject<void>()
 

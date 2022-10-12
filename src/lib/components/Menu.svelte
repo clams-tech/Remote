@@ -19,7 +19,7 @@
 </script>
 
 <div class="flex flex-col items-center justify-center">
-  {#if path !== '/' && isProtectedRoute(path)}
+  {#if path !== '/' && path !== '/decrypt' && isProtectedRoute(path)}
     <a href="/">
       <div in:fade class="w-8">
         <Home />

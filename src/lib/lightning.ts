@@ -1,10 +1,16 @@
-import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
+import { firstValueFrom } from 'rxjs'
+import type { GetinfoResponse, ListfundsResponse, LnAPI } from './backends'
+import type { Payment } from './types'
+import { initLn } from '$lib/backends'
+import { invoiceToPayment } from './backends/core-lightning/utils'
+
 import {
   FUNDS_STORAGE_KEY,
   INFO_STORAGE_KEY,
   LISTEN_INVOICE_STORAGE_KEY,
   PAYMENTS_STORAGE_KEY
 } from './constants'
+
 import {
   auth$,
   disconnect$,
@@ -15,20 +21,14 @@ import {
   paymentUpdates$,
   pin$
 } from './streams'
-import type { Payment } from './types'
+
 import {
   createRandomHex,
   decryptWithAES,
   deriveLastPayIndex,
-  formatLog,
   getDataFromStorage,
   logger
 } from './utils'
-import { initLn } from '$lib/backends'
-import { invoiceToPayment } from './backends/core-lightning/utils'
-import { firstValueFrom } from 'rxjs'
-import { filter, map, tap } from 'rxjs/operators'
-import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
 
 let LN: LnAPI | null = null
 
@@ -90,14 +90,14 @@ export async function initialiseData() {
 }
 
 export async function refreshData() {
-  logger.info(formatLog('INFO', 'Refreshing data'))
+  logger.info('Refreshing data')
   const lnApi = await getLn()
 
   await updateFunds(lnApi)
   await updateInfo(lnApi)
   await updatePayments(lnApi)
 
-  logger.info(formatLog('INFO', 'Refresh data complete'))
+  logger.info('Refresh data complete')
 }
 
 export async function updateFunds(lnApi: LnAPI) {
@@ -146,7 +146,7 @@ export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void
 
   // make a listen request for this pay index
   try {
-    logger.info(formatLog('INFO', `Listening for invoice updates after pay index: ${payIndex}`))
+    logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
 
     const reqId = createRandomHex(8)
     localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
@@ -155,7 +155,7 @@ export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void
     // disconnected
     if (!invoice) return
 
-    logger.info(formatLog('INFO', `Invoice update received with status: ${invoice.status}`))
+    logger.info(`Invoice update received with status: ${invoice.status}`)
 
     if (invoice.status !== 'unpaid') {
       const payment = invoiceToPayment(invoice)
