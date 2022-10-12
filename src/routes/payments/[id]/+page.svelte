@@ -31,7 +31,7 @@
 <section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-xl">
   <BackButton on:click={handleClose} />
 
-  {#if $payments$.loading}
+  {#if $payments$.loading && !$payments$.data}
     <div class="w-full h-full flex items-center justify-center">
       <Spinner />
     </div>

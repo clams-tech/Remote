@@ -1,28 +1,39 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
   import { goto } from '$app/navigation'
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { updateCredentials } from '$lib/streams'
-  import { coreLightning, type Socket } from '$lib/backends'
-  import { truncateValue, validateConnectionString } from '$lib/utils'
+  import { auth$, modal$, settings$, updateAuth } from '$lib/streams'
   import Check from '$lib/icons/Check.svelte'
   import Close from '$lib/icons/Close.svelte'
   import Arrow from '$lib/icons/Arrow.svelte'
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Warning from '$lib/icons/Warning.svelte'
-  import { onMount } from 'svelte'
+  import Copy from '$lib/icons/Copy.svelte'
   import Info from '$lib/icons/Info.svelte'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+  import Modal from '$lib/elements/Modal.svelte'
+  import { Modals } from '$lib/types'
+  import { getLn, initialiseData } from '$lib/lightning'
+  import { AUTH_STORAGE_KEY, DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+
+  import {
+    formatDate,
+    parseNodeAddress,
+    truncateValue,
+    validateParsedNodeAddress,
+    writeClipboardValue
+  } from '$lib/utils'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
-  type Step = 'connect' | 'rune'
+  type Step = 'connect' | 'token'
 
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
+  let blurRuneInput: () => void
 
   onMount(async () => {
     // wait for animation to complete to focus
@@ -31,50 +42,111 @@
 
   let step: Step = 'connect'
 
-  let connection = ''
-  let validConnection = false
+  let address = ''
+  let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
+  let sessionPublicKey: string
+  let sessionPrivateKey: string
+  let copySuccess = false
+  let copyAnimationTimeout: NodeJS.Timeout
 
-  $: if (connection) {
-    connectStatus = 'idle'
-    validConnection = validateConnectionString(connection)
+  $: if (address) {
+    try {
+      validAddress = validateParsedNodeAddress(parseNodeAddress(address))
+    } catch {
+      validAddress = false
+    }
   }
 
-  let rune = ''
+  let token = ''
   let decodedRune: DecodedRune | null = null
 
-  $: if (rune) {
-    decodedRune = decode(rune)
+  $: if (token) {
+    decodedRune = decode(token)
+
+    if (decodedRune) {
+      blurRuneInput()
+      modal$.next(Modals.runeSummary)
+    }
   }
 
   async function attemptConnect() {
     connectStatus = 'connecting'
 
     try {
-      const connectOptions = coreLightning.connectionToConnectOptions(connection)
+      // set auth details to allow connection
+      auth$.next({ address, token: 'empty' })
 
-      const lnsocket = await Promise.race([
-        coreLightning.connect(connectOptions),
-        new Promise((res, reject) => setTimeout(reject, 10000))
-      ])
+      const lnApi = await getLn()
+      const connected = await lnApi.connection.connect()
 
-      connectStatus = 'success'
-      ;(lnsocket as Socket).destroy()
-      updateCredentials({ connection })
+      connectStatus = connected ? 'success' : 'fail'
+
+      if (connectStatus === 'success') {
+        sessionPublicKey = lnApi.connection.publicKey
+        sessionPrivateKey = lnApi.connection.privateKey
+        step = 'token'
+
+        setTimeout(() => {
+          focusRuneInput()
+        }, 500)
+      }
     } catch (error) {
       connectStatus = 'fail'
+    } finally {
+      // reset auth back to null as the saveRune method will set it
+      auth$.next(null)
+      localStorage.removeItem(AUTH_STORAGE_KEY)
     }
   }
 
-  function saveRune() {
-    updateCredentials({ rune })
+  async function saveRune() {
+    // set auth details
+    updateAuth({ token, address, sessionSecret: sessionPrivateKey })
+
+    // update token to proper one
+    const lnApi = await getLn()
+    lnApi.setToken(token)
+
+    initialiseData()
     goto('/')
+  }
+
+  async function copyPublicKey() {
+    copySuccess = await writeClipboardValue(sessionPublicKey)
+
+    if (copySuccess) {
+      copyAnimationTimeout = setTimeout(() => (copySuccess = false), 3000)
+    }
+  }
+
+  onDestroy(() => {
+    copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
+  })
+
+  let connectButton: Button
+  let saveRuneButton: Button
+
+  function handleKeyPress(ev: KeyboardEvent) {
+    if (ev.key === 'Enter') {
+      if (step === 'connect' && connectStatus !== 'connecting') {
+        validAddress && connectButton.click()
+        return
+      }
+
+      if (step === 'token') {
+        decodedRune && saveRuneButton.click()
+        return
+      }
+    }
   }
 </script>
 
 <svelte:head>
   <title>{$translate('app.titles.connect')}</title>
 </svelte:head>
+
+<svelte:window on:keydown={handleKeyPress} />
 
 {#if step === 'connect'}
   <Slide>
@@ -101,15 +173,13 @@
       <div class="w-full">
         <div class="relative w-full flex flex-col">
           <TextInput
-            name="connection"
+            name="address"
             type="textarea"
             rows={6}
             label={$translate('app.inputs.node_connect.label')}
-            invalid={connection && !validConnection
-              ? $translate('app.inputs.node_connect.invalid')
-              : ''}
+            invalid={address && !validAddress ? $translate('app.inputs.node_connect.invalid') : ''}
             placeholder={$translate('app.inputs.node_connect.placeholder')}
-            bind:value={connection}
+            bind:value={address}
             bind:focus={focusConnectionInput}
           />
 
@@ -134,43 +204,50 @@
         </div>
 
         <div class="w-full mt-6">
-          {#if connectStatus === 'success'}
-            <Button
-              on:click={() => {
-                step = 'rune'
-                setTimeout(focusRuneInput, 500)
-              }}
-              text={$translate('app.buttons.add_rune')}
-            >
-              <div slot="iconRight" class="w-6">
-                <Arrow direction="right" />
-              </div>
-            </Button>
-          {:else}
-            <Button
-              disabled={!validConnection}
-              on:click={attemptConnect}
-              requesting={connectStatus === 'connecting'}
-              text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
-            />
-          {/if}
+          <Button
+            bind:this={connectButton}
+            disabled={!validAddress}
+            on:click={attemptConnect}
+            requesting={connectStatus === 'connecting'}
+            text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
+          />
         </div>
       </div>
     </section>
   </Slide>
 {/if}
 
-{#if step === 'rune'}
+{#if step === 'token'}
   <Slide
     back={() => {
       step = 'connect'
     }}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-xl">
-      <div class="mb-6">
-        <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
-        <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
-      </div>
+    <section
+      class="flex flex-col justify-center items-start w-full h-full px-6 pb-4 pt-10 max-w-xl"
+    >
+      <div class="h-8" />
+
+      <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
+      <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
+
+      {#if sessionPublicKey}
+        <div on:click={copyPublicKey} class="relative flex items-center w-full my-4">
+          <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
+
+          <div class:text-utility-success={copySuccess}>
+            {#if copySuccess}
+              <div in:fade class="w-8">
+                <Check />
+              </div>
+            {:else}
+              <div in:fade class="w-8">
+                <Copy />
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/if}
 
       <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
         <div class="w-5 mr-2 border-2 rounded-full border-current">
@@ -184,71 +261,105 @@
       <div class="w-full">
         <div class="relative w-full">
           <TextInput
-            name="rune"
+            name="token"
             type="textarea"
-            rows={6}
+            rows={3}
             label={$translate('app.inputs.add_rune.label')}
             placeholder={$translate('app.inputs.add_rune.placeholder')}
-            bind:value={rune}
+            bind:value={token}
             bind:focus={focusRuneInput}
+            bind:blur={blurRuneInput}
           />
         </div>
+      </div>
 
-        {#if decodedRune}
-          <div in:fade class="w-full mt-6">
-            <h4 class="font-semibold mb-2">{$translate('app.labels.summary')}</h4>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.id')}</span>
-              <span slot="value">{decodedRune.id}</span>
-            </SummaryRow>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.hash')}</span>
-              <span slot="value">{truncateValue(decodedRune.hash)}</span>
-            </SummaryRow>
-
-            <SummaryRow>
-              <span slot="label">{$translate('app.labels.restrictions')}</span>
-              <p slot="value">
-                {#if decodedRune.restrictions.length === 0}
-                  <div class="flex items-center">
-                    <div class="w-4 mr-2 text-utility-pending">
-                      <Warning />
-                    </div>
-                    <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
-                  </div>
-                {:else}
-                  {@html decodedRune.restrictions
-                    .map(({ summary }) => {
-                      const alternatives = summary.split(' OR ')
-
-                      return alternatives
-                        .map((alternative) => {
-                          const words = alternative.split(' ')
-                          const wordsBold = words.map((w, i) =>
-                            i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
-                          )
-
-                          return wordsBold.join(' ')
-                        })
-                        .join('<i><br>OR<br></i>')
-                    })
-                    .join('<i><br>AND<br></i>')}
-                {/if}
-              </p>
-            </SummaryRow>
+      <div class="w-full mt-6">
+        <Button
+          bind:this={saveRuneButton}
+          on:click={saveRune}
+          text={$translate('app.buttons.save')}
+        >
+          <div slot="iconRight" class="w-6">
+            <Arrow direction="right" />
           </div>
-        {/if}
-
-        <div class="mt-6">
-          <Button on:click={saveRune} text={$translate('app.buttons.save')} disabled={!decodedRune}>
-            <div slot="iconRight" class="w-6">
-              <Arrow direction="right" />
-            </div>
-          </Button>
-        </div>
+        </Button>
       </div>
     </section>
   </Slide>
+{/if}
+
+{#if $modal$ === Modals.runeSummary && decodedRune}
+  <Modal>
+    <div in:fade class="w-[25rem] max-w-full">
+      <h4 class="font-semibold mb-2 w-full text-lg">{$translate('app.labels.rune_summary')}</h4>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.id')}</span>
+        <span slot="value">{decodedRune.id}</span>
+      </SummaryRow>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.hash')}</span>
+        <span slot="value">{truncateValue(decodedRune.hash)}</span>
+      </SummaryRow>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.restrictions')}</span>
+        <p slot="value">
+          {#if decodedRune.restrictions.length === 0}
+            <div class="flex items-center">
+              <div class="w-4 mr-2 text-utility-pending">
+                <Warning />
+              </div>
+              <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
+            </div>
+          {:else}
+            {@html decodedRune.restrictions
+              .map(({ summary }) => {
+                const alternatives = summary.split(' OR ')
+
+                return alternatives
+                  .map((alternative) => {
+                    let words = alternative.split(' ')
+                    const lastIndex = words.length - 1
+                    const lastValue = words[lastIndex]
+
+                    // format rate limit
+                    if (words[0] === 'rate') {
+                      words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+                    }
+
+                    // format id
+                    if (words[0] === 'id') {
+                      words[lastIndex] = truncateValue(lastValue)
+                    }
+
+                    // format time
+                    if (words[0] === 'time') {
+                      const timeMs = parseInt(lastValue) * 1000
+
+                      words = [
+                        'valid',
+                        'until',
+                        formatDate({
+                          date: new Date(timeMs).toISOString(),
+                          language: $settings$.language
+                        })
+                      ]
+                    }
+
+                    const wordsBold = words.map((w, i) =>
+                      i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
+                    )
+
+                    return wordsBold.join(' ')
+                  })
+                  .join('<i><br>OR<br></i>')
+              })
+              .join('<i><br>AND<br></i>')}
+          {/if}
+        </p>
+      </SummaryRow>
+    </div>
+  </Modal>
 {/if}

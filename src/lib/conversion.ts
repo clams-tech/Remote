@@ -109,7 +109,7 @@ function bitcoinDenominationToMsats({
   }
 }
 
-function getExchangeRate(denomination: FiatDenomination): number | null {
+export function getExchangeRate(denomination: FiatDenomination): number | null {
   return bitcoinExchangeRates$.value && bitcoinExchangeRates$.value[denomination]
 }
 

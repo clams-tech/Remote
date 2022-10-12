@@ -7,6 +7,12 @@
   export let small = false
   export let primary = false
 
+  export const click = () => {
+    button && button.click()
+  }
+
+  let button: HTMLButtonElement
+
   // ==== 👇 comments are need to prevent styles from being stripped from build when used dynamically 👇 ==== //
   // px-2
   // hover:shadow-purple-500
@@ -17,6 +23,7 @@
 </script>
 
 <button
+  bind:this={button}
   on:click
   style={`opacity: ${disabled ? '0.4' : '1'}`}
   class="text-current no-underline text-{small ? 'xs' : 'base'} hover:shadow-{primary

@@ -8,9 +8,10 @@
   import { BitcoinDenomination, type Payment } from '$lib/types'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning, type ErrorResponse } from '$lib/backends'
-  import { formatDecodedInvoice } from '$lib/utils'
+  import type { ErrorResponse } from '$lib/backends'
+  import { createRandomHex, formatDecodedInvoice } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
+  import { getLn } from '$lib/lightning'
 
   let requesting = false
   let errorMsg = ''
@@ -73,15 +74,16 @@
     errorMsg = ''
     requesting = true
 
-    const id = crypto.randomUUID()
+    const id = createRandomHex()
 
     try {
-      const payment = await coreLightning.payInvoice({ bolt11: bolt11 as string, id })
+      const lnApi = await getLn()
+      const payment = await lnApi.payInvoice({ bolt11: bolt11 as string, id })
       paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
       const { code, message } = error as ErrorResponse
-      errorMsg = $translate(`app.errors.${code}`) || message
+      errorMsg = $translate(`app.errors.${code}`, { default: message })
     } finally {
       requesting = false
     }

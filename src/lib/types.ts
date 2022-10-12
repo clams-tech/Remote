@@ -1,3 +1,15 @@
+export type Auth = {
+  /** <node_public_key>@<ip>:<port>*/
+  address: string
+  /** token used for RPC requests */
+  token: string
+  /** private key used for lnconnect for consistent browser node public key
+   * this is useful for creating a token that is limited to a particular session
+   * that persists in local storage until logged out
+   */
+  sessionSecret?: string
+}
+
 export type Settings = {
   language: Language
   fiatDenomination: FiatDenomination
@@ -9,6 +21,7 @@ export type Settings = {
   sendTimeoutSeconds: number
   notifications: boolean
   darkmode: boolean
+  encrypt: boolean
 }
 
 // locale => Display language
@@ -68,7 +81,9 @@ export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
 export enum Modals {
   none = 0,
-  clipboard
+  clipboard,
+  pinEntry,
+  runeSummary
 }
 
 export type PaymentType = 'node_public_key' | 'payment_request' | 'lightning_address' | 'lnurl'
@@ -118,4 +133,10 @@ export type DropdownOption = {
   href?: string
   target?: string
   rel?: string
+}
+
+export type ParsedNodeAddress = {
+  publicKey: string
+  ip: string
+  port?: number
 }

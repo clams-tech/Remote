@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Big from 'big.js'
   import { goto } from '$app/navigation'
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
@@ -10,8 +11,8 @@
   import Description from '$lib/components/Description.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { coreLightning } from '$lib/backends'
-  import Big from 'big.js'
+  import { getLn, updateFunds } from '$lib/lightning'
+  import { createRandomHex } from '$lib/utils'
 
   let previousSlide = 0
   let slide = 0
@@ -61,11 +62,13 @@
 
     try {
       let paymentId
+      const lnApi = await getLn()
 
       switch (type) {
         case 'payment_request': {
-          const id = crypto.randomUUID()
-          const payment = await coreLightning.payInvoice({
+          const id = createRandomHex()
+
+          const payment = await lnApi.payInvoice({
             id,
             bolt11: destination,
             amount_msat:
@@ -88,8 +91,9 @@
           break
         }
         case 'node_public_key': {
-          const id = crypto.randomUUID()
-          const payment = await coreLightning.payKeysend({
+          const id = createRandomHex()
+
+          const payment = await lnApi.payKeysend({
             id,
             destination,
             amount_msat: Big(
@@ -110,13 +114,15 @@
         }
       }
 
+      // delay to allow time for node to update
+      setTimeout(() => updateFunds(lnApi), 1000)
       goto(`/payments/${paymentId}`)
     } catch (error) {
       requesting = false
 
       const { code, message } = error as { code: number; message: string }
 
-      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`)
+      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
     }
   }
 </script>

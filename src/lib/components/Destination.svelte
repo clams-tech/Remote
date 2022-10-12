@@ -11,7 +11,7 @@
   import { modal$ } from '$lib/streams'
   import { Modals } from '$lib/types'
   import Arrow from '$lib/icons/Arrow.svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onDestroy } from 'svelte'
 
   import {
     formatDecodedInvoice,
@@ -30,6 +30,7 @@
   export let readonly = false
 
   let error = ''
+  let blurTimeout: NodeJS.Timeout
 
   const dispatch = createEventDispatcher()
 
@@ -54,8 +55,14 @@
     debouncedValidate()
   }
 
+  onDestroy(() => {
+    blurTimeout && clearTimeout(blurTimeout)
+  })
+
   function validate() {
-    error = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
+    blurTimeout = setTimeout(() => {
+      error = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
+    }, 500)
   }
 
   const debouncedValidate = lodashDebounce(validate, 500)

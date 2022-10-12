@@ -1,30 +1,76 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
+  import { skip } from 'rxjs/operators'
   import Slide from '$lib/elements/Slide.svelte'
   import Caret from '$lib/icons/Caret.svelte'
-  import { settings$ } from '$lib/streams'
+  import { auth$, funds$, modal$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
+  import { Modals, type Settings } from '$lib/types'
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import Button from '$lib/elements/Button.svelte'
-  import { CREDENTIALS_STORAGE_KEY } from '$lib/constants'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import { encryptAllData, resetApp } from '$lib/utils'
+  import { firstValueFrom } from 'rxjs'
 
   let version = __APP_VERSION__
 
-  let settings = [
-    { label: $translate('app.labels.app'), route: '/settings/app' },
-    { label: $translate('app.labels.help_and_support'), route: 'settings/help' },
-    { label: $translate('app.labels.dark_mode') }
-  ]
-
-  const toggleDarkmode = () => {
+  const toggle = (key: keyof Settings) => {
     const currentSettings = settings$.value
+
+    const toggled = !currentSettings[key]
 
     settings$.next({
       ...currentSettings,
-      darkmode: !currentSettings.darkmode
+      [key]: toggled
     })
+
+    return toggled
+  }
+
+  $: settings = [
+    { label: $translate('app.labels.app'), route: '/settings/app' },
+    { label: $translate('app.labels.help_and_support'), route: 'settings/help' },
+    {
+      label: $translate('app.labels.encrypt'),
+      toggle: handleEncryptToggle,
+      toggled: $settings$.encrypt
+    },
+    {
+      label: $translate('app.labels.dark_mode'),
+      toggle: handleDarkModeToggle,
+      toggled: $settings$.darkmode
+    },
+    { label: $translate('app.labels.logs'), route: 'settings/logs' }
+  ]
+
+  async function handleEncryptToggle() {
+    const toggled = toggle('encrypt')
+
+    if (toggled) {
+      // trigger modal
+      modal$.next(Modals.pinEntry)
+
+      // wait for pin entry
+      const pin = await firstValueFrom(pin$.pipe(skip(1)))
+
+      if (pin) {
+        encryptAllData(pin)
+      } else {
+        // no pin so can't encrypt, toggle back to false
+        toggle('encrypt')
+      }
+    } else {
+      // turning off encryption, so store data unencrypted
+      auth$.next($auth$)
+      nodeInfo$.next($nodeInfo$)
+      funds$.next($funds$)
+      payments$.next($payments$)
+    }
+  }
+
+  function handleDarkModeToggle() {
+    toggle('darkmode')
   }
 </script>
 
@@ -42,12 +88,12 @@
       {$translate('app.titles.settings')}
     </h1>
     <div class="w-full">
-      {#each settings as { label, route }}
-        {#if label === 'Dark Mode'}
-          <div class="cursor-pointer" on:click={toggleDarkmode}>
+      {#each settings as { label, route, toggle, toggled }}
+        {#if toggle}
+          <div class="cursor-pointer" on:click={toggle}>
             <SummaryRow>
               <span slot="label">{label}</span>
-              <Toggle slot="value" toggled={$settings$.darkmode} handleChange={toggleDarkmode} />
+              <Toggle slot="value" {toggled} handleChange={toggle} />
             </SummaryRow>
           </div>
         {:else}
@@ -66,13 +112,7 @@
       </SummaryRow>
     </div>
     <div class="w-full mt-6">
-      <Button
-        text={$translate('app.buttons.log_out')}
-        on:click={() => {
-          localStorage.removeItem(CREDENTIALS_STORAGE_KEY)
-          window.location.reload()
-        }}
-      />
+      <Button text={$translate('app.buttons.reset_app')} on:click={resetApp} />
     </div>
   </section>
 </Slide>

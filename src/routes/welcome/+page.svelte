@@ -11,7 +11,7 @@
 <section class="flex flex-col justify-center items-start w-full p-6 max-w-xl h-full">
   <div class="w-full flex justify-center mb-8">
     <div class="w-1/2 max-w-4xl">
-      <ClamsLogo />
+      <ClamsLogo min={0.25} max={1} />
     </div>
   </div>
   <div class="mb-6">

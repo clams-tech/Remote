@@ -3,15 +3,14 @@
   import { translate } from '$lib/i18n/translations'
   import QRIcon from '$lib/icons/Qr.svelte'
   import ArrowIcon from '$lib/icons/Arrow.svelte'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
   import { calculateBalance } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import Settings from '$lib/icons/Settings.svelte'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
+  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
 
   const buttons = [
     { key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
@@ -35,14 +34,8 @@
 </svelte:head>
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <a href="/settings">
-    <div class="w-8 absolute top-4 right-4">
-      <Settings />
-    </div>
-  </a>
-
   <div class="w-24 absolute top-2 left-2">
-    <ClamsLogo />
+    <ClamsLogo max={2} />
   </div>
 
   {#if $nodeInfo$.data}
@@ -55,7 +48,7 @@
     >
   {/if}
 
-  {#if $funds$.loading}
+  {#if $funds$.loading && !$funds$.data}
     <div in:fade class="p-6">
       <Spinner />
     </div>

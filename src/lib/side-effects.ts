@@ -1,107 +1,147 @@
-import { combineLatest, from, timer } from 'rxjs'
+import { from, timer } from 'rxjs'
+import { distinctUntilChanged, filter, skip, switchMap } from 'rxjs/operators'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
+import { getLn, listenForAllInvoiceUpdates, updateFunds } from '$lib/lightning'
 
 import {
-  distinctUntilKeyChanged,
-  filter,
-  skip,
-  switchMap,
-  take,
-  withLatestFrom
-} from 'rxjs/operators'
-
-import { coreLightning } from './backends'
-import { MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-import { deriveLastPayIndex, getBitcoinExchangeRate } from './utils'
+  AUTH_STORAGE_KEY,
+  FUNDS_STORAGE_KEY,
+  INFO_STORAGE_KEY,
+  MIN_IN_MS,
+  PAYMENTS_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY
+} from './constants'
 
 import {
   appVisible$,
   bitcoinExchangeRates$,
-  credentials$,
-  funds$,
-  listeningForAllInvoiceUpdates$,
-  nodeInfo$,
+  auth$,
   payments$,
   paymentUpdates$,
   settings$,
   updatePayments,
-  listenForAllInvoiceUpdates
+  nodeInfo$,
+  funds$,
+  pin$,
+  disconnect$
 } from './streams'
 
 function registerSideEffects() {
-  // once we have credentials, go ahead and fetch initial data
-  credentials$
-    .pipe(
-      filter(({ connection, rune }) => !!(connection && rune)),
-      take(1)
-    )
-    .subscribe(async (credentials) => {
-      // store credentials
-      localStorage.setItem('credentials', JSON.stringify(credentials))
-
-      coreLightning
-        .listFunds()
-        .then((data) => {
-          funds$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          funds$.next({ loading: false, data: null, error: error && error.message })
-        })
-
-      coreLightning
-        .getInfo()
-        .then((data) => {
-          nodeInfo$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          nodeInfo$.next({ loading: false, data: null, error: error && error.message })
-        })
-
-      coreLightning
-        .getPayments()
-        .then((data) => {
-          payments$.next({ loading: false, data })
-        })
-        .catch((error) => {
-          payments$.next({ loading: false, data: null, error: error && error.message })
-        })
-    })
-
   // update payments when payment update comes through
-  paymentUpdates$.subscribe(updatePayments)
+  paymentUpdates$.subscribe(async (update) => {
+    updatePayments(update)
 
-  // handle dark mode toggle
-  settings$.pipe(distinctUntilKeyChanged('darkmode')).subscribe(({ darkmode }) => {
-    document.documentElement.classList[darkmode ? 'add' : 'remove']('dark')
+    if (update.status === 'complete') {
+      const lnApi = await getLn()
+      // delay 1 second to allow for updated data from node
+      setTimeout(() => updateFunds(lnApi), 1000)
+    }
   })
 
   // update settings in storage
-  settings$
-    .pipe(skip(1))
-    .subscribe((update) => localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update)))
+  settings$.pipe(filter((x) => !!x)).subscribe((update) => {
+    document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update))
+  })
+
+  // update auth in storage
+  auth$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe((auth) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(auth)
+
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update info in storage
+  nodeInfo$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        INFO_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update funds in storage
+  funds$
+    .pipe(
+      skip(1),
+      filter((x) => !!x)
+    )
+    .subscribe(({ data }) => {
+      const { encrypt } = settings$.getValue()
+      const pin = pin$.getValue()
+
+      const dataString = JSON.stringify(data)
+
+      localStorage.setItem(
+        FUNDS_STORAGE_KEY,
+        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+      )
+    })
+
+  // update payments in storage
+  payments$.pipe(skip(1)).subscribe(({ data }) => {
+    const { encrypt } = settings$.getValue()
+    const pin = pin$.getValue()
+
+    const dataString = JSON.stringify(data)
+
+    localStorage.setItem(
+      PAYMENTS_STORAGE_KEY,
+      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+    )
+  })
 
   // get and update bitcoin exchange rate
   timer(0, 1 * MIN_IN_MS)
     .pipe(switchMap(() => from(getBitcoinExchangeRate())))
     .subscribe(bitcoinExchangeRates$)
 
-  // when app is focused and have credentials and have paymentss, start listening if not already
-  combineLatest([appVisible$, credentials$, payments$])
-    .pipe(withLatestFrom(listeningForAllInvoiceUpdates$))
-    .subscribe(([[visible, credentials, payments], listening]) => {
-      if (payments.data && !payments.error && visible && credentials.rune && !listening) {
-        const storedPayIndex = localStorage.getItem('lastpay_index')
+  // manage connection based on app visibility
+  appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
+    const lnApi = await getLn()
 
-        const lastPayIndex = storedPayIndex
-          ? parseInt(storedPayIndex)
-          : deriveLastPayIndex(payments.data)
+    if (visible) {
+      logger.info('App is visible, reconnecting to node')
 
-        listeningForAllInvoiceUpdates$.next(true)
+      // reconnect
+      lnApi.connect()
 
-        listenForAllInvoiceUpdates(lastPayIndex).catch(() => {
-          listeningForAllInvoiceUpdates$.next(false)
-        })
+      const payments = payments$.getValue().data
+
+      if (payments) {
+        // start listening for payment updates again
+        const lastPayIndex = deriveLastPayIndex(payments)
+        listenForAllInvoiceUpdates(lastPayIndex)
       }
-    })
+    } else {
+      logger.info(
+        'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
+      )
+      // disconnect
+      lnApi.disconnect()
+      disconnect$.next()
+    }
+  })
 }
 
 export default registerSideEffects

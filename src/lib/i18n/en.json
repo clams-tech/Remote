@@ -4,6 +4,7 @@
     "send": "Send",
     "receive": "Receive",
     "scan": "Scan",
+    "decrypt": "Decrypt",
     "welcome": "Welcome",
     "connect": "Connect",
     "rune": "Rune",
@@ -14,7 +15,8 @@
     "settings_help": "Help",
     "settings_currency": "Currency Settings",
     "settings_language": "Language Settings",
-    "settings_unit": "Unit Settings"
+    "settings_unit": "Unit Settings",
+    "settings_logs": "Debug Logs"
   },
   "inputs": {
     "destination": {
@@ -52,13 +54,14 @@
     "fee": "{{feeType; receive:Receive; network:Network;}} Fee:",
     "id": "ID:",
     "hash": "Hash:",
-    "restrictions": "Restrictions",
+    "restrictions": "Restrictions:",
     "direction": "{{direction; receive:}}",
     "any": "any",
     "amount": "Amount:",
     "expiry": "Expires in:",
     "help_and_support": "Help & Support",
     "dark_mode": "Dark Mode",
+    "encrypt": "Encrypt Local Data",
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
@@ -70,8 +73,9 @@
     "notifications": "Notifications",
     "commonly_used": "Commonly Used",
     "all_options": "All Options",
-    "summary": "Summary",
-    "version": "Version"
+    "rune_summary": "Rune Summary",
+    "version": "Version",
+    "logs": "Debug Logs"
   },
   "time": {
     "mins": "mins"
@@ -86,7 +90,9 @@
     "one_of": "Must be one of the following values: {{values}}"
   },
   "errors": {
-    "camera_connection": "There was an error connecting to your camera, please try again.",
+    "camera": "Camera Error",
+    "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
+    "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
     "node_connect": "Connection error",
     "invalid_invoice": "Not a valid bolt11 invoice.",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
@@ -100,7 +106,8 @@
     "210": "Payment timed out.",
     "900": "An invoice with the given label already exists",
     "901": "An invoice with the given preimage already exists",
-    "902": "None of the specified private channels were usable"
+    "902": "None of the specified private channels were usable",
+    "19537": "Provided rune does not have valid permissions for this request."
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -119,7 +126,7 @@
     "edit": "Edit",
     "cancel": "Cancel",
     "save": "Save",
-    "log_out": "Log out",
+    "reset_app": "Reset App",
     "connect": "Connect",
     "try_again": "Try Again",
     "add_rune": "Add a Rune",
@@ -128,7 +135,8 @@
   "hints": {
     "unrestricted": "unrestricted!",
     "help": "Help?",
-    "how": "How does it work?"
+    "how": "How does it work?",
+    "forgot_pin": "Forgot your pin?"
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",
@@ -137,7 +145,9 @@
     "destination": "Destination",
     "connect": "Connect",
     "welcome": "Welcome",
-    "rune": "Permissions"
+    "rune": "Permissions",
+    "decrypt": "Decrypt",
+    "encrypt": "Encryption Key"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -145,8 +155,9 @@
     "description": "What is this payment for?",
     "destination": "Where would you like to send a payment?",
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
-    "rune": "Add a rune to give Clams permissions to interact with your node.",
-    "welcome": "Control your CoreLN node securely and directly over the Lightning network."
+    "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
+    "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
+    "decrypt": "Enter your 4 digit pin number to decrypt your local data."
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"

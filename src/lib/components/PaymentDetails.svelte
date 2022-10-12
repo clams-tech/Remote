@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import Qr from '$lib/components/QR.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
@@ -42,6 +43,7 @@
     })
 
   let copySuccess: string
+  let successTimeoutId: NodeJS.Timeout
 
   function handleCopy(value: string) {
     return async () => {
@@ -50,7 +52,7 @@
       if (success) {
         copySuccess = value
 
-        setTimeout(() => {
+        successTimeoutId = setTimeout(() => {
           if (copySuccess === value) {
             copySuccess = ''
           }
@@ -58,6 +60,10 @@
       }
     }
   }
+
+  onDestroy(() => {
+    successTimeoutId && clearTimeout(successTimeoutId)
+  })
 
   function handlePaymentExpire() {
     paymentUpdates$.next({ ...payment, status: 'expired' })
@@ -70,7 +76,7 @@
   // text-utility-error
 </script>
 
-<div class="w-full flex flex-col px-8 pt-12 pb-4 max-h-screen overflow-auto">
+<div class="w-full flex flex-col px-6 pt-12 pb-4 max-h-screen overflow-auto">
   <!-- AMOUNT -->
   <div class="flex flex-col items-center justify-center">
     <span

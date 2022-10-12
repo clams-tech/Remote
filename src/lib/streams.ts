@@ -1,25 +1,17 @@
-import { BehaviorSubject, defer, fromEvent, Subject } from 'rxjs'
-import { map, shareReplay, startWith, take } from 'rxjs/operators'
+import { BehaviorSubject, defer, fromEvent, Observable, Subject } from 'rxjs'
+import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
-import { invoiceToPayment } from './backends/core-lightning/utils'
-import { CORE_LN_CREDENTIALS_INITIAL } from './constants'
-
-import {
-  coreLightning,
-  type CoreLnCredentials,
-  type GetinfoResponse,
-  type ListfundsResponse
-} from './backends'
+import type { GetinfoResponse, ListfundsResponse } from './backends'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 
 import {
   Modals,
   type BitcoinExchangeRates,
   type Notification,
   type Payment,
+  type Auth,
   type Settings
 } from './types'
-
-import { getCredentialsFromStorage, getPageVisibilityParams, getSettingsFromStorage } from './utils'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -51,8 +43,12 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
+const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+
 // app settings$
-export const settings$ = new SvelteSubject<Settings>(getSettingsFromStorage())
+export const settings$ = new SvelteSubject<Settings>(
+  storedSettings ? JSON.parse(storedSettings) : DEFAULT_SETTINGS
+)
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
@@ -64,9 +60,40 @@ export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 export const paymentUpdates$ = new Subject<Payment>()
 
 // core ln credentials
-export const credentials$ = new BehaviorSubject<CoreLnCredentials>(
-  getCredentialsFromStorage() || CORE_LN_CREDENTIALS_INITIAL
+export const auth$ = new BehaviorSubject<Auth | null>(null)
+
+// key for decrypting stored data
+export const pin$ = new BehaviorSubject<string | null>(null)
+
+// debug logs
+export const log$ = new Subject<string>()
+
+// log to console in staging
+if (import.meta.env.MODE === 'staging') {
+  log$.subscribe(console.log)
+}
+
+// disconnect from node event
+export const disconnect$ = new Subject<void>()
+
+export const recentLogs$: Observable<string[]> = log$.pipe(
+  scan((allLogs, newLog) => {
+    if (newLog === 'CLEAR_ALL_LOGS') return []
+
+    allLogs.push(newLog)
+
+    while (allLogs.length > 50) {
+      allLogs.shift()
+    }
+
+    return allLogs
+  }, [] as string[]),
+  shareReplay(1),
+  startWith([])
 )
+
+// subscribe to ensure that we start collecting logs
+recentLogs$.subscribe()
 
 // ==== NODE DATA ==== //
 export const nodeInfo$ = new BehaviorSubject<{
@@ -87,7 +114,24 @@ export const funds$ = new BehaviorSubject<{
   error?: string
 }>({ loading: true, data: null })
 
-const pageVisibilityParams = getPageVisibilityParams()
+// browsers use different event names and hidden properties
+const pageVisibilityParams =
+  typeof document.hidden !== 'undefined'
+    ? {
+        hidden: 'hidden',
+        visibilityChange: 'visibilitychange'
+      }
+    : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    typeof document.msHidden !== 'undefined'
+    ? {
+        hidden: 'msHidden',
+        visibilityChange: 'msvisibilitychange'
+      }
+    : {
+        hidden: 'webkitHidden',
+        visibilityChange: 'webkitvisibilitychange'
+      }
 
 // indicates if the app is the current tab
 export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
@@ -101,16 +145,6 @@ export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false
 
 // for all custom notifications such as errors and hints
 export const customNotifications$ = new Subject<Notification>()
-
-/** ==== STATE UPDATERS ==== */
-export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {
-  try {
-    const update = await coreLightning.waitForInvoicePayment(payment)
-    paymentUpdates$.next(update)
-  } catch (error) {
-    //
-  }
-}
 
 export function updatePayments(payment: Payment): void {
   const payments = payments$.getValue().data || []
@@ -127,21 +161,7 @@ export function updatePayments(payment: Payment): void {
   payments$.next({ data: payments })
 }
 
-export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void> {
-  const invoice = await coreLightning.waitAnyInvoice(payIndex)
-
-  if (invoice.status !== 'unpaid') {
-    const payment = invoiceToPayment(invoice)
-    paymentUpdates$.next(payment)
-  }
-
-  const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
-  localStorage.setItem('lastpay_index', newLastPayIndex.toString())
-
-  return listenForAllInvoiceUpdates(newLastPayIndex)
-}
-
-export function updateCredentials(update: Partial<CoreLnCredentials>): void {
-  const currentCredentials = credentials$.getValue()
-  credentials$.next({ ...currentCredentials, ...update })
+export function updateAuth(update: Partial<Auth> | Auth): void {
+  const currentAuth = auth$.getValue()
+  auth$.next(currentAuth ? { ...currentAuth, ...update } : (update as Auth))
 }
