@@ -69,23 +69,7 @@
       video.autoplay = true
 
       video.srcObject = stream
-      await video.play()
-      alert('video playing')
-
-      scanRegion = calculateScanRegion(video)
-      copyRegion = calculateCopyRegion(video)
-
-      canvas.height = scanRegion.height
-      canvas.width = scanRegion.width
-      canvasContext = canvas.getContext('2d', { alpha: false, willReadFrequently: true })!
-      canvasContext.imageSmoothingEnabled = false // gives less blurry images
-
-      const { default: QrWorker } = await import('$lib/qr.worker?worker')
-      qrWorker = new QrWorker()
-
-      qrWorker.addEventListener('message', handleMessage)
-
-      tick()
+      video.addEventListener('play', handlePlay)
     } catch (error) {
       customNotifications$.next({
         id: createRandomHex(),
@@ -97,6 +81,25 @@
       return
     }
   })
+
+  async function handlePlay() {
+    alert('video playing')
+
+    scanRegion = calculateScanRegion(video)
+    copyRegion = calculateCopyRegion(video)
+
+    canvas.height = scanRegion.height
+    canvas.width = scanRegion.width
+    canvasContext = canvas.getContext('2d', { alpha: false, willReadFrequently: true })!
+    canvasContext.imageSmoothingEnabled = false // gives less blurry images
+
+    const { default: QrWorker } = await import('$lib/qr.worker?worker')
+    qrWorker = new QrWorker()
+
+    qrWorker.addEventListener('message', handleMessage)
+
+    tick()
+  }
 
   function handleMessage({ data }: MessageEvent) {
     if (data && data.data) {
@@ -157,6 +160,7 @@
     qrWorker.terminate()
     tickTimeout && clearTimeout(tickTimeout)
     stream.getVideoTracks().forEach((track) => track.stop())
+    video.removeEventListener('play', handlePlay)
   })
 </script>
 
