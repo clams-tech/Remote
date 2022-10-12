@@ -53,7 +53,7 @@
     try {
       // const devices = await navigator.mediaDevices.enumerateDevices()
       // const videoDevices = devices.filter(({ kind }) => kind === 'videoinput')
-      alert('getting access to camera stream')
+      console.log('getting access to camera stream')
       stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' }
@@ -61,15 +61,16 @@
         audio: false
       })
 
-      alert('access to stream')
+      console.log({ stream })
 
       video.disablePictureInPicture = true
       video.playsInline = true
       video.muted = true
       video.srcObject = stream
 
+      console.log('starting video playback')
       await video.play()
-      alert('video playing')
+      console.log('video playing')
 
       scanRegion = calculateScanRegion(video)
       copyRegion = calculateCopyRegion(video)
@@ -86,7 +87,7 @@
 
       tick()
     } catch (error) {
-      alert(error)
+      console.log({ error })
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',

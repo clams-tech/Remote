@@ -13,6 +13,7 @@
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import Vconsole from 'vconsole'
 
   let loading = true
 
@@ -26,6 +27,7 @@
 
   if (browser) {
     initialise()
+    new Vconsole()
   }
 
   async function initialise() {
