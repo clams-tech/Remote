@@ -64,6 +64,7 @@
       video.disablePictureInPicture = true
       video.playsInline = true
       video.muted = true
+      video.autoplay = true
 
       video.srcObject = stream
       await video.play()
@@ -164,8 +165,6 @@
   <div class="flex items-center justify-center w-full h-full">
     <!-- svelte-ignore a11y-media-has-caption -->
     <video
-      muted
-      playsinline
       bind:this={video}
       class="rounded-xl overflow-hidden"
       class:-scale-x-100={device.type !== 'mobile' && device.type !== 'tablet'}
@@ -180,7 +179,7 @@
 
     {#if scanRegion}
       <div
-        style={`width: ${scanRegion.width}px; height: ${scanRegion.height}px; top: ${scanRegion.y}; left: ${scanRegion.x};`}
+        style={`width: ${scanRegion.width}px; height: ${scanRegion.height}px;`}
         class="absolute box z-50"
       />
     {/if}
@@ -200,17 +199,6 @@
     --r: 10px; /* width of border */
 
     padding: var(--b); /* space for the border */
-
-    /*Irrelevant code*/
-    width: 200px;
-    height: 100px;
-    box-sizing: border-box;
-    margin: 5px;
-    display: inline-flex;
-    font-size: 30px;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
   }
   .box::before {
     content: '';
@@ -229,7 +217,7 @@
       linear-gradient(-90deg, #000 calc(2 * var(--b)), #0000 0) var(--b) 50%/100%
         calc(100% - 2 * var(--w)) repeat-x,
       linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: destination-out;
+    /* -webkit-mask-composite: destination-out; */
     mask-composite: exclude;
   }
 </style>

@@ -22,9 +22,6 @@
     }
   })
 
-  let innerHeight = window.innerHeight
-  let innerWidth = window.innerWidth
-
   registerSideEffects()
 
   if (browser) {
@@ -68,11 +65,8 @@
   }
 </script>
 
-<svelte:window bind:innerHeight bind:innerWidth />
-
 <div
-  style="width: {innerWidth}px; height: {innerHeight}px;"
-  class="flex flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative"
+  class="flex w-screen h-screen flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative"
 >
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
