@@ -2,16 +2,17 @@
   import { translate } from '$lib/i18n/translations'
   import Button from '$lib/elements/Button.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import { fade } from 'svelte/transition'
 </script>
 
 <svelte:head>
   <title>{$translate('app.titles.welcome')}</title>
 </svelte:head>
 
-<section class="flex flex-col justify-center items-start w-full p-6 max-w-xl h-full">
+<section in:fade class="flex flex-col justify-center items-start w-full p-6 max-w-xl h-full">
   <div class="w-full flex justify-center mb-8">
     <div class="w-1/2 max-w-4xl">
-      <ClamsLogo min={0.25} max={1} />
+      <ClamsLogo min={1} max={4} />
     </div>
   </div>
   <div class="mb-6">

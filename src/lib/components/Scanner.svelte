@@ -80,7 +80,6 @@
 
       tick()
     } catch (error) {
-      console.log({ error })
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',

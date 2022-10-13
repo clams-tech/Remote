@@ -3,13 +3,8 @@ import type { GetinfoResponse, ListfundsResponse, LnAPI } from './backends'
 import type { Payment } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
-
-import {
-  FUNDS_STORAGE_KEY,
-  INFO_STORAGE_KEY,
-  LISTEN_INVOICE_STORAGE_KEY,
-  PAYMENTS_STORAGE_KEY
-} from './constants'
+import { FUNDS_STORAGE_KEY, INFO_STORAGE_KEY, PAYMENTS_STORAGE_KEY } from './constants'
+import { decryptWithAES, deriveLastPayIndex, getDataFromStorage, logger } from './utils'
 
 import {
   auth$,
@@ -21,14 +16,6 @@ import {
   paymentUpdates$,
   pin$
 } from './streams'
-
-import {
-  createRandomHex,
-  decryptWithAES,
-  deriveLastPayIndex,
-  getDataFromStorage,
-  logger
-} from './utils'
 
 let LN: LnAPI | null = null
 
@@ -76,16 +63,13 @@ export async function initialiseData() {
     payments$.next({ data: payments as Payment[], loading: false })
   }
 
-  const lnApi = await getLn()
+  // refresh all data on load
+  await refreshData()
 
-  // 3. update funds to ensure correct
-  await updateFunds(lnApi)
-
-  // 4. update payments to ensure latest
-  const updatedPayments = await updatePayments(lnApi)
+  const updatedPayments = payments$.getValue().data
 
   // 5. listen for invoices based on the last index of updated payments
-  const lastPayIndex = deriveLastPayIndex(updatedPayments || payments)
+  const lastPayIndex = updatedPayments ? deriveLastPayIndex(updatedPayments) : undefined
   listenForAllInvoiceUpdates(lastPayIndex)
 }
 
@@ -139,7 +123,7 @@ export async function updatePayments(lnApi: LnAPI) {
   }
 }
 
-export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void> {
+export async function listenForAllInvoiceUpdates(payIndex?: number): Promise<void> {
   listeningForAllInvoiceUpdates$.next(true)
   const lnApi = await getLn()
   const disconnectProm = firstValueFrom(disconnect$)
@@ -148,8 +132,6 @@ export async function listenForAllInvoiceUpdates(payIndex: number): Promise<void
   try {
     logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
 
-    const reqId = createRandomHex(8)
-    localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
     const invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex), disconnectProm])
 
     // disconnected
