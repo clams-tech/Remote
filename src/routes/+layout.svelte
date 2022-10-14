@@ -65,9 +65,7 @@
       initialiseData()
     }
 
-    setTimeout(() => {
-      loading = false
-    }, 3200)
+    loading = false
   }
 </script>
 
@@ -80,7 +78,7 @@
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
       <div class="w-2/3 max-w-md">
-        <ClamsLogo min={1} max={4} />
+        <ClamsLogo min={0.1} max={0.5} />
       </div>
     </div>
   {:else}

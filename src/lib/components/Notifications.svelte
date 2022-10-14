@@ -29,7 +29,7 @@
   let notificationsToRender: Notification[] = []
   let containerHeight: number
 
-  const device = userAgent.getDevice()
+  const device = userAgent!.getDevice()
 
   // map payment updates to notification
   const paymentUpdateNotifications$: Observable<Notification> = paymentUpdates$.pipe(

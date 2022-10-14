@@ -10,7 +10,7 @@
   export let onResult
 
   const debouncedOnResult = debounce(onResult, 200)
-  const device = userAgent.getDevice()
+  const device = userAgent!.getDevice()
 
   let video: HTMLVideoElement
   let canvas: HTMLCanvasElement
@@ -80,7 +80,6 @@
 
       tick()
     } catch (error) {
-      console.log({ error })
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',

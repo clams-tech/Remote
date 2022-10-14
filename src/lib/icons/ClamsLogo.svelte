@@ -18,8 +18,6 @@
 
   const fadeDuration = (max - min) * 1000
   const fadeDelay = min * 1000
-
-  console.log({ fadeDelay, fadeDuration })
 </script>
 
 <div class="flex items-center justify-center w-full h-full">

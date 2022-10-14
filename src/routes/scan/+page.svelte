@@ -12,6 +12,8 @@
   import { createRandomHex, formatDecodedInvoice } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
   import { getLn } from '$lib/lightning'
+  import Amount from '$lib/components/Amount.svelte'
+  import Big from 'big.js'
 
   let requesting = false
   let errorMsg = ''
@@ -20,19 +22,15 @@
     Pick<Payment, 'bolt11' | 'description' | 'value'> & {
       expiry: number | null
       timestamp: number | null
+      amount: string
     }
   >({
     bolt11: '',
     description: '',
     expiry: null,
     value: '0',
+    amount: '',
     timestamp: null
-  })
-
-  $: value = convertValue({
-    value: $sendPayment$.value,
-    from: BitcoinDenomination.msats,
-    to: $settings$.primaryDenomination
   })
 
   function handleScanResult(scanResult: string) {
@@ -58,18 +56,24 @@
         bolt11: paymentRequest,
         description,
         expiry: expiry || 3600,
-        value: amount,
+        value: '0',
+        amount,
         timestamp
       })
 
-      next()
+      if (!amount || amount === '0') {
+        next()
+      } else {
+        to(2)
+      }
     } catch (error) {
       errorMsg = $translate('app.errors.invalid_invoice')
     }
   }
 
   async function sendPayment() {
-    const { bolt11, description } = sendPayment$.getValue()
+    const { bolt11, description, value } = sendPayment$.getValue()
+    const { primaryDenomination } = $settings$
 
     errorMsg = ''
     requesting = true
@@ -78,7 +82,22 @@
 
     try {
       const lnApi = await getLn()
-      const payment = await lnApi.payInvoice({ bolt11: bolt11 as string, id })
+      const payment = await lnApi.payInvoice({
+        bolt11: bolt11 as string,
+        id,
+        amount_msat:
+          value && value !== '0'
+            ? Big(
+                convertValue({
+                  value,
+                  from: primaryDenomination,
+                  to: BitcoinDenomination.msats
+                }) as string
+              )
+                .round()
+                .toString()
+            : undefined
+      })
       paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
@@ -93,7 +112,7 @@
   let slide = 0
 
   function next() {
-    if (slide === 1) return
+    if (slide === 2) return
     previousSlide = slide
     slide = slide + 1
   }
@@ -101,6 +120,11 @@
   function prev() {
     previousSlide = slide
     slide = slide - 1
+  }
+
+  function to(i: number) {
+    previousSlide = slide
+    slide = i
   }
 </script>
 
@@ -121,10 +145,22 @@
 
 {#if slide === 1}
   <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+    <Amount direction="send" bind:value={$sendPayment$.value} {next} required />
+  </Slide>
+{/if}
+
+{#if slide === 2}
+  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
       destination={$sendPayment$.bolt11}
       type="payment_request"
-      {value}
+      value={$sendPayment$.value && $sendPayment$.value !== '0'
+        ? $sendPayment$.value
+        : convertValue({
+            value: $sendPayment$.amount,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          })}
       description={$sendPayment$.description}
       timestamp={$sendPayment$.timestamp}
       direction="send"
