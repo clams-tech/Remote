@@ -110,11 +110,12 @@ class CoreLn {
     }
   }
 
-  async waitAnyInvoice(lastPayIndex?: number): Promise<WaitAnyInvoiceResponse> {
+  async waitAnyInvoice(lastPayIndex?: number, reqId?: string): Promise<WaitAnyInvoiceResponse> {
     const response = await this.connection.commando({
       method: 'waitanyinvoice',
       params: { lastpay_index: lastPayIndex },
-      rune: this.rune
+      rune: this.rune,
+      reqId
     })
 
     return response as WaitAnyInvoiceResponse

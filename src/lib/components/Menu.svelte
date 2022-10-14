@@ -6,15 +6,13 @@
   import Refresh from '$lib/icons/Refresh.svelte'
   import Settings from '$lib/icons/Settings.svelte'
   import { isProtectedRoute } from '$lib/utils'
+  import { funds$, nodeInfo$, payments$ } from '$lib/streams'
 
   $: path = $page.url.pathname
-
-  let refreshing = false
+  $: refreshing = $nodeInfo$.loading || $payments$.loading || $funds$.loading
 
   async function refresh() {
-    refreshing = true
     await refreshData()
-    refreshing = false
   }
 </script>
 

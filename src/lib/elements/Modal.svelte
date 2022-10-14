@@ -17,7 +17,7 @@
 
   let modal
 
-  const device = userAgent.getDevice()
+  const device = userAgent!.getDevice()
 
   const backgroundStyles =
     'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-neutral-900/40 flex flex-col items-center z-20'

@@ -1,4 +1,4 @@
-import { BehaviorSubject, defer, fromEvent, Observable, Subject } from 'rxjs'
+import { BehaviorSubject, defer, fromEvent, Observable, of, Subject } from 'rxjs'
 import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import type { GetinfoResponse, ListfundsResponse } from './backends'
@@ -43,7 +43,8 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
-const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+const storedSettings =
+  typeof window !== 'undefined' ? localStorage.getItem(SETTINGS_STORAGE_KEY) : null
 
 // app settings$
 export const settings$ = new SvelteSubject<Settings>(
@@ -116,7 +117,12 @@ export const funds$ = new BehaviorSubject<{
 
 // browsers use different event names and hidden properties
 const pageVisibilityParams =
-  typeof document.hidden !== 'undefined'
+  typeof window === 'undefined'
+    ? {
+        hidden: 'hidden',
+        visibilityChange: 'visibilitychange'
+      }
+    : typeof document.hidden !== 'undefined'
     ? {
         hidden: 'hidden',
         visibilityChange: 'visibilitychange'
@@ -134,11 +140,14 @@ const pageVisibilityParams =
       }
 
 // indicates if the app is the current tab
-export const appVisible$ = fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
-  map(() => !document[pageVisibilityParams.hidden as keyof Document]),
-  startWith(true),
-  shareReplay(1)
-)
+export const appVisible$ =
+  typeof window === 'undefined'
+    ? of(true)
+    : fromEvent(document, pageVisibilityParams.visibilityChange).pipe(
+        map(() => !document[pageVisibilityParams.hidden as keyof Document]),
+        startWith(true),
+        shareReplay(1)
+      )
 
 // indicates if we are already listening for invoice updates
 export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false)

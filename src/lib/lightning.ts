@@ -1,10 +1,25 @@
 import { firstValueFrom } from 'rxjs'
-import type { GetinfoResponse, ListfundsResponse, LnAPI } from './backends'
+import { filter, map } from 'rxjs/operators'
+import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
 import type { Payment } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
-import { FUNDS_STORAGE_KEY, INFO_STORAGE_KEY, PAYMENTS_STORAGE_KEY } from './constants'
-import { decryptWithAES, deriveLastPayIndex, getDataFromStorage, logger } from './utils'
+import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
+
+import {
+  FUNDS_STORAGE_KEY,
+  INFO_STORAGE_KEY,
+  LISTEN_INVOICE_STORAGE_KEY,
+  PAYMENTS_STORAGE_KEY
+} from './constants'
+
+import {
+  createRandomHex,
+  decryptWithAES,
+  deriveLastPayIndex,
+  getDataFromStorage,
+  logger
+} from './utils'
 
 import {
   auth$,
@@ -126,31 +141,42 @@ export async function updatePayments(lnApi: LnAPI) {
 export async function listenForAllInvoiceUpdates(payIndex?: number): Promise<void> {
   listeningForAllInvoiceUpdates$.next(true)
   const lnApi = await getLn()
-  const disconnectProm = firstValueFrom(disconnect$)
-
-  // make a listen request for this pay index
-  try {
-    logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
-
-    const invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex), disconnectProm])
-
-    // disconnected
-    if (!invoice) return
-
-    logger.info(`Invoice update received with status: ${invoice.status}`)
-
-    if (invoice.status !== 'unpaid') {
-      const payment = invoiceToPayment(invoice)
-      paymentUpdates$.next(payment)
+  const disconnectProm = firstValueFrom(disconnect$.pipe(map(() => null)))
+  const listeningStorage = getDataFromStorage(LISTEN_INVOICE_STORAGE_KEY)
+  const currentlyListening = listeningStorage && JSON.parse(listeningStorage)
+  let invoice: Invoice | null = null
+  if (currentlyListening && currentlyListening.payIndex === payIndex) {
+    logger.info(
+      `Already made a request to listen to pay index: ${payIndex} with reqId: ${currentlyListening.reqId}, so just waiting for response`
+    )
+    const resultProm = firstValueFrom(
+      lnApi.connection.commandoMsgs$.pipe(
+        filter(({ reqId }) => reqId === currentlyListening.reqId),
+        map((response) => (response as JsonRpcSuccessResponse).result as Invoice)
+      )
+    )
+    invoice = await Promise.race([resultProm, disconnectProm])
+  } else {
+    // make a listen request for this pay index
+    try {
+      logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
+      const reqId = createRandomHex(8)
+      console.error('LISTENING FOR INVOICE:', { reqId, payIndex })
+      localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
+      invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex, reqId), disconnectProm])
+    } catch (error) {
+      listeningForAllInvoiceUpdates$.next(false)
     }
-
-    const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
-
-    listenForAllInvoiceUpdates(newLastPayIndex)
-  } catch (error) {
-    console.error(error)
-    listeningForAllInvoiceUpdates$.next(false)
   }
+  // disconnected
+  if (!invoice) return
+  logger.info(`Invoice update received with status: ${invoice.status}`)
+  if (invoice.status !== 'unpaid') {
+    const payment = invoiceToPayment(invoice)
+    paymentUpdates$.next(payment)
+  }
+  const newLastPayIndex = invoice.pay_index ? invoice.pay_index : payIndex
+  listenForAllInvoiceUpdates(newLastPayIndex)
 }
 
 export async function waitForAndUpdatePayment(payment: Payment): Promise<void> {

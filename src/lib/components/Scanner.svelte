@@ -10,7 +10,7 @@
   export let onResult
 
   const debouncedOnResult = debounce(onResult, 200)
-  const device = userAgent.getDevice()
+  const device = userAgent!.getDevice()
 
   let video: HTMLVideoElement
   let canvas: HTMLCanvasElement

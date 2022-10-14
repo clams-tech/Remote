@@ -280,7 +280,7 @@ export function formatDestination(destination: string, type: PaymentType): strin
   }
 }
 
-export const userAgent = new UAParser(navigator.userAgent)
+export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.userAgent) : null
 
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {

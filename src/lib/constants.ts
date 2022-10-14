@@ -18,9 +18,11 @@ export const MIN_IN_SECS = 60
 export const DEFAULT_INVOICE_EXPIRY = 15 * MIN_IN_SECS
 
 export const DEFAULT_SETTINGS: Settings = {
-  language: (navigator?.languages
+  language: (typeof window === 'undefined'
+    ? Language['en-US']
+    : navigator?.languages
     ? navigator.languages[0]
-    : navigator.language || Language['en-US']) as Language,
+    : navigator.language) as Language,
   fiatDenomination: FiatDenomination.usd,
   bitcoinDenomination: BitcoinDenomination.sats,
   primaryDenomination: BitcoinDenomination.sats,
@@ -38,6 +40,7 @@ export const AUTH_STORAGE_KEY = 'clams-app:auth'
 export const PAYMENTS_STORAGE_KEY = 'clams-app:payments'
 export const FUNDS_STORAGE_KEY = 'clams-app:funds'
 export const INFO_STORAGE_KEY = 'clams-app:info'
+export const LISTEN_INVOICE_STORAGE_KEY = 'clams-app:listening'
 
 export const ENCRYPTED_DATA_KEYS = [
   AUTH_STORAGE_KEY,
@@ -45,7 +48,10 @@ export const ENCRYPTED_DATA_KEYS = [
   FUNDS_STORAGE_KEY,
   INFO_STORAGE_KEY
 ]
-export const ALL_DATA_KEYS = ENCRYPTED_DATA_KEYS.concat(SETTINGS_STORAGE_KEY)
+export const ALL_DATA_KEYS = ENCRYPTED_DATA_KEYS.concat(
+  SETTINGS_STORAGE_KEY,
+  LISTEN_INVOICE_STORAGE_KEY
+)
 
 export const DOCS_LINK = 'https://clams.tech/docs'
 export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'
