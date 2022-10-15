@@ -118,6 +118,9 @@ function registerSideEffects() {
 
   // manage connection based on app visibility
   appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
+    const auth = auth$.getValue()
+    if (!auth || !auth.token) return
+
     const lnApi = await getLn()
 
     if (visible) {

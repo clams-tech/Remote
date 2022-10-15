@@ -26,14 +26,10 @@
       "invalid_invoice": "Invalid Lightning Invoice",
       "placeholder": "Bolt11 Invoice / Node Public Key"
     },
-    "terms_conditions": {
-      "agree": "I agree to the",
-      "terms": "terms and conditions"
-    },
     "node_connect": {
       "label": "Address",
       "placeholder": "02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735",
-      "invalid": "Invalid node connection address"
+      "invalid": "Invalid address"
     },
     "add_rune": {
       "label": "Rune",
@@ -130,13 +126,15 @@
     "connect": "Connect",
     "try_again": "Try Again",
     "add_rune": "Add a Rune",
-    "go": "Let's Go!"
+    "go": "Let's Go!",
+    "github": "Contribute on Github"
   },
   "hints": {
     "unrestricted": "unrestricted!",
     "help": "Help?",
     "how": "How does it work?",
-    "forgot_pin": "Forgot your pin?"
+    "forgot_pin": "Forgot your pin?",
+    "translate": "Can you help translate this app?"
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",

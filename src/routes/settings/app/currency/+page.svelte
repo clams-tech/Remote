@@ -59,7 +59,7 @@
   }}
 >
   <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
-    <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+    <h1 class="text-lg w-full text-center my-6 font-bold">
       {$translate('app.titles.settings_currency')}
     </h1>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
@@ -72,9 +72,11 @@
           <div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
             <SummaryRow>
               <span slot="label" class="ml-4">{labels[key] || key}</span>
-              <div class="w-6" slot="value">
+              <div slot="value">
                 {#if $settings$.fiatDenomination === val}
-                  <Check />
+                  <div in:fade={{ duration: 250 }} class="w-6">
+                    <Check />
+                  </div>
                 {/if}
               </div>
             </SummaryRow>
@@ -90,9 +92,11 @@
         <div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
           <SummaryRow>
             <span slot="label" class="ml-4">{labels[key] || key}</span>
-            <div class="w-6" slot="value">
+            <div slot="value">
               {#if $settings$.fiatDenomination === val}
-                <Check />
+                <div in:fade={{ duration: 250 }} class="w-6">
+                  <Check />
+                </div>
               {/if}
             </div>
           </SummaryRow>

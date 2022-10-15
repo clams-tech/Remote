@@ -41,12 +41,12 @@
 
     if (storedAuth && !protectedRoute) {
       // redirect from welcome and connect -> home page if has connected before
-      goto('/')
+      await goto('/')
     }
 
     if (!storedAuth && protectedRoute) {
       // tried to load a protected route and has not connected before
-      goto('/welcome')
+      await goto('/welcome')
     }
 
     let auth: Auth | null = null
@@ -56,7 +56,7 @@
         auth = JSON.parse(storedAuth)
       } catch (error) {
         // encrypted auth, so route to decrypt
-        goto('/decrypt')
+        await goto('/decrypt')
       }
     }
 
@@ -65,7 +65,7 @@
       initialiseData()
     }
 
-    loading = false
+    setTimeout(() => (loading = false), 2500)
   }
 </script>
 
@@ -78,7 +78,7 @@
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
       <div class="w-2/3 max-w-md">
-        <ClamsLogo min={0.1} max={0.5} />
+        <ClamsLogo min={1} max={2.5} />
       </div>
     </div>
   {:else}

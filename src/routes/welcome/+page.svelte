@@ -12,7 +12,7 @@
 <section in:fade class="flex flex-col justify-center items-start w-full p-6 max-w-xl h-full">
   <div class="w-full flex justify-center mb-8">
     <div class="w-1/2 max-w-4xl">
-      <ClamsLogo min={1} max={4} />
+      <ClamsLogo disableAnimation />
     </div>
   </div>
   <div class="mb-6">

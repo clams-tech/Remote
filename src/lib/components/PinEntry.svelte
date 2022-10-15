@@ -57,7 +57,7 @@
           class:shadow-purple-400={filled}
           class:bg-current={filled}
           class:border-0={filled}
-          class="rounded-full w-4 h-4 md:w-6 md:h-6 border-neutral-500 border transition-colors shadow-xl"
+          class="rounded-full w-4 h-4 md:w-6 md:h-6 border-neutral-500 border shadow-xl"
         />
       {/each}
     </div>
@@ -76,7 +76,7 @@
     {#each buttons as { main, sub }}
       <div
         class:justify-center={main === 0}
-        class="flex flex-col items-center justify-start m-1 w-16 h-16 md:w-20 md:h-20 border rounded-lg p-2 md:p-4 active:bg-neutral-100 dark:active:bg-neutral-800 cursor-pointer transition-colors"
+        class="flex flex-col items-center justify-start m-1 w-16 h-16 md:w-20 md:h-20 border rounded-lg p-2 md:p-4 active:bg-neutral-100 dark:active:bg-neutral-800 cursor-pointer"
         on:pointerdown={handlePinEntry(main)}
       >
         <div class="text-xl md:text-2xl">{main}</div>
@@ -85,7 +85,7 @@
     {/each}
 
     <div
-      class="w-16 h-16 md:w-20 md:h-20 border rounded absolute bottom-0 md:right-1 right-7 flex m-1 items-center justify-center cursor-pointer "
+      class="w-16 h-16 md:w-20 md:h-20 border rounded absolute bottom-0 md:right-1 right-7 flex m-1 items-center justify-center cursor-pointer"
       on:pointerdown={handleClear}
     >
       <div class="w-6">

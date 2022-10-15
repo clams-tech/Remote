@@ -97,11 +97,11 @@
 
 {#if notificationsToRender.length}
   <div
-    class="absolute top-0 p-4 w-96 max-h-screen overflow-hidden"
+    class="absolute top-0 p-4 max-h-screen overflow-hidden w-full"
+    class:max-w-sm={device.type !== 'mobile'}
     class:overflow-y-auto={containerHeight && containerHeight >= window.innerHeight}
     bind:clientHeight={containerHeight}
     class:right-0={device.type !== 'mobile'}
-    class:w-full={device.type === 'mobile'}
   >
     {#each notificationsToRender as { id, heading, message, type } (id)}
       <div

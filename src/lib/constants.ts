@@ -35,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
   encrypt: false
 }
 
+export const SUPPORTED_LOCALES = ['en-US', 'en-GB']
 export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
 export const AUTH_STORAGE_KEY = 'clams-app:auth'
 export const PAYMENTS_STORAGE_KEY = 'clams-app:payments'
@@ -59,3 +60,4 @@ export const DOCS_RUNE_LINK = 'https://clams.tech/docs/runes'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = '@TODO'
+export const TRANSLATE_LINK = '@TODO'
