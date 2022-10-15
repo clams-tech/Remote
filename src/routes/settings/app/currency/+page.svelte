@@ -63,14 +63,14 @@
       {$translate('app.titles.settings_currency')}
     </h1>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
-      <SummaryRow centered>
+      <SummaryRow>
         <span slot="label" class="font-bold">{$translate('app.labels.commonly_used')}</span>
       </SummaryRow>
 
       {#each Object.entries(FiatDenomination) as [key, val], index}
         {#if index < 2}
           <div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
-            <SummaryRow centered>
+            <SummaryRow>
               <span slot="label" class="ml-4">{labels[key] || key}</span>
               <div slot="value">
                 {#if $settings$.fiatDenomination === val}
@@ -84,13 +84,13 @@
         {/if}
       {/each}
 
-      <SummaryRow centered>
+      <SummaryRow>
         <span slot="label" class="font-bold">{$translate('app.labels.all_options')}</span>
       </SummaryRow>
 
       {#each Object.entries(FiatDenomination).sort(([a], [b]) => a.localeCompare(b)) as [key, val]}
         <div on:click={() => setLocalCurrency(val)} class="cursor-pointer">
-          <SummaryRow centered>
+          <SummaryRow>
             <span slot="label" class="ml-4">{labels[key] || key}</span>
             <div slot="value">
               {#if $settings$.fiatDenomination === val}

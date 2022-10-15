@@ -1,5 +1,5 @@
 <script>
-  export let centered = false
+  export let baseline = false
 
   // items-baseline
   // items-center
@@ -7,11 +7,11 @@
 
 <div
   on:click
-  class="w-full flex justify-between items-{centered
-    ? 'center'
-    : 'baseline'} border-b border-b-neutral-200 dark:border-b-neutral-700 py-3"
+  class="w-full flex justify-between items-{baseline
+    ? 'baseline'
+    : 'center'} border-b border-b-neutral-200 dark:border-b-neutral-700 py-3"
 >
-  <span class="mr-2 text-neutral-800 w-1/2"><slot name="label" /></span>
+  <span class="mr-2 text-neutral-800 dark:text-neutral-200 w-1/2"><slot name="label" /></span>
 
   <p class="flex items-center justify-end w-1/2">
     <slot name="value" />

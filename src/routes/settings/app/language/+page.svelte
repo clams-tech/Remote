@@ -7,6 +7,9 @@
   import Check from '$lib/icons/Check.svelte'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import { SUPPORTED_LOCALES, TRANSLATE_LINK } from '$lib/constants'
+  import Button from '$lib/elements/Button.svelte'
+  import Github from '$lib/icons/Github.svelte'
 
   function setLanguage(lang: Language) {
     const currentSettings = settings$.value
@@ -27,18 +30,23 @@
     goto('/settings/app')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl relative">
     <h1 class="text-lg w-full text-center my-6 font-bold">
       {$translate('app.titles.settings_language')}
     </h1>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
-      {#each Object.values(Language) as val}
-        <div on:click={() => setLanguage(val)} class="cursor-pointer">
-          <SummaryRow centered>
-            <span slot="label">{val}</span>
+      {#each Object.entries(Language) as [locale, lang]}
+        {@const disabled = !SUPPORTED_LOCALES.includes(locale)}
+        <div
+          on:click={() => !disabled && setLanguage(lang)}
+          class:opacity-40={disabled}
+          class="cursor-pointer"
+        >
+          <SummaryRow>
+            <span slot="label">{lang}</span>
 
             <div slot="value">
-              {#if $settings$.language === val}
+              {#if $settings$.language === lang}
                 <div in:fade={{ duration: 250 }} class="w-6">
                   <Check />
                 </div>
@@ -47,6 +55,24 @@
           </SummaryRow>
         </div>
       {/each}
+    </div>
+
+    <div class="absolute flex w-full justify-center bottom-0 p-6">
+      <div class="flex flex-col items-center backdrop-blur-md">
+        <span class="mb-2">{$translate('app.hints.translate')}</span>
+        <a
+          href={TRANSLATE_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bg-white dark:bg-black"
+        >
+          <Button text={$translate('app.buttons.github')}>
+            <div slot="iconLeft" class="w-8 mr-2">
+              <Github />
+            </div>
+          </Button>
+        </a>
+      </div>
     </div>
   </section>
 </Slide>

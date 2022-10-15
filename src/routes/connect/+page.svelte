@@ -307,7 +307,7 @@
         <span slot="value">{truncateValue(decodedRune.hash)}</span>
       </SummaryRow>
 
-      <SummaryRow>
+      <SummaryRow baseline>
         <span slot="label">{$translate('app.labels.restrictions')}</span>
         <p slot="value">
           {#if decodedRune.restrictions.length === 0}

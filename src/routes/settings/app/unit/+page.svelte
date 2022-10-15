@@ -48,7 +48,7 @@
     <div class="w-full">
       {#each bitcoinDenominations as { value, label }}
         <div on:click={() => setBitcoinUnit(value)} class="cursor-pointer">
-          <SummaryRow centered>
+          <SummaryRow>
             <span slot="label">{label}</span>
             <div slot="value">
               {#if $settings$.bitcoinDenomination === value}
