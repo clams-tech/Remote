@@ -35,7 +35,7 @@
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
   <div class="w-24 absolute top-2 left-2">
-    <ClamsLogo max={2} />
+    <ClamsLogo disableAnimation />
   </div>
 
   {#if $nodeInfo$.data}

@@ -28,18 +28,20 @@
   }}
 >
   <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
-    <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
+    <h1 class="text-lg w-full text-center my-6 font-bold">
       {$translate('app.titles.settings_language')}
     </h1>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
       {#each Object.values(Language) as val}
         <div on:click={() => setLanguage(val)} class="cursor-pointer">
-          <SummaryRow>
+          <SummaryRow centered>
             <span slot="label">{val}</span>
 
-            <div class="w-6" slot="value">
+            <div slot="value">
               {#if $settings$.language === val}
-                <Check />
+                <div in:fade={{ duration: 250 }} class="w-6">
+                  <Check />
+                </div>
               {/if}
             </div>
           </SummaryRow>

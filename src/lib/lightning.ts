@@ -34,8 +34,8 @@ import {
 
 let LN: LnAPI | null = null
 
-export async function getLn(): Promise<LnAPI> {
-  if (!LN) {
+export async function getLn(newInstance?: boolean): Promise<LnAPI> {
+  if (!LN || newInstance) {
     const auth = auth$.getValue()
 
     if (!auth) {
@@ -160,8 +160,8 @@ export async function listenForAllInvoiceUpdates(payIndex?: number): Promise<voi
     // make a listen request for this pay index
     try {
       logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
+
       const reqId = createRandomHex(8)
-      console.error('LISTENING FOR INVOICE:', { reqId, payIndex })
       localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
       invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex, reqId), disconnectProm])
     } catch (error) {

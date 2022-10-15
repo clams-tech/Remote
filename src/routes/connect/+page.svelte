@@ -41,7 +41,6 @@
   })
 
   let step: Step = 'connect'
-
   let address = ''
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
@@ -77,8 +76,8 @@
       // set auth details to allow connection
       auth$.next({ address, token: 'empty' })
 
-      const lnApi = await getLn()
-      const connected = await lnApi.connection.connect()
+      const lnApi = await getLn(true)
+      const connected = await lnApi.connection.connect(false)
 
       connectStatus = connected ? 'success' : 'fail'
 
@@ -140,6 +139,10 @@
       }
     }
   }
+
+  function resetConnectStatus() {
+    connectStatus = 'idle'
+  }
 </script>
 
 <svelte:head>
@@ -181,6 +184,7 @@
             placeholder={$translate('app.inputs.node_connect.placeholder')}
             bind:value={address}
             bind:focus={focusConnectionInput}
+            on:focus={resetConnectStatus}
           />
 
           <div in:fade class="flex items-center text-sm absolute bottom-1 right-1">
@@ -291,7 +295,7 @@
 {#if $modal$ === Modals.runeSummary && decodedRune}
   <Modal>
     <div in:fade class="w-[25rem] max-w-full">
-      <h4 class="font-semibold mb-2 w-full text-lg">{$translate('app.labels.rune_summary')}</h4>
+      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>
         <span slot="label">{$translate('app.labels.id')}</span>
@@ -348,15 +352,20 @@
                       ]
                     }
 
-                    const wordsBold = words.map((w, i) =>
-                      i === 0 || i === words.length - 1 ? `<b>${w}</b>` : w
-                    )
+                    words = words.map((word, i) => {
+                      // first or last word
+                      if (i === 0 || i === words.length - 1) {
+                        word = `<b>${word}</b>`
+                      }
 
-                    return wordsBold.join(' ')
+                      return word
+                    })
+
+                    return words.join(' ')
                   })
-                  .join('<i><br>OR<br></i>')
+                  .join('<span class="text-xs"><i><br>OR<br></i></span>')
               })
-              .join('<i><br>AND<br></i>')}
+              .join('<span class="text-xs"><i><br>AND<br></i></span>')}
           {/if}
         </p>
       </SummaryRow>

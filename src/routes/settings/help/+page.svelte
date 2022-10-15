@@ -51,7 +51,7 @@
           rel="noopener noreferrer"
           target="_blank"
         >
-          <SummaryRow>
+          <SummaryRow centered>
             <span slot="label">{label}</span>
             <div slot="value" class="w-10 h-10 flex justify-center items-center">
               <svelte:component this={icon} />
