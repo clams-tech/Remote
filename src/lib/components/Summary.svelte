@@ -97,8 +97,10 @@
               bind:value={expiryMinutes}
               on:change={updateExpiry}
             />
-            {expiryMinutes}
-            {$translate('app.time.mins')}
+            <span class="whitespace-nowrap">
+              {expiryMinutes}
+              {$translate('app.time.mins')}
+            </span>
           {:else if expiresAt}
             <ExpiryCountdown small={false} label={false} expiry={new Date(expiresAt)} />
           {/if}
