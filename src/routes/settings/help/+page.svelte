@@ -39,7 +39,7 @@
     goto('/settings')
   }}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-xl">
+  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
     <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
       {$translate('app.titles.settings_help')}
     </h1>

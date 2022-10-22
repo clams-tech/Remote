@@ -77,7 +77,7 @@
 >
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
-      <div class="w-2/3 max-w-md">
+      <div class="w-2/3 max-w-lg">
         <ClamsLogo min={1} max={2.5} />
       </div>
     </div>
@@ -90,7 +90,7 @@
 
     <!-- CONTENT -->
     <main
-      class="flex flex-grow w-full flex-col items-center bg-inherit transition-all overflow-hidden"
+      class="flex flex-grow w-full justify-center border-4 flex-col items-center bg-inherit transition-all overflow-hidden"
     >
       <slot />
     </main>

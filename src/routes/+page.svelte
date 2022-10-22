@@ -38,38 +38,40 @@
     <ClamsLogo disableAnimation />
   </div>
 
-  {#if $nodeInfo$.data}
-    <span in:fade class="flex items-center"
-      >{$nodeInfo$.data.alias}
-      <span
-        style="background-color: #{$nodeInfo$.data.color};"
-        class="w-4 h-4 rounded-full ml-2"
-      /></span
-    >
-  {/if}
-
-  {#if $funds$.loading && !$funds$.data}
-    <div in:fade class="p-6">
-      <Spinner />
-    </div>
-  {:else if balancePrimaryDenom !== null}
-    <div in:fade>
-      <Value value={balancePrimaryDenom} readonly />
-    </div>
-  {/if}
-
-  <div class="flex items-center justify-around w-full max-w-sm p-4 mt-4">
-    {#each buttons as { key, icon, props } (key)}
-      <a
-        href={`/${key}`}
-        class=" w-24 h-24 border rounded flex flex-col justify-center items-center"
+  <div class="w-full max-w-lg p-6">
+    {#if $nodeInfo$.data}
+      <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
+        >{$nodeInfo$.data.alias}
+        <span
+          style="background-color: #{$nodeInfo$.data.color};"
+          class="w-4 h-4 rounded-full ml-2"
+        /></span
       >
-        <div class="w-8">
-          <svelte:component this={icon} {...props} />
-        </div>
-        <div>{$translate(`app.buttons.${key}`)}</div>
-      </a>
-    {/each}
+    {/if}
+
+    {#if $funds$.loading && !$funds$.data}
+      <div in:fade class="p-6">
+        <Spinner />
+      </div>
+    {:else if balancePrimaryDenom !== null}
+      <div in:fade>
+        <Value value={balancePrimaryDenom} readonly />
+      </div>
+    {/if}
+
+    <div class="grid grid-cols-3 gap-4 md:gap-6 lg:gap-8 w-full p-y mt-4">
+      {#each buttons as { key, icon, props } (key)}
+        <a
+          href={`/${key}`}
+          class="aspect-square border rounded flex flex-col justify-center items-center"
+        >
+          <div class="w-10 md:w-12">
+            <svelte:component this={icon} {...props} />
+          </div>
+          <div class="text-base font-semi-bold">{$translate(`app.buttons.${key}`)}</div>
+        </a>
+      {/each}
+    </div>
   </div>
 
   <RecentPayment />

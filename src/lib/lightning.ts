@@ -85,7 +85,7 @@ export async function initialiseData() {
 
   // 5. listen for invoices based on the last index of updated payments
   const lastPayIndex = updatedPayments ? deriveLastPayIndex(updatedPayments) : undefined
-  listenForAllInvoiceUpdates(lastPayIndex)
+  // listenForAllInvoiceUpdates(lastPayIndex)
 }
 
 export async function refreshData() {
