@@ -90,7 +90,7 @@
 
     <!-- CONTENT -->
     <main
-      class="flex flex-grow w-full justify-center border-4 flex-col items-center bg-inherit transition-all overflow-hidden"
+      class="flex flex-grow w-full justify-center flex-col items-center bg-inherit transition-all overflow-hidden"
     >
       <slot />
     </main>

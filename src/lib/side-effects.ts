@@ -118,27 +118,27 @@ function registerSideEffects() {
 
   // manage connection based on app visibility
   appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
-    // const auth = auth$.getValue()
-    // if (!auth || !auth.token) return
-    // const lnApi = await getLn()
-    // if (visible) {
-    //   logger.info('App is visible, reconnecting to node')
-    //   // reconnect
-    //   lnApi.connect()
-    //   const payments = payments$.getValue().data
-    //   if (payments) {
-    //     // start listening for payment updates again
-    //     const lastPayIndex = deriveLastPayIndex(payments)
-    //     listenForAllInvoiceUpdates(lastPayIndex)
-    //   }
-    // } else {
-    //   logger.info(
-    //     'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
-    //   )
-    //   // disconnect
-    //   lnApi.disconnect()
-    //   disconnect$.next()
-    // }
+    const auth = auth$.getValue()
+    if (!auth || !auth.token) return
+    const lnApi = await getLn()
+    if (visible) {
+      logger.info('App is visible, reconnecting to node')
+      // reconnect
+      lnApi.connect()
+      const payments = payments$.getValue().data
+      if (payments) {
+        // start listening for payment updates again
+        const lastPayIndex = deriveLastPayIndex(payments)
+        listenForAllInvoiceUpdates(lastPayIndex)
+      }
+    } else {
+      logger.info(
+        'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
+      )
+      // disconnect
+      lnApi.disconnect()
+      disconnect$.next()
+    }
   })
 }
 
