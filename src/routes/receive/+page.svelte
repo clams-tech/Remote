@@ -17,6 +17,7 @@
     SvelteSubject
   } from '$lib/streams'
   import { createRandomHex } from '$lib/utils'
+  import { timer } from 'rxjs'
 
   let requesting = false
 
@@ -73,10 +74,24 @@
       // add to payments
       paymentUpdates$.next(payment)
 
-      if (!$listeningForAllInvoiceUpdates$) {
-        // track invoice payment
-        waitForAndUpdatePayment(payment)
-      }
+      // if (!$listeningForAllInvoiceUpdates$) {
+      //   // track invoice payment
+      //   waitForAndUpdatePayment(payment)
+      // }
+
+      timer(0, 2000).subscribe(async () => {
+        const lnApi = await getLn()
+
+        const result = await lnApi.connection.commando({
+          method: 'listinvoices',
+          params: {
+            payment_hash: payment.hash
+          },
+          rune: lnApi.rune
+        })
+
+        console.log('INVOICE RESULT:', result)
+      })
 
       // route to payment route
       goto(`/payments/${payment.id}`)

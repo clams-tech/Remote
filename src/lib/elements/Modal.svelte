@@ -55,7 +55,7 @@
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center"
   >
-    <div on:click|stopPropagation class="{modalStyles} rounded-3xl max-w-md pl-10 pr-12 pt-8 pb-10">
+    <div on:click|stopPropagation class="{modalStyles} rounded-3xl max-w-lg pl-10 pr-12 pt-8 pb-10">
       <div
         on:click={closeModal}
         class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors text-neutral-400"
