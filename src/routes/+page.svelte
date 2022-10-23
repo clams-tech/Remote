@@ -59,13 +59,13 @@
       </div>
     {/if}
 
-    <div class="grid grid-cols-3 gap-4 md:gap-6 lg:gap-8 w-full p-y mt-4">
+    <div class="grid grid-cols-3 gap-4 xl:gap-6 2xl:gap-8 w-full p-y mt-4">
       {#each buttons as { key, icon, props } (key)}
         <a
           href={`/${key}`}
           class="aspect-square border rounded flex flex-col justify-center items-center"
         >
-          <div class="w-10 md:w-12">
+          <div class="w-10 lg:w-12">
             <svelte:component this={icon} {...props} />
           </div>
           <div class="text-base font-semi-bold">{$translate(`app.buttons.${key}`)}</div>

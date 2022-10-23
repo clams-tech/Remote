@@ -11,7 +11,7 @@
   import Description from '$lib/components/Description.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { getLn, updateFunds } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import { createRandomHex } from '$lib/utils'
 
   let previousSlide = 0
@@ -62,7 +62,7 @@
 
     try {
       let paymentId
-      const lnApi = await getLn()
+      const lnApi = lightning.getLn()
 
       switch (type) {
         case 'payment_request': {
@@ -115,7 +115,7 @@
       }
 
       // delay to allow time for node to update
-      setTimeout(() => updateFunds(lnApi), 1000)
+      setTimeout(() => lightning.updateFunds(lnApi), 1000)
       goto(`/payments/${paymentId}`)
     } catch (error) {
       requesting = false

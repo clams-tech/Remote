@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { page } from '$app/stores'
-  import { refreshData } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import Home from '$lib/icons/Home.svelte'
   import Refresh from '$lib/icons/Refresh.svelte'
   import Settings from '$lib/icons/Settings.svelte'
@@ -12,7 +12,7 @@
   $: refreshing = $nodeInfo$.loading || $payments$.loading || $funds$.loading
 
   async function refresh() {
-    await refreshData()
+    await lightning.refreshData()
   }
 </script>
 
