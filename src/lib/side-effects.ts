@@ -1,7 +1,7 @@
 import { from, timer } from 'rxjs'
 import { distinctUntilChanged, filter, skip, switchMap } from 'rxjs/operators'
 import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
-import { getLn, listenForAllInvoiceUpdates, updateFunds } from '$lib/lightning'
+import lightning from '$lib/lightning'
 
 import {
   AUTH_STORAGE_KEY,
@@ -32,9 +32,9 @@ function registerSideEffects() {
     updatePayments(update)
 
     if (update.status === 'complete') {
-      const lnApi = await getLn()
+      const lnApi = lightning.getLn()
       // delay 1 second to allow for updated data from node
-      setTimeout(() => updateFunds(lnApi), 1000)
+      setTimeout(() => lightning.updateFunds(lnApi), 1000)
     }
   })
 
@@ -120,7 +120,8 @@ function registerSideEffects() {
   appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
     const auth = auth$.getValue()
     if (!auth || !auth.token) return
-    const lnApi = await getLn()
+    const lnApi = lightning.getLn()
+
     if (visible) {
       logger.info('App is visible, reconnecting to node')
       // reconnect
@@ -129,7 +130,7 @@ function registerSideEffects() {
       if (payments) {
         // start listening for payment updates again
         const lastPayIndex = deriveLastPayIndex(payments)
-        listenForAllInvoiceUpdates(lastPayIndex)
+        lightning.listenForAllInvoiceUpdates(lastPayIndex)
       }
     } else {
       logger.info(

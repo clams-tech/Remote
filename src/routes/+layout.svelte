@@ -8,7 +8,7 @@
   import Notifications from '$lib/components/Notifications.svelte'
   import { getDataFromStorage, isProtectedRoute, loadVConsole } from '$lib/utils'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
-  import { initialiseData } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import { Modals, type Auth } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
@@ -62,7 +62,7 @@
 
     if (auth) {
       auth$.next(auth)
-      initialiseData()
+      lightning.initialiseData()
     }
 
     setTimeout(() => (loading = false), 2500)

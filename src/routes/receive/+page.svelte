@@ -8,7 +8,7 @@
   import Slide from '$lib/elements/Slide.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { getLn, waitForAndUpdatePayment } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import { createRandomHex } from '$lib/utils'
 
   import {
@@ -61,7 +61,7 @@
     try {
       requesting = true
 
-      const lnApi = await getLn()
+      const lnApi = lightning.getLn()
 
       const payment = await lnApi.createInvoice({
         amount_msat: amount_msat === '0' ? 'any' : amount_msat,
@@ -75,7 +75,7 @@
 
       if (!$listeningForAllInvoiceUpdates$) {
         // track invoice payment
-        waitForAndUpdatePayment(payment)
+        lightning.waitForAndUpdatePayment(payment)
       }
 
       // route to payment route

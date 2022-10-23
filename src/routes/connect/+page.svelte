@@ -17,7 +17,7 @@
   import Info from '$lib/icons/Info.svelte'
   import Modal from '$lib/elements/Modal.svelte'
   import { Modals } from '$lib/types'
-  import { getLn, initialiseData } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import { AUTH_STORAGE_KEY, DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
 
   import {
@@ -76,7 +76,7 @@
       // set auth details to allow connection
       auth$.next({ address, token: 'empty' })
 
-      const lnApi = await getLn(true)
+      const lnApi = lightning.getLn()
       const connected = await lnApi.connection.connect(false)
 
       connectStatus = connected ? 'success' : 'fail'
@@ -104,10 +104,10 @@
     updateAuth({ token, address, sessionSecret: sessionPrivateKey })
 
     // update token to proper one
-    const lnApi = await getLn()
+    const lnApi = lightning.getLn()
     lnApi.setToken(token)
 
-    initialiseData()
+    lightning.initialiseData()
     goto('/')
   }
 

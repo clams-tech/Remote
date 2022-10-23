@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation'
   import PinEntry from '$lib/components/PinEntry.svelte'
   import { AUTH_STORAGE_KEY } from '$lib/constants'
-  import { initialiseData } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
   import { auth$, customNotifications$, lastPath$, pin$ } from '$lib/streams'
   import { createRandomHex, getDataFromStorage, parseStoredAuth } from '$lib/utils'
@@ -20,7 +20,7 @@
 
     if (auth) {
       auth$.next(auth)
-      initialiseData()
+      lightning.initialiseData()
       goto($lastPath$)
     } else {
       customNotifications$.next({

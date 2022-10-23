@@ -11,7 +11,7 @@
   import type { ErrorResponse } from '$lib/backends'
   import { createRandomHex, formatDecodedInvoice } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
-  import { getLn } from '$lib/lightning'
+  import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
   import Big from 'big.js'
 
@@ -81,7 +81,7 @@
     const id = createRandomHex()
 
     try {
-      const lnApi = await getLn()
+      const lnApi = lightning.getLn()
       const payment = await lnApi.payInvoice({
         bolt11: bolt11 as string,
         id,
