@@ -13,7 +13,7 @@
 
   export let payment: Payment
 
-  const { id, direction, value, startedAt, description, status } = payment
+  const { id, direction, value, startedAt, completedAt, description, status } = payment
 
   $: primaryValue = convertValue({
     from: BitcoinDenomination.msats,
@@ -61,7 +61,7 @@
       {/if}
 
       <span class="text-sm text-neutral-400 mt-1"
-        >{formatDate({ date: startedAt, language: $settings$.language })}</span
+        >{formatDate({ date: completedAt || startedAt, language: $settings$.language })}</span
       >
     </div>
   </div>

@@ -54,7 +54,7 @@
     "direction": "{{direction; receive:}}",
     "any": "any",
     "amount": "Amount:",
-    "expiry": "Expires in:",
+    "expiry": "Expires",
     "help_and_support": "Help & Support",
     "dark_mode": "Dark Mode",
     "encrypt": "Encrypt Local Data",
