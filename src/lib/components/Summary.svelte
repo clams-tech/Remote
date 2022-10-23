@@ -5,7 +5,7 @@
   import { translate } from '$lib/i18n/translations'
   import type { PaymentType } from '$lib/types'
   import { settings$ } from '$lib/streams'
-  import { formatDestination, formatValueForDisplay } from '$lib/utils'
+  import { formatCountdown, formatDestination, formatValueForDisplay } from '$lib/utils'
   import { createEventDispatcher } from 'svelte'
   import ExpiryCountdown from './ExpiryCountdown.svelte'
 
@@ -14,27 +14,63 @@
   export let direction: 'send' | 'receive'
   export let value: string | null
   export let description = ''
-  export let expiry: number | null
+  export let expiry: number | null = 600
   export let timestamp: number | null = null
   export let requesting: boolean
 
-  $: expiryMinutes = expiry && expiry / MIN_IN_SECS
+  $: expiryStep = secondsToStep(expiry)
+  $: expirySeconds = stepToSeconds(expiryStep)
+  $: expiryDate = new Date(Date.now() + expirySeconds * 1000)
 
   const expiresAt = timestamp ? (timestamp + (expiry || $settings$.invoiceExpiry)) * 1000 : null
   const dispatch = createEventDispatcher()
 
-  function updateExpiry(event: Event) {
-    const { value } = event.target as HTMLInputElement
+  function stepToSeconds(step: number) {
+    switch (step) {
+      // 10 mins
+      case 1:
+        return 10 * MIN_IN_SECS
+      // 1 hour
+      case 2:
+        return 60 * MIN_IN_SECS
+      // 1 day
+      case 3:
+        return 60 * MIN_IN_SECS * 24
+      // 1 week
+      case 4:
+        return 60 * MIN_IN_SECS * 24 * 7
+      default:
+        return 10 * MIN_IN_SECS
+    }
+  }
 
-    const invoiceExpiry = parseInt(value) * MIN_IN_SECS
+  function secondsToStep(seconds: number | null) {
+    switch (seconds) {
+      // 10 mins
+      case 10 * MIN_IN_SECS:
+        return 1
+      // 1 hour
+      case 60 * MIN_IN_SECS:
+        return 2
+      // 1 day
+      case 60 * MIN_IN_SECS * 24:
+        return 3
+      // 1 week
+      case 60 * MIN_IN_SECS * 24 * 7:
+        return 4
+      default:
+        return 3
+    }
+  }
 
-    expiry = invoiceExpiry
+  function updateExpiry() {
+    expiry = expirySeconds
 
     const currentSettings = settings$.value
 
     settings$.next({
       ...currentSettings,
-      invoiceExpiry
+      invoiceExpiry: expiry
     })
   }
 </script>
@@ -87,19 +123,19 @@
     {#if type === 'payment_request'}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.expiry')}</span>
-        <span class="flex items-center" slot="value">
+        <span class="flex items-center w-full justify-end" slot="value">
           {#if direction === 'receive'}
             <input
               class="h-2 bg-purple-50 appearance-none mr-4 accent-purple-500 dark:accent-purple-300"
               type="range"
               min="1"
-              max="60"
-              bind:value={expiryMinutes}
+              max="4"
+              step="1"
+              bind:value={expiryStep}
               on:change={updateExpiry}
             />
-            <span class="whitespace-nowrap">
-              {expiryMinutes}
-              {$translate('app.time.mins')}
+            <span class="whitespace-nowrap w-24 text-right">
+              {formatCountdown({ date: expiryDate, language: $settings$.language })}
             </span>
           {:else if expiresAt}
             <ExpiryCountdown small={false} label={false} expiry={new Date(expiresAt)} />

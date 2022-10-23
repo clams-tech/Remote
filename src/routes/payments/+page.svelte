@@ -33,10 +33,16 @@
   }
 
   $: if (searchTerm && payments) {
-    filteredPayments = payments.filter(({ status, direction, value, description }) => {
-      const paymentString = JSON.stringify({ status, direction, value, description })
-      return paymentString.toLowerCase().includes(searchTerm.toLowerCase())
-    })
+    filteredPayments = payments
+      .filter(({ status, direction, value, description }) => {
+        const paymentString = JSON.stringify({ status, direction, value, description })
+        return paymentString.toLowerCase().includes(searchTerm.toLowerCase())
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt || b.startedAt).getTime() -
+          new Date(a.completedAt || a.startedAt).getTime()
+      )
   } else {
     filteredPayments = payments || []
   }
