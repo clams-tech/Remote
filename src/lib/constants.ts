@@ -54,9 +54,9 @@ export const ALL_DATA_KEYS = ENCRYPTED_DATA_KEYS.concat(
   LISTEN_INVOICE_STORAGE_KEY
 )
 
-export const DOCS_LINK = 'https://clams.tech/docs'
-export const DOCS_CONNECT_LINK = 'https://clams.tech/docs/connect'
-export const DOCS_RUNE_LINK = 'https://clams.tech/docs/runes'
+export const DOCS_LINK = 'https://docs.clams.tech'
+export const DOCS_CONNECT_LINK = 'https://docs.clams.tech/connection'
+export const DOCS_RUNE_LINK = 'https://docs.clams.tech/authentication'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
