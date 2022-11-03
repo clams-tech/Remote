@@ -257,11 +257,11 @@ export type PayResponse = {
   /**
    * Amount the recipient received
    */
-  amount_msat: string
+  amount_msat: string | number
   /**
    * Total amount we sent (including fees)
    */
-  amount_sent_msat: string
+  amount_sent_msat: string | number
   /**
    * the UNIX timestamp showing when this payment was initiated
    */
@@ -478,7 +478,7 @@ export type Invoice = {
   /**
    * the amount required to pay this invoice
    */
-  amount_msat?: number
+  amount_msat?: number | string
   /**
    * the BOLT11 string (always present unless *bolt12* is)
    */
@@ -516,7 +516,7 @@ export type Invoice = {
    * Whether it's paid, unpaid or unpayable
    */
   status: InvoiceStatus
-  amount_received_msat?: string
+  amount_received_msat?: string | number
   pay_index?: number
   paid_at?: number
   payment_preimage?: string
