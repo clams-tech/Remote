@@ -285,7 +285,7 @@ export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
   const offChain = funds.channels.reduce(
-    (total, { our_amount_msat }) => total.add(our_amount_msat),
+    (total, { our_amount_msat }) => total.add(stripMsat(our_amount_msat)),
     Big('0')
   )
 
@@ -407,4 +407,8 @@ export const logger = {
 export async function loadVConsole() {
   const { default: VConsole } = await import('vconsole')
   new VConsole()
+}
+
+export function stripMsat(val: string) {
+  return val.replace('msat', '')
 }
