@@ -327,8 +327,8 @@ export type Pay = {
    */
   destination?: string
   preimage: string
-  amount_msat: string
-  amount_sent_msat: string
+  amount_msat: string | number
+  amount_sent_msat: string | number
   /**
    * the label, if given to sendpay
    */
@@ -391,7 +391,7 @@ export type Channel = {
   /**
    * total channel value
    */
-  amount_msat: string
+  amount_msat: string | number
   /**
    * whether the channel peer is connected
    */
@@ -407,7 +407,7 @@ export type Channel = {
   /**
    * available satoshis on our node’s end of the channel
    */
-  our_amount_msat: string
+  our_amount_msat: string | number
   /**
    * the peer with which the channel is opened
    */
