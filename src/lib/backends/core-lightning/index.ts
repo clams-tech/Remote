@@ -159,7 +159,8 @@ class CoreLn {
       completedAt: new Date().toISOString(),
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
-      fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+      fee:
+        amount_sent_msat && amount_msat ? Big(amount_sent_msat).minus(amount_msat).toString() : '0',
       status,
       bolt11
     }
@@ -203,7 +204,8 @@ class CoreLn {
       completedAt: new Date().toISOString(),
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
-      fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+      fee:
+        amount_sent_msat && amount_msat ? Big(amount_sent_msat).minus(amount_msat).toString() : '0',
       status,
       bolt11: null
     }

@@ -82,7 +82,8 @@ export function payToPayment(pay: Pay): Payment {
     hash: payment_hash,
     preimage,
     value: amount_msat,
-    fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+    fee:
+      amount_sent_msat && amount_msat ? Big(amount_sent_msat).minus(amount_msat).toString() : '0',
     direction: 'send',
     type: bolt11 ? 'payment_request' : 'node_public_key',
     expiresAt: null,
