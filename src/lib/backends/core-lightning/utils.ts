@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
 import type { Payment } from '$lib/types'
-import { formatDecodedInvoice, stripMsat } from '$lib/utils'
+import { formatDecodedInvoice, formatMsat } from '$lib/utils'
 
 import type { InvoiceStatus, Invoice, Pay } from './types'
 
@@ -33,8 +33,6 @@ export function invoiceToPayment(invoice: Invoice): Payment {
 
   const decodedInvoice = decode(bolt11)
   const { timestamp } = formatDecodedInvoice(decodedInvoice)
-  const value = amount_received_msat || amount_msat || 'any'
-  const sanitisedValue = typeof value === 'string' ? stripMsat(value) : value.toString()
 
   return {
     id: label || payment_hash,
@@ -43,7 +41,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     direction: 'receive',
     type: 'payment_request',
     preimage: payment_preimage,
-    value: sanitisedValue,
+    value: formatMsat(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
     completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
     expiresAt: new Date(expires_at * 1000).toISOString(),
@@ -75,10 +73,7 @@ export function payToPayment(pay: Pay): Payment {
     ? formatDecodedInvoice(decodedInvoice)
     : { description: undefined }
 
-  const sanitisedAmount =
-    typeof amount_msat === 'string' ? stripMsat(amount_msat) : amount_msat.toString()
-  const sanitisedAmountSent =
-    typeof amount_sent_msat === 'string' ? stripMsat(amount_sent_msat) : amount_sent_msat.toString()
+  const amountMsat = formatMsat(amount_msat)
 
   return {
     id: label || payment_hash,
@@ -88,8 +83,8 @@ export function payToPayment(pay: Pay): Payment {
     startedAt: timestamp,
     hash: payment_hash,
     preimage,
-    value: sanitisedAmount,
-    fee: Big(sanitisedAmountSent).minus(sanitisedAmount).toString(),
+    value: amountMsat,
+    fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
     direction: 'send',
     type: bolt11 ? 'payment_request' : 'node_public_key',
     expiresAt: null,

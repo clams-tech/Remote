@@ -1,7 +1,7 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
-import { parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
 import { WS_PROXY } from '$lib/constants'
 import type { Logger } from 'lnmessage/dist/types'
@@ -104,7 +104,7 @@ class CoreLn {
     return {
       ...payment,
       status: status === 'paid' ? 'complete' : 'expired',
-      value: amount_received_msat || payment.value,
+      value: formatMsat(amount_received_msat || payment.value),
       completedAt: new Date((paid_at as number) * 1000).toISOString(),
       preimage: payment_preimage
     }
@@ -155,12 +155,11 @@ class CoreLn {
       destination,
       type: 'payment_request',
       direction: 'send',
-      value: amount_msat,
+      value: formatMsat(amount_msat),
       completedAt: new Date().toISOString(),
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
-      fee:
-        amount_sent_msat && amount_msat ? Big(amount_sent_msat).minus(amount_msat).toString() : '0',
+      fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
       bolt11
     }
@@ -193,6 +192,8 @@ class CoreLn {
       destination
     } = result as KeysendResponse
 
+    const amountMsat = formatMsat(amount_msat)
+
     return {
       id,
       hash: payment_hash,
@@ -200,12 +201,11 @@ class CoreLn {
       destination,
       type: 'payment_request',
       direction: 'send',
-      value: amount_msat,
+      value: amountMsat,
       completedAt: new Date().toISOString(),
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
-      fee:
-        amount_sent_msat && amount_msat ? Big(amount_sent_msat).minus(amount_msat).toString() : '0',
+      fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
       status,
       bolt11: null
     }

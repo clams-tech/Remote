@@ -3,6 +3,7 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
+import { log$ } from './streams'
 
 import {
   ALL_DATA_KEYS,
@@ -41,7 +42,6 @@ import {
   ta,
   ko
 } from 'date-fns/locale'
-import { log$ } from './streams'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
@@ -285,8 +285,7 @@ export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
   const offChain = funds.channels.reduce((total, { our_amount_msat }) => {
-    const val = typeof our_amount_msat === 'string' ? stripMsat(our_amount_msat) : our_amount_msat
-    return total.add(val)
+    return total.add(formatMsat(our_amount_msat))
   }, Big('0'))
 
   // const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
@@ -409,6 +408,7 @@ export async function loadVConsole() {
   new VConsole()
 }
 
-export function stripMsat(val: string) {
-  return val.replace('msat', '')
+export function formatMsat(val: string | number): string {
+  if (!val) return ''
+  return typeof val === 'string' ? val.replace('msat', '') : val.toString()
 }
