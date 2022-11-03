@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
 import type { Payment } from '$lib/types'
-import { formatDecodedInvoice } from '$lib/utils'
+import { formatDecodedInvoice, formatMsat } from '$lib/utils'
 
 import type { InvoiceStatus, Invoice, Pay } from './types'
 
@@ -41,7 +41,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     direction: 'receive',
     type: 'payment_request',
     preimage: payment_preimage,
-    value: (amount_received_msat || amount_msat || 'any') as string,
+    value: formatMsat(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
     completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
     expiresAt: new Date(expires_at * 1000).toISOString(),
@@ -73,6 +73,8 @@ export function payToPayment(pay: Pay): Payment {
     ? formatDecodedInvoice(decodedInvoice)
     : { description: undefined }
 
+  const amountMsat = formatMsat(amount_msat)
+
   return {
     id: label || payment_hash,
     destination,
@@ -81,8 +83,8 @@ export function payToPayment(pay: Pay): Payment {
     startedAt: timestamp,
     hash: payment_hash,
     preimage,
-    value: amount_msat,
-    fee: Big(amount_sent_msat).minus(amount_msat).toString(),
+    value: amountMsat,
+    fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
     direction: 'send',
     type: bolt11 ? 'payment_request' : 'node_public_key',
     expiresAt: null,
