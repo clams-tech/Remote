@@ -45,22 +45,21 @@
   }
 
   function secondsToStep(seconds: number | null) {
-    switch (seconds) {
-      // 10 mins
-      case 10 * MIN_IN_SECS:
-        return 1
-      // 1 hour
-      case 60 * MIN_IN_SECS:
-        return 2
-      // 1 day
-      case 60 * MIN_IN_SECS * 24:
-        return 3
-      // 1 week
-      case 60 * MIN_IN_SECS * 24 * 7:
-        return 4
-      default:
-        return 3
+    if (!seconds) return 3
+
+    if (seconds < 10 * MIN_IN_SECS) {
+      return 1
     }
+
+    if (seconds > 10 * MIN_IN_SECS && seconds < 60 * MIN_IN_SECS) {
+      return 2
+    }
+
+    if (seconds > 60 * MIN_IN_SECS && seconds < 60 * MIN_IN_SECS * 24) {
+      return 3
+    }
+
+    return 4
   }
 
   function updateExpiry() {
