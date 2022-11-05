@@ -50,6 +50,4 @@
   <div class="flex justify-center w-full mt-6">
     <PinEntry bind:pin bind:reset on:complete={handlePinEntry} />
   </div>
-
-  <!-- OPTION TO RESET APP -->
 </section>
