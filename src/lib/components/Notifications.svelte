@@ -126,7 +126,7 @@
 
         <div class="flex items-start w-full">
           <div
-            class="w-6 border-2 border-current rounded-full mr-4"
+            class="w-6 border-2 border-current rounded-full mr-4 flex-shrink-0"
             class:text-utility-success={type === 'success'}
             class:text-utility-error={type === 'error'}
           >
