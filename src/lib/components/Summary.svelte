@@ -22,6 +22,8 @@
   $: expirySeconds = stepToSeconds(expiryStep)
   $: expiryDate = new Date(Date.now() + expirySeconds * 1000)
 
+  $: console.log({ expiry, expirySeconds, expiryStep })
+
   const expiresAt = timestamp ? (timestamp + (expiry || $settings$.invoiceExpiry)) * 1000 : null
   const dispatch = createEventDispatcher()
 
@@ -47,15 +49,15 @@
   function secondsToStep(seconds: number | null) {
     if (!seconds) return 3
 
-    if (seconds < 10 * MIN_IN_SECS) {
+    if (seconds <= 10 * MIN_IN_SECS) {
       return 1
     }
 
-    if (seconds > 10 * MIN_IN_SECS && seconds < 60 * MIN_IN_SECS) {
+    if (seconds >= 10 * MIN_IN_SECS && seconds <= 60 * MIN_IN_SECS) {
       return 2
     }
 
-    if (seconds > 60 * MIN_IN_SECS && seconds < 60 * MIN_IN_SECS * 24) {
+    if (seconds >= 60 * MIN_IN_SECS && seconds <= 60 * MIN_IN_SECS * 24) {
       return 3
     }
 
