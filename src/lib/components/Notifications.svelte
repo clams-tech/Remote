@@ -141,7 +141,7 @@
 
           <div class="w-4/5">
             <h4 class="font-bold leading-4 mb-2">{heading}</h4>
-            <p class="text-sm">{message}</p>
+            <p class="text-sm break-all">{message}</p>
           </div>
         </div>
       </div>

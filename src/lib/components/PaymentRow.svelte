@@ -57,7 +57,9 @@
       <span class="font-bold">{$translate('app.payment.status', { direction, status })}</span>
 
       {#if description}
-        <span class="text-sm italic text-neutral-500 max-w-[200px] mt-1">{description}</span>
+        <span class="text-sm italic text-neutral-500 max-w-[200px] mt-1 break-all"
+          >{description}</span
+        >
       {/if}
 
       <span class="text-sm text-neutral-400 mt-1"
