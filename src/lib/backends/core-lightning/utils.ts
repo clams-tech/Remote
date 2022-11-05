@@ -1,9 +1,10 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
 import type { Payment } from '$lib/types'
-import { formatDecodedInvoice, formatMsat } from '$lib/utils'
+import { formatDecodedInvoice, formatMsat, logger } from '$lib/utils'
 
 import type { InvoiceStatus, Invoice, Pay } from './types'
+import { MIN_IN_SECS } from '$lib/constants'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -31,8 +32,15 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     pay_index
   } = invoice
 
-  const decodedInvoice = decode(bolt11)
-  const { timestamp } = formatDecodedInvoice(decodedInvoice)
+  let timestamp: number
+
+  try {
+    const decodedInvoice = decode(bolt11)
+    timestamp = formatDecodedInvoice(decodedInvoice).timestamp
+  } catch (error) {
+    logger.error(`Unable to decode bolt11: ${bolt11}`)
+    timestamp = expires_at - 15 * MIN_IN_SECS
+  }
 
   return {
     id: label || payment_hash,

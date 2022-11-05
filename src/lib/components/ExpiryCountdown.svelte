@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { filter, map, startWith, take, takeUntil, timer } from 'rxjs'
+  import { filter, mergeMap, startWith, take, takeUntil, timer } from 'rxjs'
   import { translate } from '$lib/i18n/translations'
   import { formatCountdown } from '$lib/utils'
   import { settings$, onDestroy$ } from '$lib/streams'
@@ -12,7 +12,7 @@
   const dispatch = createEventDispatcher()
 
   const msToExpire$ = timer(0, 1000).pipe(
-    map(() => {
+    mergeMap(() => {
       return formatCountdown({ date: expiry, language: settings$.getValue().language })
     }),
     takeUntil(onDestroy$),

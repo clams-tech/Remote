@@ -7,6 +7,7 @@
 
   import { BitcoinDenomination } from '$lib/types'
   import { formatDate, formatValueForDisplay } from '$lib/utils'
+  import { fade } from 'svelte/transition'
 
   $: payment =
     $payments$.data &&
@@ -42,12 +43,11 @@
         >
       </span>
       {#if payment.completedAt}
-        <span
-          >{formatDate({
-            date: payment.completedAt,
-            language: $settings$.language
-          })}</span
-        >
+        <span>
+          {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
+            <span in:fade>{formatted}</span>
+          {/await}
+        </span>
       {/if}
     </div>
   </a>

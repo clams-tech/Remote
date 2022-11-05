@@ -143,6 +143,61 @@
   function resetConnectStatus() {
     connectStatus = 'idle'
   }
+
+  $: formattedRestrictions = decodedRune
+    ? Promise.all(
+        decodedRune.restrictions
+          .map(({ summary }) => {
+            const alternatives = summary.split(' OR ')
+
+            return Promise.all(
+              alternatives
+                .map(async (alternative) => {
+                  let words = alternative.split(' ')
+                  const lastIndex = words.length - 1
+                  const lastValue = words[lastIndex]
+
+                  // format rate limit
+                  if (words[0] === 'rate') {
+                    words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+                  }
+
+                  // format id
+                  if (words[0] === 'id') {
+                    words[lastIndex] = truncateValue(lastValue)
+                  }
+
+                  // format time
+                  if (words[0] === 'time') {
+                    const timeMs = parseInt(lastValue) * 1000
+
+                    words = [
+                      'valid',
+                      'until',
+                      await formatDate({
+                        date: new Date(timeMs).toISOString(),
+                        language: $settings$.language
+                      })
+                    ]
+                  }
+
+                  words = words.map((word, i) => {
+                    // first or last word
+                    if (i === 0 || i === words.length - 1) {
+                      word = `<b>${word}</b>`
+                    }
+
+                    return word
+                  })
+
+                  return words.join(' ')
+                })
+                .join('<span class="text-xs"><i><br>OR<br></i></span>')
+            )
+          })
+          .join('<span class="text-xs"><i><br>AND<br></i></span>')
+      )
+    : Promise.resolve([])
 </script>
 
 <svelte:head>
@@ -318,54 +373,9 @@
               <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
             </div>
           {:else}
-            {@html decodedRune.restrictions
-              .map(({ summary }) => {
-                const alternatives = summary.split(' OR ')
-
-                return alternatives
-                  .map((alternative) => {
-                    let words = alternative.split(' ')
-                    const lastIndex = words.length - 1
-                    const lastValue = words[lastIndex]
-
-                    // format rate limit
-                    if (words[0] === 'rate') {
-                      words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
-                    }
-
-                    // format id
-                    if (words[0] === 'id') {
-                      words[lastIndex] = truncateValue(lastValue)
-                    }
-
-                    // format time
-                    if (words[0] === 'time') {
-                      const timeMs = parseInt(lastValue) * 1000
-
-                      words = [
-                        'valid',
-                        'until',
-                        formatDate({
-                          date: new Date(timeMs).toISOString(),
-                          language: $settings$.language
-                        })
-                      ]
-                    }
-
-                    words = words.map((word, i) => {
-                      // first or last word
-                      if (i === 0 || i === words.length - 1) {
-                        word = `<b>${word}</b>`
-                      }
-
-                      return word
-                    })
-
-                    return words.join(' ')
-                  })
-                  .join('<span class="text-xs"><i><br>OR<br></i></span>')
-              })
-              .join('<span class="text-xs"><i><br>AND<br></i></span>')}
+            {#await formattedRestrictions then formatted}
+              {@html formatted}
+            {/await}
           {/if}
         </p>
       </SummaryRow>

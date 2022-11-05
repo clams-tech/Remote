@@ -12,36 +12,35 @@ import {
   ENCRYPTED_DATA_KEYS
 } from './constants'
 
-import {
-  type Denomination,
-  type PaymentType,
-  Language,
-  type Payment,
-  type BitcoinExchangeRates,
-  type FormattedSections,
-  type ParsedNodeAddress,
-  type Auth
+import type {
+  Denomination,
+  PaymentType,
+  Payment,
+  BitcoinExchangeRates,
+  FormattedSections,
+  ParsedNodeAddress,
+  Auth
 } from './types'
 
-import {
-  ar,
-  bn,
-  enGB,
-  enUS,
-  es,
-  fr,
-  hi,
-  id,
-  ja,
-  pt,
-  ru,
-  zhCN,
-  de,
-  te,
-  tr,
-  ta,
-  ko
-} from 'date-fns/locale'
+// import {
+//   ar,
+//   bn,
+//   enGB,
+//   enUS,
+//   es,
+//   fr,
+//   hi,
+//   id,
+//   ja,
+//   pt,
+//   ru,
+//   zhCN,
+//   de,
+//   te,
+//   tr,
+//   ta,
+//   ko
+// } from 'date-fns/locale/index.js'
 
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
@@ -228,44 +227,37 @@ export function clickOutside(element: HTMLElement, callbackFunction: () => void)
 }
 
 // https://github.com/date-fns/date-fns/blob/9bb51691f201c3ec05ab832acbc5d478f2e5c47a/docs/i18nLocales.md
-const locales: Record<string, Locale> = {
-  'en-GB': enGB, // British English
-  'en-US': enUS, // American English
-  'zh-CN': zhCN, // Chinese (mainland)
-  es, // Spanish
-  hi, // Hindi
-  ar, // Arabic
-  bn, // Bengali
-  fr, // French
-  pt, // Portuguese
-  ru, // Russian
-  ja, // Japanese
-  id, // Indonesian
-  de, // German
-  te, // Telugu
-  tr, // Turkish
-  ta, // Tamil
-  ko // Korean
+const locales: Record<string, () => Promise<Locale>> = {
+  'en-GB': () => import('date-fns/esm/locale/en-GB/index.js').then((mod) => mod.default), // British English
+  'en-US': () => import('date-fns/esm/locale/en-US/index.js').then((mod) => mod.default), // American English
+  'zh-CN': () => import('date-fns/esm/locale/zh-CN/index.js').then((mod) => mod.default), // Chinese (mainland)
+  es: () => import('date-fns/esm/locale/es/index.js').then((mod) => mod.default), // Spanish
+  hi: () => import('date-fns/esm/locale/hi/index.js').then((mod) => mod.default), // Hindi
+  ar: () => import('date-fns/esm/locale/ar/index.js').then((mod) => mod.default), // Arabic
+  bn: () => import('date-fns/esm/locale/bn/index.js').then((mod) => mod.default), // Bengali
+  fr: () => import('date-fns/esm/locale/fr/index.js').then((mod) => mod.default), // French
+  pt: () => import('date-fns/esm/locale/pt/index.js').then((mod) => mod.default), // Portuguese
+  ru: () => import('date-fns/esm/locale/ru/index.js').then((mod) => mod.default), // Russian
+  ja: () => import('date-fns/esm/locale/ja/index.js').then((mod) => mod.default), // Japanese
+  id: () => import('date-fns/esm/locale/id/index.js').then((mod) => mod.default), // Indonesian
+  de: () => import('date-fns/esm/locale/de/index.js').then((mod) => mod.default), // German
+  te: () => import('date-fns/esm/locale/te/index.js').then((mod) => mod.default), // Telugu
+  tr: () => import('date-fns/esm/locale/tr/index.js').then((mod) => mod.default), // Turkish
+  ta: () => import('date-fns/esm/locale/ta/index.js').then((mod) => mod.default), // Tamil
+  ko: () => import('date-fns/esm/locale/ko/index.js').then((mod) => mod.default) // Korean
 }
 
-export function formatDate(options: { date: string; language: string }): string {
+export async function formatDate(options: { date: string; language: string }): Promise<string> {
   const { date, language } = options
-
-  const settingsLocale =
-    Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
-
-  const locale = locales[settingsLocale] || enGB
+  const locale = await (locales[language] || locales['en-GB'])()
 
   return formatRelative(new Date(date), new Date(), { locale })
 }
 
-export function formatCountdown(options: { date: Date; language: string }) {
+export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {
   const { date, language } = options
 
-  const settingsLocale =
-    Object.keys(Language)[Object.values(Language).indexOf(language as Language)]
-
-  const locale = locales[settingsLocale] || enGB
+  const locale = await (locales[language] || locales['en-GB'])()
 
   return formatDistanceToNowStrict(date, { locale, addSuffix: true })
 }
