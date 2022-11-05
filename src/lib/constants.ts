@@ -15,7 +15,7 @@ export const SEC_IN_MS = 1000
 export const MIN_IN_MS = 60 * 1000
 export const MIN_IN_SECS = 60
 
-export const DEFAULT_INVOICE_EXPIRY = 15 * MIN_IN_SECS
+export const DEFAULT_INVOICE_EXPIRY = 60 * MIN_IN_SECS
 
 export const DEFAULT_SETTINGS: Settings = {
   language: (typeof window === 'undefined'
