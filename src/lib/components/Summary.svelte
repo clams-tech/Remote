@@ -22,8 +22,6 @@
   $: expirySeconds = stepToSeconds(expiryStep)
   $: expiryDate = new Date(Date.now() + expirySeconds * 1000)
 
-  $: console.log({ expiry, expirySeconds, expiryStep })
-
   const expiresAt = timestamp ? (timestamp + (expiry || $settings$.invoiceExpiry)) * 1000 : null
   const dispatch = createEventDispatcher()
 
