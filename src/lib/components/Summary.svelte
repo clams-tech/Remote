@@ -134,7 +134,9 @@
               on:change={updateExpiry}
             />
             <span class="whitespace-nowrap w-24 text-right">
-              {formatCountdown({ date: expiryDate, language: $settings$.language })}
+              {#await formatCountdown( { date: expiryDate, language: $settings$.language } ) then countdown}
+                {countdown}
+              {/await}
             </span>
           {:else if expiresAt}
             <ExpiryCountdown small={false} label={false} expiry={new Date(expiresAt)} />

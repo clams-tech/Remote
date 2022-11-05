@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { merge, Observable } from 'rxjs'
+  import { merge, type Observable } from 'rxjs'
   import { filter, withLatestFrom, map, switchMap, takeUntil } from 'rxjs/operators'
   import { flip } from 'svelte/animate'
   import { fly, fade } from 'svelte/transition'

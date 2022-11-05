@@ -62,9 +62,11 @@
         >
       {/if}
 
-      <span class="text-sm text-neutral-400 mt-1"
-        >{formatDate({ date: completedAt || startedAt, language: $settings$.language })}</span
-      >
+      <span class="text-sm text-neutral-400 mt-1">
+        {#await formatDate( { date: completedAt || startedAt, language: $settings$.language } ) then formatted}
+          <span in:fade>{formatted}</span>
+        {/await}
+      </span>
     </div>
   </div>
 
