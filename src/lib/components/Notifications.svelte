@@ -126,7 +126,7 @@
 
         <div class="flex items-start w-full">
           <div
-            class="w-6 border-2 border-current rounded-full mr-4"
+            class="w-6 border-2 border-current rounded-full mr-4 flex-shrink-0"
             class:text-utility-success={type === 'success'}
             class:text-utility-error={type === 'error'}
           >
@@ -141,7 +141,7 @@
 
           <div class="w-4/5">
             <h4 class="font-bold leading-4 mb-2">{heading}</h4>
-            <p class="text-sm">{message}</p>
+            <p class="text-sm break-all">{message}</p>
           </div>
         </div>
       </div>

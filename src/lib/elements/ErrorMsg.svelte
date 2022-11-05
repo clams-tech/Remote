@@ -12,12 +12,12 @@
   >
     <div
       on:click={() => (message = '')}
-      class="absolute top-0 right-0 w-7 text-utility-error/50 cursor-pointer"
+      class="absolute top-0 right-0 w-7 text-utility-error/50 cursor-pointer flex-shrink-0"
     >
       <Close />
     </div>
 
-    <div class="text-utility-error w-8 mr-4">
+    <div class="text-utility-error w-6 flex-shrink-0 mr-4">
       <Warning />
     </div>
 

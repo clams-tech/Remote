@@ -15,7 +15,7 @@
     ><slot name="label" /></span
   >
 
-  <p class="flex items-center justify-end w-2/3">
+  <p class="flex items-center justify-end w-2/3 break-all text-right">
     <slot name="value" />
   </p>
 </div>

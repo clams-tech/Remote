@@ -146,10 +146,13 @@
   }
 
   onDestroy(() => {
-    qrWorker.removeEventListener('message', handleMessage)
-    qrWorker.terminate()
+    if (qrWorker) {
+      qrWorker.removeEventListener('message', handleMessage)
+      qrWorker.terminate()
+    }
+
     tickTimeout && clearTimeout(tickTimeout)
-    stream.getVideoTracks().forEach((track) => track.stop())
+    stream && stream.getVideoTracks().forEach((track) => track.stop())
   })
 </script>
 

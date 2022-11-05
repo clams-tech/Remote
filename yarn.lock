@@ -1392,10 +1392,10 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-lnmessage@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.0.9.tgz#e6c7ce261a0eaae4767b83d7f90868bd02f9f41d"
-  integrity sha512-4kAuwu09DRdHqZ0yiAvlYHeCv832kHzFVMQuqTH3RrnLR4BZwR0TBWIFnaAnRSvwBNp1KbmBxJZeGKTkUekc6w==
+lnmessage@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.0.10.tgz#e2fa9f6da31b57359fbf204551d7207813676e4f"
+  integrity sha512-BXf98WoEHN4bFIoZSQNQJjpexe4A4ZgKIzKcAW2rpITkrXqwlVXBfRSTqQiONT2NmLLQe4f931JNnUahjqavAA==
   dependencies:
     buffer "^6.0.3"
     crypto-js "^4.1.1"
