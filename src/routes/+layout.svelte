@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { beforeNavigate, goto } from '$app/navigation'
+  import { beforeNavigate } from '$app/navigation'
   import { browser } from '$app/environment'
-  import { page } from '$app/stores'
   import { auth$, lastPath$, modal$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
+  import { locale, loadTranslations } from '$lib/i18n/translations'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
-  import { getDataFromStorage, isProtectedRoute, loadVConsole } from '$lib/utils'
-  import { AUTH_STORAGE_KEY } from '$lib/constants'
-  import lightning from '$lib/lightning'
-  import { Modals, type Auth } from '$lib/types'
+  import { loadVConsole } from '$lib/utils'
+  import { Modals } from '$lib/types'
   import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import lightning from '$lib/lightning'
 
   let loading = true
   let innerHeight = window.innerHeight
@@ -35,37 +34,13 @@
   }
 
   async function initialise() {
-    const storedAuth = getDataFromStorage(AUTH_STORAGE_KEY)
-    const { pathname } = $page.url
-    const protectedRoute = isProtectedRoute(pathname)
+    const defaultLocale = 'en'
+    const initLocale = locale.get() || defaultLocale
+    await loadTranslations(initLocale)
 
-    if (storedAuth && !protectedRoute) {
-      // redirect from welcome and connect -> home page if has connected before
-      await goto('/')
-    }
+    $auth$ && lightning.initialiseData()
 
-    if (!storedAuth && protectedRoute) {
-      // tried to load a protected route and has not connected before
-      await goto('/welcome')
-    }
-
-    let auth: Auth | null = null
-
-    if (storedAuth) {
-      try {
-        auth = JSON.parse(storedAuth)
-      } catch (error) {
-        // encrypted auth, so route to decrypt
-        await goto('/decrypt')
-      }
-    }
-
-    if (auth) {
-      auth$.next(auth)
-      lightning.initialiseData()
-    }
-
-    setTimeout(() => (loading = false), 2500)
+    setTimeout(() => (loading = false), 2000)
   }
 </script>
 
@@ -78,7 +53,7 @@
   {#if loading}
     <div class="w-full h-full flex items-center justify-center">
       <div class="w-2/3 max-w-lg">
-        <ClamsLogo min={1} max={2.5} />
+        <ClamsLogo min={1} max={2.1} />
       </div>
     </div>
   {:else}
