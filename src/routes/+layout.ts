@@ -34,7 +34,6 @@ export const load: LayoutLoad = async ({ url }) => {
 
   if (storedAuth && pathname !== '/decrypt') {
     try {
-      console.log('trying to parse auth')
       auth = JSON.parse(storedAuth)
     } catch (error) {
       // encrypted auth, so route to decrypt
