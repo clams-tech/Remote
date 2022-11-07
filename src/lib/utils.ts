@@ -22,26 +22,6 @@ import type {
   Auth
 } from './types'
 
-// import {
-//   ar,
-//   bn,
-//   enGB,
-//   enUS,
-//   es,
-//   fr,
-//   hi,
-//   id,
-//   ja,
-//   pt,
-//   ru,
-//   zhCN,
-//   de,
-//   te,
-//   tr,
-//   ta,
-//   ko
-// } from 'date-fns/locale/index.js'
-
 export function formatDecodedInvoice(decodedInvoice: {
   paymentRequest: string
   sections: { name: string; value?: string | number }[]

@@ -35,7 +35,7 @@
   on:click={() => goto(`/payments/${id}`)}
   class="flex items-start justify-between py-4 border-t w-full cursor-pointer"
 >
-  <div class="flex items-start">
+  <div class="flex items-start w-3/4">
     <div
       class="border rounded-full w-8 mr-2 {direction === 'receive' && status === 'complete'
         ? 'border-utility-success text-utility-success'
@@ -53,13 +53,11 @@
         <Close />
       {/if}
     </div>
-    <div class="flex flex-col">
+    <div class="flex flex-col w-full">
       <span class="font-bold">{$translate('app.payment.status', { direction, status })}</span>
 
       {#if description}
-        <span class="text-sm italic text-neutral-500 max-w-[200px] mt-1 break-all"
-          >{description}</span
-        >
+        <span class="text-sm italic text-neutral-500 mt-1 break-all">{description}</span>
       {/if}
 
       <span class="text-sm text-neutral-400 mt-1">
@@ -70,7 +68,7 @@
     </div>
   </div>
 
-  <div class="flex flex-col text-right">
+  <div class="flex flex-col text-right w-1/4">
     <p class="font-bold">
       {abs}
       {formatValueForDisplay({

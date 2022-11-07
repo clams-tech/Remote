@@ -146,56 +146,52 @@
 
   $: formattedRestrictions = decodedRune
     ? Promise.all(
-        decodedRune.restrictions
-          .map(({ summary }) => {
-            const alternatives = summary.split(' OR ')
+        decodedRune.restrictions.map(async ({ summary }) => {
+          const alternatives = summary.split(' OR ')
 
-            return Promise.all(
-              alternatives
-                .map(async (alternative) => {
-                  let words = alternative.split(' ')
-                  const lastIndex = words.length - 1
-                  const lastValue = words[lastIndex]
+          return Promise.all(
+            alternatives.map(async (alternative) => {
+              let words = alternative.split(' ')
+              const lastIndex = words.length - 1
+              const lastValue = words[lastIndex]
 
-                  // format rate limit
-                  if (words[0] === 'rate') {
-                    words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
-                  }
+              // format rate limit
+              if (words[0] === 'rate') {
+                words = ['rate', 'limited', 'to', `${lastValue} requests per minute`]
+              }
 
-                  // format id
-                  if (words[0] === 'id') {
-                    words[lastIndex] = truncateValue(lastValue)
-                  }
+              // format id
+              if (words[0] === 'id') {
+                words[lastIndex] = truncateValue(lastValue)
+              }
 
-                  // format time
-                  if (words[0] === 'time') {
-                    const timeMs = parseInt(lastValue) * 1000
+              // format time
+              if (words[0] === 'time') {
+                const timeMs = parseInt(lastValue) * 1000
 
-                    words = [
-                      'valid',
-                      'until',
-                      await formatDate({
-                        date: new Date(timeMs).toISOString(),
-                        language: $settings$.language
-                      })
-                    ]
-                  }
-
-                  words = words.map((word, i) => {
-                    // first or last word
-                    if (i === 0 || i === words.length - 1) {
-                      word = `<b>${word}</b>`
-                    }
-
-                    return word
+                words = [
+                  'valid',
+                  'until',
+                  await formatDate({
+                    date: new Date(timeMs).toISOString(),
+                    language: $settings$.language
                   })
+                ]
+              }
 
-                  return words.join(' ')
-                })
-                .join('<span class="text-xs"><i><br>OR<br></i></span>')
-            )
-          })
-          .join('<span class="text-xs"><i><br>AND<br></i></span>')
+              words = words.map((word, i) => {
+                // first or last word
+                if (i === 0 || i === words.length - 1) {
+                  word = `<b>${word}</b>`
+                }
+
+                return word
+              })
+
+              return words.join(' ')
+            })
+          )
+        })
       )
     : Promise.resolve([])
 </script>
@@ -374,7 +370,7 @@
             </div>
           {:else}
             {#await formattedRestrictions then formatted}
-              {@html formatted}
+              {@html formatted.join('<span class="text-xs"><i><br>AND<br></i></span>')}
             {/await}
           {/if}
         </p>
