@@ -27,6 +27,14 @@
       from: BitcoinDenomination.msats,
       to: $settings$.primaryDenomination
     })
+
+  $: balanceSecondaryDenom =
+    balanceMsat &&
+    convertValue({
+      value: balanceMsat,
+      from: BitcoinDenomination.msats,
+      to: $settings$.secondaryDenomination
+    })
 </script>
 
 <svelte:head>
@@ -53,9 +61,9 @@
       <div in:fade class="p-6">
         <Spinner />
       </div>
-    {:else if balancePrimaryDenom !== null}
+    {:else}
       <div in:fade>
-        <Value value={balancePrimaryDenom} readonly />
+        <Value primary={balancePrimaryDenom} secondary={balanceSecondaryDenom} readonly />
       </div>
     {/if}
 

@@ -26,21 +26,17 @@
       ? 'error'
       : 'pending'
 
-  $: primaryValue =
-    $bitcoinExchangeRates$ &&
-    convertValue({
-      value: payment.value,
-      from: BitcoinDenomination.msats,
-      to: primaryDenomination
-    })
+  $: primaryValue = convertValue({
+    value: payment.value,
+    from: BitcoinDenomination.msats,
+    to: primaryDenomination
+  })
 
-  $: secondaryValue =
-    $bitcoinExchangeRates$ &&
-    convertValue({
-      value: payment.value,
-      from: BitcoinDenomination.msats,
-      to: secondaryDenomination
-    })
+  $: secondaryValue = convertValue({
+    value: payment.value,
+    from: BitcoinDenomination.msats,
+    to: secondaryDenomination
+  })
 
   let copySuccess: string
   let successTimeoutId: NodeJS.Timeout

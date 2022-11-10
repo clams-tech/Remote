@@ -1,27 +1,28 @@
 <script lang="ts">
   import Exchange from '$lib/icons/Exchange.svelte'
-  import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
+  import { settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
-  import { convertValue } from '$lib/conversion'
   import { onMount } from 'svelte'
   import { FiatDenomination } from '$lib/types'
+  import Spinner from '$lib/elements/Spinner.svelte'
 
   /**
    * value must be converted to primaryDenomination when passed in
    */
-  export let value: string
+  export let primary: string | null
+  export let secondary: string | null
   export let readonly = false
 
-  $: if (value && input) {
-    input.style.width = value.length + 'ch'
+  $: if (primary && input) {
+    input.style.width = primary.length + 'ch'
   }
 
   let input: HTMLInputElement
 
   onMount(() => {
     setTimeout(() => {
-      if (input) {
-        input.value = value
+      if (input && primary) {
+        input.value = primary
         input.focus()
       }
     }, 250)
@@ -40,33 +41,24 @@
       secondaryDenomination: currentSettings.primaryDenomination
     })
 
-    const newValue = formatValueForDisplay({
-      value: secondaryValue,
+    const newPrimaryValue = formatValueForDisplay({
+      value: secondary,
       denomination: currentSettings.secondaryDenomination
     })
 
-    value = newValue
+    secondary = primary
+    primary = newPrimaryValue
   }
-
-  $: secondaryValue = value
-    ? value !== '0' && value !== '0.'
-      ? $bitcoinExchangeRates$ &&
-        convertValue({
-          value,
-          from: $settings$.primaryDenomination,
-          to: $settings$.secondaryDenomination
-        })
-      : value
-    : '0'
 
   function handleInput(e: Event) {
     const { data } = e as InputEvent
-    const decimalIndex = value.indexOf('.')
+    primary = primary || '0'
+    const decimalIndex = primary.indexOf('.')
 
     // handle backspace
     if (data === null) {
-      const newValue = value.length === 1 ? '0' : input.value
-      value = newValue
+      const newValue = primary.length === 1 ? '0' : input.value
+      primary = newValue
       input.value = newValue.slice(-1) === '.' ? `${newValue.slice(0, -1)}0` : newValue
 
       return
@@ -81,30 +73,30 @@
       // sats cannot have decimals, so remove
       (primaryDenomination === 'sats' && data === '.') ||
       // sats max length is 9
-      (primaryDenomination === 'sats' && value.length >= 9) ||
+      (primaryDenomination === 'sats' && primary.length >= 9) ||
       // max length for btc and fiat
-      value.length >= 10 ||
+      primary.length >= 10 ||
       // no double decimal points
-      (data === '.' && value.includes('.')) ||
+      (data === '.' && primary.includes('.')) ||
       // fiat value and already two values after decimal point
       ($settings$.primaryDenomination in FiatDenomination &&
         data &&
         decimalIndex >= 1 &&
-        decimalIndex === value.length - 3) ||
+        decimalIndex === primary.length - 3) ||
       // btc value and already 8 values after decimal point
       ($settings$.primaryDenomination === 'btc' &&
         data &&
         decimalIndex >= 1 &&
-        decimalIndex === value.length - 9)
+        decimalIndex === primary.length - 9)
     ) {
-      input.value = value
+      input.value = primary
       return
     }
 
     // remove leading 0 if not decimal
-    if (value.length && value[0] === '0' && value[1] !== '.' && data !== '.') {
+    if (primary.length && primary[0] === '0' && primary[1] !== '.' && data !== '.') {
       input.value = data
-      value = data
+      primary = data
       return
     }
 
@@ -114,7 +106,7 @@
       input: true
     })
 
-    value = input.value
+    primary = input.value
   }
 </script>
 
@@ -124,15 +116,21 @@
       on:click={focus}
       class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full"
     >
-      <div class="flex items-end w-full">
+      <div class="flex items-end w-full" class:items-center={!primary}>
         <div class="relative flex items-center">
           <div class="text-4xl font-semibold cursor-pointer font-mono">
-            {formatValueForDisplay({
-              value,
-              denomination: $settings$.primaryDenomination,
-              commas: readonly,
-              input: !readonly
-            })}
+            {#if primary}
+              {formatValueForDisplay({
+                value: primary,
+                denomination: $settings$.primaryDenomination,
+                commas: readonly,
+                input: !readonly
+              })}
+            {:else}
+              <div class="mr-2">
+                <Spinner size="1.5rem" />
+              </div>
+            {/if}
           </div>
           {#if !readonly}
             <input
@@ -158,14 +156,22 @@
 
     <div
       class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3"
+      class:flex={!secondary}
+      class:items-center={!secondary}
       on:click={switchDenomination}
     >
       <span class="text-base font-mono">
-        {formatValueForDisplay({
-          value: secondaryValue,
-          denomination: $settings$.secondaryDenomination,
-          commas: true
-        })}
+        {#if secondary}
+          {formatValueForDisplay({
+            value: secondary,
+            denomination: $settings$.secondaryDenomination,
+            commas: true
+          })}
+        {:else}
+          <div class="mr-2">
+            <Spinner size="1rem" />
+          </div>
+        {/if}
       </span>
       <span class="text-xs">
         {$settings$.secondaryDenomination.toUpperCase()}
