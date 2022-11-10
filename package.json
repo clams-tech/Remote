@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "1.0.4",
+  "version": "1.0.4-0.0.1",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -52,7 +52,7 @@
     "hammerjs": "^2.0.8",
     "jsqr": "^1.4.0",
     "light-bolt11-decoder": "^2.1.0",
-    "lnmessage": "^0.0.11",
+    "lnmessage": "^0.0.12",
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",
     "qr-code-styling": "^1.6.0-rc.1",
