@@ -35,7 +35,7 @@
   on:click={() => goto(`/payments/${id}`)}
   class="flex items-start justify-between py-4 border-t w-full cursor-pointer"
 >
-  <div class="flex items-start w-3/4">
+  <div class="flex items-start w-3/5">
     <div
       class="border rounded-full w-8 mr-2 {direction === 'receive' && status === 'complete'
         ? 'border-utility-success text-utility-success'
@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <div class="flex flex-col text-right w-1/4">
+  <div class="flex flex-col text-right w-2/5">
     <p class="font-bold">
       {abs}
       {formatValueForDisplay({
