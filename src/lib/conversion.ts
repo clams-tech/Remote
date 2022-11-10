@@ -2,6 +2,8 @@ import Big from 'big.js'
 import { bitcoinExchangeRates$ } from './streams'
 import { BitcoinDenomination, type Denomination, type FiatDenomination } from './types'
 
+Big.NE = -21
+
 export function msatsToBtc(msats: string): string {
   return Big(msats === 'any' ? '0' : msats)
     .div(1e11)
