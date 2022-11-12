@@ -4,12 +4,12 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { Language } from '$lib/types'
   import { settings$ } from '$lib/streams'
-  import Check from '$lib/icons/Check.svelte'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { SUPPORTED_LOCALES, TRANSLATE_LINK } from '$lib/constants'
   import Button from '$lib/elements/Button.svelte'
-  import Github from '$lib/icons/Github.svelte'
+  import check from '$lib/icons/check'
+  import github from '$lib/icons/github'
 
   function setLanguage(lang: Language) {
     const currentSettings = settings$.value
@@ -48,7 +48,7 @@
             <div slot="value">
               {#if $settings$.language === lang}
                 <div in:fade={{ duration: 250 }} class="w-6">
-                  <Check />
+                  {@html check}
                 </div>
               {/if}
             </div>
@@ -68,7 +68,7 @@
         >
           <Button text={$translate('app.buttons.github')}>
             <div slot="iconLeft" class="w-8 mr-2">
-              <Github />
+              {@html github}
             </div>
           </Button>
         </a>

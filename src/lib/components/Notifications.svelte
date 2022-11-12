@@ -9,11 +9,8 @@
   import { translate } from '$lib/i18n/translations'
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination, type Notification } from '$lib/types'
-  import Close from '$lib/icons/Close.svelte'
+
   import { drag, swipe } from '$lib/touch'
-  import Check from '$lib/icons/Check.svelte'
-  import Info from '$lib/icons/Info.svelte'
-  import Alert from '$lib/icons/Alert.svelte'
 
   import {
     formatValueForDisplay,
@@ -21,6 +18,9 @@
     supportsNotifications,
     userAgent
   } from '$lib/utils'
+  import check from '$lib/icons/check'
+  import info from '$lib/icons/info'
+  import alert from '$lib/icons/alert'
 
   function elasticOut(t: number): number {
     return Math.sin((-13.0 * (t + 1.0) * Math.PI) / 2) * Math.pow(2.0, -35.0 * t) + 1.0
@@ -121,7 +121,7 @@
           on:click={() => removeNotification(id)}
           class="absolute top-0 right-0 w-9 p-1 cursor-pointer"
         >
-          <Close />
+          {@html close}
         </div>
 
         <div class="flex items-start w-full">
@@ -131,11 +131,11 @@
             class:text-utility-error={type === 'error'}
           >
             {#if type === 'success'}
-              <Check />
+              {@html check}
             {:else if type === 'hint'}
-              <Info />
+              {@html info}
             {:else}
-              <Alert />
+              {@html alert}
             {/if}
           </div>
 

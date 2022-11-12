@@ -1,13 +1,11 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition'
   import { convertValue } from '$lib/conversion'
-
   import { translate } from '$lib/i18n/translations'
-  import Caret from '$lib/icons/Caret.svelte'
   import { payments$, settings$ } from '$lib/streams'
-
   import { BitcoinDenomination } from '$lib/types'
   import { formatDate, formatValueForDisplay } from '$lib/utils'
-  import { fade } from 'svelte/transition'
+  import caret from '$lib/icons/caret'
 
   $: payment =
     $payments$.data &&
@@ -24,7 +22,7 @@
 
 {#if payment && primaryValue}
   <a href="/payments" class="absolute bottom-2 flex flex-col items-center justify-center p-4">
-    <div class="w-4 text-neutral-400 mb-1"><Caret direction="up" /></div>
+    <div class="w-4 text-neutral-400 mb-1 rotate-180">{@html caret}</div>
     <div class="flex flex-col items-center justify-center">
       <span>
         <span
@@ -45,7 +43,7 @@
       {#if payment.completedAt}
         <span>
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-            <span in:fade>{formatted}</span>
+            <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       {/if}

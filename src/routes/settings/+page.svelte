@@ -3,7 +3,6 @@
   import { fade } from 'svelte/transition'
   import { skip } from 'rxjs/operators'
   import Slide from '$lib/elements/Slide.svelte'
-  import Caret from '$lib/icons/Caret.svelte'
   import { auth$, funds$, modal$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
   import { Modals, type Settings } from '$lib/types'
   import Toggle from '$lib/elements/Toggle.svelte'
@@ -12,6 +11,7 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { encryptAllData, resetApp } from '$lib/utils'
   import { firstValueFrom } from 'rxjs'
+  import caret from '$lib/icons/caret'
 
   let version = __APP_VERSION__
 
@@ -100,7 +100,7 @@
           <a href={route}>
             <SummaryRow>
               <span slot="label">{label}</span>
-              <div class="w-6" slot="value"><Caret direction="right" /></div>
+              <div class="w-6 -rotate-90" slot="value">{@html caret}</div>
             </SummaryRow>
           </a>
         {/if}

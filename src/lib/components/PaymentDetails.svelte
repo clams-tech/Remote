@@ -5,15 +5,15 @@
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import type { Payment } from '$lib/types'
   import { BitcoinDenomination } from '$lib/types'
-  import { bitcoinExchangeRates$, paymentUpdates$, settings$ } from '$lib/streams'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import Copy from '$lib/icons/Copy.svelte'
-  import Check from '$lib/icons/Check.svelte'
-  import Warning from '$lib/icons/Warning.svelte'
   import { convertValue } from '$lib/conversion'
   import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
+  import check from '$lib/icons/check'
+  import copy from '$lib/icons/copy'
+  import warning from '$lib/icons/warning'
 
   export let payment: Payment
 
@@ -131,11 +131,11 @@
           {truncateValue(payment.bolt11)}
           {#if copySuccess === payment.bolt11}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>
@@ -150,11 +150,11 @@
             : payment.destination}
           {#if copySuccess === payment.destination}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>
@@ -174,13 +174,13 @@
 
         {#if payment.status === 'complete'}
           <div class="w-4 ml-1 border border-utility-success rounded-full">
-            <Check />
+            {@html check}
           </div>
         {/if}
 
         {#if payment.status === 'expired' || payment.status == 'failed'}
           <div class="w-4 ml-1">
-            <Warning />
+            {@html warning}
           </div>
         {/if}
       </span>
@@ -192,7 +192,7 @@
         <span slot="label">{$translate('app.labels.completed_at')}</span>
         <span slot="value">
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-            <span in:fade>{formatted}</span>
+            <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>
@@ -203,7 +203,7 @@
         >
         <span slot="value">
           {#await formatDate( { date: payment.startedAt, language: $settings$.language } ) then formatted}
-            <span in:fade>{formatted}</span>
+            <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>
@@ -225,11 +225,11 @@
           {truncateValue(payment.hash)}
           {#if copySuccess === payment.hash}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>

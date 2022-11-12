@@ -2,7 +2,7 @@
   import Button from '$lib/elements/Button.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
-  import Arrow from '$lib/icons/Arrow.svelte'
+  import arrow from '$lib/icons/arrow'
   import { onMount } from 'svelte'
 
   export let description = ''
@@ -39,8 +39,8 @@
   </div>
 
   <Button text={$translate('app.buttons.view_summary')} on:click={next}>
-    <div slot="iconRight" class="w-6">
-      <Arrow direction="right" />
+    <div slot="iconRight" class="w-6 rotate-90">
+      {@html arrow}
     </div>
   </Button>
 </section>

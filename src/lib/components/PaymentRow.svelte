@@ -7,9 +7,9 @@
   import { formatValueForDisplay, formatDate } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
   import { translate } from '$lib/i18n/translations'
-  import Lightning from '$lib/icons/Lightning.svelte'
-  import Clock from '$lib/icons/Clock.svelte'
-  import Close from '$lib/icons/Close.svelte'
+  import lightning from '$lib/icons/lightning'
+  import clock from '$lib/icons/clock'
+  import close from '$lib/icons/close'
 
   export let payment: Payment
 
@@ -46,11 +46,11 @@
         : 'border-current'} font-bold"
     >
       {#if status === 'complete'}
-        <Lightning />
+        {@html lightning}
       {:else if status === 'pending'}
-        <Clock />
+        {@html clock}
       {:else}
-        <Close />
+        {@html close}
       {/if}
     </div>
     <div class="flex flex-col w-full">
@@ -62,7 +62,7 @@
 
       <span class="text-sm text-neutral-400 mt-1">
         {#await formatDate( { date: completedAt || startedAt, language: $settings$.language } ) then formatted}
-          <span in:fade>{formatted}</span>
+          <span in:fade={{ duration: 50 }}>{formatted}</span>
         {/await}
       </span>
     </div>

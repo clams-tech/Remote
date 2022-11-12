@@ -4,9 +4,9 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { BitcoinDenomination } from '$lib/types'
   import { settings$ } from '$lib/streams'
-  import Check from '$lib/icons/Check.svelte'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import check from '$lib/icons/check'
 
   const bitcoinDenominations = [
     { value: BitcoinDenomination.btc, label: 'Bitcoin (BTC, ₿)' },
@@ -53,7 +53,7 @@
             <div slot="value">
               {#if $settings$.bitcoinDenomination === value}
                 <div in:fade={{ duration: 250 }} class="w-6">
-                  <Check />
+                  {@html check}
                 </div>
               {/if}
             </div>

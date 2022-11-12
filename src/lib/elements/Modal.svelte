@@ -11,7 +11,6 @@
   import { quintInOut, quintOut } from 'svelte/easing'
   import { userAgent } from '$lib/utils'
   import { swipe, drag } from '$lib/touch'
-  import Close from '$lib/icons/Close.svelte'
   import { modal$ } from '$lib/streams'
   import { DIRECTION_DOWN } from 'hammerjs'
 
@@ -60,7 +59,7 @@
         on:click={closeModal}
         class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors text-neutral-400"
       >
-        <Close />
+        {@html close}
       </div>
       <slot />
     </div>
