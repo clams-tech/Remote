@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings$ } from '$lib/streams'
+  import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
   import { currencySymbols } from '$lib/constants'
   import { onMount } from 'svelte'
@@ -24,7 +24,7 @@
 
   $: if (typeof primaryValueNumber === 'number') {
     primary = primaryValueNumber.toString()
-  } else if (typeof primaryValueNumber === 'undefined') {
+  } else if (primary !== null) {
     primary = ''
   }
 
@@ -47,13 +47,18 @@
       secondaryDenomination: currentSettings.primaryDenomination
     })
 
-    const newPrimaryValue = formatValueForDisplay({
-      value: secondary,
-      denomination: currentSettings.secondaryDenomination
-    })
+    console.log({ primary, secondary })
 
-    secondary = primary
-    primary = newPrimaryValue || null
+    const newPrimaryValue =
+      secondary === '0'
+        ? ''
+        : formatValueForDisplay({
+            value: secondary,
+            denomination: currentSettings.secondaryDenomination
+          })
+
+    secondary = primary || '0'
+    primary = newPrimaryValue
     primaryValueNumber = newPrimaryValue ? Number(newPrimaryValue) : null
 
     setTimeout(focus, 200)
@@ -134,7 +139,7 @@
         {@html secondarySymbol}
       </span>
       <span class="text-base font-mono">
-        {#if secondary}
+        {#if secondary !== null}
           {formatValueForDisplay({
             value: secondary,
             denomination: $settings$.secondaryDenomination,
