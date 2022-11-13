@@ -47,8 +47,6 @@
       secondaryDenomination: currentSettings.primaryDenomination
     })
 
-    console.log({ primary, secondary })
-
     const newPrimaryValue =
       secondary === '0'
         ? ''
