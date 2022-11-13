@@ -1,8 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
-  import QRIcon from '$lib/icons/Qr.svelte'
-  import ArrowIcon from '$lib/icons/Arrow.svelte'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
   import { calculateBalance } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -11,11 +9,13 @@
   import { BitcoinDenomination } from '$lib/types'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import arrow from '$lib/icons/arrow'
+  import qr from '$lib/icons/qr'
 
   const buttons = [
-    { key: 'send', icon: ArrowIcon, props: { direction: 'up' } },
-    { key: 'scan', icon: QRIcon, props: {} },
-    { key: 'receive', icon: ArrowIcon, props: {} }
+    { key: 'send', icon: arrow, styles: 'rotate-180' },
+    { key: 'scan', icon: qr, styles: '' },
+    { key: 'receive', icon: arrow, styles: '' }
   ]
 
   $: balanceMsat = $funds$.data && calculateBalance($funds$.data)
@@ -26,6 +26,14 @@
       value: balanceMsat,
       from: BitcoinDenomination.msats,
       to: $settings$.primaryDenomination
+    })
+
+  $: balanceSecondaryDenom =
+    balanceMsat &&
+    convertValue({
+      value: balanceMsat,
+      from: BitcoinDenomination.msats,
+      to: $settings$.secondaryDenomination
     })
 </script>
 
@@ -53,20 +61,20 @@
       <div in:fade class="p-6">
         <Spinner />
       </div>
-    {:else if balancePrimaryDenom !== null}
+    {:else}
       <div in:fade>
-        <Value value={balancePrimaryDenom} readonly />
+        <Value primary={balancePrimaryDenom} secondary={balanceSecondaryDenom} readonly />
       </div>
     {/if}
 
     <div class="grid grid-cols-3 gap-4 xl:gap-6 2xl:gap-8 w-full p-y mt-4">
-      {#each buttons as { key, icon, props } (key)}
+      {#each buttons as { key, icon, styles } (key)}
         <a
           href={`/${key}`}
           class="aspect-square border rounded flex flex-col justify-center items-center"
         >
-          <div class="w-10 lg:w-12">
-            <svelte:component this={icon} {...props} />
+          <div class="w-10 lg:w-12 {styles}">
+            {@html icon}
           </div>
           <div class="text-base font-semi-bold">{$translate(`app.buttons.${key}`)}</div>
         </a>

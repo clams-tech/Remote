@@ -7,9 +7,11 @@
   import { formatValueForDisplay, formatDate } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
   import { translate } from '$lib/i18n/translations'
-  import Lightning from '$lib/icons/Lightning.svelte'
-  import Clock from '$lib/icons/Clock.svelte'
-  import Close from '$lib/icons/Close.svelte'
+  import lightning from '$lib/icons/lightning'
+  import clock from '$lib/icons/clock'
+  import close from '$lib/icons/close'
+  import { currencySymbols } from '$lib/constants'
+  import Spinner from '$lib/elements/Spinner.svelte'
 
   export let payment: Payment
 
@@ -17,17 +19,20 @@
 
   $: primaryValue = convertValue({
     from: BitcoinDenomination.msats,
-    to: $settings$.bitcoinDenomination,
+    to: $settings$.primaryDenomination,
     value
   })
 
   $: secondaryValue = convertValue({
     from: BitcoinDenomination.msats,
-    to: $settings$.fiatDenomination,
+    to: $settings$.secondaryDenomination,
     value
   })
 
-  const abs = status === 'complete' ? (direction === 'receive' ? '+' : '-') : ''
+  $: abs = payment.status === 'complete' ? (payment.direction === 'receive' ? '+' : '-') : ''
+
+  const primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  const secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 </script>
 
 <div
@@ -46,11 +51,11 @@
         : 'border-current'} font-bold"
     >
       {#if status === 'complete'}
-        <Lightning />
+        {@html lightning}
       {:else if status === 'pending'}
-        <Clock />
+        {@html clock}
       {:else}
-        <Close />
+        {@html close}
       {/if}
     </div>
     <div class="flex flex-col w-full">
@@ -62,30 +67,46 @@
 
       <span class="text-sm text-neutral-400 mt-1">
         {#await formatDate( { date: completedAt || startedAt, language: $settings$.language } ) then formatted}
-          <span in:fade>{formatted}</span>
+          <span in:fade={{ duration: 50 }}>{formatted}</span>
         {/await}
       </span>
     </div>
   </div>
 
-  <div class="flex flex-col text-right w-2/5">
-    <p class="font-bold">
+  <div class="flex flex-col items-end w-2/5">
+    <p class="font-bold flex items-center">
       {abs}
-      {formatValueForDisplay({
-        denomination: $settings$.bitcoinDenomination,
-        value: primaryValue,
-        commas: true
-      })}
-      {$settings$.bitcoinDenomination}
+      <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}>
+        {@html primarySymbol}
+      </span>
+      {#if primaryValue}
+        {formatValueForDisplay({
+          denomination: $settings$.primaryDenomination,
+          value: primaryValue,
+          commas: true
+        })}
+      {:else}
+        <div class="ml-1">
+          <Spinner size="1rem" />
+        </div>
+      {/if}
     </p>
-    <p class="text-neutral-400">
+    <p class="text-neutral-400 flex items-center">
       {abs}
-      {formatValueForDisplay({
-        denomination: $settings$.fiatDenomination,
-        value: secondaryValue,
-        commas: true
-      })}
-      {$settings$.fiatDenomination}
+      <span class="flex justify-center items-center" class:w-4={secondarySymbol.startsWith('<')}>
+        {@html secondarySymbol}
+      </span>
+      {#if secondaryValue}
+        {formatValueForDisplay({
+          denomination: $settings$.secondaryDenomination,
+          value: secondaryValue,
+          commas: true
+        })}
+      {:else}
+        <div class="ml-1">
+          <Spinner size="1rem" />
+        </div>
+      {/if}
     </p>
   </div>
 </div>

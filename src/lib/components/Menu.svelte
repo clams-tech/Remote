@@ -2,11 +2,11 @@
   import { fade } from 'svelte/transition'
   import { page } from '$app/stores'
   import lightning from '$lib/lightning'
-  import Home from '$lib/icons/Home.svelte'
-  import Refresh from '$lib/icons/Refresh.svelte'
-  import Settings from '$lib/icons/Settings.svelte'
   import { isProtectedRoute } from '$lib/utils'
   import { funds$, nodeInfo$, payments$ } from '$lib/streams'
+  import home from '$lib/icons/home'
+  import settings from '$lib/icons/settings'
+  import refreshIcon from '$lib/icons/refresh'
 
   $: path = $page.url.pathname
   $: refreshing = $nodeInfo$.loading || $payments$.loading || $funds$.loading
@@ -20,7 +20,7 @@
   {#if path !== '/' && path !== '/decrypt' && isProtectedRoute(path)}
     <a href="/">
       <div in:fade class="w-8">
-        <Home />
+        {@html home}
       </div>
     </a>
   {/if}
@@ -28,12 +28,12 @@
   {#if path === '/'}
     <a href="/settings">
       <div in:fade class="w-8">
-        <Settings />
+        {@html settings}
       </div>
     </a>
 
     <div in:fade on:click={refresh} class:animate-spin={refreshing} class="w-6 mt-2 cursor-pointer">
-      <Refresh />
+      {@html refreshIcon}
     </div>
   {/if}
 </div>

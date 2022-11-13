@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { noop } from 'svelte/internal'
+  import { noop } from '$lib/utils'
 
   export let label = ''
   export let toggled = false

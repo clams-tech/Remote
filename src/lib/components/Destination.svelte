@@ -1,17 +1,16 @@
 <script lang="ts">
   import lodashDebounce from 'lodash.debounce'
   import { decode } from 'light-bolt11-decoder'
+  import { onMount, createEventDispatcher, onDestroy } from 'svelte'
   import type { PaymentType } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
-  import { onMount } from 'svelte'
-  import Paste from '$lib/icons/Paste.svelte'
   import Button from '$lib/elements/Button.svelte'
   import Modal, { closeModal } from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
   import { modal$ } from '$lib/streams'
   import { Modals } from '$lib/types'
-  import Arrow from '$lib/icons/Arrow.svelte'
-  import { createEventDispatcher, onDestroy } from 'svelte'
+  import pasteIcon from '$lib/icons/paste'
+  import arrow from '$lib/icons/arrow'
 
   import {
     formatDecodedInvoice,
@@ -141,14 +140,14 @@
     invalid={error}
   >
     <div on:click|stopPropagation={paste} class="w-6 absolute right-2 bottom-2 cursor-pointer">
-      <Paste />
+      {@html pasteIcon}
     </div>
   </TextInput>
 
   <div class="mt-6 w-full">
     <Button on:click={next} text={$translate('app.buttons.next')} primary disabled={!!error}>
-      <div slot="iconRight" class="w-6">
-        <Arrow direction="right" />
+      <div slot="iconRight" class="w-6 -rotate-90">
+        {@html arrow}
       </div>
     </Button>
   </div>

@@ -77,6 +77,7 @@ export function formatValueForDisplay({
   input?: boolean
 }): string {
   if (!value) return ''
+  if (value === 'any') return '0'
 
   switch (denomination) {
     case 'btc': {

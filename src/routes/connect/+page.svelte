@@ -7,14 +7,8 @@
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
   import { auth$, modal$, settings$, updateAuth } from '$lib/streams'
-  import Check from '$lib/icons/Check.svelte'
-  import Close from '$lib/icons/Close.svelte'
-  import Arrow from '$lib/icons/Arrow.svelte'
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
-  import Warning from '$lib/icons/Warning.svelte'
-  import Copy from '$lib/icons/Copy.svelte'
-  import Info from '$lib/icons/Info.svelte'
   import Modal from '$lib/elements/Modal.svelte'
   import { Modals } from '$lib/types'
   import lightning from '$lib/lightning'
@@ -27,6 +21,12 @@
     validateParsedNodeAddress,
     writeClipboardValue
   } from '$lib/utils'
+  import info from '$lib/icons/info'
+  import check from '$lib/icons/check'
+  import close from '$lib/icons/close'
+  import copy from '$lib/icons/copy'
+  import arrow from '$lib/icons/arrow'
+  import warning from '$lib/icons/warning'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
   type Step = 'connect' | 'token'
@@ -148,8 +148,7 @@
     ? Promise.all(
         decodedRune.restrictions.map(async ({ summary }) => {
           const alternatives = summary.split(' OR ')
-
-          return Promise.all(
+          const formattedAlternatives = await Promise.all(
             alternatives.map(async (alternative) => {
               let words = alternative.split(' ')
               const lastIndex = words.length - 1
@@ -191,6 +190,8 @@
               return words.join(' ')
             })
           )
+
+          return formattedAlternatives.join('<span class="text-xs mr-2"><i><br>OR<br></i></span>')
         })
       )
     : Promise.resolve([])
@@ -214,7 +215,7 @@
 
       <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
         <div class="w-5 mr-2 border-2 rounded-full border-current">
-          <Info />
+          {@html info}
         </div>
         <a
           href={DOCS_CONNECT_LINK}
@@ -244,14 +245,14 @@
                 <span class="text-utility-success">{$translate('app.inputs.add_rune.success')}</span
                 >
                 <div class="w-6 text-utility-success">
-                  <Check />
+                  {@html check}
                 </div>
               </div>
             {:else if connectStatus === 'fail'}
               <div class="flex items-center">
                 <span class="text-utility-error">{$translate('app.errors.node_connect')}</span>
                 <div class="w-6 text-utility-error">
-                  <Close />
+                  {@html close}
                 </div>
               </div>
             {/if}
@@ -293,11 +294,11 @@
           <div class:text-utility-success={copySuccess}>
             {#if copySuccess}
               <div in:fade class="w-8">
-                <Check />
+                {@html check}
               </div>
             {:else}
               <div in:fade class="w-8">
-                <Copy />
+                {@html copy}
               </div>
             {/if}
           </div>
@@ -306,7 +307,7 @@
 
       <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
         <div class="w-5 mr-2 border-2 rounded-full border-current">
-          <Info />
+          {@html info}
         </div>
         <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
           >{$translate('app.hints.help')}</a
@@ -334,8 +335,8 @@
           on:click={saveRune}
           text={$translate('app.buttons.save')}
         >
-          <div slot="iconRight" class="w-6">
-            <Arrow direction="right" />
+          <div slot="iconRight" class="w-6 -rotate-90">
+            {@html arrow}
           </div>
         </Button>
       </div>
@@ -358,19 +359,19 @@
         <span slot="value">{truncateValue(decodedRune.hash)}</span>
       </SummaryRow>
 
-      <SummaryRow baseline>
+      <SummaryRow baseline breakWords={false}>
         <span slot="label">{$translate('app.labels.restrictions')}</span>
         <p slot="value">
           {#if decodedRune.restrictions.length === 0}
             <div class="flex items-center">
               <div class="w-4 mr-2 text-utility-pending">
-                <Warning />
+                {@html warning}
               </div>
               <span class="text-utility-pending">{$translate('app.hints.unrestricted')}</span>
             </div>
           {:else}
             {#await formattedRestrictions then formatted}
-              {@html formatted.join('<span class="text-xs"><i><br>AND<br></i></span>')}
+              {@html formatted.join('<span class="text-xs mr-2"><i><br>AND<br></i></span>')}
             {/await}
           {/if}
         </p>

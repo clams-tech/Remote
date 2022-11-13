@@ -1,6 +1,6 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations'
-  import Clear from '$lib/icons/Clear.svelte'
+  import clear from '$lib/icons/clear'
   import { resetApp } from '$lib/utils'
   import { createEventDispatcher } from 'svelte'
 
@@ -89,7 +89,7 @@
       on:pointerdown={handleClear}
     >
       <div class="w-6">
-        <Clear />
+        {@html clear}
       </div>
     </div>
   </div>

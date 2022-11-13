@@ -70,12 +70,18 @@ export function convertValue({
 
   if (!value) return value
 
+  if (value === 'any') {
+    return value
+  }
+
   switch (from) {
     case 'btc':
     case 'sats':
     case 'msats': {
       const valueMsats =
-        from === 'msats' ? value : bitcoinDenominationToMsats({ denomination: from, value })
+        from === 'msats'
+          ? Big(value).round().toString()
+          : bitcoinDenominationToMsats({ denomination: from, value })
 
       return convertMsats({
         value: valueMsats,

@@ -1,3 +1,5 @@
+import bitcoin from './icons/bitcoin'
+import lightning from './icons/lightning'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
@@ -61,3 +63,29 @@ export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
+
+export const currencySymbols = {
+  btc: bitcoin,
+  sats: lightning,
+  msats: lightning,
+  usd: '$',
+  eur: '€',
+  gbp: '£',
+  cny: '¥',
+  jpy: '¥',
+  cad: '$',
+  aud: '$',
+  hkd: '$',
+  sgd: 'S$',
+  sek: 'kr',
+  chf: 'CHF',
+  thb: '฿',
+  pln: 'zł',
+  nok: 'kr',
+  myr: 'RM',
+  dkk: 'kr',
+  zar: 'R',
+  nzd: '$',
+  mxn: '$',
+  rub: '₽'
+}
