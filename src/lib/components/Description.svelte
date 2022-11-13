@@ -39,7 +39,7 @@
   </div>
 
   <Button text={$translate('app.buttons.view_summary')} on:click={next}>
-    <div slot="iconRight" class="w-6 rotate-90">
+    <div slot="iconRight" class="w-6 -rotate-90">
       {@html arrow}
     </div>
   </Button>

@@ -14,6 +14,7 @@
   import check from '$lib/icons/check'
   import copy from '$lib/icons/copy'
   import warning from '$lib/icons/warning'
+  import { currencySymbols } from '$lib/constants'
 
   export let payment: Payment
 
@@ -84,25 +85,27 @@
     {#if primaryValue}
       <div in:fade class="flex flex-col items-end">
         <span
-          class="text-3xl tracking-wider {payment.direction === 'receive' &&
+          class="text-3xl flex items-center tracking-wider {payment.direction === 'receive' &&
           payment.status === 'complete'
             ? 'text-utility-success'
             : 'text-current'}"
-          >{abs}{formatValueForDisplay({
+          >{abs}<span class="flex justify-center w-9"
+            >{@html currencySymbols[primaryDenomination]}</span
+          >{formatValueForDisplay({
             value: primaryValue,
             denomination: primaryDenomination,
             commas: true
           })}
-          {primaryDenomination}</span
-        >
-        <span class="text-neutral-600 dark:text-neutral-400"
-          >{abs}{formatValueForDisplay({
+        </span>
+        <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
+          >{abs}<span class="flex justify-center w-4"
+            >{@html currencySymbols[secondaryDenomination]}</span
+          >{formatValueForDisplay({
             value: secondaryValue || '0',
             denomination: secondaryDenomination,
             commas: true
           })}
-          {secondaryDenomination}</span
-        >
+        </span>
       </div>
     {:else}
       <Spinner />

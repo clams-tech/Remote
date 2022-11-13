@@ -146,7 +146,7 @@
 
   <div class="mt-6 w-full">
     <Button on:click={next} text={$translate('app.buttons.next')} primary disabled={!!error}>
-      <div slot="iconRight" class="w-6 rotate-90">
+      <div slot="iconRight" class="w-6 -rotate-90">
         {@html arrow}
       </div>
     </Button>
