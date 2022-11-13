@@ -94,7 +94,7 @@
     >
       <div class="flex items-center w-full">
         <span
-          class="text-4xl flex justify-center items-center font-semibold"
+          class="text-4xl flex justify-center items-center font-semibold flex-shrink-0"
           class:w-9={primarySymbol.startsWith('<')}
           class:mr-1={!primarySymbol.startsWith('<')}
         >
