@@ -1,5 +1,6 @@
 <script lang="ts">
   import warning from '$lib/icons/warning'
+  import close from '$lib/icons/close'
   import { fade } from 'svelte/transition'
   export let message = ''
 </script>

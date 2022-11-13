@@ -19,6 +19,8 @@
       to: $settings$.primaryDenomination,
       value: payment.value
     })
+
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
 {#if payment && primaryValue}
@@ -33,8 +35,8 @@
           })}:
         </span>
         <span class="flex items-center ml-1">
-          <span class="w-4 h-4 flex justify-center items-center"
-            >{@html currencySymbols[$settings$.primaryDenomination]}</span
+          <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}
+            >{@html primarySymbol}</span
           >{formatValueForDisplay({
             value: primaryValue,
             denomination: $settings$.primaryDenomination,

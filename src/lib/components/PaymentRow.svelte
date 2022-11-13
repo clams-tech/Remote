@@ -28,7 +28,10 @@
     value
   })
 
-  const abs = status === 'complete' ? (direction === 'receive' ? '+' : '-') : ''
+  $: abs = payment.status === 'complete' ? (payment.direction === 'receive' ? '+' : '-') : ''
+
+  const primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  const secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 </script>
 
 <div
@@ -72,8 +75,8 @@
   <div class="flex flex-col items-end w-2/5">
     <p class="font-bold flex items-center">
       {abs}
-      <span class="flex justify-center items-center w-4 h-4">
-        {@html currencySymbols[$settings$.primaryDenomination]}
+      <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}>
+        {@html primarySymbol}
       </span>
       {formatValueForDisplay({
         denomination: $settings$.primaryDenomination,
@@ -83,8 +86,8 @@
     </p>
     <p class="text-neutral-400 flex items-center">
       {abs}
-      <span class="flex justify-center items-center w-4 h-4">
-        {@html currencySymbols[$settings$.secondaryDenomination]}
+      <span class="flex justify-center items-center" class:w-4={secondarySymbol.startsWith('<')}>
+        {@html secondarySymbol}
       </span>
       {formatValueForDisplay({
         denomination: $settings$.secondaryDenomination,

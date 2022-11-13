@@ -63,6 +63,9 @@
       : $settings$.primaryDenomination === 'sats'
       ? 1
       : 0.01
+
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 </script>
 
 <div class="flex items-center w-full justify-center">
@@ -72,8 +75,12 @@
       class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
     >
       <div class="flex items-center w-full">
-        <span class="text-4xl w-9 h-9 flex justify-center items-center font-semibold">
-          {@html currencySymbols[$settings$.primaryDenomination]}
+        <span
+          class="text-4xl flex justify-center items-center font-semibold"
+          class:w-9={primarySymbol.startsWith('<')}
+          class:mr-1={!primarySymbol.startsWith('<')}
+        >
+          {@html primarySymbol}
         </span>
         <div class="relative">
           <div class="text-4xl font-semibold cursor-pointer font-mono">
@@ -118,8 +125,11 @@
       class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3 flex items-center"
       on:click={switchDenomination}
     >
-      <span class="text-base w-4 h-4 flex items-center justify-center">
-        {@html currencySymbols[$settings$.secondaryDenomination]}
+      <span
+        class="text-base flex items-center justify-center"
+        class:w-4={secondarySymbol.startsWith('<')}
+      >
+        {@html secondarySymbol}
       </span>
       <span class="text-base font-mono">
         {#if secondary}

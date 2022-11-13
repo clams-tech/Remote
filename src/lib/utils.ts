@@ -3,8 +3,6 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import bitcoin from '$lib/icons/bitcoin'
-import lightning from './icons/lightning'
 import { log$ } from './streams'
 
 import {

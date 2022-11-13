@@ -18,8 +18,6 @@
 
   export let payment: Payment
 
-  const { primaryDenomination, secondaryDenomination } = settings$.value
-
   $: statusColor =
     payment.status === 'complete'
       ? 'success'
@@ -30,13 +28,13 @@
   $: primaryValue = convertValue({
     value: payment.value,
     from: BitcoinDenomination.msats,
-    to: primaryDenomination
+    to: $settings$.primaryDenomination
   })
 
   $: secondaryValue = convertValue({
     value: payment.value,
     from: BitcoinDenomination.msats,
-    to: secondaryDenomination
+    to: $settings$.secondaryDenomination
   })
 
   let copySuccess: string
@@ -67,6 +65,8 @@
   }
 
   $: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
   // text-utility-success
   // text-utility-pending
@@ -89,20 +89,22 @@
           payment.status === 'complete'
             ? 'text-utility-success'
             : 'text-current'}"
-          >{abs}<span class="flex justify-center items-center w-9 h-9"
-            >{@html currencySymbols[primaryDenomination]}</span
+          >{abs}<span
+            class="flex justify-center items-center"
+            class:w-9={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
           >{formatValueForDisplay({
             value: primaryValue,
-            denomination: primaryDenomination,
+            denomination: $settings$.primaryDenomination,
             commas: true
           })}
         </span>
         <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
-          >{abs}<span class="flex justify-center items-center w-4 h-4"
-            >{@html currencySymbols[secondaryDenomination]}</span
+          >{abs}<span
+            class="flex justify-center items-center"
+            class:w-4={secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
           >{formatValueForDisplay({
             value: secondaryValue || '0',
-            denomination: secondaryDenomination,
+            denomination: $settings$.secondaryDenomination,
             commas: true
           })}
         </span>
@@ -248,9 +250,9 @@
             value: convertValue({
               value: payment.fee,
               from: BitcoinDenomination.msats,
-              to: primaryDenomination
+              to: $settings$.primaryDenomination
             }),
-            denomination: primaryDenomination
+            denomination: $settings$.primaryDenomination
           })}
         </span>
       </SummaryRow>
