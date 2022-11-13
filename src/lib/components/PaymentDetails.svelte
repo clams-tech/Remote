@@ -85,7 +85,7 @@
     {#if primaryValue}
       <div in:fade class="flex flex-col items-end">
         <span
-          class="text-3xl flex items-center tracking-wider {payment.direction === 'receive' &&
+          class="text-4xl flex items-center tracking-wider {payment.direction === 'receive' &&
           payment.status === 'complete'
             ? 'text-utility-success'
             : 'text-current'}"
