@@ -13,6 +13,7 @@
   import { swipe, drag } from '$lib/touch'
   import { modal$ } from '$lib/streams'
   import { DIRECTION_DOWN } from 'hammerjs'
+  import close from '$lib/icons/close'
 
   let modal
 

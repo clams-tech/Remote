@@ -148,8 +148,7 @@
     ? Promise.all(
         decodedRune.restrictions.map(async ({ summary }) => {
           const alternatives = summary.split(' OR ')
-
-          return Promise.all(
+          const formattedAlternatives = await Promise.all(
             alternatives.map(async (alternative) => {
               let words = alternative.split(' ')
               const lastIndex = words.length - 1
@@ -191,6 +190,8 @@
               return words.join(' ')
             })
           )
+
+          return formattedAlternatives.join('<span class="text-xs"><i><br>OR<br></i></span>')
         })
       )
     : Promise.resolve([])
@@ -358,7 +359,7 @@
         <span slot="value">{truncateValue(decodedRune.hash)}</span>
       </SummaryRow>
 
-      <SummaryRow baseline>
+      <SummaryRow baseline breakWords={false}>
         <span slot="label">{$translate('app.labels.restrictions')}</span>
         <p slot="value">
           {#if decodedRune.restrictions.length === 0}
