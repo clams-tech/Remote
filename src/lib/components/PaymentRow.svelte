@@ -11,6 +11,7 @@
   import clock from '$lib/icons/clock'
   import close from '$lib/icons/close'
   import { currencySymbols } from '$lib/constants'
+  import Spinner from '$lib/elements/Spinner.svelte'
 
   export let payment: Payment
 
@@ -78,22 +79,34 @@
       <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}>
         {@html primarySymbol}
       </span>
-      {formatValueForDisplay({
-        denomination: $settings$.primaryDenomination,
-        value: primaryValue,
-        commas: true
-      })}
+      {#if primaryValue}
+        {formatValueForDisplay({
+          denomination: $settings$.primaryDenomination,
+          value: primaryValue,
+          commas: true
+        })}
+      {:else}
+        <div class="ml-1">
+          <Spinner size="1rem" />
+        </div>
+      {/if}
     </p>
     <p class="text-neutral-400 flex items-center">
       {abs}
       <span class="flex justify-center items-center" class:w-4={secondarySymbol.startsWith('<')}>
         {@html secondarySymbol}
       </span>
-      {formatValueForDisplay({
-        denomination: $settings$.secondaryDenomination,
-        value: secondaryValue,
-        commas: true
-      })}
+      {#if secondaryValue}
+        {formatValueForDisplay({
+          denomination: $settings$.secondaryDenomination,
+          value: secondaryValue,
+          commas: true
+        })}
+      {:else}
+        <div class="ml-1">
+          <Spinner size="1rem" />
+        </div>
+      {/if}
     </p>
   </div>
 </div>

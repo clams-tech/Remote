@@ -7,6 +7,7 @@
   import { formatDate, formatValueForDisplay } from '$lib/utils'
   import caret from '$lib/icons/caret'
   import { currencySymbols } from '$lib/constants'
+  import Spinner from '$lib/elements/Spinner.svelte'
 
   $: payment =
     $payments$.data &&
@@ -23,7 +24,7 @@
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
-{#if payment && primaryValue}
+{#if payment}
   <a href="/payments" class="absolute bottom-2 flex flex-col items-center justify-center p-4">
     <div class="w-4 text-neutral-400 mb-1 rotate-180">{@html caret}</div>
     <div class="flex flex-col items-center">
@@ -37,11 +38,18 @@
         <span class="flex items-center ml-1">
           <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}
             >{@html primarySymbol}</span
-          >{formatValueForDisplay({
-            value: primaryValue,
-            denomination: $settings$.primaryDenomination,
-            commas: true
-          })}
+          >
+          {#if primaryValue}
+            {formatValueForDisplay({
+              value: primaryValue,
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          {:else}
+            <div class="ml-1">
+              <Spinner size="1rem" />
+            </div>
+          {/if}
         </span>
       </div>
       {#if payment.completedAt}

@@ -82,36 +82,46 @@
         direction: payment.direction
       })}</span
     >
-    {#if primaryValue}
-      <div in:fade class="flex flex-col items-end">
-        <span
-          class="text-4xl flex items-center tracking-wider {payment.direction === 'receive' &&
-          payment.status === 'complete'
-            ? 'text-utility-success'
-            : 'text-current'}"
-          >{abs}<span
-            class="flex justify-center items-center"
-            class:w-9={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-          >{formatValueForDisplay({
+    <div in:fade class="flex flex-col items-end">
+      <span
+        class="text-4xl flex items-center tracking-wider {payment.direction === 'receive' &&
+        payment.status === 'complete'
+          ? 'text-utility-success'
+          : 'text-current'}"
+        >{abs}<span
+          class="flex justify-center items-center"
+          class:w-9={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {#if primaryValue !== null}
+          {formatValueForDisplay({
             value: primaryValue,
             denomination: $settings$.primaryDenomination,
             commas: true
           })}
-        </span>
-        <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
-          >{abs}<span
-            class="flex justify-center items-center"
-            class:w-4={secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
-          >{formatValueForDisplay({
+        {:else}
+          <div class="ml-1">
+            <Spinner size="2rem" />
+          </div>
+        {/if}
+      </span>
+      <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
+        >{abs}<span
+          class="flex justify-center items-center"
+          class:w-4={secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
+        >
+        {#if secondaryValue !== null}
+          {formatValueForDisplay({
             value: secondaryValue || '0',
             denomination: $settings$.secondaryDenomination,
             commas: true
           })}
-        </span>
-      </div>
-    {:else}
-      <Spinner />
-    {/if}
+        {:else}
+          <div class="ml-1">
+            <Spinner size="1rem" />
+          </div>
+        {/if}
+      </span>
+    </div>
   </div>
 
   <!-- QR AND EXPIRY COUNTDOWN -->
