@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
+  import { settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
   import { currencySymbols } from '$lib/constants'
   import { onMount } from 'svelte'
@@ -12,6 +12,7 @@
   export let primary: string | null
   export let secondary: string | null
   export let readonly = false
+  export let next = () => {}
 
   let primaryValueNumber: number | null = primary
     ? Number(
@@ -71,6 +72,18 @@
 
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
+
+  function validateKey(e: Event) {
+    const { key } = e as KeyboardEvent
+
+    if (!key.match(/[0-9.]/) && key !== 'Backspace') {
+      e.preventDefault()
+    }
+
+    if (key === 'Enter') {
+      next()
+    }
+  }
 </script>
 
 <div class="flex items-center w-full justify-center">
@@ -101,6 +114,7 @@
                 >
               {:else}
                 <input
+                  on:keydown={validateKey}
                   bind:this={input}
                   bind:value={primaryValueNumber}
                   placeholder="0"

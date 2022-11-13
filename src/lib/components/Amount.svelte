@@ -32,7 +32,7 @@
   </div>
 
   <div class="my-4 w-full">
-    <Value bind:primary={value} secondary={secondaryValue} {readonly} />
+    <Value bind:primary={value} secondary={secondaryValue} {readonly} {next} />
   </div>
 
   <div class="mt-6 w-full">
