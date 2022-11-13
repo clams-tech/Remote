@@ -191,7 +191,7 @@
             })
           )
 
-          return formattedAlternatives.join('<span class="text-xs"><i><br>OR<br></i></span>')
+          return formattedAlternatives.join('<span class="text-xs mr-2"><i><br>OR<br></i></span>')
         })
       )
     : Promise.resolve([])
@@ -371,7 +371,7 @@
             </div>
           {:else}
             {#await formattedRestrictions then formatted}
-              {@html formatted.join('<span class="text-xs"><i><br>AND<br></i></span>')}
+              {@html formatted.join('<span class="text-xs mr-2"><i><br>AND<br></i></span>')}
             {/await}
           {/if}
         </p>
