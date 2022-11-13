@@ -72,7 +72,7 @@
       class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
     >
       <div class="flex items-center w-full">
-        <span class="text-4xl w-9 flex justify-center font-semibold">
+        <span class="text-4xl w-9 h-9 flex justify-center items-center font-semibold">
           {@html currencySymbols[$settings$.primaryDenomination]}
         </span>
         <div class="relative">
@@ -118,7 +118,7 @@
       class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3 flex items-center"
       on:click={switchDenomination}
     >
-      <span class="text-base w-4 ">
+      <span class="text-base w-4 h-4 flex items-center justify-center">
         {@html currencySymbols[$settings$.secondaryDenomination]}
       </span>
       <span class="text-base font-mono">

@@ -89,7 +89,7 @@
           payment.status === 'complete'
             ? 'text-utility-success'
             : 'text-current'}"
-          >{abs}<span class="flex justify-center w-9"
+          >{abs}<span class="flex justify-center items-center w-9 h-9"
             >{@html currencySymbols[primaryDenomination]}</span
           >{formatValueForDisplay({
             value: primaryValue,
@@ -98,7 +98,7 @@
           })}
         </span>
         <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
-          >{abs}<span class="flex justify-center w-4"
+          >{abs}<span class="flex justify-center items-center w-4 h-4"
             >{@html currencySymbols[secondaryDenomination]}</span
           >{formatValueForDisplay({
             value: secondaryValue || '0',

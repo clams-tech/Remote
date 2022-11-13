@@ -7,10 +7,12 @@
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import check from '$lib/icons/check'
+  import bitcoin from '$lib/icons/bitcoin'
+  import lightning from '$lib/icons/lightning'
 
   const bitcoinDenominations = [
-    { value: BitcoinDenomination.btc, label: 'Bitcoin (BTC, ₿)' },
-    { value: BitcoinDenomination.sats, label: 'Satoshi (SAT)' }
+    { value: BitcoinDenomination.btc, label: 'Bitcoin (BTC)', icon: bitcoin },
+    { value: BitcoinDenomination.sats, label: 'Satoshi (SAT)', icon: lightning }
   ]
 
   function setBitcoinUnit(key: BitcoinDenomination) {
@@ -46,10 +48,13 @@
       {$translate('app.titles.settings_unit')}
     </h1>
     <div class="w-full">
-      {#each bitcoinDenominations as { value, label }}
+      {#each bitcoinDenominations as { value, label, icon }}
         <div on:click={() => setBitcoinUnit(value)} class="cursor-pointer">
           <SummaryRow>
-            <span slot="label">{label}</span>
+            <span class="flex items-center" slot="label"
+              ><span class="block w-4 h-4 mr-1 flex-shrink-0">{@html icon}</span>
+              {label}</span
+            >
             <div slot="value">
               {#if $settings$.bitcoinDenomination === value}
                 <div in:fade={{ duration: 250 }} class="w-6">

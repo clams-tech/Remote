@@ -72,7 +72,7 @@
   <div class="flex flex-col items-end w-2/5">
     <p class="font-bold flex items-center">
       {abs}
-      <span class="flex justify-center w-4">
+      <span class="flex justify-center items-center w-4 h-4">
         {@html currencySymbols[$settings$.primaryDenomination]}
       </span>
       {formatValueForDisplay({
@@ -83,7 +83,7 @@
     </p>
     <p class="text-neutral-400 flex items-center">
       {abs}
-      <span class="flex justify-center w-4">
+      <span class="flex justify-center items-center w-4 h-4">
         {@html currencySymbols[$settings$.secondaryDenomination]}
       </span>
       {formatValueForDisplay({

@@ -33,7 +33,7 @@
           })}:
         </span>
         <span class="flex items-center ml-1">
-          <span class="w-4 flex justify-center"
+          <span class="w-4 h-4 flex justify-center items-center"
             >{@html currencySymbols[$settings$.primaryDenomination]}</span
           >{formatValueForDisplay({
             value: primaryValue,
