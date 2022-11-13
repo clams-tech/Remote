@@ -24,7 +24,7 @@
 
   $: if (typeof primaryValueNumber === 'number') {
     primary = primaryValueNumber.toString()
-  } else if (!primaryValueNumber) {
+  } else if (typeof primaryValueNumber === 'undefined') {
     primary = ''
   }
 
@@ -53,8 +53,8 @@
     })
 
     secondary = primary
-    primary = newPrimaryValue
-    primaryValueNumber = Number(newPrimaryValue)
+    primary = newPrimaryValue || null
+    primaryValueNumber = newPrimaryValue ? Number(newPrimaryValue) : null
 
     setTimeout(focus, 200)
   }
@@ -108,8 +108,8 @@
                 />
               {/if}
             {:else}
-              <div class="mr-2">
-                <Spinner size="1.5rem" />
+              <div class="ml-2">
+                <Spinner size="2rem" />
               </div>
             {/if}
           </div>
@@ -141,7 +141,7 @@
             commas: true
           })}
         {:else}
-          <div class="ml-2">
+          <div class="ml-1">
             <Spinner size="1rem" />
           </div>
         {/if}
