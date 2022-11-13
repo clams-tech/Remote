@@ -12,14 +12,15 @@
   export let readonly = false
   export let required = false
 
-  $: secondaryValue =
-    value !== '0' && value !== '0.'
-      ? convertValue({
-          value,
-          from: $settings$.primaryDenomination,
-          to: $settings$.secondaryDenomination
-        })
-      : value
+  $: secondaryValue = !value
+    ? '0'
+    : value !== '0' && value !== '0.'
+    ? convertValue({
+        value,
+        from: $settings$.primaryDenomination,
+        to: $settings$.secondaryDenomination
+      })
+    : value
 </script>
 
 <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">

@@ -24,6 +24,8 @@
 
   $: if (typeof primaryValueNumber === 'number') {
     primary = primaryValueNumber.toString()
+  } else if (!primaryValueNumber) {
+    primary = ''
   }
 
   onMount(() => {
@@ -84,7 +86,7 @@
         </span>
         <div class="relative">
           <div class="text-4xl font-semibold cursor-pointer font-mono">
-            {#if primary}
+            {#if primary !== null}
               {#if readonly}
                 <span
                   class="caret-neutral-900 w-full dark:caret-white text-4xl border-none outline-none font-semibold bg-transparent cursor-pointer font-mono"
