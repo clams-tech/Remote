@@ -70,6 +70,10 @@ export function convertValue({
 
   if (!value) return value
 
+  if (value === 'any') {
+    return value
+  }
+
   switch (from) {
     case 'btc':
     case 'sats':
