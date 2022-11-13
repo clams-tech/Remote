@@ -75,32 +75,6 @@ export enum FiatDenomination {
   'rub' = 'rub'
 }
 
-export enum CurrencySymbol {
-  'btc' = '₿',
-  'sats' = '⚡',
-  'msats' = '⚡',
-  'usd' = '$',
-  'eur' = '€',
-  'gbp' = '£',
-  'cny' = '¥',
-  'jpy' = '¥',
-  'cad' = '$',
-  'aud' = '$',
-  'hkd' = '$',
-  'sgd' = 'S$',
-  'sek' = 'kr',
-  'chf' = 'CHF',
-  'thb' = '฿',
-  'pln' = 'zł',
-  'nok' = 'kr',
-  'myr' = 'RM',
-  'dkk' = 'kr',
-  'zar' = 'R',
-  'nzd' = '$',
-  'mxn' = '$',
-  'rub' = '₽'
-}
-
 export type Denomination = BitcoinDenomination | FiatDenomination
 
 export type BitcoinExchangeRates = Record<FiatDenomination, number>

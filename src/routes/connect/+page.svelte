@@ -334,7 +334,7 @@
           on:click={saveRune}
           text={$translate('app.buttons.save')}
         >
-          <div slot="iconRight" class="w-6 rotate-90">
+          <div slot="iconRight" class="w-6 -rotate-90">
             {@html arrow}
           </div>
         </Button>

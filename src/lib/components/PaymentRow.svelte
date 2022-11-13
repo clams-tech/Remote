@@ -10,6 +10,7 @@
   import lightning from '$lib/icons/lightning'
   import clock from '$lib/icons/clock'
   import close from '$lib/icons/close'
+  import { currencySymbols } from '$lib/constants'
 
   export let payment: Payment
 
@@ -17,13 +18,13 @@
 
   $: primaryValue = convertValue({
     from: BitcoinDenomination.msats,
-    to: $settings$.bitcoinDenomination,
+    to: $settings$.primaryDenomination,
     value
   })
 
   $: secondaryValue = convertValue({
     from: BitcoinDenomination.msats,
-    to: $settings$.fiatDenomination,
+    to: $settings$.secondaryDenomination,
     value
   })
 
@@ -68,24 +69,28 @@
     </div>
   </div>
 
-  <div class="flex flex-col text-right w-2/5">
-    <p class="font-bold">
+  <div class="flex flex-col items-end w-2/5">
+    <p class="font-bold flex items-center">
       {abs}
+      <span class="flex justify-center w-4">
+        {@html currencySymbols[$settings$.primaryDenomination]}
+      </span>
       {formatValueForDisplay({
-        denomination: $settings$.bitcoinDenomination,
+        denomination: $settings$.primaryDenomination,
         value: primaryValue,
         commas: true
       })}
-      {$settings$.bitcoinDenomination}
     </p>
-    <p class="text-neutral-400">
+    <p class="text-neutral-400 flex items-center">
       {abs}
+      <span class="flex justify-center w-4">
+        {@html currencySymbols[$settings$.secondaryDenomination]}
+      </span>
       {formatValueForDisplay({
-        denomination: $settings$.fiatDenomination,
+        denomination: $settings$.secondaryDenomination,
         value: secondaryValue,
         commas: true
       })}
-      {$settings$.fiatDenomination}
     </p>
   </div>
 </div>

@@ -6,6 +6,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { formatDate, formatValueForDisplay } from '$lib/utils'
   import caret from '$lib/icons/caret'
+  import { currencySymbols } from '$lib/constants'
 
   $: payment =
     $payments$.data &&
@@ -23,23 +24,24 @@
 {#if payment && primaryValue}
   <a href="/payments" class="absolute bottom-2 flex flex-col items-center justify-center p-4">
     <div class="w-4 text-neutral-400 mb-1 rotate-180">{@html caret}</div>
-    <div class="flex flex-col items-center justify-center">
-      <span>
+    <div class="flex flex-col items-center">
+      <div class="flex">
         <span
           >{$translate('app.payment.status', {
             status: payment.status,
             direction: payment.direction
           })}:
         </span>
-        <span
+        <span class="flex items-center ml-1">
+          <span class="w-4 flex justify-center"
+            >{@html currencySymbols[$settings$.primaryDenomination]}</span
           >{formatValueForDisplay({
             value: primaryValue,
             denomination: $settings$.primaryDenomination,
             commas: true
           })}
-          {$settings$.primaryDenomination}</span
-        >
-      </span>
+        </span>
+      </div>
       {#if payment.completedAt}
         <span>
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}

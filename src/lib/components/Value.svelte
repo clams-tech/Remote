@@ -1,10 +1,10 @@
 <script lang="ts">
   import { settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
+  import { currencySymbols } from '$lib/constants'
   import { onMount } from 'svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import exchange from '$lib/icons/exchange'
-  import { CurrencySymbol } from '$lib/types'
 
   /**
    * value must be converted to primaryDenomination when passed in
@@ -72,8 +72,8 @@
       class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
     >
       <div class="flex items-center w-full">
-        <span class="mr-1 text-4xl font-semibold">
-          {CurrencySymbol[$settings$.primaryDenomination]}
+        <span class="text-4xl w-9 flex justify-center font-semibold">
+          {@html currencySymbols[$settings$.primaryDenomination]}
         </span>
         <div class="relative">
           <div class="text-4xl font-semibold cursor-pointer font-mono">
@@ -118,8 +118,8 @@
       class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3 flex items-center"
       on:click={switchDenomination}
     >
-      <span class="text-base">
-        {CurrencySymbol[$settings$.secondaryDenomination]}
+      <span class="text-base w-4 ">
+        {@html currencySymbols[$settings$.secondaryDenomination]}
       </span>
       <span class="text-base font-mono">
         {#if secondary}

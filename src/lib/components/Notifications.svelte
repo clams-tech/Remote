@@ -9,7 +9,10 @@
   import { translate } from '$lib/i18n/translations'
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination, type Notification } from '$lib/types'
-
+  import check from '$lib/icons/check'
+  import info from '$lib/icons/info'
+  import alert from '$lib/icons/alert'
+  import close from '$lib/icons/close'
   import { drag, swipe } from '$lib/touch'
 
   import {
@@ -18,9 +21,6 @@
     supportsNotifications,
     userAgent
   } from '$lib/utils'
-  import check from '$lib/icons/check'
-  import info from '$lib/icons/info'
-  import alert from '$lib/icons/alert'
 
   function elasticOut(t: number): number {
     return Math.sin((-13.0 * (t + 1.0) * Math.PI) / 2) * Math.pow(2.0, -35.0 * t) + 1.0
