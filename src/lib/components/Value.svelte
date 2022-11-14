@@ -147,6 +147,7 @@
       <span
         class="text-base flex items-center justify-center"
         class:w-4={secondarySymbol.startsWith('<')}
+        class:mr-[2px]={!secondarySymbol.startsWith('<')}
       >
         {@html secondarySymbol}
       </span>

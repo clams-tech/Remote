@@ -36,8 +36,10 @@
           })}:
         </span>
         <span class="flex items-center ml-1">
-          <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}
-            >{@html primarySymbol}</span
+          <span
+            class="flex justify-center items-center"
+            class:w-4={primarySymbol.startsWith('<')}
+            class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
           >
           {#if primaryValue}
             {formatValueForDisplay({

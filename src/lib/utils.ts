@@ -3,7 +3,7 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import { log$ } from './streams'
+import { log$, settings$ } from './streams'
 
 import {
   ALL_DATA_KEYS,
@@ -109,6 +109,17 @@ export function formatValueForDisplay({
 
       return commas ? formatWithCommas(formatted) : formatted
     }
+  }
+}
+
+export function isFiatDenomination(denomination: Denomination): boolean {
+  switch (denomination) {
+    case 'btc':
+    case 'sats':
+    case 'msats':
+      return false
+    default:
+      return true
   }
 }
 

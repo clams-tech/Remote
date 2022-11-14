@@ -90,7 +90,8 @@
           : 'text-current'}"
         >{abs}<span
           class="flex justify-center items-center"
-          class:w-9={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+          class:w-9={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
         >
         {#if primaryValue !== null}
           {formatValueForDisplay({
@@ -107,7 +108,8 @@
       <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
         >{abs}<span
           class="flex justify-center items-center"
-          class:w-4={secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
+          class:w-4={secondarySymbol.startsWith('<')}
+          class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
         >
         {#if secondaryValue !== null}
           {formatValueForDisplay({

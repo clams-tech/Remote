@@ -76,7 +76,11 @@
   <div class="flex flex-col items-end w-2/5">
     <p class="font-bold flex items-center">
       {abs}
-      <span class="flex justify-center items-center" class:w-4={primarySymbol.startsWith('<')}>
+      <span
+        class="flex justify-center items-center"
+        class:w-4={primarySymbol.startsWith('<')}
+        class:mr-[2px]={!primarySymbol.startsWith('<')}
+      >
         {@html primarySymbol}
       </span>
       {#if primaryValue}
@@ -93,7 +97,11 @@
     </p>
     <p class="text-neutral-400 flex items-center">
       {abs}
-      <span class="flex justify-center items-center" class:w-4={secondarySymbol.startsWith('<')}>
+      <span
+        class="flex justify-center items-center"
+        class:w-4={secondarySymbol.startsWith('<')}
+        class:mr-[2px]={!secondarySymbol.startsWith('<')}
+      >
         {@html secondarySymbol}
       </span>
       {#if secondaryValue}
