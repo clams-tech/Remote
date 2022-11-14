@@ -48,7 +48,7 @@
         ? 'border-utility-pending text-utility-pending'
         : status === 'expired' || status === 'failed'
         ? 'border-utility-error text-utility-error'
-        : 'border-current'} font-bold"
+        : 'border-current'} font-bold flex-shrink-0"
     >
       {#if status === 'complete'}
         {@html lightning}
@@ -62,7 +62,7 @@
       <span class="font-bold">{$translate('app.payment.status', { direction, status })}</span>
 
       {#if description}
-        <span class="text-sm italic text-neutral-500 mt-1 break-all">{description}</span>
+        <span class="text-sm italic text-neutral-500 mt-1 break-words">{description}</span>
       {/if}
 
       <span class="text-sm text-neutral-400 mt-1">
