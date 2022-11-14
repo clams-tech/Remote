@@ -1,6 +1,5 @@
 <script>
   export let baseline = false
-  export let breakWords = true
 
   // items-baseline
   // items-center
@@ -16,7 +15,7 @@
     ><slot name="label" /></span
   >
 
-  <p class:break-all={breakWords} class="flex items-center justify-end w-3/4 break-all text-right">
+  <p class="flex items-center justify-end w-3/4 text-right break-words">
     <slot name="value" />
   </p>
 </div>
