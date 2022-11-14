@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "1.0.5",
+  "version": "1.0.5-0.0.1",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",

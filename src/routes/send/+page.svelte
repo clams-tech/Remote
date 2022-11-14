@@ -52,7 +52,7 @@
     expiry: null,
     timestamp: null,
     amount: '',
-    value: '0'
+    value: ''
   })
 
   async function sendPayment() {
