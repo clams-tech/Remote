@@ -48,7 +48,7 @@
     const { value, description, expiry } = $receivePayment$
 
     const amount_msat = convertValue({
-      value,
+      value: value || 'any',
       from: settings$.value.primaryDenomination,
       to: BitcoinDenomination.msats
     })
