@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Warning from '$lib/icons/Warning.svelte'
+  import warning from '$lib/icons/warning'
 
   type InputType = 'text' | 'number' | 'textarea' | 'password' | 'email'
 
@@ -130,7 +130,7 @@
       ? '8'
       : '0'}"
   >
-    <span class="w-4 mr-2"><Warning /></span>
+    <span class="w-4 mr-2">{@html warning}</span>
     <span class="text-xs font-medium">{invalid}</span>
   </div>
 </div>

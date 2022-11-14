@@ -38,7 +38,7 @@
   }
 
   const receivePayment$ = new SvelteSubject({
-    value: '0',
+    value: '',
     description: '',
     expiry: invoiceExpiry
   })

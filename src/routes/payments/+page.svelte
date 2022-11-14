@@ -8,8 +8,8 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
   import type { Payment } from '$lib/types'
-  import Search from '$lib/icons/Search.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import search from '$lib/icons/search'
 
   let searchTerm = ''
   let filteredPayments: Payment[] = []
@@ -65,7 +65,7 @@
 
     <div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">
       <TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
-      <div class="absolute right-1 w-8 text-neutral-400"><Search /></div>
+      <div class="absolute right-1 w-8 text-neutral-400">{@html search}</div>
     </div>
 
     {#if $payments$.loading && !$payments$.data}

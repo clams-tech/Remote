@@ -5,19 +5,18 @@
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import type { Payment } from '$lib/types'
   import { BitcoinDenomination } from '$lib/types'
-  import { bitcoinExchangeRates$, paymentUpdates$, settings$ } from '$lib/streams'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import Copy from '$lib/icons/Copy.svelte'
-  import Check from '$lib/icons/Check.svelte'
-  import Warning from '$lib/icons/Warning.svelte'
   import { convertValue } from '$lib/conversion'
   import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
+  import check from '$lib/icons/check'
+  import copy from '$lib/icons/copy'
+  import warning from '$lib/icons/warning'
+  import { currencySymbols } from '$lib/constants'
 
   export let payment: Payment
-
-  const { primaryDenomination, secondaryDenomination } = settings$.value
 
   $: statusColor =
     payment.status === 'complete'
@@ -26,21 +25,17 @@
       ? 'error'
       : 'pending'
 
-  $: primaryValue =
-    $bitcoinExchangeRates$ &&
-    convertValue({
-      value: payment.value,
-      from: BitcoinDenomination.msats,
-      to: primaryDenomination
-    })
+  $: primaryValue = convertValue({
+    value: payment.value,
+    from: BitcoinDenomination.msats,
+    to: $settings$.primaryDenomination
+  })
 
-  $: secondaryValue =
-    $bitcoinExchangeRates$ &&
-    convertValue({
-      value: payment.value,
-      from: BitcoinDenomination.msats,
-      to: secondaryDenomination
-    })
+  $: secondaryValue = convertValue({
+    value: payment.value,
+    from: BitcoinDenomination.msats,
+    to: $settings$.secondaryDenomination
+  })
 
   let copySuccess: string
   let successTimeoutId: NodeJS.Timeout
@@ -70,6 +65,8 @@
   }
 
   $: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
   // text-utility-success
   // text-utility-pending
@@ -85,32 +82,48 @@
         direction: payment.direction
       })}</span
     >
-    {#if primaryValue}
-      <div in:fade class="flex flex-col items-end">
-        <span
-          class="text-3xl tracking-wider {payment.direction === 'receive' &&
-          payment.status === 'complete'
-            ? 'text-utility-success'
-            : 'text-current'}"
-          >{abs}{formatValueForDisplay({
+    <div in:fade class="flex flex-col items-end">
+      <span
+        class="text-4xl flex items-center tracking-wider {payment.direction === 'receive' &&
+        payment.status === 'complete'
+          ? 'text-utility-success'
+          : 'text-current'}"
+        >{abs}<span
+          class="flex justify-center items-center"
+          class:w-9={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {#if primaryValue !== null}
+          {formatValueForDisplay({
             value: primaryValue,
-            denomination: primaryDenomination,
+            denomination: $settings$.primaryDenomination,
             commas: true
           })}
-          {primaryDenomination}</span
+        {:else}
+          <div class="ml-1">
+            <Spinner size="2rem" />
+          </div>
+        {/if}
+      </span>
+      <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
+        >{abs}<span
+          class="flex justify-center items-center"
+          class:w-4={secondarySymbol.startsWith('<')}
+          class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
         >
-        <span class="text-neutral-600 dark:text-neutral-400"
-          >{abs}{formatValueForDisplay({
+        {#if secondaryValue !== null}
+          {formatValueForDisplay({
             value: secondaryValue || '0',
-            denomination: secondaryDenomination,
+            denomination: $settings$.secondaryDenomination,
             commas: true
           })}
-          {secondaryDenomination}</span
-        >
-      </div>
-    {:else}
-      <Spinner />
-    {/if}
+        {:else}
+          <div class="ml-1">
+            <Spinner size="1rem" />
+          </div>
+        {/if}
+      </span>
+    </div>
   </div>
 
   <!-- QR AND EXPIRY COUNTDOWN -->
@@ -135,11 +148,11 @@
           {truncateValue(payment.bolt11)}
           {#if copySuccess === payment.bolt11}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>
@@ -154,11 +167,11 @@
             : payment.destination}
           {#if copySuccess === payment.destination}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>
@@ -178,13 +191,13 @@
 
         {#if payment.status === 'complete'}
           <div class="w-4 ml-1 border border-utility-success rounded-full">
-            <Check />
+            {@html check}
           </div>
         {/if}
 
         {#if payment.status === 'expired' || payment.status == 'failed'}
           <div class="w-4 ml-1">
-            <Warning />
+            {@html warning}
           </div>
         {/if}
       </span>
@@ -196,7 +209,7 @@
         <span slot="label">{$translate('app.labels.completed_at')}</span>
         <span slot="value">
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-            <span in:fade>{formatted}</span>
+            <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>
@@ -207,7 +220,7 @@
         >
         <span slot="value">
           {#await formatDate( { date: payment.startedAt, language: $settings$.language } ) then formatted}
-            <span in:fade>{formatted}</span>
+            <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>
@@ -229,11 +242,11 @@
           {truncateValue(payment.hash)}
           {#if copySuccess === payment.hash}
             <div in:fade class="w-6 text-utility-success">
-              <Check />
+              {@html check}
             </div>
           {:else}
             <div in:fade class="w-6 cursor-pointer">
-              <Copy />
+              {@html copy}
             </div>
           {/if}
         </span>
@@ -249,9 +262,9 @@
             value: convertValue({
               value: payment.fee,
               from: BitcoinDenomination.msats,
-              to: primaryDenomination
+              to: $settings$.primaryDenomination
             }),
-            denomination: primaryDenomination
+            denomination: $settings$.primaryDenomination
           })}
         </span>
       </SummaryRow>

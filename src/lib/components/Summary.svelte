@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MIN_IN_SECS } from '$lib/constants'
+  import { currencySymbols, MIN_IN_SECS } from '$lib/constants'
   import Button from '$lib/elements/Button.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -17,6 +17,10 @@
   export let expiry: number | null = 600
   export let timestamp: number | null = null
   export let requesting: boolean
+
+  if (!value) {
+    value = '0'
+  }
 
   $: expiryStep = secondsToStep(expiry)
   $: expirySeconds = stepToSeconds(expiryStep)
@@ -72,6 +76,8 @@
       invoiceExpiry: expiry
     })
   }
+
+  const primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
 <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
@@ -98,13 +104,21 @@
     <!-- AMOUNT -->
     <SummaryRow>
       <span slot="label">{$translate('app.labels.amount')}</span>
-      <span slot="value">
+      <span class="flex items-center" slot="value">
         {#if value}
           {#if direction === 'receive' && value === '0'}
             {$translate('app.labels.any')}
           {:else}
-            {formatValueForDisplay({ value, denomination: $settings$.primaryDenomination })}
-            {$settings$.primaryDenomination}
+            <span class="flex items-center justify-center" class:w-4={primarySymbol.startsWith('<')}
+              >{@html primarySymbol}</span
+            >
+            <span
+              >{formatValueForDisplay({
+                value,
+                denomination: $settings$.primaryDenomination,
+                commas: true
+              })}</span
+            >
           {/if}
         {/if}
       </span>
@@ -114,7 +128,7 @@
     <SummaryRow>
       <span slot="label">{$translate('app.labels.description')}</span>
       <span slot="value">
-        {description}
+        {description || 'none'}
       </span>
     </SummaryRow>
 

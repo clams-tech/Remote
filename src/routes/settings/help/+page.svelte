@@ -2,30 +2,30 @@
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
   import Slide from '$lib/elements/Slide.svelte'
-  import Discord from '$lib/icons/Discord.svelte'
-  import Twitter from '$lib/icons/Twitter.svelte'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
-  import ClamsIcon from '$lib/icons/ClamsIcon.svelte'
-  import Github from '$lib/icons/Github.svelte'
   import { DISCORD_LINK, DOCS_LINK, GITHUB_LINK, TWITTER_LINK } from '$lib/constants'
+  import clamsIcon from '$lib/icons/clamsIcon'
+  import discord from '$lib/icons/discord'
+  import github from '$lib/icons/github'
+  import twitter from '$lib/icons/twitter'
 
   let options = [
     {
       label: $translate('app.labels.docs'),
       href: DOCS_LINK,
-      icon: ClamsIcon
+      icon: clamsIcon
     },
-    { label: $translate('app.labels.discord'), href: DISCORD_LINK, icon: Discord },
+    { label: $translate('app.labels.discord'), href: DISCORD_LINK, icon: discord },
     {
       label: $translate('app.labels.github'),
       href: GITHUB_LINK,
-      icon: Github
+      icon: github
     },
     {
       label: $translate('app.labels.twitter'),
       href: TWITTER_LINK,
-      icon: Twitter
+      icon: twitter
     }
   ]
 </script>
@@ -54,7 +54,7 @@
           <SummaryRow>
             <span slot="label">{label}</span>
             <div slot="value" class="w-8 h-8 flex justify-center items-center">
-              <svelte:component this={icon} />
+              {@html icon}
             </div>
           </SummaryRow>
         </a>

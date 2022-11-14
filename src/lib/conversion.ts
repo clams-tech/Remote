@@ -2,6 +2,8 @@ import Big from 'big.js'
 import { bitcoinExchangeRates$ } from './streams'
 import { BitcoinDenomination, type Denomination, type FiatDenomination } from './types'
 
+Big.NE = -21
+
 export function msatsToBtc(msats: string): string {
   return Big(msats === 'any' ? '0' : msats)
     .div(1e11)
@@ -68,12 +70,18 @@ export function convertValue({
 
   if (!value) return value
 
+  if (value === 'any') {
+    return value
+  }
+
   switch (from) {
     case 'btc':
     case 'sats':
     case 'msats': {
       const valueMsats =
-        from === 'msats' ? value : bitcoinDenominationToMsats({ denomination: from, value })
+        from === 'msats'
+          ? Big(value).round().toString()
+          : bitcoinDenominationToMsats({ denomination: from, value })
 
       return convertMsats({
         value: valueMsats,

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Close from '$lib/icons/Close.svelte'
-  import Warning from '$lib/icons/Warning.svelte'
+  import warning from '$lib/icons/warning'
+  import close from '$lib/icons/close'
   import { fade } from 'svelte/transition'
   export let message = ''
 </script>
@@ -14,11 +14,11 @@
       on:click={() => (message = '')}
       class="absolute top-0 right-0 w-7 text-utility-error/50 cursor-pointer flex-shrink-0"
     >
-      <Close />
+      {@html close}
     </div>
 
     <div class="text-utility-error w-6 flex-shrink-0 mr-4">
-      <Warning />
+      {@html warning}
     </div>
 
     <span>

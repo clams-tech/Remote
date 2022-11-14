@@ -1,31 +1,39 @@
 <script lang="ts">
-  import Exchange from '$lib/icons/Exchange.svelte'
-  import { bitcoinExchangeRates$, settings$ } from '$lib/streams'
+  import { settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
-  import { convertValue } from '$lib/conversion'
+  import { currencySymbols } from '$lib/constants'
   import { onMount } from 'svelte'
-  import { FiatDenomination } from '$lib/types'
+  import Spinner from '$lib/elements/Spinner.svelte'
+  import exchange from '$lib/icons/exchange'
 
   /**
    * value must be converted to primaryDenomination when passed in
    */
-  export let value: string
+  export let primary: string | null
+  export let secondary: string | null
   export let readonly = false
+  export let next = () => {}
 
-  $: if (value && input) {
-    input.style.width = value.length + 'ch'
+  let primaryValueNumber: number | null = primary
+    ? Number(
+        formatValueForDisplay({
+          value: primary,
+          denomination: settings$.value.primaryDenomination
+        })
+      )
+    : null
+
+  $: if (typeof primaryValueNumber === 'number') {
+    primary = primaryValueNumber.toString()
+  } else if (primary !== null) {
+    primary = ''
   }
 
-  let input: HTMLInputElement
-
   onMount(() => {
-    setTimeout(() => {
-      if (input) {
-        input.value = value
-        input.focus()
-      }
-    }, 250)
+    setTimeout(focus, 250)
   })
+
+  let input: HTMLInputElement
 
   function focus() {
     input && input.focus()
@@ -40,81 +48,41 @@
       secondaryDenomination: currentSettings.primaryDenomination
     })
 
-    const newValue = formatValueForDisplay({
-      value: secondaryValue,
-      denomination: currentSettings.secondaryDenomination
-    })
+    const newPrimaryValue =
+      secondary === '0'
+        ? ''
+        : formatValueForDisplay({
+            value: secondary,
+            denomination: currentSettings.secondaryDenomination
+          })
 
-    value = newValue
+    secondary = primary || '0'
+    primary = newPrimaryValue
+    primaryValueNumber = newPrimaryValue ? Number(newPrimaryValue) : null
+
+    setTimeout(focus, 200)
   }
 
-  $: secondaryValue = value
-    ? value !== '0' && value !== '0.'
-      ? $bitcoinExchangeRates$ &&
-        convertValue({
-          value,
-          from: $settings$.primaryDenomination,
-          to: $settings$.secondaryDenomination
-        })
-      : value
-    : '0'
+  $: inputStep =
+    $settings$.primaryDenomination === 'btc'
+      ? 0.00000001
+      : $settings$.primaryDenomination === 'sats'
+      ? 1
+      : 0.01
 
-  function handleInput(e: Event) {
-    const { data } = e as InputEvent
-    const decimalIndex = value.indexOf('.')
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
-    // handle backspace
-    if (data === null) {
-      const newValue = value.length === 1 ? '0' : input.value
-      value = newValue
-      input.value = newValue.slice(-1) === '.' ? `${newValue.slice(0, -1)}0` : newValue
+  function validateKey(e: Event) {
+    const { key } = e as KeyboardEvent
 
-      return
+    if (!key.match(/[0-9.]/) && key !== 'Backspace') {
+      e.preventDefault()
     }
 
-    const { primaryDenomination } = settings$.value
-
-    // handle invalid input
-    if (
-      // not a number or decimal point
-      !/[0-9.]/.test(data) ||
-      // sats cannot have decimals, so remove
-      (primaryDenomination === 'sats' && data === '.') ||
-      // sats max length is 9
-      (primaryDenomination === 'sats' && value.length >= 9) ||
-      // max length for btc and fiat
-      value.length >= 10 ||
-      // no double decimal points
-      (data === '.' && value.includes('.')) ||
-      // fiat value and already two values after decimal point
-      ($settings$.primaryDenomination in FiatDenomination &&
-        data &&
-        decimalIndex >= 1 &&
-        decimalIndex === value.length - 3) ||
-      // btc value and already 8 values after decimal point
-      ($settings$.primaryDenomination === 'btc' &&
-        data &&
-        decimalIndex >= 1 &&
-        decimalIndex === value.length - 9)
-    ) {
-      input.value = value
-      return
+    if (key === 'Enter') {
+      next()
     }
-
-    // remove leading 0 if not decimal
-    if (value.length && value[0] === '0' && value[1] !== '.' && data !== '.') {
-      input.value = data
-      value = data
-      return
-    }
-
-    input.value = formatValueForDisplay({
-      value: input.value,
-      denomination: $settings$.primaryDenomination,
-      input: true
-    })
-
-    value = input.value
   }
 </script>
 
@@ -122,53 +90,79 @@
   <div class="flex flex-col items-end w-full">
     <div
       on:click={focus}
-      class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full"
+      class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
     >
-      <div class="flex items-end w-full">
-        <div class="relative flex items-center">
-          <div class="text-4xl font-semibold cursor-pointer font-mono">
-            {formatValueForDisplay({
-              value,
-              denomination: $settings$.primaryDenomination,
-              commas: readonly,
-              input: !readonly
-            })}
-          </div>
-          {#if !readonly}
-            <input
-              bind:this={input}
-              on:input={handleInput}
-              type="number"
-              step="any"
-              class="absolute caret-neutral-900 dark:caret-white h-12 top-0 left-0 text-4xl border-none outline-none font-semibold bg-transparent text-transparent cursor-pointer font-mono"
-            />
-          {/if}
-        </div>
-        <span class="ml-2 text-lg leading-1 font-semibold">
-          {$settings$.primaryDenomination.toUpperCase()}
+      <div class="flex items-center w-full">
+        <span
+          class="text-4xl flex justify-center items-center font-semibold flex-shrink-0"
+          class:w-9={primarySymbol.startsWith('<')}
+          class:mr-1={!primarySymbol.startsWith('<')}
+        >
+          {@html primarySymbol}
         </span>
+        <div class="relative">
+          <div class="text-4xl font-semibold cursor-pointer font-mono">
+            {#if primary !== null}
+              {#if readonly}
+                <span
+                  class="caret-neutral-900 w-full dark:caret-white text-4xl border-none outline-none font-semibold bg-transparent cursor-pointer font-mono"
+                  >{formatValueForDisplay({
+                    value: primary,
+                    denomination: settings$.value.primaryDenomination,
+                    commas: true
+                  })}</span
+                >
+              {:else}
+                <input
+                  on:keydown={validateKey}
+                  bind:this={input}
+                  bind:value={primaryValueNumber}
+                  placeholder="0"
+                  type="number"
+                  min="0"
+                  step={inputStep}
+                  class="caret-neutral-900 w-full dark:caret-white text-4xl border-none outline-none font-semibold bg-transparent cursor-pointer font-mono"
+                />
+              {/if}
+            {:else}
+              <div class="ml-2">
+                <Spinner size="2rem" />
+              </div>
+            {/if}
+          </div>
+        </div>
       </div>
       <div
         on:click|stopPropagation={switchDenomination}
-        class="w-6 ml-6 p-1 box-content text-neutral-400 hover:text-neutral-600 hover:border-neutral-600 transition-all rotate-90 cursor-pointer"
+        class="w-6 ml-6 p-1 absolute right-0 box-content text-neutral-400 hover:text-neutral-600 hover:border-neutral-600 transition-all rotate-90 cursor-pointer"
       >
-        <Exchange />
+        {@html exchange}
       </div>
     </div>
 
     <div
-      class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3"
+      class="cursor-pointer text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 mt-3 flex items-center"
       on:click={switchDenomination}
     >
-      <span class="text-base font-mono">
-        {formatValueForDisplay({
-          value: secondaryValue,
-          denomination: $settings$.secondaryDenomination,
-          commas: true
-        })}
+      <span
+        class="text-base flex items-center justify-center"
+        class:w-4={secondarySymbol.startsWith('<')}
+        class:mr-[2px]={!secondarySymbol.startsWith('<')}
+      >
+        {@html secondarySymbol}
       </span>
-      <span class="text-xs">
-        {$settings$.secondaryDenomination.toUpperCase()}
+      <span class="text-base font-mono">
+        {#if secondary !== null}
+          {formatValueForDisplay({
+            value: secondary,
+            denomination: $settings$.secondaryDenomination,
+            commas: true
+          })}
+        {:else}
+          <div class="ml-1">
+            <Spinner size="1rem" />
+          </div>
+        {/if}
       </span>
     </div>
   </div>
