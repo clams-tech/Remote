@@ -14,11 +14,7 @@ const config = {
     csp: {
       mode: 'hash',
       directives: {
-        'script-src': [
-          'self',
-          'unsafe-eval', // needed for lnsocket script
-          'unsafe-inline'
-        ],
+        'script-src': ['self', 'unsafe-inline'],
         'object-src': ['self']
       },
       reportOnly: {
