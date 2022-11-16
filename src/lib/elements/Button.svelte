@@ -12,25 +12,19 @@
   }
 
   let button: HTMLButtonElement
-
-  // ==== 👇 comments are need to prevent styles from being stripped from build when used dynamically 👇 ==== //
-  // px-2
-  // hover:shadow-purple-500
-  // hover:shadow-md
-  // hover:shadow-current
-  // border-purple-500
-  // border-current
 </script>
 
 <button
   bind:this={button}
   on:click
   style={`opacity: ${disabled ? '0.4' : '1'}`}
-  class="text-current no-underline text-{small ? 'xs' : 'base'} hover:shadow-{primary
-    ? 'purple-500'
-    : 'current'} active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center rounded-md py-3 px-{small
-    ? '2'
-    : '4'} border-2 border-solid border-{primary ? 'purple-500' : 'current'} font-semibold"
+  class="text-current no-underline {small ? 'text-xs' : 'text-base'} {primary
+    ? 'hover:shadow-purple-500'
+    : 'hover:shadow-current'} active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center rounded-md py-3 {small
+    ? 'px-2'
+    : 'px-4'} border-2 border-solid {primary
+    ? 'border-purple-500'
+    : 'border-current'} font-semibold"
   disabled={disabled || requesting}
 >
   {#if requesting}

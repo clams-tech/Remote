@@ -23,17 +23,9 @@
 
   let input: HTMLInputElement | HTMLTextAreaElement
 
-  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none focus:ring focus:border-white focus:ring-${
-    invalid ? 'utility-error' : 'purple-500'
+  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none focus:ring focus:border-white ${
+    invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'
   } ${cursorPointer ? 'cursor-pointer' : ''}`
-
-  // focus:outline-none
-  // focus:ring
-  // focus:border-white
-  // focus:ring-utility-error
-  // focus:ring-purple-500
-  // h-8
-  // cursor-pointer
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
@@ -126,9 +118,9 @@
   </div>
 
   <div
-    class="flex items-center transition-all overflow-hidden text-utility-error h-{invalid
-      ? '8'
-      : '0'}"
+    class="flex items-center transition-all overflow-hidden text-utility-error {invalid
+      ? 'h-8'
+      : 'h-0'}"
   >
     <span class="w-4 mr-2">{@html warning}</span>
     <span class="text-xs font-medium">{invalid}</span>

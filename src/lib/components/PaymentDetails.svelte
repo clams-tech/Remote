@@ -67,10 +67,6 @@
   $: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
-
-  // text-utility-success
-  // text-utility-pending
-  // text-utility-error
 </script>
 
 <div class="w-full flex flex-col px-6 pt-12 pb-4 max-h-screen overflow-auto">

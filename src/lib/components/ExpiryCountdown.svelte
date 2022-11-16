@@ -27,9 +27,6 @@
     .subscribe(() => {
       dispatch('expired')
     })
-
-  // text-utility-error
-  // text-small
 </script>
 
 <div class:text-sm={small} class:text-utility-error={$msToExpire$.includes('ago')}>
