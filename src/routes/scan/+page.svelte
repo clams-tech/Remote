@@ -1,8 +1,9 @@
 <script lang="ts">
-  import Scanner from '$lib/components/Scanner.svelte'
-  import { goto } from '$app/navigation'
   import { decode } from 'light-bolt11-decoder'
+  import Big from 'big.js'
+  import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
+  import Scanner from '$lib/components/Scanner.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { BitcoinDenomination, type Payment } from '$lib/types'
@@ -13,7 +14,6 @@
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
-  import Big from 'big.js'
 
   let requesting = false
   let errorMsg = ''
@@ -33,8 +33,14 @@
     timestamp: null
   })
 
-  function handleScanResult(scanResult: string) {
+  async function handleScanResult(scanResult: string) {
     let invoice: string
+
+    // check if lnurl
+    if (scanResult.toLowerCase().startsWith('lnurl')) {
+      await goto(`/lnurl/${scanResult}`)
+      return
+    }
 
     if (scanResult.includes(':')) {
       invoice = scanResult.split(':')[1]

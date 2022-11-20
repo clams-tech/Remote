@@ -3,7 +3,7 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import { log$, settings$ } from './streams'
+import { log$ } from './streams'
 
 import {
   ALL_DATA_KEYS,
@@ -368,8 +368,17 @@ export function isProtectedRoute(route: string): boolean {
   }
 }
 
-function toHexString(byteArray: Uint8Array) {
+export function toHexString(byteArray: Uint8Array) {
   return byteArray.reduce((output, elem) => output + ('0' + elem.toString(16)).slice(-2), '')
+}
+
+export function hexStringToByte(str: string) {
+  const a = []
+  for (let i = 0, len = str.length; i < len; i += 2) {
+    a.push(parseInt(str.slice(i, 2), 16))
+  }
+
+  return new Uint8Array(a)
 }
 
 export function createRandomHex(length = 32) {
@@ -395,4 +404,12 @@ export async function loadVConsole() {
 export function formatMsat(val: string | number): string {
   if (!val) return ''
   return typeof val === 'string' ? val.replace('msat', '') : val.toString()
+}
+
+export function firstLetterUpperCase(str: string): string {
+  return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`
+}
+
+export function mainDomain(host: string): string {
+  return host.split('.').reverse().splice(0, 2).reverse().join('.')
 }

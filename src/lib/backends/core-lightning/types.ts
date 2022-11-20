@@ -77,6 +77,13 @@ export type ListfundsRequest = {
   method: 'listfunds'
 }
 
+export type SignMessageRequest = {
+  method: 'signmessage'
+  params: {
+    message: string
+  }
+}
+
 export type LNRequest =
   | PayRequest
   | GetinfoRequest
@@ -87,6 +94,7 @@ export type LNRequest =
   | WaitAnyInvoiceRequest
   | KeysendRequest
   | ListfundsRequest
+  | SignMessageRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -539,6 +547,15 @@ export type ErrorResponse = {
 export type WaitInvoiceResponse = Invoice
 export type WaitAnyInvoiceResponse = Invoice
 
+export type SignMessageResponse = {
+  /** (hex): The signature (always 128 characters) */
+  signature: string
+  /** (hex): The recovery id (0, 1, 2 or 3) (always 2 characters) */
+  recid: string
+  /** signature and recid encoded in a style compatible with lnd’s SignMessageRequest */
+  zbase: string
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -549,5 +566,6 @@ export type LNResponse =
   | KeysendResponse
   | WaitInvoiceResponse
   | WaitAnyInvoiceResponse
+  | SignMessageResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
