@@ -5,10 +5,8 @@
   import type { PaymentType } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import Modal, { closeModal } from '../elements/Modal.svelte'
+  import Modal from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { modal$ } from '$lib/streams'
-  import { Modals } from '$lib/types'
   import pasteIcon from '$lib/icons/paste'
   import arrow from '$lib/icons/arrow'
 
@@ -32,6 +30,12 @@
   let blurTimeout: NodeJS.Timeout
 
   const dispatch = createEventDispatcher()
+
+  let showClipboardModal = false
+
+  function closeModal() {
+    showClipboardModal = false
+  }
 
   $: if (destination) {
     error = ''
@@ -111,7 +115,7 @@
       setTimeout(async () => {
         clipboard = await checkClipboard()
         if (clipboard) {
-          modal$.next(Modals.clipboard)
+          showClipboardModal = true
         }
       }, 250)
     }
@@ -152,8 +156,8 @@
     </Button>
   </div>
 
-  {#if $modal$ === Modals.clipboard && clipboard}
-    <Modal>
+  {#if showClipboardModal && clipboard}
+    <Modal on:close={closeModal}>
       <div class="flex flex-col justify-center items-center">
         <p class="font-semibold mb-4 text-center">
           {$translate('app.modals.clipboard.paragraph_one', { paymentType: clipboard.type })}

@@ -373,12 +373,8 @@ export function toHexString(byteArray: Uint8Array) {
 }
 
 export function hexStringToByte(str: string) {
-  const a = []
-  for (let i = 0, len = str.length; i < len; i += 2) {
-    a.push(parseInt(str.slice(i, 2), 16))
-  }
-
-  return new Uint8Array(a)
+  const match = str.match(/.{1,2}/g) || []
+  return new Uint8Array(match.map((byte) => parseInt(byte, 16)))
 }
 
 export function createRandomHex(length = 32) {

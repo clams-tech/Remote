@@ -3,8 +3,10 @@ import sha256 from 'crypto-js/sha256'
 import hmacSHA256 from 'crypto-js/hmac-sha256'
 import Hex from 'crypto-js/enc-hex'
 import lightning from '$lib/lightning'
-import { CANONICAL_PHRASE } from './constants'
 import { hexStringToByte, toHexString } from '$lib/utils'
+
+const CANONICAL_PHRASE =
+  'DO NOT EVER SIGN THIS TEXT WITH YOUR PRIVATE KEYS! IT IS ONLY USED FOR DERIVATION OF LNURL-AUTH HASHING-KEY, DISCLOSING ITS SIGNATURE WILL COMPROMISE YOUR LNURL-AUTH IDENTITY AND MAY LEAD TO LOSS OF FUNDS!'
 
 export async function getHashingKey() {
   const lnApi = lightning.getLn()
@@ -22,20 +24,17 @@ export async function getAuthSigner(host: string) {
 }
 
 class Signer {
-  public privateKey: string
+  public privateKey: Uint8Array
   public publicKey: string
 
   constructor(k: string) {
-    this.privateKey = k
+    this.privateKey = hexStringToByte(k)
     this.publicKey = toHexString(secp256k1.publicKeyCreate(hexStringToByte(k)))
   }
 
   /** Returns a hex encoded DER formatted signature */
   public sign(message: string): string {
-    const { signature } = secp256k1.ecdsaSign(
-      hexStringToByte(message),
-      hexStringToByte(this.privateKey)
-    )
+    const { signature } = secp256k1.ecdsaSign(hexStringToByte(message), this.privateKey)
 
     const DER = secp256k1.signatureExport(signature)
     return toHexString(DER)

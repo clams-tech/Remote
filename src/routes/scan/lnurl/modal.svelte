@@ -1,17 +1,16 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import BackButton from '$lib/elements/BackButton.svelte'
+  import { decodelnurl } from 'js-lnurl'
+  import { LNURL_PROXY } from '$lib/constants'
   import Button from '$lib/elements/Button.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import { translate } from '$lib/i18n/translations'
-  import alert from '$lib/icons/alert'
   import check from '$lib/icons/check'
-  import { firstLetterUpperCase, mainDomain } from '$lib/utils'
-  import { decodelnurl } from 'js-lnurl'
-  import { fade } from 'svelte/transition'
-  import { getAuthSigner } from '../utils'
+  import { firstLetterUpperCase, mainDomain, noop } from '$lib/utils'
+  import { getAuthSigner } from './utils'
+  import Modal from '$lib/elements/Modal.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
-  export let data: { lnurl: string }
+  export let lnurl: string
+  export let close: () => void
 
   let parsingLnurl = false
   let parseLnurlError = ''
@@ -29,7 +28,7 @@
 
   async function getUrlDetails() {
     try {
-      const decoded = decodelnurl(data.lnurl)
+      const decoded = decodelnurl(lnurl)
 
       url = new URL(decoded)
       tag = url.searchParams.get('tag') || ''
@@ -61,16 +60,19 @@
 
       const signer = await getAuthSigner(url.host)
       const signature = signer.sign(k1)
-      const loginURL = url
+      const loginURL = new URL(url.toString())
 
       loginURL.searchParams.set('sig', signature)
       loginURL.searchParams.set('key', signer.publicKey)
       loginURL.searchParams.set('t', Date.now().toString())
 
-      const authResponse = await fetch(loginURL.toString()).then((res) => res.json())
+      const authResponse = await fetch(LNURL_PROXY, {
+        headers: { 'Target-URL': loginURL.toString() }
+      }).then((res) => res.json())
 
       if (authResponse && authResponse.status === 'OK') {
         authenticationSuccess = true
+        setTimeout(close, 2000)
       } else {
         authenticationError = `Could not ${action} to ${url.host}`
       }
@@ -83,39 +85,41 @@
   }
 </script>
 
-<svelte:head>
-  <title>{$translate('app.titles.lnurl')}</title>
-</svelte:head>
-
-<section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-lg">
-  <BackButton on:click={() => goto('/scan')} />
-
+<Modal on:close={close}>
   {#if parsingLnurl}
     <Spinner />
   {:else if parseLnurlError}
-    <div>{parseLnurlError}</div>
+    <ErrorMsg bind:message={parseLnurlError} closable={false} />
   {:else if tag === 'login'}
-    {#if authenticationSuccess}
-      <div class="text-utility-success">
-        Success! <div class="w-4">{@html check}</div>
-      </div>
-    {:else if authenticationError}
-      <div class="text-utility-error">
-        Error: {authenticationError}
-        <div class="w-4">{@html alert}</div>
-      </div>
-    {:else}
-      <div>
-        <p class="text-lg mb-4">
-          {firstLetterUpperCase(action)} to
-          <span class="font-semibold">{mainDomain(url.hostname)}</span>?
-        </p>
-        <Button requesting={authenticating} text={action} on:click={auth} />
-      </div>
-    {/if}
-  {:else}
     <div>
-      LNURL tag:{tag} is not currently supported. Request support for this tag in our Discord
+      <p class="text-lg mb-4 p-4">
+        {firstLetterUpperCase(action)} to
+        <span class="font-semibold">{mainDomain(url.hostname)}</span>?
+      </p>
+
+      <div class:text-utility-success={!!authenticationSuccess}>
+        <Button
+          requesting={authenticating}
+          text={authenticationSuccess
+            ? `${firstLetterUpperCase(action)} success!`
+            : firstLetterUpperCase(action)}
+          on:click={authenticating || authenticationSuccess ? noop : auth}
+        >
+          <div
+            slot="iconRight"
+            class:w-6={authenticationSuccess}
+            class:ml-2={authenticationSuccess}
+          >
+            {#if authenticationSuccess}
+              {@html check}
+            {/if}
+          </div>
+        </Button>
+      </div>
     </div>
+  {:else}
+    <ErrorMsg
+      message={`LNURL tag: ${tag} is not currently supported. Request support for this tag in our Discord`}
+    />
   {/if}
-</section>
+</Modal>

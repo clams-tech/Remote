@@ -14,9 +14,12 @@
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
+  import LnUrlModal from './lnurl/modal.svelte'
 
   let requesting = false
   let errorMsg = ''
+
+  let lnurl = ''
 
   const sendPayment$ = new SvelteSubject<
     Pick<Payment, 'bolt11' | 'description' | 'value'> & {
@@ -36,12 +39,6 @@
   async function handleScanResult(scanResult: string) {
     let invoice: string
 
-    // check if lnurl
-    if (scanResult.toLowerCase().startsWith('lnurl')) {
-      await goto(`/lnurl/${scanResult}`)
-      return
-    }
-
     if (scanResult.includes(':')) {
       invoice = scanResult.split(':')[1]
     } else {
@@ -50,6 +47,12 @@
 
     if (!invoice) {
       errorMsg = $translate('app.errors.invalid_invoice')
+      return
+    }
+
+    // check if lnurl
+    if (invoice.toLowerCase().startsWith('lnurl')) {
+      lnurl = invoice
       return
     }
 
@@ -180,3 +183,7 @@
 <div class="absolute bottom-4">
   <ErrorMsg bind:message={errorMsg} />
 </div>
+
+{#if lnurl}
+  <LnUrlModal {lnurl} close={() => (lnurl = '')} />
+{/if}

@@ -79,13 +79,6 @@ export type Denomination = BitcoinDenomination | FiatDenomination
 
 export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
-export enum Modals {
-  none = 0,
-  clipboard,
-  pinEntry,
-  runeSummary
-}
-
 export type PaymentType = 'node_public_key' | 'payment_request' | 'lightning_address' | 'lnurl'
 
 export type Payment = {

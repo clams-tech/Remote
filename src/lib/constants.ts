@@ -6,6 +6,7 @@ export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
 
 export const WS_PROXY = 'wss://wsproxy.clams.tech'
+export const LNURL_PROXY = 'https://wsproxy.clams.tech/proxy'
 
 export const COIN_GECKO_PRICE_ENDPOINT = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${Object.keys(
   FiatDenomination

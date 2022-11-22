@@ -16,8 +16,7 @@
     "settings_currency": "Currency Settings",
     "settings_language": "Language Settings",
     "settings_unit": "Unit Settings",
-    "settings_logs": "Debug Logs",
-    "lnurl": "LNURL"
+    "settings_logs": "Debug Logs"
   },
   "inputs": {
     "destination": {
