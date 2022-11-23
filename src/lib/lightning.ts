@@ -1,7 +1,7 @@
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
-import type { Payment } from './types'
+import type { Auth, Payment } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
@@ -37,9 +37,9 @@ class Lightning {
 
   constructor() {}
 
-  public getLn(): LnAPI {
+  public getLn(initialAuth?: Auth): LnAPI {
     if (!this.ln) {
-      const auth = auth$.getValue()
+      const auth = initialAuth || auth$.getValue()
 
       if (!auth) {
         throw new Error('Authentication needed to create connection to node')

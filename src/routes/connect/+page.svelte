@@ -73,10 +73,7 @@
     connectStatus = 'connecting'
 
     try {
-      // set auth details to allow connection
-      auth$.next({ address, token: 'empty' })
-
-      const lnApi = lightning.getLn()
+      const lnApi = lightning.getLn({ address, token: '' })
       const connected = await lnApi.connection.connect(false)
 
       connectStatus = connected ? 'success' : 'fail'
@@ -92,10 +89,6 @@
       }
     } catch (error) {
       connectStatus = 'fail'
-    } finally {
-      // reset auth back to null as the saveRune method will set it
-      auth$.next(null)
-      localStorage.removeItem(AUTH_STORAGE_KEY)
     }
   }
 
