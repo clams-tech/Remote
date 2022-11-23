@@ -6,13 +6,18 @@
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
-  import { auth$, modal$, settings$, updateAuth } from '$lib/streams'
+  import { auth$, settings$, updateAuth } from '$lib/streams'
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Modal from '$lib/elements/Modal.svelte'
-  import { Modals } from '$lib/types'
   import lightning from '$lib/lightning'
   import { AUTH_STORAGE_KEY, DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+  import info from '$lib/icons/info'
+  import check from '$lib/icons/check'
+  import close from '$lib/icons/close'
+  import copy from '$lib/icons/copy'
+  import arrow from '$lib/icons/arrow'
+  import warning from '$lib/icons/warning'
 
   import {
     formatDate,
@@ -21,12 +26,6 @@
     validateParsedNodeAddress,
     writeClipboardValue
   } from '$lib/utils'
-  import info from '$lib/icons/info'
-  import check from '$lib/icons/check'
-  import close from '$lib/icons/close'
-  import copy from '$lib/icons/copy'
-  import arrow from '$lib/icons/arrow'
-  import warning from '$lib/icons/warning'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
   type Step = 'connect' | 'token'
@@ -48,6 +47,7 @@
   let sessionPrivateKey: string
   let copySuccess = false
   let copyAnimationTimeout: NodeJS.Timeout
+  let showDecodedRuneModal = false
 
   $: if (address) {
     try {
@@ -65,7 +65,7 @@
 
     if (decodedRune) {
       blurRuneInput()
-      modal$.next(Modals.runeSummary)
+      showDecodedRuneModal = true
     }
   }
 
@@ -73,10 +73,7 @@
     connectStatus = 'connecting'
 
     try {
-      // set auth details to allow connection
-      auth$.next({ address, token: 'empty' })
-
-      const lnApi = lightning.getLn()
+      const lnApi = lightning.getLn({ address, token: '' })
       const connected = await lnApi.connection.connect(false)
 
       connectStatus = connected ? 'success' : 'fail'
@@ -92,10 +89,6 @@
       }
     } catch (error) {
       connectStatus = 'fail'
-    } finally {
-      // reset auth back to null as the saveRune method will set it
-      auth$.next(null)
-      localStorage.removeItem(AUTH_STORAGE_KEY)
     }
   }
 
@@ -344,8 +337,8 @@
   </Slide>
 {/if}
 
-{#if $modal$ === Modals.runeSummary && decodedRune}
-  <Modal>
+{#if showDecodedRuneModal && decodedRune}
+  <Modal on:close={() => (showDecodedRuneModal = false)}>
     <div in:fade class="w-[25rem] max-w-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 

@@ -1,19 +1,21 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
-  import { skip } from 'rxjs/operators'
   import Slide from '$lib/elements/Slide.svelte'
-  import { auth$, funds$, modal$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
-  import { Modals, type Settings } from '$lib/types'
+  import { auth$, funds$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
+  import type { Settings } from '$lib/types'
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import Button from '$lib/elements/Button.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { encryptAllData, resetApp } from '$lib/utils'
-  import { firstValueFrom } from 'rxjs'
   import caret from '$lib/icons/caret'
+  import Modal from '$lib/elements/Modal.svelte'
+  import PinEntry from '$lib/components/PinEntry.svelte'
 
   let version = __APP_VERSION__
+
+  let showPinEntryModal = false
 
   const toggle = (key: keyof Settings) => {
     const currentSettings = settings$.value
@@ -44,22 +46,26 @@
     { label: $translate('app.labels.logs'), route: 'settings/logs' }
   ]
 
+  let pin: string
+
+  function handlePinEntry() {
+    if (pin) {
+      pin$.next(pin)
+      encryptAllData(pin)
+    } else {
+      // no pin so can't encrypt, toggle back to false
+      toggle('encrypt')
+    }
+
+    showPinEntryModal = false
+  }
+
   async function handleEncryptToggle() {
     const toggled = toggle('encrypt')
 
     if (toggled) {
       // trigger modal
-      modal$.next(Modals.pinEntry)
-
-      // wait for pin entry
-      const pin = await firstValueFrom(pin$.pipe(skip(1)))
-
-      if (pin) {
-        encryptAllData(pin)
-      } else {
-        // no pin so can't encrypt, toggle back to false
-        toggle('encrypt')
-      }
+      showPinEntryModal = true
     } else {
       // turning off encryption, so store data unencrypted
       auth$.next($auth$)
@@ -116,3 +122,13 @@
     </div>
   </section>
 </Slide>
+
+{#if showPinEntryModal}
+  <Modal on:close={() => (showPinEntryModal = false)}>
+    <h2 class="p-4 md:mb-6 mb-4 font-semibold text-xl md:text-2xl">
+      {$translate('app.headings.encrypt')}
+    </h2>
+
+    <PinEntry resetOption bind:pin on:complete={handlePinEntry} />
+  </Modal>
+{/if}

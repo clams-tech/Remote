@@ -15,6 +15,7 @@ import type {
   ListinvoicesResponse,
   ListpaysResponse,
   PayResponse,
+  SignMessageResponse,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
@@ -233,6 +234,16 @@ class CoreLn {
   async listFunds(): Promise<ListfundsResponse> {
     const result = await this.connection.commando({ method: 'listfunds', rune: this.rune })
     return result as ListfundsResponse
+  }
+
+  async signMessage(message: string): Promise<SignMessageResponse> {
+    const result = await this.connection.commando({
+      method: 'signmessage',
+      rune: this.rune,
+      params: { message }
+    })
+
+    return result as SignMessageResponse
   }
 }
 
