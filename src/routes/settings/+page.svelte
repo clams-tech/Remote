@@ -56,6 +56,8 @@
       // no pin so can't encrypt, toggle back to false
       toggle('encrypt')
     }
+
+    showPinEntryModal = false
   }
 
   async function handleEncryptToggle() {
