@@ -1,14 +1,12 @@
 <script lang="ts">
   import { beforeNavigate } from '$app/navigation'
   import { browser } from '$app/environment'
-  import { auth$, lastPath$, modal$ } from '$lib/streams'
+  import { auth$, lastPath$ } from '$lib/streams'
   import registerSideEffects from '$lib/side-effects'
   import { locale, loadTranslations } from '$lib/i18n/translations'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
   import { loadVConsole } from '$lib/utils'
-  import { Modals } from '$lib/types'
-  import EncryptModal from '$lib/components/EncryptModal.svelte'
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import lightning from '$lib/lightning'
@@ -73,7 +71,3 @@
     <Notifications />
   {/if}
 </div>
-
-{#if $modal$ === Modals.pinEntry}
-  <EncryptModal resetOption={false} />
-{/if}

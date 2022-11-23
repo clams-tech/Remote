@@ -3,15 +3,7 @@ import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import type { GetinfoResponse, ListfundsResponse } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-
-import {
-  Modals,
-  type BitcoinExchangeRates,
-  type Notification,
-  type Payment,
-  type Auth,
-  type Settings
-} from './types'
+import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -53,9 +45,6 @@ export const settings$ = new SvelteSubject<Settings>(
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
-
-// current modal to be displayed
-export const modal$ = new BehaviorSubject<Modals>(Modals.none)
 
 // all payment update events
 export const paymentUpdates$ = new Subject<Payment>()

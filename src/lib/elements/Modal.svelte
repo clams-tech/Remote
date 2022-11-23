@@ -1,29 +1,27 @@
-<script lang="ts" context="module">
-  import { Modals } from '$lib/types'
-
-  export const closeModal = () => {
-    modal$.next(Modals.none)
-  }
-</script>
-
 <script lang="ts">
   import { fly, fade } from 'svelte/transition'
   import { quintInOut, quintOut } from 'svelte/easing'
   import { userAgent } from '$lib/utils'
   import { swipe, drag } from '$lib/touch'
-  import { modal$ } from '$lib/streams'
   import { DIRECTION_DOWN } from 'hammerjs'
   import close from '$lib/icons/close'
+  import { createEventDispatcher } from 'svelte'
 
   let modal
+
+  const dispatch = createEventDispatcher()
 
   const device = userAgent!.getDevice()
 
   const backgroundStyles =
-    'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-neutral-900/40 flex flex-col items-center z-20'
+    'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-neutral-900/40 flex flex-col items-center z-50'
 
   const modalStyles =
     'bg-neutral-50 dark:text-neutral-900 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[80%] overflow-y-auto'
+
+  function closeModal() {
+    dispatch('close')
+  }
 </script>
 
 {#if device.type === 'mobile'}
