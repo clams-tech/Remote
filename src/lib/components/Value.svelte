@@ -50,7 +50,7 @@
 
     const newPrimaryValue =
       secondary === '0'
-        ? ''
+        ? '0'
         : formatValueForDisplay({
             value: secondary,
             denomination: currentSettings.secondaryDenomination
