@@ -81,8 +81,8 @@
         on:touchend|preventDefault={handlePinEntry}
         on:click={handlePinEntry}
       >
-        <div class="text-xl md:text-2xl touch-manipulation">{main}</div>
-        <div class=" text-[12px] md:text-xs text-neutral-500 touch-manipulation">{sub}</div>
+        <div class="text-xl md:text-2xl">{main}</div>
+        <div class=" text-[12px] md:text-xs text-neutral-500">{sub}</div>
       </div>
     {/each}
 
