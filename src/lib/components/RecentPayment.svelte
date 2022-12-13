@@ -11,7 +11,9 @@
 
   $: payment =
     $payments$.data &&
-    $payments$.data.find(({ status }) => status === 'complete' || status === 'pending')
+    $payments$.data.find(
+      ({ status }) => status === 'complete' || status === 'pending' || status === 'expired'
+    )
 
   $: primaryValue =
     payment &&

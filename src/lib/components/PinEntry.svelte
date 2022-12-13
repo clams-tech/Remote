@@ -33,11 +33,11 @@
     setTimeout(() => dispatch('complete'), 250)
   }
 
-  function handlePinEntry(val: number) {
-    return () => {
-      if (pin.length < length) {
-        pin += val
-      }
+  function handlePinEntry(e: Event) {
+    const val = (e.currentTarget as HTMLElement).getAttribute('data-val')
+
+    if (pin.length < length) {
+      pin += val
     }
   }
 
@@ -75,9 +75,11 @@
   <div class="relative md:mt-12 mt-8 flex flex-wrap justify-center w-[272px]">
     {#each buttons as { main, sub }}
       <div
+        data-val={main}
         class:justify-center={main === 0}
-        class="flex flex-col items-center justify-start m-1 w-16 h-16 md:w-20 md:h-20 border rounded-lg p-2 md:p-4 active:bg-neutral-100 dark:active:bg-neutral-800 cursor-pointer"
-        on:pointerdown={handlePinEntry(main)}
+        class="flex flex-col items-center justify-start m-1 w-16 h-16 md:w-20 md:h-20 border rounded-lg p-2 md:p-4 active:bg-neutral-100 dark:active:bg-neutral-800 cursor-pointer touch-manipulation"
+        on:touchend|preventDefault={handlePinEntry}
+        on:click={handlePinEntry}
       >
         <div class="text-xl md:text-2xl">{main}</div>
         <div class=" text-[12px] md:text-xs text-neutral-500">{sub}</div>
@@ -85,8 +87,9 @@
     {/each}
 
     <div
-      class="w-16 h-16 md:w-20 md:h-20 border rounded absolute bottom-0 md:right-1 right-7 flex m-1 items-center justify-center cursor-pointer"
-      on:pointerdown={handleClear}
+      class="w-16 h-16 md:w-20 md:h-20 border rounded absolute bottom-0 md:right-1 right-7 flex m-1 items-center justify-center cursor-pointer touch-manipulation"
+      on:touchend|preventDefault={handleClear}
+      on:click={handlePinEntry}
     >
       <div class="w-6">
         {@html clear}

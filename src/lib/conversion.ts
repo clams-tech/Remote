@@ -1,6 +1,7 @@
 import Big from 'big.js'
 import { bitcoinExchangeRates$ } from './streams'
 import { BitcoinDenomination, type Denomination, type FiatDenomination } from './types'
+import { logger } from './utils'
 
 Big.NE = -21
 
@@ -64,39 +65,44 @@ export function convertValue({
   from: Denomination
   to: Denomination
 }): string | null {
-  if (from === to) {
-    return value
-  }
-
-  if (!value) return value
-
-  if (value === 'any') {
-    return value
-  }
-
-  switch (from) {
-    case 'btc':
-    case 'sats':
-    case 'msats': {
-      const valueMsats =
-        from === 'msats'
-          ? Big(value).round().toString()
-          : bitcoinDenominationToMsats({ denomination: from, value })
-
-      return convertMsats({
-        value: valueMsats,
-        denomination: to
-      })
+  try {
+    if (from === to) {
+      return value
     }
 
-    default: {
-      const exchangeRate = getExchangeRate(from as FiatDenomination)
-      const valueMsats = exchangeRate ? fiatToMsats({ value, exchangeRate }) : null
+    if (!value) return value
 
-      if (!valueMsats) return null
-
-      return convertValue({ value: valueMsats, from: BitcoinDenomination.msats, to })
+    if (value === 'any') {
+      return value
     }
+
+    switch (from) {
+      case 'btc':
+      case 'sats':
+      case 'msats': {
+        const valueMsats =
+          from === 'msats'
+            ? Big(value).round().toString()
+            : bitcoinDenominationToMsats({ denomination: from, value })
+
+        return convertMsats({
+          value: valueMsats,
+          denomination: to
+        })
+      }
+
+      default: {
+        const exchangeRate = getExchangeRate(from as FiatDenomination)
+        const valueMsats = exchangeRate ? fiatToMsats({ value, exchangeRate }) : null
+
+        if (!valueMsats) return null
+
+        return convertValue({ value: valueMsats, from: BitcoinDenomination.msats, to })
+      }
+    }
+  } catch (error) {
+    logger.error(JSON.stringify(error))
+    return null
   }
 }
 

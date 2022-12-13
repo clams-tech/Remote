@@ -268,7 +268,13 @@ export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.
 
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
-  const offChain = funds.channels.reduce((total, { our_amount_msat }) => {
+  const offChain = funds.channels.reduce((total, channel) => {
+    const { our_amount_msat } = channel
+
+    if (!our_amount_msat) {
+      logger.warn(JSON.stringify({ msg: 'no our_amount_msat value', channel }))
+    }
+
     return total.add(formatMsat(our_amount_msat))
   }, Big('0'))
 
@@ -398,7 +404,7 @@ export async function loadVConsole() {
 }
 
 export function formatMsat(val: string | number): string {
-  if (!val) return ''
+  if (!val) return '0'
   return typeof val === 'string' ? val.replace('msat', '') : val.toString()
 }
 
