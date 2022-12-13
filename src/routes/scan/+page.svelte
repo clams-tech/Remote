@@ -135,6 +135,11 @@
     previousSlide = slide
     slide = i
   }
+
+  function closeLnurlModal() {
+    lnurl = ''
+    goto('/')
+  }
 </script>
 
 <svelte:head>
@@ -185,5 +190,5 @@
 </div>
 
 {#if lnurl}
-  <LnUrlModal {lnurl} close={() => (lnurl = '')} />
+  <LnUrlModal {lnurl} close={closeLnurlModal} />
 {/if}

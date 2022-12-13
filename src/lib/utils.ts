@@ -172,6 +172,10 @@ export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentType(value: string): PaymentType | null {
+  if (value.toLowerCase().startsWith('lnurl')) {
+    return 'lnurl'
+  }
+
   if (nodePublicKeyRegex.test(value)) {
     return 'node_public_key'
   }
