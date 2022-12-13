@@ -14,7 +14,7 @@
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
-  import LnUrlModal from './lnurl/modal.svelte'
+  import LnUrlModal from '$lib/lnurl/modal.svelte'
 
   let requesting = false
   let errorMsg = ''
