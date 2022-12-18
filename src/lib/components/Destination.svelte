@@ -2,11 +2,11 @@
   import lodashDebounce from 'lodash.debounce'
   import { decode } from 'light-bolt11-decoder'
   import { onMount, createEventDispatcher, onDestroy } from 'svelte'
+  import { goto } from '$app/navigation'
   import type { PaymentType } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
   import Modal from '../elements/Modal.svelte'
-  import LnurlModal from '../lnurl/modal.svelte'
   import { translate } from '$lib/i18n/translations'
   import pasteIcon from '$lib/icons/paste'
   import arrow from '$lib/icons/arrow'
@@ -17,7 +17,6 @@
     readClipboardValue,
     getPaymentType
   } from '$lib/utils'
-  import { goto } from '$app/navigation'
 
   export let destination: string
   export let type: PaymentType | null
@@ -33,7 +32,6 @@
   let error = ''
   let blurTimeout: NodeJS.Timeout
   let showClipboardModal = false
-  let lnurl: string
 
   function closeModal() {
     showClipboardModal = false
@@ -58,7 +56,7 @@
     }
 
     if (type === 'lnurl') {
-      lnurl = destination
+      goto(`/lnurl?lnurl=${destination}`)
     }
 
     debouncedValidate()
@@ -126,11 +124,6 @@
       }, 250)
     }
   })
-
-  function closeLnurlModal() {
-    lnurl = ''
-    goto('/')
-  }
 </script>
 
 <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
@@ -201,7 +194,3 @@
     </Modal>
   {/if}
 </section>
-
-{#if lnurl}
-  <LnurlModal {lnurl} close={closeLnurlModal} />
-{/if}
