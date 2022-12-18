@@ -5,20 +5,23 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Auth from './components/auth.svelte'
   import type { PageData } from './$types'
+  import Pay from './components/pay.svelte'
+  import { LNURL_PROXY } from '$lib/constants'
 
   export let data: PageData
 
   let parsingLnurl = false
   let parseLnurlError = ''
 
-  let authenticating = false
-  let authenticationSuccess = false
-  let authenticationError = ''
-
   let url: URL
   let tag: string
   let k1: string
   let action: string
+  let callback: string // The URL from LN SERVICE which will accept the pay request parameters
+  let maxSendable: number // Max millisatoshi amount LN SERVICE is willing to receive
+  let minSendable: number // Min millisatoshi amount LN SERVICE is willing to receive, can not be less than 1 or more than `maxSendable`
+  let metadata: string // Metadata json which must be presented as raw string here, this is required to pass signature verification at a later step
+  let commentAllowed: number // length of comment allowed
 
   getUrlDetails()
 
@@ -31,18 +34,29 @@
 
       if (!tag) {
         parsingLnurl = true
-        const result = await fetch(url.toString()).then((res) => res.json())
+
+        const result = await fetch(LNURL_PROXY, { headers: { 'Target-URL': url.toString() } }).then(
+          (res) => res.json()
+        )
+
+        if (result.status === 'ERROR') {
+          parseLnurlError = result.reason
+          parsingLnurl = false
+          return
+        }
+
         tag = result.tag
         k1 = result.k1
         action = result.action
+        callback = result.callback
+        maxSendable = result.maxSendable
+        minSendable = result.minSendable
+        metadata = result.metadata
+        commentAllowed = result.commentAllowed
         parsingLnurl = false
       } else {
         k1 = url.searchParams.get('k1') || ''
         action = url.searchParams.get('action') || 'login'
-      }
-
-      if (!tag || !k1) {
-        throw new Error('Invalid lnurl')
       }
     } catch (e) {
       parseLnurlError = (e as { message: string }).message
@@ -63,6 +77,8 @@
   </div>
 {:else if tag === 'login'}
   <Auth {action} {url} {k1} />
+{:else if tag === 'payRequest'}
+  <Pay {callback} {maxSendable} {minSendable} {metadata} />
 {:else}
   <div>
     <!-- Error - tag not recognised -->

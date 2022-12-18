@@ -7,6 +7,8 @@ export interface Payload extends Parser.PayloadDefault {
   direction?: string
   status?: string
   feeType?: string
+  max?: string
+  min?: string
 }
 
 const config: Config<Payload> = {

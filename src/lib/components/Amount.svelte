@@ -3,7 +3,10 @@
   import Button from '$lib/elements/Button.svelte'
   import { translate } from '$lib/i18n/translations'
   import arrow from '$lib/icons/arrow'
+  import info from '$lib/icons/info'
+  import warning from '$lib/icons/warning'
   import { settings$ } from '$lib/streams'
+  import { fade } from 'svelte/transition'
   import Value from './Value.svelte'
 
   export let value = '0'
@@ -11,6 +14,8 @@
   export let next: () => void
   export let readonly = false
   export let required = false
+  export let description = ''
+  export let error = ''
 
   $: secondaryValue = !value
     ? '0'
@@ -29,10 +34,32 @@
     <p class="text-neutral-600 dark:text-neutral-400 italic">
       {$translate('app.subheadings.amount', { direction })}
     </p>
+
+    {#if description}
+      <div class="flex items-center text-neutral-400 dark:text-neutral-600 mt-4">
+        <div class="w-4 border border-neutral-400 dark:border-neutral-600 rounded-full">
+          {@html info}
+        </div>
+        <div in:fade class="text-sm ml-2 max-w-xs">{description}</div>
+      </div>
+    {/if}
+
+    {#if error}
+      <div class="flex items-center text-utility-error mt-4">
+        <div class="w-4">{@html warning}</div>
+        <div in:fade class="text-sm ml-2">{error}</div>
+      </div>
+    {/if}
   </div>
 
   <div class="my-4 w-full">
-    <Value bind:primary={value} secondary={secondaryValue} {readonly} {next} />
+    <Value
+      bind:primary={value}
+      secondary={secondaryValue}
+      {readonly}
+      {next}
+      on:update={() => (error = '')}
+    />
   </div>
 
   <div class="mt-6 w-full">

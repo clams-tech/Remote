@@ -25,7 +25,7 @@
       "hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Node Public Key"
+      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL"
     },
     "node_connect": {
       "label": "Address",
@@ -104,7 +104,9 @@
     "900": "An invoice with the given label already exists",
     "901": "An invoice with the given preimage already exists",
     "902": "None of the specified private channels were usable",
-    "19537": "Provided rune does not have valid permissions for this request."
+    "19537": "Provided rune does not have valid permissions for this request.",
+    "min_sendable": "Amount is less than payment request minimum",
+    "max_sendable": "Amount is larger than payment request maximum"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -135,7 +137,8 @@
     "help": "Help?",
     "how": "How does it work?",
     "forgot_pin": "Forgot your pin?",
-    "translate": "Can you help translate this app?"
+    "translate": "Can you help translate this app?",
+    "pay_request": "This pay request accepts a minimum amount of {{min}} and a maximum of {{max}}."
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",
