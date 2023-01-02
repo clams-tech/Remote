@@ -1,6 +1,6 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
-import type { Payment } from '$lib/types'
+import type { DecodedInvoice, Payment } from '$lib/types'
 import { formatDecodedInvoice, formatMsat, logger } from '$lib/utils'
 
 import type { InvoiceStatus, Invoice, Pay } from './types'
@@ -35,7 +35,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
   let timestamp: number
 
   try {
-    const decodedInvoice = decode(bolt11)
+    const decodedInvoice: DecodedInvoice = decode(bolt11)
     timestamp = formatDecodedInvoice(decodedInvoice).timestamp
   } catch (error) {
     logger.error(`Unable to decode bolt11: ${bolt11}`)
@@ -75,11 +75,15 @@ export function payToPayment(pay: Pay): Payment {
   } = pay
 
   const timestamp = new Date(created_at * 1000).toISOString()
-  const decodedInvoice = bolt11 && decode(bolt11)
 
-  const { description } = decodedInvoice
-    ? formatDecodedInvoice(decodedInvoice)
-    : { description: undefined }
+  let description: string | undefined
+
+  try {
+    const decodedInvoice: DecodedInvoice | undefined = bolt11 && decode(bolt11)
+    description = decodedInvoice && formatDecodedInvoice(decodedInvoice).description
+  } catch (error) {
+    logger.error(`Unable to decode bolt11: ${bolt11}`)
+  }
 
   const amountMsat = formatMsat(amount_msat)
 
