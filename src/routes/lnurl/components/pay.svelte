@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
+  import Summary from '$lib/components/Summary.svelte'
   import { convertValue } from '$lib/conversion'
   import Button from '$lib/elements/Button.svelte'
   import Slide from '$lib/elements/Slide.svelte'
@@ -18,6 +19,7 @@
   export let maxSendable: number // Max millisatoshi amount LN SERVICE is willing to receive
   export let minSendable: number // Min millisatoshi amount LN SERVICE is willing to receive, can not be less than 1 or more than `maxSendable`
   export let metadata: string // Metadata json which must be presented as raw string here, this is required to pass signature verification at a later step
+  export let commentAllowed: number // indicates the length of comment (description) allowed
 
   const serviceName = mainDomain(url.hostname)
 
@@ -78,8 +80,8 @@
     slide -= 1
   }
 
-  function next() {
-    slide += 1
+  function next(increment = 1) {
+    slide += increment
   }
 
   function validateAmount() {
@@ -102,7 +104,40 @@
       amountError = $translate('app.errors.max_sendable')
     }
 
-    !amountError && next()
+    !amountError && next(commentAllowed ? 1 : 2)
+  }
+
+  let requesting = false
+
+  function initiatePay() {
+    requesting = true
+    // make a get request to `${callback}?amount=${amountMsat}&comment={description}`
+    // from the return payload, take the `pr` value to get the payment request and also check for `successAction`
+    // decode the payment request
+    // verify the `h` tag is equal to the hash of `metadata` converted to a byte array in utf-8 encoding
+    // verify the amount of the invoice equals the amount specified by user
+    // if all good go ahead and pay invoice
+    // if invoice paid, display successAction fields if exists (message, description, url)
+    // the tag on the success action is either "message" or "url" or "aes"
+    // "For message, a toaster or popup is sufficient. For url, the wallet should give the user a popup which displays description, url, and a 'open' button to open the url in a new browser tab."
+    // if aes tag, then get preimage from paid invoice to use to decrypt cipher text (from successAction field: `ciphertext`, `iv`)
+    // if not then display an error
+    requesting = false
+  }
+
+  function decryptCipherText(preimage: string, iv: string, cipherText: string) {
+    // import aesjs from 'aes-js'
+    // import Base64 from 'base64-js'
+    // let key = aesjs.utils.hex.toBytes(preimage)
+    // let iv = Base64.toByteArray(iv)
+    // let ciphertext = Base64.toByteArray(ciphertext)
+    // let CBC = new aesjs.ModeOfOperation.cbc(key, iv)
+    // var plaintextBytes = CBC.decrypt(ciphertext)
+    // // remove padding
+    // let size = plaintext.length
+    // let pad = plaintext[size - 1]
+    // plaintextBytes = plaintext.slice(0, size - pad)
+    // let plaintext = aesjs.utils.utf8.fromBytes(plaintextBytes)
   }
 </script>
 
@@ -158,7 +193,7 @@
       </div>
 
       <div class="mt-6 w-full">
-        <Button text={$translate('app.buttons.next')} on:click={next}>
+        <Button text={$translate('app.buttons.next')} on:click={() => next()}>
           <div slot="iconRight" class="w-6 -rotate-90">
             {@html arrow}
           </div>
@@ -196,6 +231,20 @@
 
 {#if slide === 2}
   <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
-    <Description {next} bind:description />
+    <Description {next} bind:description max={commentAllowed} />
+  </Slide>
+{/if}
+
+{#if slide === 3}
+  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+    <Summary
+      type="payment_request"
+      direction="send"
+      destination={serviceName}
+      {description}
+      value={amount}
+      requesting
+      expiry={null}
+    />
   </Slide>
 {/if}

@@ -2,7 +2,6 @@
   import { decodelnurl } from 'js-lnurl'
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Auth from './components/auth.svelte'
   import type { PageData } from './$types'
   import Pay from './components/pay.svelte'
@@ -54,6 +53,7 @@
         metadata = result.metadata
         commentAllowed = result.commentAllowed
         parsingLnurl = false
+        commentAllowed = result.commentAllowed
       } else {
         k1 = url.searchParams.get('k1') || ''
         action = url.searchParams.get('action') || 'login'
@@ -80,7 +80,7 @@
 {:else if tag === 'login'}
   <Auth {action} {url} {k1} />
 {:else if tag === 'payRequest'}
-  <Pay {url} {callback} {maxSendable} {minSendable} {metadata} />
+  <Pay {url} {callback} {maxSendable} {minSendable} {metadata} {commentAllowed} />
 {:else}
   <div>
     {tag}
