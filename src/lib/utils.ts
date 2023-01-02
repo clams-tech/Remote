@@ -19,13 +19,11 @@ import type {
   BitcoinExchangeRates,
   FormattedSections,
   ParsedNodeAddress,
-  Auth
+  Auth,
+  DecodedInvoice
 } from './types'
 
-export function formatDecodedInvoice(decodedInvoice: {
-  paymentRequest: string
-  sections: { name: string; value?: string | number }[]
-}): {
+export function formatDecodedInvoice(decodedInvoice: DecodedInvoice): {
   paymentRequest: string
   expiry: number
   description: string

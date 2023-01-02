@@ -106,7 +106,12 @@
     "902": "None of the specified private channels were usable",
     "19537": "Provided rune does not have valid permissions for this request.",
     "min_sendable": "Amount is less than payment request minimum",
-    "max_sendable": "Amount is larger than payment request maximum"
+    "max_sendable": "Amount is larger than payment request maximum",
+    "data_request": "Data Request Error",
+    "list_funds": "Error trying to list funds",
+    "get_info": "Error trying to get node info",
+    "listen_invoice": "Error trying to listen for invoice payments",
+    "list_payments": "Error trying to list payments"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
