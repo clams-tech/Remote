@@ -72,7 +72,9 @@
     "all_options": "All Options",
     "rune_summary": "Rune Summary",
     "version": "Version",
-    "logs": "Debug Logs"
+    "logs": "Debug Logs",
+    "min_sendable": "Minimum Sendable:",
+    "max_sendable": "Maximum Sendable:"
   },
   "time": {
     "mins": "mins"
@@ -154,7 +156,8 @@
     "welcome": "Welcome",
     "rune": "Permissions",
     "decrypt": "Decrypt",
-    "encrypt": "Encryption Key"
+    "encrypt": "Encryption Key",
+    "pay_request": "LNURL Pay Request"
   },
   "subheadings": {
     "summary": "Confirm payment details.",

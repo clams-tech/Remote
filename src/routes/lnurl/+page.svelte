@@ -66,7 +66,9 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.lnurl')}</title>
+  <title>
+    {$translate('app.titles.lnurl')}
+  </title>
 </svelte:head>
 
 {#if parsingLnurl}
@@ -78,9 +80,14 @@
 {:else if tag === 'login'}
   <Auth {action} {url} {k1} />
 {:else if tag === 'payRequest'}
-  <Pay {callback} {maxSendable} {minSendable} {metadata} />
+  <Pay {url} {callback} {maxSendable} {minSendable} {metadata} />
 {:else}
   <div>
+    {tag}
+    {action}
+    {url}
+    {callback}
+    {maxSendable}
     <!-- Error - tag not recognised -->
   </div>
 {/if}
