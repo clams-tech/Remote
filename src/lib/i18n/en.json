@@ -103,7 +103,12 @@
     "900": "An invoice with the given label already exists",
     "901": "An invoice with the given preimage already exists",
     "902": "None of the specified private channels were usable",
-    "19537": "Provided rune does not have valid permissions for this request."
+    "19537": "Provided rune does not have valid permissions for this request.",
+    "data_request": "Data Request Error",
+    "list_funds": "Error trying to list funds",
+    "get_info": "Error trying to get node info",
+    "listen_invoice": "Error trying to listen for invoice payments",
+    "list_payments": "Error trying to list payments"
   },
   "buttons": {
     "create_invoice": "Create Invoice",

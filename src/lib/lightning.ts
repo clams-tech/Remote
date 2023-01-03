@@ -1,3 +1,4 @@
+import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
@@ -5,6 +6,7 @@ import type { Auth, Payment } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
+import { translate } from './i18n/translations'
 
 import {
   FUNDS_STORAGE_KEY,
@@ -29,6 +31,7 @@ import {
   nodeInfo$,
   payments$,
   paymentUpdates$,
+  customNotifications$,
   pin$
 } from './streams'
 
@@ -112,6 +115,13 @@ class Lightning {
     } catch (error) {
       const { message } = error as Error
       funds$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.list_funds')}: ${message}`
+      })
     }
   }
 
@@ -125,6 +135,13 @@ class Lightning {
     } catch (error) {
       const { message } = error as Error
       nodeInfo$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.get_info')}: ${message}`
+      })
     }
   }
 
@@ -138,6 +155,13 @@ class Lightning {
     } catch (error) {
       const { message } = error as Error
       payments$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.list_payments')}: ${message}`
+      })
     }
   }
 
@@ -171,6 +195,15 @@ class Lightning {
         localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
         invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex, reqId), disconnectProm])
       } catch (error) {
+        const { message } = error as { message: string }
+
+        customNotifications$.next({
+          id: createRandomHex(),
+          type: 'error',
+          heading: get(translate)('app.errors.data_request'),
+          message: `${get(translate)('app.errors.listen_invoice')}: ${message}`
+        })
+
         listeningForAllInvoiceUpdates$.next(false)
       }
     }

@@ -1,6 +1,6 @@
 import Big from 'big.js'
 import { decode } from 'light-bolt11-decoder'
-import type { Payment } from '$lib/types'
+import type { DecodedInvoice, Payment } from '$lib/types'
 import { formatDecodedInvoice, formatMsat, logger } from '$lib/utils'
 
 import type { InvoiceStatus, Invoice, Pay } from './types'
@@ -19,7 +19,6 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
 
 export function invoiceToPayment(invoice: Invoice): Payment {
   const {
-    label,
     bolt11,
     payment_hash,
     amount_received_msat,
@@ -35,7 +34,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
   let timestamp: number
 
   try {
-    const decodedInvoice = decode(bolt11)
+    const decodedInvoice: DecodedInvoice = decode(bolt11)
     timestamp = formatDecodedInvoice(decodedInvoice).timestamp
   } catch (error) {
     logger.error(`Unable to decode bolt11: ${bolt11}`)
@@ -43,7 +42,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
   }
 
   return {
-    id: label || payment_hash,
+    id: payment_hash,
     bolt11: bolt11 || null,
     hash: payment_hash,
     direction: 'receive',
@@ -68,23 +67,26 @@ export function payToPayment(pay: Pay): Payment {
     payment_hash,
     status,
     created_at,
-    label,
     preimage,
     amount_msat,
     amount_sent_msat
   } = pay
 
   const timestamp = new Date(created_at * 1000).toISOString()
-  const decodedInvoice = bolt11 && decode(bolt11)
 
-  const { description } = decodedInvoice
-    ? formatDecodedInvoice(decodedInvoice)
-    : { description: undefined }
+  let description: string | undefined
+
+  try {
+    const decodedInvoice: DecodedInvoice | undefined = bolt11 && decode(bolt11)
+    description = decodedInvoice && formatDecodedInvoice(decodedInvoice).description
+  } catch (error) {
+    logger.error(`Unable to decode bolt11: ${bolt11}`)
+  }
 
   const amountMsat = formatMsat(amount_msat)
 
   return {
-    id: label || payment_hash,
+    id: payment_hash,
     destination,
     bolt11: bolt11 || null,
     status,
