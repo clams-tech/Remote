@@ -74,7 +74,7 @@
       <ErrorMsg message={$payments$.error} />
     {:else if filteredPayments}
       <div class="w-full overflow-y-auto overflow-x-hidden">
-        {#each filteredPayments as payment (payment.id)}
+        {#each filteredPayments as payment, i (`${payment.id}:${i}`)}
           <PaymentRow {payment} />
         {/each}
       </div>
