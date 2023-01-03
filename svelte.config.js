@@ -26,6 +26,9 @@ const config = {
     },
     csrf: {
       checkOrigin: true
+    },
+    prerender: {
+      entries: ['*', '/payments/[id]']
     }
   }
 }
