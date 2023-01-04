@@ -21,6 +21,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
   const {
     bolt11,
     payment_hash,
+    label,
     amount_received_msat,
     amount_msat,
     status,
@@ -42,7 +43,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
   }
 
   return {
-    id: payment_hash,
+    id: label || payment_hash,
     bolt11: bolt11 || null,
     hash: payment_hash,
     direction: 'receive',
@@ -64,6 +65,7 @@ export function payToPayment(pay: Pay): Payment {
   const {
     bolt11,
     destination,
+    label,
     payment_hash,
     status,
     created_at,
@@ -86,7 +88,7 @@ export function payToPayment(pay: Pay): Payment {
   const amountMsat = formatMsat(amount_msat)
 
   return {
-    id: payment_hash,
+    id: label || payment_hash,
     destination,
     bolt11: bolt11 || null,
     status,
