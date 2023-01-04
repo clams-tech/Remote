@@ -133,3 +133,8 @@ export type ParsedNodeAddress = {
   ip: string
   port?: number
 }
+
+export type DecodedInvoice = {
+  paymentRequest: string
+  sections: { name: string; value?: string | number }[]
+}

@@ -1,18 +1,18 @@
 import adapter from '@sveltejs/adapter-static'
-import preprocess from 'svelte-preprocess'
+import { vitePreprocess } from '@sveltejs/kit/vite'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   // Consult https://github.com/sveltejs/svelte-preprocess
   // for more information about preprocessors
-  preprocess: preprocess(),
+  preprocess: vitePreprocess(),
 
   kit: {
     adapter: adapter({
       fallback: '200.html'
     }),
     csp: {
-      mode: 'hash',
+      mode: 'auto',
       directives: {
         'script-src': ['self', 'unsafe-inline'],
         'object-src': ['self']
@@ -26,6 +26,9 @@ const config = {
     },
     csrf: {
       checkOrigin: true
+    },
+    prerender: {
+      entries: []
     }
   }
 }
