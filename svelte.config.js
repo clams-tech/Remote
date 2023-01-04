@@ -12,7 +12,7 @@ const config = {
       fallback: '200.html'
     }),
     csp: {
-      mode: 'hash',
+      mode: 'auto',
       directives: {
         'script-src': ['self', 'unsafe-inline'],
         'object-src': ['self']
@@ -28,7 +28,7 @@ const config = {
       checkOrigin: true
     },
     prerender: {
-      entries: ['*', '/payments/[id]']
+      entries: []
     }
   }
 }
