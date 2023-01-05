@@ -1,4 +1,4 @@
-import { BehaviorSubject, defer, fromEvent, Observable, of, Subject } from 'rxjs'
+import { BehaviorSubject, defer, fromEvent, Observable, of, ReplaySubject, Subject } from 'rxjs'
 import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import type { GetinfoResponse, ListfundsResponse } from './backends'
@@ -142,7 +142,7 @@ export const appVisible$ =
 export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false)
 
 // for all custom notifications such as errors and hints
-export const customNotifications$ = new Subject<Notification>()
+export const customNotifications$ = new ReplaySubject<Notification>(10, 10000)
 
 export function updatePayments(payment: Payment): void {
   const payments = payments$.getValue().data || []
