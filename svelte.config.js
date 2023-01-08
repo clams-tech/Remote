@@ -12,7 +12,7 @@ const config = {
       fallback: '200.html'
     }),
     csp: {
-      mode: 'hash',
+      mode: 'auto',
       directives: {
         'script-src': ['self', 'unsafe-inline'],
         'object-src': ['self']
@@ -26,6 +26,9 @@ const config = {
     },
     csrf: {
       checkOrigin: true
+    },
+    prerender: {
+      entries: []
     }
   }
 }
