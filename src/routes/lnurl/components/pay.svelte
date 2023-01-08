@@ -1,18 +1,26 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
+  import { decode } from 'light-bolt11-decoder'
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
   import Summary from '$lib/components/Summary.svelte'
+  import { LNURL_PROXY } from '$lib/constants'
   import { convertValue } from '$lib/conversion'
   import Button from '$lib/elements/Button.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations'
   import arrow from '$lib/icons/arrow'
-  import { settings$ } from '$lib/streams'
-  import { BitcoinDenomination } from '$lib/types'
-  import { mainDomain } from '$lib/utils'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
+  import { BitcoinDenomination, type FormattedSections, type Payment } from '$lib/types'
+  import { createRandomHex, formatDecodedInvoice, mainDomain, sha256 } from '$lib/utils'
   import Big from 'big.js'
+  import lightning from '$lib/lightning'
+  import check from '$lib/icons/check'
+  import link from '$lib/icons/link'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
+  import CryptoJS from 'crypto-js'
 
   export let url: URL
   export let callback: string // The URL from LN SERVICE which will accept the pay request parameters
@@ -42,6 +50,23 @@
     image?: string
   }
 
+  const testPayment: Payment = {
+    bolt11: ' ',
+    completedAt: '2022-11-13T02:10:04.000Z',
+    description: 'te',
+    destination: '03e76a92bb9c37142a93299b3507eca3591d50caa4fc82556c1ae88fedcccd4486',
+    direction: 'send',
+    expiresAt: null,
+    fee: '0',
+    hash: '64fdd3b3afeb4af2a2794cfa4bc941445219da1e85e8396b94808b0b2e79b786',
+    id: '64fdd3b3afeb4af2a2794cfa4bc941445219da1e85e8396b94808b0b2e79b786',
+    preimage: '8898e0bc22ddbb1127af354b9f25669ab3f911ee90bc22da65750757a2c1a6c7',
+    startedAt: '2022-11-13T02:10:04.000Z',
+    status: 'complete',
+    type: 'payment_request',
+    value: '45000'
+  }
+
   function formatMetadata(meta: string[][]) {
     return meta.reduce((acc, [mime, data], index) => {
       if (index === 0) {
@@ -63,7 +88,7 @@
   try {
     meta = JSON.parse(metadata)
     const formattedMetadata = formatMetadata(meta)
-    console.log(formattedMetadata)
+
     shortDescription = formattedMetadata.shortDescription
     longDescription = formattedMetadata.longDescription
     image = formattedMetadata.image
@@ -108,36 +133,94 @@
   }
 
   let requesting = false
+  let requestError = ''
 
-  function initiatePay() {
-    requesting = true
-    // make a get request to `${callback}?amount=${amountMsat}&comment={description}`
-    // from the return payload, take the `pr` value to get the payment request and also check for `successAction`
-    // decode the payment request
-    // verify the `h` tag is equal to the hash of `metadata` converted to a byte array in utf-8 encoding
-    // verify the amount of the invoice equals the amount specified by user
-    // if all good go ahead and pay invoice
-    // if invoice paid, display successAction fields if exists (message, description, url)
-    // the tag on the success action is either "message" or "url" or "aes"
-    // "For message, a toaster or popup is sufficient. For url, the wallet should give the user a popup which displays description, url, and a 'open' button to open the url in a new browser tab."
-    // if aes tag, then get preimage from paid invoice to use to decrypt cipher text (from successAction field: `ciphertext`, `iv`)
-    // if not then display an error
-    requesting = false
-  }
+  type SuccessMessage = { tag: 'message'; message: string }
+  type SuccessUrl = { tag: 'url'; description: string; url: string }
+  type SuccessAES = { tag: 'aes'; description: string; ciphertext: string; iv: string }
+  type SuccessAction = SuccessMessage | SuccessUrl | SuccessAES
 
-  function decryptCipherText(preimage: string, iv: string, cipherText: string) {
-    // import aesjs from 'aes-js'
-    // import Base64 from 'base64-js'
-    // let key = aesjs.utils.hex.toBytes(preimage)
-    // let iv = Base64.toByteArray(iv)
-    // let ciphertext = Base64.toByteArray(ciphertext)
-    // let CBC = new aesjs.ModeOfOperation.cbc(key, iv)
-    // var plaintextBytes = CBC.decrypt(ciphertext)
-    // // remove padding
-    // let size = plaintext.length
-    // let pad = plaintext[size - 1]
-    // plaintextBytes = plaintext.slice(0, size - pad)
-    // let plaintext = aesjs.utils.utf8.fromBytes(plaintextBytes)
+  let decodedPaymentRequest: FormattedSections & { paymentRequest: string }
+  let completedPayment: Payment
+  let success: SuccessAction
+  let decryptedAes: string
+
+  async function initiatePay() {
+    try {
+      const amountMsats = convertValue({
+        value: amount,
+        from: $settings$.primaryDenomination,
+        to: BitcoinDenomination.msats
+      })
+
+      requestError = ''
+      requesting = true
+
+      const result = await fetch(LNURL_PROXY, {
+        headers: {
+          'Target-URL': description
+            ? `${callback}?amount=${amountMsats}&comment=${description}`
+            : `${callback}?amount=${amountMsats}`
+        }
+      }).then((res) => res.json())
+
+      if (result.status === 'ERROR') {
+        throw new Error(result.reason)
+      }
+
+      const { pr: paymentRequest, successAction } = result
+
+      success = successAction
+      decodedPaymentRequest = formatDecodedInvoice(decode(paymentRequest))
+
+      const { description_hash, amount: paymentRequestAmount } = decodedPaymentRequest
+
+      const hashedMetadata = sha256(metadata)
+
+      if (hashedMetadata !== description_hash?.toString('hex')) {
+        throw new Error($translate('app.errors.lnurl_metadata_hash'))
+      }
+
+      if (paymentRequestAmount !== amountMsats) {
+        throw new Error($translate('app.errors.lnurl_pay_amount'))
+      }
+
+      const lnApi = lightning.getLn()
+
+      const id = createRandomHex()
+
+      completedPayment = await lnApi.payInvoice({
+        id,
+        bolt11: paymentRequest
+      })
+
+      completedPayment = testPayment
+
+      paymentUpdates$.next({ ...completedPayment, description })
+
+      // delay to allow time for node to update
+      setTimeout(() => lightning.updateFunds(lnApi), 1000)
+
+      if (!successAction) {
+        goto(`/payments/${completedPayment.id}`)
+        return
+      }
+
+      if (successAction.tag === 'aes') {
+        decryptedAes = CryptoJS.AES.decrypt(
+          successAction.ciphertext,
+          CryptoJS.enc.Hex.parse(completedPayment.preimage!),
+          { iv: CryptoJS.enc.Base64.parse(successAction.iv) }
+        ).toString(CryptoJS.enc.Utf8)
+      }
+
+      next()
+    } catch (error) {
+      const { message } = error as Error
+      requestError = message
+    } finally {
+      requesting = false
+    }
   }
 </script>
 
@@ -231,7 +314,7 @@
 
 {#if slide === 2}
   <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
-    <Description {next} bind:description max={commentAllowed} />
+    <Description next={() => next()} bind:description max={commentAllowed} />
   </Slide>
 {/if}
 
@@ -243,8 +326,61 @@
       destination={serviceName}
       {description}
       value={amount}
-      requesting
+      {requesting}
       expiry={null}
+      on:complete={initiatePay}
     />
   </Slide>
 {/if}
+
+{#if slide === 4}
+  <Slide direction={previousSlide > slide ? 'right' : 'left'}>
+    {@const { tag } = success}
+    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+      <div class="flex items-center mb-4">
+        <h1 class="text-4xl font-bold">{serviceName}</h1>
+        <div class="w-8 border-2 border-utility-success rounded-full text-utility-success ml-2">
+          {@html check}
+        </div>
+      </div>
+
+      <p class="mb-4">
+        {#if tag === 'message'}
+          {success.message}
+        {:else}
+          {success.description}
+        {/if}
+      </p>
+
+      {#if tag === 'url'}
+        <div class="flex items-center justify-center mb-6">
+          <p class="text-neutral-600 dark:text-neutral-400 italic">
+            {success.url}
+          </p>
+
+          <a href={success.url} target="_blank" rel="noopener noreferrer" class="ml-2">
+            <Button small text={$translate('app.buttons.open')}>
+              <div class="w-5 mr-1" slot="iconLeft">{@html link}</div>
+            </Button>
+          </a>
+        </div>
+      {/if}
+
+      {#if tag === 'aes'}
+        <div class="mb-6 w-full">
+          <CopyValue value={decryptedAes} />
+        </div>
+      {/if}
+
+      <Button
+        primary
+        on:click={() => goto(`/payments/${completedPayment.id}`)}
+        text={$translate('app.buttons.go_to_payment')}
+      />
+    </section>
+  </Slide>
+{/if}
+
+<div class="absolute bottom-0 p-4">
+  <ErrorMsg bind:message={requestError} />
+</div>

@@ -20,9 +20,9 @@
   style={`opacity: ${disabled ? '0.4' : '1'}`}
   class="text-current no-underline {small ? 'text-xs' : 'text-base'} {primary
     ? 'hover:shadow-purple-500'
-    : 'hover:shadow-current'} active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center rounded-md py-3 {small
-    ? 'px-2'
-    : 'px-4'} border-2 border-solid {primary
+    : 'hover:shadow-current'} active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center rounded-md {small
+    ? 'px-2 py-1'
+    : 'px-4 py-3'} border-2 border-solid {primary
     ? 'border-purple-500'
     : 'border-current'} font-semibold"
   disabled={disabled || requesting}

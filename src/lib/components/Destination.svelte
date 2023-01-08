@@ -44,6 +44,7 @@
       : lowerCaseDestination
     error = ''
     type = getPaymentType(formattedDestination) || null
+    destination = formattedDestination
 
     if (type === 'payment_request') {
       try {
@@ -57,10 +58,6 @@
       } catch (e) {
         error = $translate('app.inputs.destination.invalid_invoice')
       }
-    }
-
-    if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${formattedDestination}`)
     }
 
     debouncedValidate()

@@ -113,7 +113,9 @@
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
     "listen_invoice": "Error trying to listen for invoice payments",
-    "list_payments": "Error trying to list payments"
+    "list_payments": "Error trying to list payments",
+    "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
+    "lnurl_pay_amount": "Amount in payment request does not match the amount requested."
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -137,7 +139,10 @@
     "try_again": "Try Again",
     "add_rune": "Add a Rune",
     "go": "Let's Go!",
-    "github": "Contribute on Github"
+    "github": "Contribute on Github",
+    "open": "Open",
+    "copy": "Copy",
+    "go_to_payment": "Go to payment"
   },
   "hints": {
     "unrestricted": "unrestricted!",

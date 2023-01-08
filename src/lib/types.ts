@@ -113,10 +113,11 @@ export type Notification = {
 /** Formatted decoded sections of invoice */
 export type FormattedSections = {
   expiry: number
-  description: string
+  description?: string
+  description_hash?: Buffer
   amount: string
   timestamp: number
-  [key: string]: string | number
+  [key: string]: string | number | undefined | Buffer
 }
 
 export type DropdownOption = {

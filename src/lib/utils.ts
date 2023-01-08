@@ -23,13 +23,9 @@ import type {
   DecodedInvoice
 } from './types'
 
-export function formatDecodedInvoice(decodedInvoice: DecodedInvoice): {
-  paymentRequest: string
-  expiry: number
-  description: string
-  amount: string
-  timestamp: number
-} {
+export function formatDecodedInvoice(
+  decodedInvoice: DecodedInvoice
+): FormattedSections & { paymentRequest: string } {
   const { sections, paymentRequest } = decodedInvoice
 
   const formattedSections = sections.reduce((acc, { name, value }) => {
@@ -195,6 +191,10 @@ export const decryptWithAES = (ciphertext: string, passphrase: string) => {
   return originalText
 }
 
+export function sha256(str: string) {
+  return CryptoJS.enc.Hex.stringify(CryptoJS.SHA256(str))
+}
+
 export function getDataFromStorage(storageKey: string): string | null {
   if (typeof window === 'undefined') return null
   return window.localStorage.getItem(storageKey)
@@ -345,7 +345,7 @@ export function encryptAllData(pin: string) {
 
     if (data) {
       const encrypted = encryptWithAES(data, pin)
-      window.localStorage.setItem(key, encrypted)
+      window.localStorage.setItem(key, encrypted as string)
     }
   })
 }
