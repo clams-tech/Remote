@@ -3,6 +3,7 @@
   import check from '$lib/icons/check'
   import copy from '$lib/icons/copy'
   import { writeClipboardValue } from '$lib/utils'
+  import { onDestroy } from 'svelte'
   import Button from './Button.svelte'
 
   export let value: string
@@ -17,6 +18,10 @@
       copyAnimationTimeout = setTimeout(() => (copySuccess = false), 3000)
     }
   }
+
+  onDestroy(() => {
+    copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
+  })
 </script>
 
 <div

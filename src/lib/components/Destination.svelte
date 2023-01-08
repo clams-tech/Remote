@@ -2,7 +2,6 @@
   import lodashDebounce from 'lodash.debounce'
   import { decode } from 'light-bolt11-decoder'
   import { onMount, createEventDispatcher, onDestroy } from 'svelte'
-  import { goto } from '$app/navigation'
   import type { PaymentType } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'

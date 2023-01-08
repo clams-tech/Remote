@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import { LNURL_PROXY } from '$lib/constants'
   import Button from '$lib/elements/Button.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import check from '$lib/icons/check'
   import { firstLetterUpperCase, mainDomain } from '$lib/utils'
   import { noop } from 'svelte/internal'
@@ -67,4 +68,8 @@
       </div>
     </Button>
   </div>
+</div>
+
+<div class="absolute bottom-0 p-4">
+  <ErrorMsg bind:message={authenticationError} />
 </div>
