@@ -35,6 +35,7 @@
   let shortDescription: string
   let longDescription: string | undefined
   let image: string | undefined
+  let mime: string | undefined
 
   let slide = 0
   let previousSlide = 0
@@ -48,23 +49,7 @@
     shortDescription: string
     longDescription?: string
     image?: string
-  }
-
-  const testPayment: Payment = {
-    bolt11: ' ',
-    completedAt: '2022-11-13T02:10:04.000Z',
-    description: 'te',
-    destination: '03e76a92bb9c37142a93299b3507eca3591d50caa4fc82556c1ae88fedcccd4486',
-    direction: 'send',
-    expiresAt: null,
-    fee: '0',
-    hash: '64fdd3b3afeb4af2a2794cfa4bc941445219da1e85e8396b94808b0b2e79b786',
-    id: '64fdd3b3afeb4af2a2794cfa4bc941445219da1e85e8396b94808b0b2e79b786',
-    preimage: '8898e0bc22ddbb1127af354b9f25669ab3f911ee90bc22da65750757a2c1a6c7',
-    startedAt: '2022-11-13T02:10:04.000Z',
-    status: 'complete',
-    type: 'payment_request',
-    value: '45000'
+    mime?: string
   }
 
   function formatMetadata(meta: string[][]) {
@@ -79,6 +64,7 @@
 
       if (mime.includes('image')) {
         acc.image = data
+        acc.mime = mime
       }
 
       return acc
@@ -92,6 +78,7 @@
     shortDescription = formattedMetadata.shortDescription
     longDescription = formattedMetadata.longDescription
     image = formattedMetadata.image
+    mime = formattedMetadata.mime
 
     if (!meta) {
       next()
@@ -156,11 +143,22 @@
       requestError = ''
       requesting = true
 
+      const url = new URL(callback)
+      const kind = url.searchParams.get('kind')
+
+      if (kind) {
+        url.searchParams.set('kind', 'payRequest')
+      }
+
+      url.searchParams.set('amount', amountMsats as string)
+
+      if (description) {
+        url.searchParams.set('comment', description)
+      }
+
       const result = await fetch(LNURL_PROXY, {
         headers: {
-          'Target-URL': description
-            ? `${callback}?amount=${amountMsats}&comment=${description}`
-            : `${callback}?amount=${amountMsats}`
+          'Target-URL': url.toString()
         }
       }).then((res) => res.json())
 
@@ -193,8 +191,6 @@
         id,
         bolt11: paymentRequest
       })
-
-      completedPayment = testPayment
 
       paymentUpdates$.next({ ...completedPayment, description })
 
@@ -245,8 +241,12 @@
         </p>
       {/if}
 
-      {#if image}
-        <img class="mt-2" src={image} alt={$translate('app.headings.pay_request')} />
+      {#if image && mime}
+        <img
+          class="mt-2 max-w-xs"
+          src={`data:${mime}, ${image}`}
+          alt={$translate('app.headings.pay_request')}
+        />
       {/if}
 
       <div class="mt-8 w-full">
