@@ -115,7 +115,9 @@
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
-    "lnurl_pay_amount": "Amount in payment request does not match the amount requested."
+    "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
+    "lnurl_parse_error": "Failed to parse LNURL.",
+    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported."
   },
   "buttons": {
     "create_invoice": "Create Invoice",

@@ -6,6 +6,7 @@
   import type { PageData } from './$types'
   import Pay from './components/pay.svelte'
   import { LNURL_PROXY } from '$lib/constants'
+  import warning from '$lib/icons/warning'
 
   export let data: PageData
 
@@ -74,20 +75,21 @@
 {#if parsingLnurl}
   <Spinner />
 {:else if parseLnurlError}
-  <div>
-    <!-- Error - parse lnurl error -->
-  </div>
+  <section class="w-full p-6 max-w-lg">
+    <div class="flex text-utility-error">
+      <div class="w-4 mr-2">{@html warning}</div>
+      <p>{$translate('app.errors.lnurl_parse_error')}</p>
+    </div>
+  </section>
 {:else if tag === 'login'}
   <Auth {action} {url} {k1} />
 {:else if tag === 'payRequest'}
   <Pay {url} {callback} {maxSendable} {minSendable} {metadata} {commentAllowed} />
 {:else}
-  <div>
-    {tag}
-    {action}
-    {url}
-    {callback}
-    {maxSendable}
-    <!-- Error - tag not recognised -->
-  </div>
+  <section class="w-full p-6 max-w-lg">
+    <div class="flex text-utility-error">
+      <div class="w-4 mr-2">{@html warning}</div>
+      <p>{$translate('app.errors.lnurl_unsupported_tag', { tag })}</p>
+    </div>
+  </section>
 {/if}

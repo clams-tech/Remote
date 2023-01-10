@@ -9,6 +9,7 @@ export interface Payload extends Parser.PayloadDefault {
   feeType?: string
   max?: string
   min?: string
+  tag?: string
 }
 
 const config: Config<Payload> = {
