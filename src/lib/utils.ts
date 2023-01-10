@@ -345,7 +345,7 @@ export function encryptAllData(pin: string) {
 
     if (data) {
       const encrypted = encryptWithAES(data, pin)
-      window.localStorage.setItem(key, encrypted as string)
+      window.localStorage.setItem(key, encrypted)
     }
   })
 }
