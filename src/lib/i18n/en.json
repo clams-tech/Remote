@@ -16,7 +16,8 @@
     "settings_currency": "Currency Settings",
     "settings_language": "Language Settings",
     "settings_unit": "Unit Settings",
-    "settings_logs": "Debug Logs"
+    "settings_logs": "Debug Logs",
+    "lnurl": "LNURL"
   },
   "inputs": {
     "destination": {
@@ -24,7 +25,7 @@
       "hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Node Public Key"
+      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL"
     },
     "node_connect": {
       "label": "Address",
@@ -71,7 +72,9 @@
     "all_options": "All Options",
     "rune_summary": "Rune Summary",
     "version": "Version",
-    "logs": "Debug Logs"
+    "logs": "Debug Logs",
+    "min_sendable": "Minimum Sendable:",
+    "max_sendable": "Maximum Sendable:"
   },
   "time": {
     "mins": "mins"
@@ -104,11 +107,17 @@
     "901": "An invoice with the given preimage already exists",
     "902": "None of the specified private channels were usable",
     "19537": "Provided rune does not have valid permissions for this request.",
+    "min_sendable": "Amount is less than payment request minimum",
+    "max_sendable": "Amount is larger than payment request maximum",
     "data_request": "Data Request Error",
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
     "listen_invoice": "Error trying to listen for invoice payments",
-    "list_payments": "Error trying to list payments"
+    "list_payments": "Error trying to list payments",
+    "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
+    "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
+    "lnurl_parse_error": "Failed to parse LNURL.",
+    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported."
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -132,14 +141,18 @@
     "try_again": "Try Again",
     "add_rune": "Add a Rune",
     "go": "Let's Go!",
-    "github": "Contribute on Github"
+    "github": "Contribute on Github",
+    "open": "Open",
+    "copy": "Copy",
+    "go_to_payment": "Go to payment"
   },
   "hints": {
     "unrestricted": "unrestricted!",
     "help": "Help?",
     "how": "How does it work?",
     "forgot_pin": "Forgot your pin?",
-    "translate": "Can you help translate this app?"
+    "translate": "Can you help translate this app?",
+    "pay_request": "This pay request accepts a minimum amount of {{min}} and a maximum of {{max}}."
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",
@@ -150,7 +163,8 @@
     "welcome": "Welcome",
     "rune": "Permissions",
     "decrypt": "Decrypt",
-    "encrypt": "Encryption Key"
+    "encrypt": "Encryption Key",
+    "pay_request": "LNURL Pay Request"
   },
   "subheadings": {
     "summary": "Confirm payment details.",

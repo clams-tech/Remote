@@ -125,6 +125,22 @@
       errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
     }
   }
+
+  function destinationNext() {
+    const { type, destination, amount } = $sendPayment$
+
+    if (type === 'lnurl') {
+      goto(`/lnurl?lnurl=${destination}`)
+      return
+    }
+
+    if (type === 'payment_request' && amount && amount !== '0') {
+      to(3)
+      return
+    }
+
+    next()
+  }
 </script>
 
 <svelte:head>
@@ -139,12 +155,7 @@
     direction={previousSlide > slide ? 'right' : 'left'}
   >
     <Destination
-      next={() =>
-        $sendPayment$.type === 'payment_request' &&
-        $sendPayment$.amount &&
-        $sendPayment$.amount !== '0'
-          ? to(3)
-          : next()}
+      next={destinationNext}
       bind:destination={$sendPayment$.destination}
       bind:type={$sendPayment$.type}
       bind:description={$sendPayment$.description}

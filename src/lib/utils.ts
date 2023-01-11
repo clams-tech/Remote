@@ -23,13 +23,9 @@ import type {
   DecodedInvoice
 } from './types'
 
-export function formatDecodedInvoice(decodedInvoice: DecodedInvoice): {
-  paymentRequest: string
-  expiry: number
-  description: string
-  amount: string
-  timestamp: number
-} {
+export function formatDecodedInvoice(
+  decodedInvoice: DecodedInvoice
+): FormattedSections & { paymentRequest: string } {
   const { sections, paymentRequest } = decodedInvoice
 
   const formattedSections = sections.reduce((acc, { name, value }) => {
@@ -170,6 +166,10 @@ export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentType(value: string): PaymentType | null {
+  if (value.startsWith('lnurl')) {
+    return 'lnurl'
+  }
+
   if (nodePublicKeyRegex.test(value)) {
     return 'node_public_key'
   }
@@ -189,6 +189,10 @@ export const decryptWithAES = (ciphertext: string, passphrase: string) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase)
   const originalText = bytes.toString(CryptoJS.enc.Utf8)
   return originalText
+}
+
+export function sha256(str: string) {
+  return CryptoJS.enc.Hex.stringify(CryptoJS.SHA256(str))
 }
 
 export function getDataFromStorage(storageKey: string): string | null {

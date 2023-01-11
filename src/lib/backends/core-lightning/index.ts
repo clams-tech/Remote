@@ -126,15 +126,17 @@ class CoreLn {
     bolt11: string
     id: string
     amount_msat?: string
+    description?: unknown
   }): Promise<Payment> {
-    const { bolt11, id, amount_msat: send_msat } = options
+    const { bolt11, id, amount_msat: send_msat, description } = options
 
     const result = await this.connection.commando({
       method: 'pay',
       params: {
         label: id,
         bolt11,
-        amount_msat: send_msat
+        amount_msat: send_msat,
+        description
       },
       rune: this.rune
     })

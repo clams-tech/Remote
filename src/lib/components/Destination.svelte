@@ -26,11 +26,10 @@
   export let next: () => void
   export let readonly = false
 
-  let error = ''
-  let blurTimeout: NodeJS.Timeout
-
   const dispatch = createEventDispatcher()
 
+  let error = ''
+  let blurTimeout: NodeJS.Timeout
   let showClipboardModal = false
 
   function closeModal() {
@@ -38,12 +37,17 @@
   }
 
   $: if (destination) {
+    const lowerCaseDestination = destination.toLowerCase()
+    const formattedDestination = lowerCaseDestination.includes(':')
+      ? lowerCaseDestination.split(':')[1]
+      : lowerCaseDestination
     error = ''
-    type = getPaymentType(destination) || null
+    type = getPaymentType(formattedDestination) || null
+    destination = formattedDestination
 
     if (type === 'payment_request') {
       try {
-        const decodedInvoice = decode(destination)
+        const decodedInvoice = decode(formattedDestination)
         const formattedInvoice = formatDecodedInvoice(decodedInvoice)
 
         amount = formattedInvoice.amount || '0'
