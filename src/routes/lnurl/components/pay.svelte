@@ -189,7 +189,8 @@
 
       completedPayment = await lnApi.payInvoice({
         id,
-        bolt11: paymentRequest
+        bolt11: paymentRequest,
+        description: meta
       })
 
       paymentUpdates$.next({ ...completedPayment, description })
