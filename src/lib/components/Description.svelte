@@ -9,6 +9,7 @@
   export let error = ''
   export let next: () => void
   export let readonly = false
+  export let max = 100
 
   let focusInput: () => void
 
@@ -32,7 +33,7 @@
       {readonly}
       name="description"
       invalid={error}
-      maxlength={100}
+      maxlength={max}
       rows={2}
       bind:focus={focusInput}
     />

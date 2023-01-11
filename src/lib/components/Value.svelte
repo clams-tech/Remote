@@ -2,7 +2,7 @@
   import { settings$ } from '$lib/streams'
   import { formatValueForDisplay } from '$lib/utils'
   import { currencySymbols } from '$lib/constants'
-  import { onMount } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import exchange from '$lib/icons/exchange'
 
@@ -13,6 +13,8 @@
   export let secondary: string | null
   export let readonly = false
   export let next = () => {}
+
+  const dispatch = createEventDispatcher()
 
   let primaryValueNumber: number | null = primary
     ? Number(
@@ -25,8 +27,10 @@
 
   $: if (typeof primaryValueNumber === 'number') {
     primary = primaryValueNumber.toString()
+    dispatch('update')
   } else if (primary !== null) {
     primary = ''
+    dispatch('update')
   }
 
   onMount(() => {
