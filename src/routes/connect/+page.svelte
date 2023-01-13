@@ -48,6 +48,8 @@
   let copySuccess = ''
   let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
+  const recipes = ['readonly', 'payments', 'admin'] as const
+  type Recipe = typeof recipes[number]
 
   $: if (address) {
     try {
@@ -141,16 +143,14 @@
     connectStatus = 'idle'
   }
 
-  function createRuneRecipe(type: string, pubkey: string) {
+  function createRuneRecipe(type: Recipe, pubkey: string) {
     switch (type) {
-      case 'ReadOnly':
+      case 'readonly':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=waitanyinvoice","method=waitinvoice"],["method/listdatastore"], ["rate=60"]]'`
-      case 'Payments':
+      case 'payments':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage"],["method/listdatastore"], ["rate=60"]]'`
-      case 'Admin':
+      case 'admin':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["rate=60"]]'`
-      default:
-        return ''
     }
   }
 
@@ -298,7 +298,6 @@
       <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div on:click={handleCopy(sessionPublicKey)} class="relative flex items-center w-full my-4">
           <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
 
@@ -318,16 +317,15 @@
 
       <div class="w-full">
         <p class="text-neutral-600 dark:text-neutral-300">
-          Rune recipes for your session public key:
+          {$translate('app.inputs.add_rune.recipes')}
         </p>
         <div class="flex justify-between">
-          {#each ['ReadOnly', 'Payments', 'Admin'] as recipe, i}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+          {#each recipes as recipe, i}
             <div
               on:click={handleCopy(createRuneRecipe(recipe, sessionPublicKey))}
               class="relative flex items-center w-full my-4"
             >
-              <span class="font-semibold">{recipe}</span>
+              <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
 
               <div
                 class:text-utility-success={copySuccess ===
