@@ -106,12 +106,12 @@
     goto('/')
   }
 
-  function handleCopy(value: string) {
+  function handleCopy(key: string, value?: string) {
     return async () => {
-      const success = await writeClipboardValue(value)
+      const success = await writeClipboardValue(value || key)
 
       if (success) {
-        copySuccess = value
+        copySuccess = key
 
         copyAnimationTimeout = setTimeout(() => (copySuccess = ''), 3000)
       }
@@ -320,18 +320,15 @@
           {$translate('app.inputs.add_rune.recipes')}
         </p>
         <div class="flex justify-between">
-          {#each recipes as recipe, i}
+          {#each recipes as recipe}
             <div
-              on:click={handleCopy(createRuneRecipe(recipe, sessionPublicKey))}
+              on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
               class="relative flex items-center w-full my-4"
             >
               <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
 
-              <div
-                class:text-utility-success={copySuccess ===
-                  createRuneRecipe(recipe, sessionPublicKey)}
-              >
-                {#if copySuccess === createRuneRecipe(recipe, sessionPublicKey)}
+              <div class:text-utility-success={copySuccess === recipe}>
+                {#if copySuccess === recipe}
                   <div in:fade class="w-8">
                     {@html check}
                   </div>
