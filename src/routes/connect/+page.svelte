@@ -45,9 +45,11 @@
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
   let sessionPrivateKey: string
-  let copySuccess = false
+  let copySuccess = ''
   let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
+  const recipes = ['readonly', 'payments', 'admin'] as const
+  type Recipe = typeof recipes[number]
 
   $: if (address) {
     try {
@@ -104,11 +106,15 @@
     goto('/')
   }
 
-  async function copyPublicKey() {
-    copySuccess = await writeClipboardValue(sessionPublicKey)
+  function handleCopy(key: string, value?: string) {
+    return async () => {
+      const success = await writeClipboardValue(value || key)
 
-    if (copySuccess) {
-      copyAnimationTimeout = setTimeout(() => (copySuccess = false), 3000)
+      if (success) {
+        copySuccess = key
+
+        copyAnimationTimeout = setTimeout(() => (copySuccess = ''), 3000)
+      }
     }
   }
 
@@ -135,6 +141,17 @@
 
   function resetConnectStatus() {
     connectStatus = 'idle'
+  }
+
+  function createRuneRecipe(type: Recipe, pubkey: string) {
+    switch (type) {
+      case 'readonly':
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=waitanyinvoice","method=waitinvoice"],["method/listdatastore"], ["rate=60"]]'`
+      case 'payments':
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage"],["method/listdatastore"], ["rate=60"]]'`
+      case 'admin':
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["rate=60"]]'`
+    }
   }
 
   $: formattedRestrictions = decodedRune
@@ -281,11 +298,11 @@
       <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <div on:click={copyPublicKey} class="relative flex items-center w-full my-4">
+        <div on:click={handleCopy(sessionPublicKey)} class="relative flex items-center w-full my-4">
           <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
 
-          <div class:text-utility-success={copySuccess}>
-            {#if copySuccess}
+          <div class:text-utility-success={copySuccess === sessionPublicKey}>
+            {#if copySuccess === sessionPublicKey}
               <div in:fade class="w-8">
                 {@html check}
               </div>
@@ -297,6 +314,34 @@
           </div>
         </div>
       {/if}
+
+      <div class="w-full">
+        <p class="text-neutral-600 dark:text-neutral-300">
+          {$translate('app.inputs.add_rune.recipes')}
+        </p>
+        <div class="flex justify-between">
+          {#each recipes as recipe}
+            <div
+              on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
+              class="relative flex items-center w-full my-4"
+            >
+              <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
+
+              <div class:text-utility-success={copySuccess === recipe}>
+                {#if copySuccess === recipe}
+                  <div in:fade class="w-8">
+                    {@html check}
+                  </div>
+                {:else}
+                  <div in:fade class="w-8">
+                    {@html copy}
+                  </div>
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
 
       <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
         <div class="w-5 mr-2 border-2 rounded-full border-current">
