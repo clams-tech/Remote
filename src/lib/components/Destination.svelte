@@ -81,12 +81,7 @@
     const clipboardValue = await readClipboardValue()
 
     if (clipboardValue) {
-      const lowerCaseDestination = clipboardValue.toLowerCase()
-
-      const [prefix, formattedDestination] = lowerCaseDestination.includes(':')
-        ? lowerCaseDestination.split(':')
-        : ['', lowerCaseDestination]
-
+      const [prefix, formattedDestination] = splitDestination(destination)
       const paymentType = getPaymentType(prefix, formattedDestination)
 
       if (paymentType) {
