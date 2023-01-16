@@ -166,7 +166,7 @@ export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentType(value: string): PaymentType | null {
-  if (value.startsWith('lnurl')) {
+  if (value.startsWith('lnurl') || decodeLightningAddress(value)) {
     return 'lnurl'
   }
 
@@ -416,4 +416,20 @@ export function firstLetterUpperCase(str: string): string {
 
 export function mainDomain(host: string): string {
   return host.split('.').reverse().splice(0, 2).reverse().join('.')
+}
+
+const usernameRegex = /^[a-z0-9-_.]+$/
+
+const domainRegex =
+  /^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/
+
+export function decodeLightningAddress(val: string): { username: string; domain: string } | null {
+  const [username, domain] = val.split('@')
+
+  // check valid username && valid domain
+  if (!usernameRegex.test(username) || !domainRegex.test(domain)) {
+    return null
+  }
+
+  return { username, domain }
 }

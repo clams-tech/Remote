@@ -7,7 +7,7 @@
   import Pay from './components/pay.svelte'
   import { LNURL_PROXY } from '$lib/constants'
   import warning from '$lib/icons/warning'
-  import { decodeLightningAddress } from './utils'
+  import { decodeLightningAddress } from '$lib/utils'
 
   export let data: PageData
 
