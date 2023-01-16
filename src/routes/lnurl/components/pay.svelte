@@ -36,6 +36,7 @@
   let longDescription: string | undefined
   let image: string | undefined
   let mime: string | undefined
+  let address: string | undefined
 
   let slide = 0
   let previousSlide = 0
@@ -46,10 +47,16 @@
   let description = ''
 
   type FormattedMetadata = {
+    /**required short description of pay request*/
     shortDescription: string
+    /**additional long description*/
     longDescription?: string
+    /**base64 image string*/
     image?: string
+    /**the image data type*/
     mime?: string
+    /**the lightning address*/
+    address?: string
   }
 
   function formatMetadata(meta: string[][]) {
@@ -67,6 +74,10 @@
         acc.mime = mime
       }
 
+      if (mime.includes('email') || mime.includes('identifier')) {
+        acc.address = data
+      }
+
       return acc
     }, {} as FormattedMetadata)
   }
@@ -79,6 +90,7 @@
     longDescription = formattedMetadata.longDescription
     image = formattedMetadata.image
     mime = formattedMetadata.mime
+    address = formattedMetadata.address
 
     if (!meta) {
       next()
@@ -230,7 +242,7 @@
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.pay_request')}</h1>
-      <h2 class="text-2xl font-semibold mb-2">{serviceName}</h2>
+      <h2 class="text-2xl font-semibold mb-2">{address || serviceName}</h2>
 
       <p class="text-neutral-600 dark:text-neutral-400 italic">
         {shortDescription}

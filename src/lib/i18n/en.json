@@ -25,7 +25,7 @@
       "hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL"
+      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL / Lightning Address"
     },
     "node_connect": {
       "label": "Address",

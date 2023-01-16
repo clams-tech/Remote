@@ -7,6 +7,7 @@
   import Pay from './components/pay.svelte'
   import { LNURL_PROXY } from '$lib/constants'
   import warning from '$lib/icons/warning'
+  import { decodeLightningAddress } from '$lib/utils'
 
   export let data: PageData
 
@@ -27,9 +28,16 @@
 
   async function getUrlDetails() {
     try {
-      const decoded = decodelnurl(data.lnurl)
+      const lightningAddress = decodeLightningAddress(data.lnurl)
 
-      url = new URL(decoded)
+      if (lightningAddress) {
+        const { username, domain } = lightningAddress
+        url = new URL(`https://${domain}/.well-known/lnurlp/${username}`)
+      } else {
+        const decoded = decodelnurl(data.lnurl)
+        url = new URL(decoded)
+      }
+
       tag = url.searchParams.get('tag') || ''
 
       if (!tag) {
