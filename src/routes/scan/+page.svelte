@@ -10,7 +10,12 @@
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
-  import { createRandomHex, formatDecodedInvoice } from '$lib/utils'
+  import {
+    createRandomHex,
+    formatDecodedInvoice,
+    getPaymentType,
+    splitDestination
+  } from '$lib/utils'
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
@@ -34,27 +39,23 @@
   })
 
   async function handleScanResult(scanResult: string) {
-    let invoice: string
+    const [prefix, formattedDestination] = splitDestination(scanResult)
 
-    if (scanResult.includes(':')) {
-      invoice = scanResult.split(':')[1]
-    } else {
-      invoice = scanResult
-    }
-
-    if (!invoice) {
-      errorMsg = $translate('app.errors.invalid_invoice')
+    if (!formattedDestination) {
+      errorMsg = $translate('app.errors.invalid_qr')
       return
     }
 
+    const type = getPaymentType(prefix, formattedDestination)
+
     // check if lnurl
-    if (invoice.toLowerCase().startsWith('lnurl')) {
-      goto(`/lnurl?lnurl=${invoice}`)
+    if (type === 'lnurl') {
+      goto(`/lnurl?lnurl=${formattedDestination}`)
       return
     }
 
     try {
-      const decodedInvoice = decode(invoice)
+      const decodedInvoice = decode(formattedDestination)
       const { paymentRequest, description, expiry, amount, timestamp } =
         formatDecodedInvoice(decodedInvoice)
 

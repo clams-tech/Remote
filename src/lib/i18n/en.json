@@ -100,7 +100,7 @@
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
     "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
     "node_connect": "Connection error",
-    "invalid_invoice": "Not a valid bolt11 invoice.",
+    "invalid_qr": "Unrecognized QR encoding",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
     "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
     "-1": "Oops something went wrong.",

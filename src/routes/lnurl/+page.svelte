@@ -37,10 +37,14 @@
       if (lightningAddress) {
         const { username, domain } = lightningAddress
         url = new URL(`https://${domain}/.well-known/lnurlp/${username}`)
-      } else if (data.lnurl.startsWith('lnurl1')) {
+      }
+      // bech32 encoded legacy LNURL
+      else if (data.lnurl.startsWith('lnurl1')) {
         const decoded = decodelnurl(data.lnurl)
         url = new URL(decoded)
-      } else {
+      }
+      // modern LNURL format
+      else {
         url = new URL(data.lnurl)
       }
 

@@ -14,7 +14,8 @@
     formatDecodedInvoice,
     getClipboardPermissions,
     readClipboardValue,
-    getPaymentType
+    getPaymentType,
+    splitDestination
   } from '$lib/utils'
 
   export let destination: string
@@ -37,15 +38,10 @@
   }
 
   $: if (destination) {
-    const lowerCaseDestination = destination.toLowerCase()
-
-    const [prefix, formattedDestination] = lowerCaseDestination.includes(':')
-      ? lowerCaseDestination.split(':')
-      : ['', lowerCaseDestination]
+    const [prefix, formattedDestination] = splitDestination(destination)
 
     error = ''
-    type = getPaymentType(prefix, formattedDestination) || null
-    destination = formattedDestination
+    type = getPaymentType(prefix, formattedDestination)
 
     if (type === 'payment_request') {
       try {

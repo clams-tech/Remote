@@ -438,3 +438,14 @@ export function decodeLightningAddress(val: string): { username: string; domain:
 
   return { username, domain }
 }
+
+export function splitDestination(destination: string): [string, string] {
+  const lowerCaseDestination = destination.toLowerCase()
+  const [prefix, value] = lowerCaseDestination.includes(':')
+    ? lowerCaseDestination.split(':')
+    : ['', lowerCaseDestination]
+
+  const formattedDestination = value.startsWith('//') ? `https:${value}` : value
+
+  return [prefix, formattedDestination]
+}
