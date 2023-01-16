@@ -10,15 +10,16 @@
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
+  import { convertValue } from '$lib/conversion'
+  import lightning from '$lib/lightning'
+  import Amount from '$lib/components/Amount.svelte'
+
   import {
     createRandomHex,
     formatDecodedInvoice,
     getPaymentType,
     splitDestination
   } from '$lib/utils'
-  import { convertValue } from '$lib/conversion'
-  import lightning from '$lib/lightning'
-  import Amount from '$lib/components/Amount.svelte'
 
   let requesting = false
   let errorMsg = ''
