@@ -38,9 +38,11 @@
 
   $: if (destination) {
     const lowerCaseDestination = destination.toLowerCase()
+
     const formattedDestination = lowerCaseDestination.includes(':')
       ? lowerCaseDestination.split(':')[1]
       : lowerCaseDestination
+
     error = ''
     type = getPaymentType(formattedDestination) || null
     destination = formattedDestination
