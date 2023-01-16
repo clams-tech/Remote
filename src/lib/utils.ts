@@ -165,8 +165,13 @@ export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
-export function getPaymentType(value: string): PaymentType | null {
-  if (value.startsWith('lnurl') || decodeLightningAddress(value)) {
+export function getPaymentType(prefix: string, value: string): PaymentType | null {
+  if (
+    value.startsWith('lnurl') ||
+    prefix.startsWith('lnurl') ||
+    prefix.startsWith('keyauth') ||
+    decodeLightningAddress(value)
+  ) {
     return 'lnurl'
   }
 

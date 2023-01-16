@@ -128,9 +128,10 @@
 
   function destinationNext() {
     const { type, destination, amount } = $sendPayment$
+    const formattedDestination = destination.startsWith('//') ? `https:${destination}` : destination
 
     if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${destination}`)
+      goto(`/lnurl?lnurl=${formattedDestination}`)
       return
     }
 

@@ -39,12 +39,12 @@
   $: if (destination) {
     const lowerCaseDestination = destination.toLowerCase()
 
-    const formattedDestination = lowerCaseDestination.includes(':')
-      ? lowerCaseDestination.split(':')[1]
-      : lowerCaseDestination
+    const [prefix, formattedDestination] = lowerCaseDestination.includes(':')
+      ? lowerCaseDestination.split(':')
+      : ['', lowerCaseDestination]
 
     error = ''
-    type = getPaymentType(formattedDestination) || null
+    type = getPaymentType(prefix, formattedDestination) || null
     destination = formattedDestination
 
     if (type === 'payment_request') {
@@ -85,7 +85,13 @@
     const clipboardValue = await readClipboardValue()
 
     if (clipboardValue) {
-      const paymentType = getPaymentType(clipboardValue)
+      const lowerCaseDestination = clipboardValue.toLowerCase()
+
+      const [prefix, formattedDestination] = lowerCaseDestination.includes(':')
+        ? lowerCaseDestination.split(':')
+        : ['', lowerCaseDestination]
+
+      const paymentType = getPaymentType(prefix, formattedDestination)
 
       if (paymentType) {
         return {

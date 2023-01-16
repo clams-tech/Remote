@@ -37,9 +37,11 @@
       if (lightningAddress) {
         const { username, domain } = lightningAddress
         url = new URL(`https://${domain}/.well-known/lnurlp/${username}`)
-      } else {
+      } else if (data.lnurl.startsWith('lnurl1')) {
         const decoded = decodelnurl(data.lnurl)
         url = new URL(decoded)
+      } else {
+        url = new URL(data.lnurl)
       }
 
       tag = url.searchParams.get('tag') || ''
