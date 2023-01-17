@@ -12,7 +12,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
-  import { createRandomHex } from '$lib/utils'
+  import { createRandomHex, splitDestination } from '$lib/utils'
 
   let previousSlide = 0
   let slide = 0
@@ -128,9 +128,10 @@
 
   function destinationNext() {
     const { type, destination, amount } = $sendPayment$
+    const value = splitDestination(destination)[1]
 
     if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${destination}`)
+      goto(`/lnurl?lnurl=${value}`)
       return
     }
 
@@ -140,6 +141,7 @@
     }
 
     next()
+    $sendPayment$.destination = value
   }
 </script>
 

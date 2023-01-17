@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { decodelnurl } from 'js-lnurl'
   import { translate } from '$lib/i18n/translations'
   import Auth from './components/auth.svelte'
   import Pay from './components/pay.svelte'
@@ -37,9 +36,16 @@
       if (lightningAddress) {
         const { username, domain } = lightningAddress
         url = new URL(`https://${domain}/.well-known/lnurlp/${username}`)
-      } else {
+      }
+      // bech32 encoded legacy LNURL
+      else if (data.lnurl.startsWith('lnurl1')) {
+        const { decodelnurl } = await import('js-lnurl')
         const decoded = decodelnurl(data.lnurl)
         url = new URL(decoded)
+      }
+      // modern LNURL format
+      else {
+        url = new URL(data.lnurl)
       }
 
       tag = url.searchParams.get('tag') || ''

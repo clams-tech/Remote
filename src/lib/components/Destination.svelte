@@ -14,7 +14,8 @@
     formatDecodedInvoice,
     getClipboardPermissions,
     readClipboardValue,
-    getPaymentType
+    getPaymentType,
+    splitDestination
   } from '$lib/utils'
 
   export let destination: string
@@ -37,15 +38,10 @@
   }
 
   $: if (destination) {
-    const lowerCaseDestination = destination.toLowerCase()
-
-    const formattedDestination = lowerCaseDestination.includes(':')
-      ? lowerCaseDestination.split(':')[1]
-      : lowerCaseDestination
+    const [prefix, formattedDestination] = splitDestination(destination)
 
     error = ''
-    type = getPaymentType(formattedDestination) || null
-    destination = formattedDestination
+    type = getPaymentType(prefix, formattedDestination)
 
     if (type === 'payment_request') {
       try {
@@ -85,7 +81,8 @@
     const clipboardValue = await readClipboardValue()
 
     if (clipboardValue) {
-      const paymentType = getPaymentType(clipboardValue)
+      const [prefix, formattedDestination] = splitDestination(destination)
+      const paymentType = getPaymentType(prefix, formattedDestination)
 
       if (paymentType) {
         return {
