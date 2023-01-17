@@ -334,9 +334,9 @@
 {#if slide === 3}
   <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
-      type="payment_request"
+      type="lnurl"
       direction="send"
-      destination={serviceName}
+      destination={address || serviceName}
       {description}
       value={amount}
       {requesting}
