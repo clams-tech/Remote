@@ -357,7 +357,7 @@
         </div>
       </div>
 
-      <p class="mb-4">
+      <p class="mb-4 max-w-full">
         {#if tag === 'message'}
           {success.message}
         {:else}
@@ -366,12 +366,12 @@
       </p>
 
       {#if tag === 'url'}
-        <div class="flex items-center justify-center mb-6">
-          <p class="text-neutral-600 dark:text-neutral-400 italic">
+        <div class="w-full flex items-center flex-wrap mb-6 gap-4">
+          <p class="max-w-full text-neutral-600 dark:text-neutral-400 italic break-words">
             {success.url}
           </p>
 
-          <a href={success.url} target="_blank" rel="noopener noreferrer" class="ml-2">
+          <a href={success.url} target="_blank" rel="noopener noreferrer">
             <Button small text={$translate('app.buttons.open')}>
               <div class="w-5 mr-1" slot="iconLeft">{@html link}</div>
             </Button>
