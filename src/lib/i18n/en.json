@@ -25,7 +25,7 @@
       "hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL"
+      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL / Lightning Address"
     },
     "node_connect": {
       "label": "Address",
@@ -33,6 +33,10 @@
       "invalid": "Invalid address"
     },
     "add_rune": {
+      "recipes": "Rune recipes for your session public key (CLN v22.x.x):",
+      "readonly": "ReadOnly",
+      "payments": "Payments",
+      "admin": "Admin",
       "label": "Rune",
       "placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
       "success": "Connect success"
@@ -74,7 +78,10 @@
     "version": "Version",
     "logs": "Debug Logs",
     "min_sendable": "Minimum Sendable:",
-    "max_sendable": "Maximum Sendable:"
+    "max_sendable": "Maximum Sendable:",
+    "min_withdrawable": "Minimum Withdrawable:",
+    "max_withdrawable": "Maximum Withdrawable:",
+    "fixed_withdrawable": "Withdrawable:"
   },
   "time": {
     "mins": "mins"
@@ -93,7 +100,7 @@
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
     "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
     "node_connect": "Connection error",
-    "invalid_invoice": "Not a valid bolt11 invoice.",
+    "invalid_qr": "Unrecognized QR encoding",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
     "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
     "-1": "Oops something went wrong.",
@@ -109,6 +116,8 @@
     "19537": "Provided rune does not have valid permissions for this request.",
     "min_sendable": "Amount is less than payment request minimum",
     "max_sendable": "Amount is larger than payment request maximum",
+    "min_withdrawable": "Amount is less than withdraw minimum",
+    "max_withdrawable": "Amount is larger than withdraw maximum",
     "data_request": "Data Request Error",
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
@@ -164,7 +173,8 @@
     "rune": "Permissions",
     "decrypt": "Decrypt",
     "encrypt": "Encryption Key",
-    "pay_request": "LNURL Pay Request"
+    "pay_request": "LNURL Pay Request",
+    "withdraw_request": "LNURL Withdraw Request"
   },
   "subheadings": {
     "summary": "Confirm payment details.",

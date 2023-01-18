@@ -36,6 +36,7 @@
   let longDescription: string | undefined
   let image: string | undefined
   let mime: string | undefined
+  let address: string | undefined
 
   let slide = 0
   let previousSlide = 0
@@ -46,10 +47,16 @@
   let description = ''
 
   type FormattedMetadata = {
+    /**required short description of pay request*/
     shortDescription: string
+    /**additional long description*/
     longDescription?: string
+    /**base64 image string*/
     image?: string
+    /**the image data type*/
     mime?: string
+    /**the lightning address*/
+    address?: string
   }
 
   function formatMetadata(meta: string[][]) {
@@ -67,6 +74,10 @@
         acc.mime = mime
       }
 
+      if (mime.includes('email') || mime.includes('identifier')) {
+        acc.address = data
+      }
+
       return acc
     }, {} as FormattedMetadata)
   }
@@ -79,6 +90,7 @@
     longDescription = formattedMetadata.longDescription
     image = formattedMetadata.image
     mime = formattedMetadata.mime
+    address = formattedMetadata.address
 
     if (!meta) {
       next()
@@ -230,7 +242,7 @@
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.pay_request')}</h1>
-      <h2 class="text-2xl font-semibold mb-2">{serviceName}</h2>
+      <h2 class="text-2xl font-semibold mb-2">{address || serviceName}</h2>
 
       <p class="text-neutral-600 dark:text-neutral-400 italic">
         {shortDescription}
@@ -322,9 +334,9 @@
 {#if slide === 3}
   <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
-      type="payment_request"
+      type="lnurl"
       direction="send"
-      destination={serviceName}
+      destination={address || serviceName}
       {description}
       value={amount}
       {requesting}
@@ -345,7 +357,7 @@
         </div>
       </div>
 
-      <p class="mb-4">
+      <p class="mb-4 max-w-full">
         {#if tag === 'message'}
           {success.message}
         {:else}
@@ -354,12 +366,12 @@
       </p>
 
       {#if tag === 'url'}
-        <div class="flex items-center justify-center mb-6">
-          <p class="text-neutral-600 dark:text-neutral-400 italic">
+        <div class="w-full flex items-center flex-wrap mb-6 gap-4">
+          <p class="max-w-full text-neutral-600 dark:text-neutral-400 italic break-words">
             {success.url}
           </p>
 
-          <a href={success.url} target="_blank" rel="noopener noreferrer" class="ml-2">
+          <a href={success.url} target="_blank" rel="noopener noreferrer">
             <Button small text={$translate('app.buttons.open')}>
               <div class="w-5 mr-1" slot="iconLeft">{@html link}</div>
             </Button>
