@@ -38,12 +38,12 @@
       }
     })
 
-    function koinlyDate(timestamp: number) {
+    function formatDate(timestamp: number) {
       return format(new Date(timestamp * 1000), 'yyyy-MM-dd HH:mm', { timeZone: 'UTC' }) + 'UTC'
     }
 
     return [
-      koinlyDate(timestamp), // Date
+      formatDate(timestamp), // Date
       debit_msat ? msatsToBtc(debit_msat.toString()) : '', // Sent Amount
       debit_msat ? 'btc' : '', // Sent Currency
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Received Amount
@@ -68,13 +68,13 @@
       }
     })
 
-    function cointrackerDate(timestamp: number) {
+    function formatDate(timestamp: number) {
       // @todo fix date
       return format(new Date(timestamp * 1000), 'MM/dd/yyyy HH:mm:ss', { timeZone: 'UTC' })
     }
 
     return [
-      cointrackerDate(timestamp), // Date
+      formatDate(timestamp), // Date
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Received Quantity
       credit_msat ? 'btc' : '', // Received Currency
       debit_msat ? msatsToBtc(debit_msat.toString()) : '', // Sent Quantity
@@ -86,7 +86,86 @@
     ]
   }
 
-  // Remove 'invoice_fee' tagged events from CSVs
+  function createQuickbooksRow(event: IncomeEvent) {
+    const { timestamp, description, debit_msat, credit_msat, tag, account } = event
+
+    function formatDate(timestamp: number) {
+      return format(new Date(timestamp * 1000), 'dd/MM/yyyy', { timeZone: 'UTC' })
+    }
+
+    return [
+      formatDate(timestamp), // Date
+      `${tag} (${account}) bc: ${description || 'no desc'}`, // Description
+      credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Credit
+      debit_msat ? msatsToBtc(debit_msat.toString()) : '' // Debit
+    ]
+  }
+
+  function createHarmonyRow(event: IncomeEvent) {
+    const {
+      timestamp,
+      description,
+      debit_msat,
+      credit_msat,
+      tag,
+      account,
+      outpoint,
+      txid,
+      payment_id
+    } = event
+
+    function formatDate(timestamp: number) {
+      // @TODO fix date
+      return new Date(timestamp * 1000).toISOString()
+    }
+
+    function formatType(tag: string, credit: number | '') {
+      switch (tag) {
+        case 'deposit':
+          return 'transfer:desposit'
+        case 'withdrawal':
+          return 'transfer:withdrawal'
+        case 'onchain_fee':
+          return 'fee:network'
+        case 'invoice':
+          return credit ? 'income:invoice' : 'expense:invoice'
+        case 'invoice_fee':
+          return 'expense:invoice_fee'
+        case 'routed':
+          return 'income:routed'
+        default:
+          return ''
+      }
+    }
+
+    function formatAmount(credit_msat: number, debit_msat: number) {
+      // zero fee route
+      if (debit_msat === 0 && credit_msat === 0) {
+        return 0
+      }
+
+      if (debit_msat) {
+        return `-${msatsToBtc(debit_msat.toString())}`
+      }
+
+      return msatsToBtc(credit_msat.toString())
+    }
+
+    return [
+      formatDate(timestamp), // Timestamp
+      'cln', // Venue
+      formatType(tag, credit_msat || ''), // Type
+      formatAmount(credit_msat, debit_msat), // Amount
+      'btc', // Asset
+      outpoint || txid || payment_id || '', // Transaction ID
+      payment_id || '', // Order ID
+      account, // Account
+      outpoint || '', // Network ID
+      description // Note
+    ]
+  }
+
+  // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
   const filteredIncomeEvents = incomeEvents.filter((incomeEvent) => {
     if (incomeEvent.tag === 'invoice_fee') {
       return false
@@ -128,17 +207,56 @@
   ]
     .map((item) => item.join(','))
     .join('\r\n')
+
+  const quickbooksCSV = [
+    ['Date', 'Description', 'Credit', 'Debit'],
+    ...incomeEvents.map(createQuickbooksRow)
+  ]
+    .map((item) => item.join(','))
+    .join('\r\n')
+
+  const harmonyCSV = [
+    ['HarmonyCSV v0.2'],
+    ['Provenance', 'cln-bookkeeper'],
+    [
+      'Timestamp',
+      'Venue',
+      'Type',
+      'Amount',
+      'Asset',
+      'Transaction ID',
+      'Order ID',
+      'Account',
+      'Network ID',
+      'Note'
+    ],
+    ...incomeEvents.map(createHarmonyRow)
+  ]
+    .map((item) => item.join(','))
+    .join('\r\n')
 </script>
 
 <a
   href={window.URL.createObjectURL(new Blob([koinlyCSV], { type: 'text/csv' }))}
   target="_blank"
   rel="noopener noreferrer"
-  download="koinly.csv">Koinly CSV</a
+  download="koinly.csv">Koinly</a
 >
 <a
   href={window.URL.createObjectURL(new Blob([cointrackerCSV], { type: 'text/csv' }))}
   target="_blank"
   rel="noopener noreferrer"
-  download="cointracker.csv">Cointracker CSV</a
+  download="cointracker.csv">Cointracker</a
+>
+<a
+  href={window.URL.createObjectURL(new Blob([quickbooksCSV], { type: 'text/csv' }))}
+  target="_blank"
+  rel="noopener noreferrer"
+  download="quickbooks.csv">Quickbooks</a
+>
+<a
+  href={window.URL.createObjectURL(new Blob([harmonyCSV], { type: 'text/csv' }))}
+  target="_blank"
+  rel="noopener noreferrer"
+  download="harmony.csv">Harmony</a
 >
