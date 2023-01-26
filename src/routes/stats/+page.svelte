@@ -173,90 +173,89 @@
     return true
   })
 
-  const koinlyCSV = [
-    [
-      'Date',
-      'Sent Amount',
-      'Sent Currency',
-      'Received Amount',
-      'Received Currency',
-      'Fee Amount',
-      'Fee Currency',
-      'Label',
-      'Description',
-      'TxHash'
-    ],
-    ...filteredIncomeEvents.map(createKoinlyRow)
+  const links = [
+    {
+      text: 'Koinly',
+      fileName: 'koinly.csv',
+      csvString: [
+        [
+          'Date',
+          'Sent Amount',
+          'Sent Currency',
+          'Received Amount',
+          'Received Currency',
+          'Fee Amount',
+          'Fee Currency',
+          'Label',
+          'Description',
+          'TxHash'
+        ],
+        ...filteredIncomeEvents.map(createKoinlyRow)
+      ]
+        .map((item) => item.join(','))
+        .join('\r\n')
+    },
+    {
+      text: 'Cointracker',
+      fileName: 'cointracker.csv',
+      csvString: [
+        [
+          'Date',
+          'Received Quantity',
+          'Received Currency',
+          'Sent Quantity',
+          'Sent Currency',
+          'Fee Amount',
+          'Fee Currency',
+          'Tag',
+          'Account'
+        ],
+        ...filteredIncomeEvents.map(createCointrackerRow)
+      ]
+        .map((item) => item.join(','))
+        .join('\r\n')
+    },
+    {
+      text: 'Quickbooks',
+      fileName: 'quickbooks.csv',
+      csvString: [
+        ['Date', 'Description', 'Credit', 'Debit'],
+        ...incomeEvents.map(createQuickbooksRow)
+      ]
+        .map((item) => item.join(','))
+        .join('\r\n')
+    },
+    {
+      text: 'Harmony',
+      fileName: 'harmony.csv',
+      csvString: [
+        ['HarmonyCSV v0.2'],
+        ['Provenance', 'cln-bookkeeper'],
+        [
+          'Timestamp',
+          'Venue',
+          'Type',
+          'Amount',
+          'Asset',
+          'Transaction ID',
+          'Order ID',
+          'Account',
+          'Network ID',
+          'Note'
+        ],
+        ...incomeEvents.map(createHarmonyRow)
+      ]
+        .map((item) => item.join(','))
+        .join('\r\n')
+    }
   ]
-    .map((item) => item.join(','))
-    .join('\r\n')
-
-  const cointrackerCSV = [
-    [
-      'Date',
-      'Received Quantity',
-      'Received Currency',
-      'Sent Quantity',
-      'Sent Currency',
-      'Fee Amount',
-      'Fee Currency',
-      'Tag',
-      'Account'
-    ],
-    ...filteredIncomeEvents.map(createCointrackerRow)
-  ]
-    .map((item) => item.join(','))
-    .join('\r\n')
-
-  const quickbooksCSV = [
-    ['Date', 'Description', 'Credit', 'Debit'],
-    ...incomeEvents.map(createQuickbooksRow)
-  ]
-    .map((item) => item.join(','))
-    .join('\r\n')
-
-  const harmonyCSV = [
-    ['HarmonyCSV v0.2'],
-    ['Provenance', 'cln-bookkeeper'],
-    [
-      'Timestamp',
-      'Venue',
-      'Type',
-      'Amount',
-      'Asset',
-      'Transaction ID',
-      'Order ID',
-      'Account',
-      'Network ID',
-      'Note'
-    ],
-    ...incomeEvents.map(createHarmonyRow)
-  ]
-    .map((item) => item.join(','))
-    .join('\r\n')
 </script>
 
-<a
-  href={window.URL.createObjectURL(new Blob([koinlyCSV], { type: 'text/csv' }))}
-  target="_blank"
-  rel="noopener noreferrer"
-  download="koinly.csv">Koinly</a
->
-<a
-  href={window.URL.createObjectURL(new Blob([cointrackerCSV], { type: 'text/csv' }))}
-  target="_blank"
-  rel="noopener noreferrer"
-  download="cointracker.csv">Cointracker</a
->
-<a
-  href={window.URL.createObjectURL(new Blob([quickbooksCSV], { type: 'text/csv' }))}
-  target="_blank"
-  rel="noopener noreferrer"
-  download="quickbooks.csv">Quickbooks</a
->
-<a
-  href={window.URL.createObjectURL(new Blob([harmonyCSV], { type: 'text/csv' }))}
-  target="_blank"
-  rel="noopener noreferrer"
-  download="harmony.csv">Harmony</a
->
+{#each links as link}
+  <a
+    href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
+    target="_blank"
+    rel="noopener noreferrer"
+    download={link.fileName}>{link.text}</a
+  >
+{/each}
