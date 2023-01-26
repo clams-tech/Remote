@@ -5,7 +5,7 @@
 
   type IncomeEvent = {
     account: string
-    tag: string
+    tag: 'deposit' | 'withdrawal' | 'onchain_fee' | 'invoice' | 'invoice_fee' | 'routed' | string
     credit_msat: number
     debit_msat: number
     currency: string
@@ -14,6 +14,8 @@
     outpoint?: string
     txid?: string
     payment_id?: string
+    fee_amount?: string
+    used_fee_amount?: boolean
   }
 
   let incomeEvents: IncomeEvent[] = []
@@ -25,19 +27,38 @@
     return incomeEvent.tag === 'invoice_fee'
   })
 
-  function createKoinlyRow(event: IncomeEvent) {
-    const { timestamp, debit_msat, credit_msat, tag, description, outpoint, txid, payment_id } =
-      event
-    let feeAmount = ''
-    let feeEvents = [...invoiceFeeEvents]
-
-    feeEvents.forEach((invoiceFee, i) => {
-      if (event.payment_id === invoiceFee.payment_id) {
-        feeAmount = msatsToBtc(invoiceFee.debit_msat.toString())
-        feeEvents.splice(i, 1)
+  // Koinly & Cointracker CSVs have a "Fee Amount" column for payment rows
+  incomeEvents.forEach((incomeEvent) => {
+    invoiceFeeEvents.forEach((invoiceFeeEvent) => {
+      if (!invoiceFeeEvent.used_fee_amount) {
+        if (incomeEvent.payment_id === invoiceFeeEvent.payment_id && !incomeEvent.fee_amount) {
+          incomeEvent.fee_amount = msatsToBtc(invoiceFeeEvent.debit_msat.toString())
+          invoiceFeeEvent.used_fee_amount = true
+        }
       }
     })
+  })
 
+  // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
+  const filteredIncomeEvents = incomeEvents.filter((incomeEvent) => {
+    if (incomeEvent.tag === 'invoice_fee') {
+      return false
+    }
+    return true
+  })
+
+  function createKoinlyRow(event: IncomeEvent) {
+    const {
+      timestamp,
+      debit_msat,
+      credit_msat,
+      tag,
+      description,
+      outpoint,
+      txid,
+      payment_id,
+      fee_amount
+    } = event
     function formatDate(timestamp: number) {
       return format(new Date(timestamp * 1000), 'yyyy-MM-dd HH:mm', { timeZone: 'UTC' }) + 'UTC'
     }
@@ -48,8 +69,8 @@
       debit_msat ? 'btc' : '', // Sent Currency
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Received Amount
       credit_msat ? 'btc' : '', // Received Currency
-      feeAmount, // Fee Amount
-      feeAmount ? 'btc' : '', // Fee Currency
+      fee_amount, // Fee Amount
+      fee_amount ? 'btc' : '', // Fee Currency
       tag, // Label
       description || '', // Description
       outpoint || txid || payment_id || '' // TxHash
@@ -57,16 +78,7 @@
   }
 
   function createCointrackerRow(event: IncomeEvent) {
-    const { timestamp, debit_msat, credit_msat, tag, account } = event
-    let feeAmount = ''
-    let feeEvents = [...invoiceFeeEvents]
-
-    feeEvents.forEach((invoiceFee, i) => {
-      if (event.payment_id === invoiceFee.payment_id) {
-        feeAmount = msatsToBtc(invoiceFee.debit_msat.toString())
-        feeEvents.splice(i, 1)
-      }
-    })
+    const { timestamp, debit_msat, credit_msat, tag, account, fee_amount } = event
 
     function formatDate(timestamp: number) {
       // @todo fix date
@@ -79,8 +91,8 @@
       credit_msat ? 'btc' : '', // Received Currency
       debit_msat ? msatsToBtc(debit_msat.toString()) : '', // Sent Quantity
       debit_msat ? 'btc' : '', // Sent Currency
-      feeAmount, // Fee Amount
-      feeAmount ? 'btc' : '', // Fee Currency
+      fee_amount, // Fee Amount
+      fee_amount ? 'btc' : '', // Fee Currency
       tag === 'invoice' || tag === 'routed' ? 'payment' : '', // Tag
       account || '' // Account
     ]
@@ -164,14 +176,6 @@
       description // Note
     ]
   }
-
-  // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
-  const filteredIncomeEvents = incomeEvents.filter((incomeEvent) => {
-    if (incomeEvent.tag === 'invoice_fee') {
-      return false
-    }
-    return true
-  })
 
   const links = [
     {
