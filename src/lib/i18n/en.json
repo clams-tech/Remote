@@ -121,6 +121,8 @@
     "data_request": "Data Request Error",
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
+    "reset_error": "Error trying to reset app",
+    "storage_access": "Access to local storage denied, so data cannot be deleted",
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",

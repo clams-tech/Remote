@@ -40,6 +40,6 @@ section {
 }
 
 /* Hide arrows on Firefox number input  */
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
