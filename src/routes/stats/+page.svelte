@@ -1,7 +1,7 @@
 <script lang="ts">
   import listIncome from '$lib/bkpr-listincome.json'
   import { msatsToBtc } from '$lib/conversion'
-  import { format } from 'date-fns-tz'
+  import { formatInTimeZone } from 'date-fns-tz'
 
   type IncomeEvent = {
     account: string
@@ -15,23 +15,24 @@
     txid?: string
     payment_id?: string
     fee_amount?: string
-    used_fee_amount?: boolean
   }
+
+  type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
   let incomeEvents: IncomeEvent[] = []
 
   // @TODO fetch from node with bkpr-listincome
   incomeEvents = listIncome.income_events
 
-  const invoiceFeeEvents: IncomeEvent[] = incomeEvents.filter((incomeEvent) => {
+  const invoiceFeeEvents: InvoiceFeeEvent[] = incomeEvents.filter((incomeEvent) => {
     return incomeEvent.tag === 'invoice_fee'
   })
 
-  // Koinly & Cointracker CSVs have a "Fee Amount" column for payment rows
+  // "Fee Amount" column for Koinly & Cointracker rows
   incomeEvents.forEach((incomeEvent) => {
     invoiceFeeEvents.forEach((invoiceFeeEvent) => {
-      if (!invoiceFeeEvent.used_fee_amount) {
-        if (incomeEvent.payment_id === invoiceFeeEvent.payment_id && !incomeEvent.fee_amount) {
+      if (!incomeEvent.fee_amount && !invoiceFeeEvent.used_fee_amount) {
+        if (incomeEvent.payment_id === invoiceFeeEvent.payment_id) {
           incomeEvent.fee_amount = msatsToBtc(invoiceFeeEvent.debit_msat.toString())
           invoiceFeeEvent.used_fee_amount = true
         }
@@ -41,10 +42,7 @@
 
   // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
   const filteredIncomeEvents = incomeEvents.filter((incomeEvent) => {
-    if (incomeEvent.tag === 'invoice_fee') {
-      return false
-    }
-    return true
+    return incomeEvent.tag !== 'invoice_fee'
   })
 
   function createKoinlyRow(event: IncomeEvent) {
@@ -60,7 +58,7 @@
       fee_amount
     } = event
     function formatDate(timestamp: number) {
-      return format(new Date(timestamp * 1000), 'yyyy-MM-dd HH:mm', { timeZone: 'UTC' }) + 'UTC'
+      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'yyyy-MM-dd HH:mm') + ' UTC'
     }
 
     return [
@@ -81,8 +79,7 @@
     const { timestamp, debit_msat, credit_msat, tag, account, fee_amount } = event
 
     function formatDate(timestamp: number) {
-      // @todo fix date
-      return format(new Date(timestamp * 1000), 'MM/dd/yyyy HH:mm:ss', { timeZone: 'UTC' })
+      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'MM/dd/yyyy HH:mm:ss')
     }
 
     return [
@@ -102,7 +99,7 @@
     const { timestamp, description, debit_msat, credit_msat, tag, account } = event
 
     function formatDate(timestamp: number) {
-      return format(new Date(timestamp * 1000), 'dd/MM/yyyy', { timeZone: 'UTC' })
+      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd/MM/yyyy')
     }
 
     return [
@@ -127,8 +124,8 @@
     } = event
 
     function formatDate(timestamp: number) {
-      // @TODO fix date
-      return new Date(timestamp * 1000).toISOString()
+      const date = formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd-MM-yyyy HH:mm:ss')
+      return date.replace(' ', 'T') + 'Z'
     }
 
     function formatType(tag: string, credit: number | '') {
