@@ -61,7 +61,7 @@
     "rxjs": "^7.5.7",
     "secp256k1": "^4.0.3",
     "sveltekit-i18n": "^2.2.2",
-    "ua-parser-js": "^1.0.2",
+    "ua-parser-js": "^1.0.33",
     "vconsole": "^3.14.7"
   }
 }
