@@ -102,7 +102,7 @@ class Lightning {
     await this.updateFunds(lnApi)
     await this.updateInfo(lnApi)
     await this.updatePayments(lnApi)
-    // @TODO should this be call when app mounts? Or only when /bookkeeper route is visited?
+    // @TODO fetch income events only when /bookkeeper route is visited
     await this.updateIncomeEvents(lnApi)
 
     logger.info('Refresh data complete')

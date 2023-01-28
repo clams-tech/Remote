@@ -166,6 +166,7 @@
     filteredIncomeEvents && [
       {
         text: 'Koinly',
+        website: 'https://koinly.io/',
         fileName: 'koinly.csv',
         csvString: [
           [
@@ -187,6 +188,7 @@
       },
       {
         text: 'Cointracker',
+        website: 'https://www.cointracker.io/',
         fileName: 'cointracker.csv',
         csvString: [
           [
@@ -207,6 +209,7 @@
       },
       {
         text: 'Quickbooks',
+        website: 'https://quickbooks.intuit.com/',
         fileName: 'quickbooks.csv',
         csvString: [
           ['Date', 'Description', 'Credit', 'Debit'],
@@ -217,6 +220,7 @@
       },
       {
         text: 'Harmony',
+        website: 'https://www.harmony.co.id/', // @TODO verify
         fileName: 'harmony.csv',
         csvString: [
           ['HarmonyCSV v0.2'],
@@ -241,22 +245,37 @@
     ]
 </script>
 
-<!-- Should we give user the ability to download CSVs for each year? -->
-{#if $incomeEvents$.loading && !$incomeEvents$.data}
-  <div class="w-full h-full flex items-center justify-center">
-    <Spinner />
-  </div>
-{:else if $incomeEvents$.error}
-  <div class="w-full h-full flex items-center justify-center">
-    <ErrorMsg message={$incomeEvents$.error} />
-  </div>
-{:else if links}
-  {#each links as link}
-    <a
-      href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
-      target="_blank"
-      rel="noopener noreferrer"
-      download={link.fileName}>{link.text}</a
-    >
-  {/each}
-{/if}
+<section class="max-w-m p-6">
+  <h1 class="text-lg w-full text-center mb-6 font-bold">Accounting</h1>
+  {#if $incomeEvents$.loading && !$incomeEvents$.data}
+    <div class="w-full h-full flex items-center justify-center">
+      <Spinner />
+      <p class="ml-2">Loading accounting data...</p>
+    </div>
+  {:else if $incomeEvents$.error}
+    <div class="w-full h-full flex items-center justify-center">
+      <ErrorMsg message={$incomeEvents$.error} />
+    </div>
+  {:else if links}
+    <p>All income events, conveniently converted to CSV files. We support the following formats:</p>
+    <div class="w-full mt-6 border-t">
+      {#each links as link}
+        <div class="flex justify-around border-b items-center p-3">
+          <a
+            class="w-full text-center underline"
+            href={link.website}
+            target="_blank"
+            rel="noopener noreferrer">{link.text}</a
+          >
+          <a
+            class="w-full text-center underline"
+            href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
+            target="_blank"
+            rel="noopener noreferrer"
+            download={link.fileName}>Download CSV</a
+          >
+        </div>
+      {/each}
+    </div>
+  {/if}
+</section>
