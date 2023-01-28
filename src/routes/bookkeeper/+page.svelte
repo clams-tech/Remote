@@ -1,36 +1,24 @@
 <script lang="ts">
-  import listIncome from '$lib/bkpr-listincome.json'
+  import type { IncomeEvent } from '$lib/backends'
   import { msatsToBtc } from '$lib/conversion'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import Spinner from '$lib/elements/Spinner.svelte'
+  import { incomeEvents$ } from '$lib/streams'
   import { formatInTimeZone } from 'date-fns-tz'
-
-  type IncomeEvent = {
-    account: string
-    tag: 'deposit' | 'withdrawal' | 'onchain_fee' | 'invoice' | 'invoice_fee' | 'routed' | string
-    credit_msat: number
-    debit_msat: number
-    currency: string
-    timestamp: number
-    description?: string
-    outpoint?: string
-    txid?: string
-    payment_id?: string
-    fee_amount?: string
-  }
 
   type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
-  let incomeEvents: IncomeEvent[] = []
+  $: incomeEvents = $incomeEvents$.data?.income_events
 
-  // @TODO fetch from node with bkpr-listincome
-  incomeEvents = listIncome.income_events
-
-  const invoiceFeeEvents: InvoiceFeeEvent[] = incomeEvents.filter((incomeEvent) => {
-    return incomeEvent.tag === 'invoice_fee'
-  })
+  $: invoiceFeeEvents =
+    incomeEvents &&
+    incomeEvents.filter((incomeEvent) => {
+      return incomeEvent.tag === 'invoice_fee'
+    })
 
   // "Fee Amount" column for Koinly & Cointracker rows
-  incomeEvents.forEach((incomeEvent) => {
-    invoiceFeeEvents.forEach((invoiceFeeEvent) => {
+  $: incomeEvents?.forEach((incomeEvent) => {
+    invoiceFeeEvents?.forEach((invoiceFeeEvent: InvoiceFeeEvent) => {
       if (!incomeEvent.fee_amount && !invoiceFeeEvent.used_fee_amount) {
         if (incomeEvent.payment_id === invoiceFeeEvent.payment_id) {
           incomeEvent.fee_amount = msatsToBtc(invoiceFeeEvent.debit_msat.toString())
@@ -41,7 +29,7 @@
   })
 
   // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
-  const filteredIncomeEvents = incomeEvents.filter((incomeEvent) => {
+  $: filteredIncomeEvents = incomeEvents?.filter((incomeEvent) => {
     return incomeEvent.tag !== 'invoice_fee'
   })
 
@@ -174,89 +162,101 @@
     ]
   }
 
-  const links = [
-    {
-      text: 'Koinly',
-      fileName: 'koinly.csv',
-      csvString: [
-        [
-          'Date',
-          'Sent Amount',
-          'Sent Currency',
-          'Received Amount',
-          'Received Currency',
-          'Fee Amount',
-          'Fee Currency',
-          'Label',
-          'Description',
-          'TxHash'
-        ],
-        ...filteredIncomeEvents.map(createKoinlyRow)
-      ]
-        .map((item) => item.join(','))
-        .join('\r\n')
-    },
-    {
-      text: 'Cointracker',
-      fileName: 'cointracker.csv',
-      csvString: [
-        [
-          'Date',
-          'Received Quantity',
-          'Received Currency',
-          'Sent Quantity',
-          'Sent Currency',
-          'Fee Amount',
-          'Fee Currency',
-          'Tag',
-          'Account'
-        ],
-        ...filteredIncomeEvents.map(createCointrackerRow)
-      ]
-        .map((item) => item.join(','))
-        .join('\r\n')
-    },
-    {
-      text: 'Quickbooks',
-      fileName: 'quickbooks.csv',
-      csvString: [
-        ['Date', 'Description', 'Credit', 'Debit'],
-        ...incomeEvents.map(createQuickbooksRow)
-      ]
-        .map((item) => item.join(','))
-        .join('\r\n')
-    },
-    {
-      text: 'Harmony',
-      fileName: 'harmony.csv',
-      csvString: [
-        ['HarmonyCSV v0.2'],
-        ['Provenance', 'cln-bookkeeper'],
-        [
-          'Timestamp',
-          'Venue',
-          'Type',
-          'Amount',
-          'Asset',
-          'Transaction ID',
-          'Order ID',
-          'Account',
-          'Network ID',
-          'Note'
-        ],
-        ...incomeEvents.map(createHarmonyRow)
-      ]
-        .map((item) => item.join(','))
-        .join('\r\n')
-    }
-  ]
+  $: links = incomeEvents &&
+    filteredIncomeEvents && [
+      {
+        text: 'Koinly',
+        fileName: 'koinly.csv',
+        csvString: [
+          [
+            'Date',
+            'Sent Amount',
+            'Sent Currency',
+            'Received Amount',
+            'Received Currency',
+            'Fee Amount',
+            'Fee Currency',
+            'Label',
+            'Description',
+            'TxHash'
+          ],
+          ...filteredIncomeEvents.map(createKoinlyRow)
+        ]
+          .map((item) => item.join(','))
+          .join('\r\n')
+      },
+      {
+        text: 'Cointracker',
+        fileName: 'cointracker.csv',
+        csvString: [
+          [
+            'Date',
+            'Received Quantity',
+            'Received Currency',
+            'Sent Quantity',
+            'Sent Currency',
+            'Fee Amount',
+            'Fee Currency',
+            'Tag',
+            'Account'
+          ],
+          ...filteredIncomeEvents.map(createCointrackerRow)
+        ]
+          .map((item) => item.join(','))
+          .join('\r\n')
+      },
+      {
+        text: 'Quickbooks',
+        fileName: 'quickbooks.csv',
+        csvString: [
+          ['Date', 'Description', 'Credit', 'Debit'],
+          ...incomeEvents.map(createQuickbooksRow)
+        ]
+          .map((item) => item.join(','))
+          .join('\r\n')
+      },
+      {
+        text: 'Harmony',
+        fileName: 'harmony.csv',
+        csvString: [
+          ['HarmonyCSV v0.2'],
+          ['Provenance', 'cln-bookkeeper'],
+          [
+            'Timestamp',
+            'Venue',
+            'Type',
+            'Amount',
+            'Asset',
+            'Transaction ID',
+            'Order ID',
+            'Account',
+            'Network ID',
+            'Note'
+          ],
+          ...incomeEvents.map(createHarmonyRow)
+        ]
+          .map((item) => item.join(','))
+          .join('\r\n')
+      }
+    ]
 </script>
 
-{#each links as link}
-  <a
-    href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
-    target="_blank"
-    rel="noopener noreferrer"
-    download={link.fileName}>{link.text}</a
-  >
-{/each}
+<!-- Should we give user the ability to download CSVs for each year? -->
+{#if $incomeEvents$.loading && !$incomeEvents$.data}
+  <div class="w-full h-full flex items-center justify-center">
+    <Spinner />
+  </div>
+{:else if $incomeEvents$.error}
+  <div class="w-full h-full flex items-center justify-center">
+    <ErrorMsg message={$incomeEvents$.error} />
+  </div>
+{:else if links}
+  {#each links as link}
+    <a
+      href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
+      target="_blank"
+      rel="noopener noreferrer"
+      download={link.fileName}>{link.text}</a
+    >
+  {/each}
+{/if}

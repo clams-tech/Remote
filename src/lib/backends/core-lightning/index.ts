@@ -7,6 +7,7 @@ import { WS_PROXY } from '$lib/constants'
 import type { Logger } from 'lnmessage/dist/types'
 
 import type {
+  BkprListIncomeResponse,
   GetinfoResponse,
   InvoiceRequest,
   InvoiceResponse,
@@ -246,6 +247,15 @@ class CoreLn {
     })
 
     return result as SignMessageResponse
+  }
+
+  async bkprListIncome(): Promise<BkprListIncomeResponse> {
+    const result = await this.connection.commando({
+      method: 'bkpr-listincome',
+      rune: this.rune
+    })
+
+    return result as BkprListIncomeResponse
   }
 }
 

@@ -32,7 +32,8 @@ import {
   payments$,
   paymentUpdates$,
   customNotifications$,
-  pin$
+  pin$,
+  incomeEvents$
 } from './streams'
 
 class Lightning {
@@ -101,6 +102,8 @@ class Lightning {
     await this.updateFunds(lnApi)
     await this.updateInfo(lnApi)
     await this.updatePayments(lnApi)
+    // @TODO should this be call when app mounts? Or only when /bookkeeper route is visited?
+    await this.updateIncomeEvents(lnApi)
 
     logger.info('Refresh data complete')
   }
@@ -160,7 +163,27 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.list_payments')}: ${message}`
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateIncomeEvents(lnApi: LnAPI) {
+    try {
+      incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
+      const incomeEvents = await lnApi.bkprListIncome()
+      incomeEvents$.next({ loading: false, data: incomeEvents })
+
+      return incomeEvents
+    } catch (error) {
+      const { message } = error as Error
+      incomeEvents$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
       })
     }
   }

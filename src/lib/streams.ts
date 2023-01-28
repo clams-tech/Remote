@@ -1,7 +1,7 @@
 import { BehaviorSubject, defer, fromEvent, Observable, of, ReplaySubject, Subject } from 'rxjs'
 import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
-import type { GetinfoResponse, ListfundsResponse } from './backends'
+import type { BkprListIncomeResponse, GetinfoResponse, ListfundsResponse } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
 
@@ -100,6 +100,12 @@ export const payments$ = new BehaviorSubject<{
 
 export const funds$ = new BehaviorSubject<{
   data: ListfundsResponse | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const incomeEvents$ = new BehaviorSubject<{
+  data: BkprListIncomeResponse | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
