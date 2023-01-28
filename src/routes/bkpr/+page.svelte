@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { IncomeEvent } from '$lib/backends'
   import { msatsToBtc } from '$lib/conversion'
+  import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { incomeEvents$ } from '$lib/streams'
@@ -246,7 +247,7 @@
 </script>
 
 <section class="max-w-m p-6">
-  <h1 class="text-lg w-full text-center mb-6 font-bold">Accounting</h1>
+  <h1 class="text-4xl w-full mb-6 font-bold">Accounting Exports</h1>
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="w-full h-full flex items-center justify-center">
       <Spinner />
@@ -257,22 +258,27 @@
       <ErrorMsg message={$incomeEvents$.error} />
     </div>
   {:else if links}
-    <p>All income events, conveniently converted to CSV files. We support the following formats:</p>
-    <div class="w-full mt-6 border-t">
+    <p>
+      All income events, conveniently converted to CSV files. We support the following export
+      formats:
+    </p>
+    <div class="w-full mt-6">
       {#each links as link}
-        <div class="flex justify-around border-b items-center p-3">
+        <div class="flex items-center p-3">
           <a
-            class="w-full text-center underline"
+            class="w-1/2 text-center underline text-lg"
             href={link.website}
             target="_blank"
             rel="noopener noreferrer">{link.text}</a
           >
           <a
-            class="w-full text-center underline"
+            class="text-center"
             href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
             target="_blank"
             rel="noopener noreferrer"
-            download={link.fileName}>Download CSV</a
+            download={link.fileName}
+          >
+            <Button text={'Download CSV'} /></a
           >
         </div>
       {/each}
