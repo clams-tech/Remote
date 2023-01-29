@@ -33,7 +33,6 @@
       }
     })
   })
-
   // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
   $: filteredIncomeEvents = incomeEvents?.filter((incomeEvent) => {
     return incomeEvent.tag !== 'invoice_fee'
