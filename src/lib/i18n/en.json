@@ -154,7 +154,8 @@
     "github": "Contribute on Github",
     "open": "Open",
     "copy": "Copy",
-    "go_to_payment": "Go to payment"
+    "go_to_payment": "Go to payment",
+    "download_csv": "Download CSV"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -175,7 +176,8 @@
     "decrypt": "Decrypt",
     "encrypt": "Encryption Key",
     "pay_request": "LNURL Pay Request",
-    "withdraw_request": "LNURL Withdraw Request"
+    "withdraw_request": "LNURL Withdraw Request",
+    "accounting_exports": "Accounting Exports"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -185,7 +187,8 @@
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
     "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
-    "decrypt": "Enter your 4 digit pin number to decrypt your local data."
+    "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
+    "accounting_exports": "All income events, conveniently converted to CSV files. We support the following export formats:"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
@@ -199,5 +202,8 @@
       "heading": "Notifications",
       "description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
     }
+  },
+  "loading": {
+    "accounting_exports": "Loading accounting data..."
   }
 }

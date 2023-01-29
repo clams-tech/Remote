@@ -7,9 +7,10 @@
   import { incomeEvents$ } from '$lib/streams'
   import { formatInTimeZone } from 'date-fns-tz'
   import lightning from '$lib/lightning'
+  import { translate } from '$lib/i18n/translations'
 
-  const ln = lightning.getLn()
-  lightning.updateIncomeEvents(ln)
+  // Fetch bookkeeper income events
+  lightning.updateIncomeEvents(lightning.getLn())
 
   type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
@@ -251,11 +252,13 @@
 </script>
 
 <section class="max-w-m p-6">
-  <h1 class="text-4xl w-full mb-6 font-bold">Accounting Exports</h1>
+  <h1 class="text-4xl w-full mb-6 font-bold">
+    {$translate('app.headings.accounting_exports')}
+  </h1>
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="w-full h-full flex items-center justify-center">
       <Spinner />
-      <p class="ml-2">Loading accounting data...</p>
+      <p class="ml-2">{$translate('app.loading.accounting_exports')}</p>
     </div>
   {:else if $incomeEvents$.error}
     <div class="w-full h-full flex items-center justify-center">
@@ -263,8 +266,7 @@
     </div>
   {:else if links}
     <p>
-      All income events, conveniently converted to CSV files. We support the following export
-      formats:
+      {$translate('app.subheadings.accounting_exports')}
     </p>
     <div class="w-full mt-6">
       {#each links as link}
@@ -282,7 +284,7 @@
             rel="noopener noreferrer"
             download={link.fileName}
           >
-            <Button text={'Download CSV'} /></a
+            <Button text={$translate('app.buttons.download_csv')} /></a
           >
         </div>
       {/each}
