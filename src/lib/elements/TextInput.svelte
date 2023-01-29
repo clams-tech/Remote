@@ -16,6 +16,7 @@
   export let rows = 1
   export let maxlength = 1000
   export let cursorPointer = false
+  export let micro = false
 
   export const focus = () => input && input.focus()
   export const blur = () => input && input.blur()
@@ -23,15 +24,21 @@
 
   let input: HTMLInputElement | HTMLTextAreaElement
 
-  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium px-4 py-[14px] border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none focus:ring focus:border-white ${
-    invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'
-  } ${cursorPointer ? 'cursor-pointer' : ''}`
+  $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium ${
+    micro ? 'px-3 py-2' : 'px-4 py-[14px]'
+  } border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none ${
+    micro ? 'focus:ring-2' : 'focus:ring'
+  } focus:border-white ${invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'} ${
+    cursorPointer ? 'cursor-pointer' : ''
+  }`
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
   {#if label || hint}
     <div class="flex items-center mb-2 font-medium">
-      <label class="text-sm w-1/2 text-inherit" for={name}>{label || ''}</label>
+      <label class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit" for={name}
+        >{label || ''}</label
+      >
       <span class="flex justify-end text-neutral-400 text-xs w-1/2 cursor-default"
         >{@html hint}</span
       >

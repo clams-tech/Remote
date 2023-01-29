@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
+  import type { LnWebSocketOptions } from 'lnmessage/dist/types'
   import { goto } from '$app/navigation'
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
@@ -11,13 +12,14 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Modal from '$lib/elements/Modal.svelte'
   import lightning from '$lib/lightning'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
   import info from '$lib/icons/info'
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
   import copy from '$lib/icons/copy'
   import arrow from '$lib/icons/arrow'
   import warning from '$lib/icons/warning'
+  import caret from '$lib/icons/caret'
 
   import {
     formatDate,
@@ -49,6 +51,7 @@
   let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
   const recipes = ['readonly', 'payments', 'admin'] as const
+
   type Recipe = typeof recipes[number]
 
   $: if (address) {
@@ -205,6 +208,19 @@
         })
       )
     : Promise.resolve([])
+
+  let advancedSettings = false
+  let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' = 'default'
+
+  let customProxyUrl: string
+  let customProxyInput: TextInput
+  let connectionProtocol: LnWebSocketOptions['wsProtocol'] = 'wss:'
+
+  $: if (advancedConnectOption === 'customProxy') {
+    setTimeout(() => {
+      customProxyInput && customProxyInput.focus()
+    }, 10)
+  }
 </script>
 
 <svelte:head>
@@ -269,6 +285,94 @@
           </div>
         </div>
 
+        <button
+          on:click={() => (advancedSettings = !advancedSettings)}
+          class="mt-4 flex items-center text-sm cursor-pointer"
+        >
+          <div class:-rotate-90={!advancedSettings} class="w-3 mr-1 transition-transform">
+            {@html caret}
+          </div>
+          <span class="font-semibold underline">Advanced</span>
+        </button>
+
+        <!-- ADVANCED SETTINGS -->
+        <div
+          in:fade
+          class:h-[5.5rem]={advancedSettings}
+          class="text-sm mt-2 h- pl-4 flex flex-col items-start overflow-hidden h-0 transition-all"
+        >
+          <div>
+            <div class="flex items-center border rounded">
+              <label
+                class="flex items-center px-4 py-2 rounded cursor-pointer"
+                class:bg-gray-200={advancedConnectOption === 'default'}
+              >
+                <input
+                  type="radio"
+                  class="appearance-none"
+                  bind:group={advancedConnectOption}
+                  value="default"
+                />
+                <span class="ml-1">default</span>
+              </label>
+
+              <label
+                class="flex items-center px-4 py-2 rounded cursor-pointer"
+                class:bg-gray-200={advancedConnectOption === 'customProxy'}
+              >
+                <input
+                  type="radio"
+                  class="appearance-none"
+                  bind:group={advancedConnectOption}
+                  value="customProxy"
+                />
+                <span class="ml-1">Custom Proxy</span>
+              </label>
+
+              <label
+                class="flex items-center px-4 py-2 rounded cursor-pointer"
+                class:bg-gray-200={advancedConnectOption === 'directConnection'}
+              >
+                <input
+                  type="radio"
+                  class="appearance-none"
+                  bind:group={advancedConnectOption}
+                  value="directConnection"
+                />
+                <span class="ml-1">Direct Connection</span>
+              </label>
+            </div>
+
+            {#if advancedConnectOption === 'customProxy'}
+              <div in:fade class="mt-2 w-full">
+                <TextInput
+                  bind:this={customProxyInput}
+                  bind:value={customProxyUrl}
+                  name={advancedConnectOption}
+                  placeholder={WS_PROXY}
+                  micro
+                />
+              </div>
+            {:else if advancedConnectOption === 'directConnection'}
+              <div in:fade class="mt-2">
+                <div class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 rounded">
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" bind:group={connectionProtocol} value="wss:" />
+                    <span class="ml-1">wss</span>
+                  </label>
+
+                  <label class="flex items-center ml-4 cursor-pointer">
+                    <input type="radio" bind:group={connectionProtocol} value="ws:" />
+                    <span class="ml-1">ws</span>
+                  </label>
+                </div>
+              </div>
+            {:else}
+              <div class="h-[38px] mt-2" />
+            {/if}
+          </div>
+        </div>
+
         <div class="w-full mt-6">
           <Button
             bind:this={connectButton}
@@ -298,7 +402,10 @@
       <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <div on:click={handleCopy(sessionPublicKey)} class="relative flex items-center w-full my-4">
+        <button
+          on:click={handleCopy(sessionPublicKey)}
+          class="relative flex items-center w-full my-4"
+        >
           <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
 
           <div class:text-utility-success={copySuccess === sessionPublicKey}>
@@ -312,7 +419,7 @@
               </div>
             {/if}
           </div>
-        </div>
+        </button>
       {/if}
 
       <div class="w-full">
@@ -321,7 +428,7 @@
         </p>
         <div class="flex justify-between">
           {#each recipes as recipe}
-            <div
+            <button
               on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
               class="relative flex items-center w-full my-4"
             >
@@ -338,7 +445,7 @@
                   </div>
                 {/if}
               </div>
-            </div>
+            </button>
           {/each}
         </div>
       </div>
