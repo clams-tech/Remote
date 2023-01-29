@@ -103,7 +103,7 @@ class Lightning {
     await this.updateInfo(lnApi)
     await this.updatePayments(lnApi)
     // @TODO fetch income events only when /bookkeeper route is visited
-    await this.updateIncomeEvents(lnApi)
+    // await this.updateIncomeEvents(lnApi)
 
     logger.info('Refresh data complete')
   }
