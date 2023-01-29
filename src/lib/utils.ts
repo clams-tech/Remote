@@ -346,7 +346,8 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
   if (port && (port < 1 || port > 65535)) return false
 
   if (!publicKey.match(nodePublicKeyRegex)) return false
-  if (!ip.match(ipRegex) && !ip.match(domainRegex)) return false
+
+  if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
 
   return true
 }

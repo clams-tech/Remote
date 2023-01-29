@@ -1,3 +1,5 @@
+import type { LnWebSocketOptions } from 'lnmessage/dist/types'
+
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
   address: string
@@ -8,6 +10,8 @@ export type Auth = {
    * that persists in local storage until logged out
    */
   sessionSecret?: string
+  wsProtocol?: LnWebSocketOptions['wsProtocol']
+  wsProxy?: LnWebSocketOptions['wsProxy']
 }
 
 export type Settings = {

@@ -24,13 +24,14 @@ class CoreLn {
   public connection: LnMessage
   public rune: string
 
-  constructor(auth: Auth, wsProxy = WS_PROXY, logger?: Logger) {
-    const { address, token, sessionSecret } = auth
+  constructor(auth: Auth, logger?: Logger) {
+    const { address, token, sessionSecret, wsProxy, wsProtocol } = auth
     const { publicKey, ip, port } = parseNodeAddress(address)
 
     this.connection = new LnMessage({
       remoteNodePublicKey: publicKey,
-      wsProxy,
+      wsProxy: wsProtocol ? undefined : wsProxy || WS_PROXY,
+      wsProtocol,
       ip,
       port: port || 9735,
       privateKey: sessionSecret,

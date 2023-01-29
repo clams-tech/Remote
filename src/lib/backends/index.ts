@@ -6,12 +6,12 @@ export * from './core-lightning/types'
 export type LnAPI = CoreLn
 export type LnBackend = 'core_lightning'
 
-export function initLn(options: { backend: LnBackend; auth: Auth; wsProxy?: string }): LnAPI {
-  const { backend, auth, wsProxy } = options
+export function initLn(options: { backend: LnBackend; auth: Auth }): LnAPI {
+  const { backend, auth } = options
 
   switch (backend) {
     case 'core_lightning':
-      return new CoreLn(auth, wsProxy, logger)
+      return new CoreLn(auth, logger)
     default:
       throw new Error(`${backend} is not a valid backend`)
   }

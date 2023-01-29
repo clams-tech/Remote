@@ -78,7 +78,13 @@
     connectStatus = 'connecting'
 
     try {
-      const lnApi = lightning.getLn({ address, token: '' })
+      const lnApi = lightning.getLn({
+        address,
+        token: '',
+        wsProtocol: advancedConnectOption === 'directConnection' ? connectionProtocol : undefined,
+        wsProxy: advancedConnectOption === 'customProxy' ? customProxyUrl : undefined
+      })
+
       const connected = await lnApi.connection.connect(false)
 
       connectStatus = connected ? 'success' : 'fail'
@@ -99,7 +105,13 @@
 
   async function saveRune() {
     // set auth details
-    updateAuth({ token, address, sessionSecret: sessionPrivateKey })
+    updateAuth({
+      token,
+      address,
+      sessionSecret: sessionPrivateKey,
+      wsProtocol: advancedConnectOption === 'directConnection' ? connectionProtocol : undefined,
+      wsProxy: advancedConnectOption === 'customProxy' ? customProxyUrl : undefined
+    })
 
     // update token to proper one
     const lnApi = lightning.getLn()
@@ -214,6 +226,8 @@
 
   let customProxyUrl: string
   let customProxyInput: TextInput
+  let customProxyUrlError = ''
+  let customProxyUrlAwaitingValidation = false
   let connectionProtocol: LnWebSocketOptions['wsProtocol'] = 'wss:'
 
   $: if (advancedConnectOption === 'customProxy') {
@@ -221,6 +235,33 @@
       customProxyInput && customProxyInput.focus()
     }, 10)
   }
+
+  let urlValidationTimeout: NodeJS.Timeout
+
+  function validateCustomProxy() {
+    customProxyUrlError = ''
+    urlValidationTimeout && clearTimeout(urlValidationTimeout)
+    customProxyUrlAwaitingValidation = true
+
+    urlValidationTimeout = setTimeout(() => {
+      try {
+        const url = new URL(customProxyUrl)
+
+        if (url.protocol !== 'ws:' && url.protocol !== 'wss:') {
+          customProxyUrlError = 'URL protocol must be ws: or wss:'
+          return
+        }
+      } catch (error) {
+        customProxyUrlError = 'Not a valid WS URL'
+      }
+
+      customProxyUrlAwaitingValidation = false
+    }, 750)
+  }
+
+  onDestroy(() => {
+    urlValidationTimeout && clearTimeout(urlValidationTimeout)
+  })
 </script>
 
 <svelte:head>
@@ -296,13 +337,17 @@
         </button>
 
         <!-- ADVANCED SETTINGS -->
-        <div
+        <button
           in:fade
-          class:h-[5.5rem]={advancedSettings}
-          class="text-sm mt-2 h- pl-4 flex flex-col items-start overflow-hidden h-0 transition-all"
+          on:click={() => {
+            customProxyUrl = ''
+            customProxyUrlError = ''
+          }}
+          class:h-28={advancedSettings}
+          class="text-sm mt-2 px-4 flex flex-col items-start overflow-hidden h-0 transition-all"
         >
           <div>
-            <div class="flex items-center border rounded">
+            <div class="flex items-center border rounded-md">
               <label
                 class="flex items-center px-4 py-2 rounded cursor-pointer"
                 class:bg-gray-200={advancedConnectOption === 'default'}
@@ -346,10 +391,12 @@
             {#if advancedConnectOption === 'customProxy'}
               <div in:fade class="mt-2 w-full">
                 <TextInput
+                  on:input={validateCustomProxy}
                   bind:this={customProxyInput}
                   bind:value={customProxyUrl}
                   name={advancedConnectOption}
                   placeholder={WS_PROXY}
+                  invalid={customProxyUrlError}
                   micro
                 />
               </div>
@@ -371,12 +418,14 @@
               <div class="h-[38px] mt-2" />
             {/if}
           </div>
-        </div>
+        </button>
 
         <div class="w-full mt-6">
           <Button
             bind:this={connectButton}
-            disabled={!validAddress}
+            disabled={!validAddress ||
+              (advancedConnectOption === 'customProxy' &&
+                (!!customProxyUrlError || !customProxyUrl || customProxyUrlAwaitingValidation))}
             on:click={attemptConnect}
             requesting={connectStatus === 'connecting'}
             text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}
