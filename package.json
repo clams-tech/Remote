@@ -3,6 +3,7 @@
   "version": "1.3.0-0.1.0",
   "scripts": {
     "dev": "vite dev",
+    "dev-http": "vite dev --mode http",
     "build": "vite build",
     "build-staging": "vite build --mode staging",
     "preview": "vite preview",
