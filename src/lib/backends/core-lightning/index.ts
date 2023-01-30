@@ -4,6 +4,7 @@ import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
 import type { Logger } from 'lnmessage/dist/types'
+import { settings$ } from '$lib/streams'
 
 import type {
   GetinfoResponse,
@@ -18,7 +19,6 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
-import { settings$ } from '$lib/streams'
 
 class CoreLn {
   public connection: LnMessage
