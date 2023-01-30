@@ -26,7 +26,7 @@
 
   $: styles = `flex items-center bg-transparent placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium ${
     micro ? 'px-3 py-2' : 'px-4 py-[14px]'
-  } border border-neutral-200 dark:border-neutral-50 rounded appearance-none focus:outline-none ${
+  } border border-neutral-200 dark:border-neutral-600 rounded appearance-none focus:outline-none ${
     micro ? 'focus:ring-2' : 'focus:ring'
   } focus:border-white ${invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'} ${
     cursorPointer ? 'cursor-pointer' : ''

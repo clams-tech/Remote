@@ -35,7 +35,9 @@ export const DEFAULT_SETTINGS: Settings = {
   sendTimeoutSeconds: 120,
   notifications: true,
   darkmode: false,
-  encrypt: false
+  encrypt: false,
+  wsProxy: WS_PROXY,
+  directConnection: undefined
 }
 
 export const SUPPORTED_LOCALES = ['en-US', 'en-GB']

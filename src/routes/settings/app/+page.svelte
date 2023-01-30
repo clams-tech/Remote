@@ -8,6 +8,7 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { supportsNotifications } from '$lib/utils'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import caret from '$lib/icons/caret'
 
   let settings = [
     {
@@ -72,6 +73,13 @@
           </SummaryRow>
         </a>
       {/each}
+
+      <a href={'/settings/app/connection'}>
+        <SummaryRow>
+          <span slot="label">{$translate('app.labels.connection')}</span>
+          <div class="w-6 -rotate-90" slot="value">{@html caret}</div>
+        </SummaryRow>
+      </a>
 
       <div class="cursor-pointer" on:click={toggleNotifications}>
         <SummaryRow>

@@ -3,7 +3,6 @@ import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
-import { WS_PROXY } from '$lib/constants'
 import type { Logger } from 'lnmessage/dist/types'
 
 import type {
@@ -19,19 +18,21 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
+import { settings$ } from '$lib/streams'
 
 class CoreLn {
   public connection: LnMessage
   public rune: string
 
   constructor(auth: Auth, logger?: Logger) {
-    const { address, token, sessionSecret, wsProxy, wsProtocol } = auth
+    const { address, token, sessionSecret } = auth
+    const { wsProxy, directConnection } = settings$.value
     const { publicKey, ip, port } = parseNodeAddress(address)
 
     this.connection = new LnMessage({
       remoteNodePublicKey: publicKey,
-      wsProxy: wsProtocol ? undefined : wsProxy || WS_PROXY,
-      wsProtocol,
+      wsProxy: directConnection ? undefined : wsProxy,
+      wsProtocol: directConnection,
       ip,
       port: port || 9735,
       privateKey: sessionSecret,

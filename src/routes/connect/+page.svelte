@@ -2,7 +2,6 @@
   import { onMount, onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
-  import type { LnWebSocketOptions } from 'lnmessage/dist/types'
   import { goto } from '$app/navigation'
   import { translate } from '$lib/i18n/translations'
   import TextInput from '$lib/elements/TextInput.svelte'
@@ -11,8 +10,9 @@
   import Slide from '$lib/elements/Slide.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Modal from '$lib/elements/Modal.svelte'
+  import ConnectionSettings from '$lib/components/ConnectionSettings.svelte'
   import lightning from '$lib/lightning'
-  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK, WS_PROXY } from '$lib/constants'
+  import { DOCS_CONNECT_LINK, DOCS_RUNE_LINK } from '$lib/constants'
   import info from '$lib/icons/info'
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
@@ -75,14 +75,13 @@
   }
 
   async function attemptConnect() {
+    saveConnectionSettings()
     connectStatus = 'connecting'
 
     try {
       const lnApi = lightning.getLn({
         address,
-        token: '',
-        wsProtocol: advancedConnectOption === 'directConnection' ? connectionProtocol : undefined,
-        wsProxy: advancedConnectOption === 'customProxy' ? customProxyUrl : undefined
+        token: ''
       })
 
       const connected = await lnApi.connection.connect(false)
@@ -108,9 +107,7 @@
     updateAuth({
       token,
       address,
-      sessionSecret: sessionPrivateKey,
-      wsProtocol: advancedConnectOption === 'directConnection' ? connectionProtocol : undefined,
-      wsProxy: advancedConnectOption === 'customProxy' ? customProxyUrl : undefined
+      sessionSecret: sessionPrivateKey
     })
 
     // update token to proper one
@@ -221,47 +218,9 @@
       )
     : Promise.resolve([])
 
-  let advancedSettings = false
-  let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' = 'default'
-
-  let customProxyUrl: string
-  let customProxyInput: TextInput
-  let customProxyUrlError = ''
-  let customProxyUrlAwaitingValidation = false
-  let connectionProtocol: LnWebSocketOptions['wsProtocol'] = 'wss:'
-
-  $: if (advancedConnectOption === 'customProxy') {
-    setTimeout(() => {
-      customProxyInput && customProxyInput.focus()
-    }, 10)
-  }
-
-  let urlValidationTimeout: NodeJS.Timeout
-
-  function validateCustomProxy() {
-    customProxyUrlError = ''
-    urlValidationTimeout && clearTimeout(urlValidationTimeout)
-    customProxyUrlAwaitingValidation = true
-
-    urlValidationTimeout = setTimeout(() => {
-      try {
-        const url = new URL(customProxyUrl)
-
-        if (url.protocol !== 'ws:' && url.protocol !== 'wss:') {
-          customProxyUrlError = 'URL protocol must be ws: or wss:'
-          return
-        }
-      } catch (error) {
-        customProxyUrlError = 'Not a valid WS URL'
-      }
-
-      customProxyUrlAwaitingValidation = false
-    }, 750)
-  }
-
-  onDestroy(() => {
-    urlValidationTimeout && clearTimeout(urlValidationTimeout)
-  })
+  let saveConnectionSettings: ConnectionSettings['save']
+  let expandConnectionSettings = false
+  let invalidConnectionOptions = false
 </script>
 
 <svelte:head>
@@ -327,105 +286,31 @@
         </div>
 
         <button
-          on:click={() => (advancedSettings = !advancedSettings)}
+          on:click={() => (expandConnectionSettings = !expandConnectionSettings)}
           class="mt-4 flex items-center text-sm cursor-pointer"
         >
-          <div class:-rotate-90={!advancedSettings} class="w-3 mr-1 transition-transform">
+          <div class:-rotate-90={!expandConnectionSettings} class="w-3 mr-1 transition-transform">
             {@html caret}
           </div>
           <span class="font-semibold underline">Advanced</span>
         </button>
 
         <!-- ADVANCED SETTINGS -->
-        <button
+        <div
           in:fade
-          on:click={() => {
-            customProxyUrl = ''
-            customProxyUrlError = ''
-          }}
-          class:h-28={advancedSettings}
+          class:h-28={!!expandConnectionSettings}
           class="text-sm mt-2 px-4 flex flex-col items-start overflow-hidden h-0 transition-all"
         >
-          <div>
-            <div class="flex items-center border rounded-md">
-              <label
-                class="flex items-center px-4 py-2 rounded cursor-pointer"
-                class:bg-gray-200={advancedConnectOption === 'default'}
-              >
-                <input
-                  type="radio"
-                  class="appearance-none"
-                  bind:group={advancedConnectOption}
-                  value="default"
-                />
-                <span class="ml-1">default</span>
-              </label>
-
-              <label
-                class="flex items-center px-4 py-2 rounded cursor-pointer"
-                class:bg-gray-200={advancedConnectOption === 'customProxy'}
-              >
-                <input
-                  type="radio"
-                  class="appearance-none"
-                  bind:group={advancedConnectOption}
-                  value="customProxy"
-                />
-                <span class="ml-1">Custom Proxy</span>
-              </label>
-
-              <label
-                class="flex items-center px-4 py-2 rounded cursor-pointer"
-                class:bg-gray-200={advancedConnectOption === 'directConnection'}
-              >
-                <input
-                  type="radio"
-                  class="appearance-none"
-                  bind:group={advancedConnectOption}
-                  value="directConnection"
-                />
-                <span class="ml-1">Direct Connection</span>
-              </label>
-            </div>
-
-            {#if advancedConnectOption === 'customProxy'}
-              <div in:fade class="mt-2 w-full">
-                <TextInput
-                  on:input={validateCustomProxy}
-                  bind:this={customProxyInput}
-                  bind:value={customProxyUrl}
-                  name={advancedConnectOption}
-                  placeholder={WS_PROXY}
-                  invalid={customProxyUrlError}
-                  micro
-                />
-              </div>
-            {:else if advancedConnectOption === 'directConnection'}
-              <div in:fade class="mt-2">
-                <div class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 rounded">
-                  <label class="flex items-center cursor-pointer">
-                    <input type="radio" bind:group={connectionProtocol} value="wss:" />
-                    <span class="ml-1">wss</span>
-                  </label>
-
-                  <label class="flex items-center ml-4 cursor-pointer">
-                    <input type="radio" bind:group={connectionProtocol} value="ws:" />
-                    <span class="ml-1">ws</span>
-                  </label>
-                </div>
-              </div>
-            {:else}
-              <div class="h-[38px] mt-2" />
-            {/if}
-          </div>
-        </button>
+          <ConnectionSettings
+            bind:invalid={invalidConnectionOptions}
+            bind:save={saveConnectionSettings}
+          />
+        </div>
 
         <div class="w-full mt-6">
           <Button
             bind:this={connectButton}
-            disabled={!validAddress ||
-              (advancedConnectOption === 'customProxy' &&
-                (!!customProxyUrlError || !customProxyUrl || customProxyUrlAwaitingValidation))}
+            disabled={!validAddress || invalidConnectionOptions}
             on:click={attemptConnect}
             requesting={connectStatus === 'connecting'}
             text={$translate(`app.buttons.${connectStatus === 'idle' ? 'connect' : 'try_again'}`)}

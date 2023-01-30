@@ -10,8 +10,6 @@ export type Auth = {
    * that persists in local storage until logged out
    */
   sessionSecret?: string
-  wsProtocol?: LnWebSocketOptions['wsProtocol']
-  wsProxy?: LnWebSocketOptions['wsProxy']
 }
 
 export type Settings = {
@@ -26,6 +24,8 @@ export type Settings = {
   notifications: boolean
   darkmode: boolean
   encrypt: boolean
+  wsProxy: LnWebSocketOptions['wsProxy']
+  directConnection?: LnWebSocketOptions['wsProtocol']
 }
 
 // locale => Display language
