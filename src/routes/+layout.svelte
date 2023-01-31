@@ -10,7 +10,6 @@
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import lightning from '$lib/lightning'
-  import SideNav from '$lib/components/SideNav.svelte'
 
   let loading = true
   let innerHeight = window.innerHeight
