@@ -8,9 +8,9 @@
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
+  import SideNav from '$lib/components/SideNav.svelte'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -42,9 +42,7 @@
 </svelte:head>
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <div class="w-24 absolute top-2 left-2">
-    <ClamsLogo disableAnimation />
-  </div>
+  <SideNav />
 
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}

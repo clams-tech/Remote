@@ -10,6 +10,7 @@
   import Menu from '$lib/components/Menu.svelte'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import lightning from '$lib/lightning'
+  import SideNav from '$lib/components/SideNav.svelte'
 
   let loading = true
   let innerHeight = window.innerHeight
@@ -56,7 +57,6 @@
     </div>
   {:else}
     <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
-
     <div class="absolute top-4 right-4 z-20">
       <Menu />
     </div>

@@ -17,7 +17,8 @@
     "settings_language": "Language Settings",
     "settings_unit": "Unit Settings",
     "settings_logs": "Debug Logs",
-    "lnurl": "LNURL"
+    "lnurl": "LNURL",
+    "bkpr": "Bookkeeper"
   },
   "inputs": {
     "destination": {
