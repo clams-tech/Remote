@@ -98,9 +98,7 @@ class Lightning {
     logger.info('Refreshing data')
     const lnApi = this.getLn()
 
-    await this.updateFunds(lnApi)
-    await this.updateInfo(lnApi)
-    await this.updatePayments(lnApi)
+    await Promise.all([this.updateFunds(lnApi), this.updateInfo(lnApi), this.updatePayments(lnApi)])
 
     logger.info('Refresh data complete')
   }
