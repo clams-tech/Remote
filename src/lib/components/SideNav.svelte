@@ -37,11 +37,9 @@
   >
     {#each links as link}
       <div class="flex items-center">
-        <a class="mb-4 hover:cursor-pointer" on:click={() => goto(link.route)}>
-          <div in:fade class="w-8 mr-2">
-            {@html link?.icon}
-          </div>
-        </a>
+        <div in:fade class="mb-4 hover:cursor-pointer w-8 mr-2" on:click={() => goto(link.route)}>
+          {@html link.icon}
+        </div>
         {#if openNav}
           <span
             class="flex items-center mb-4 hover:cursor-pointer"
