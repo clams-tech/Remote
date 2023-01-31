@@ -5,7 +5,6 @@
   import { isProtectedRoute } from '$lib/utils'
   import { funds$, nodeInfo$, payments$ } from '$lib/streams'
   import home from '$lib/icons/home'
-  // import settings from '$lib/icons/settings'
   import refreshIcon from '$lib/icons/refresh'
 
   $: path = $page.url.pathname
@@ -26,12 +25,6 @@
   {/if}
 
   {#if path === '/'}
-    <!-- <a href="/settings">
-      <div in:fade class="w-8">
-        {@html settings}
-      </div>
-    </a> -->
-
     <div in:fade on:click={refresh} class:animate-spin={refreshing} class="w-6 mt-2 cursor-pointer">
       {@html refreshIcon}
     </div>
