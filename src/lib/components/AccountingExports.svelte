@@ -251,9 +251,6 @@
 </script>
 
 <section class="max-w-m p-6">
-  <h1 class="text-4xl w-full mb-6 font-bold">
-    {$translate('app.headings.accounting_exports')}
-  </h1>
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="w-full h-full flex items-center justify-center">
       <Spinner />
@@ -264,6 +261,9 @@
       <ErrorMsg message={$incomeEvents$.error} />
     </div>
   {:else if links}
+    <h1 class="text-4xl w-full mb-6 font-bold">
+      {$translate('app.headings.accounting_exports')}
+    </h1>
     <p>
       {$translate('app.subheadings.accounting_exports')}
     </p>

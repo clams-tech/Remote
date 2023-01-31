@@ -29,7 +29,7 @@
   let openNav = false
 </script>
 
-<div class="absolute top-5 left-4">
+<div class="absolute top-5 left-4 z-20">
   <div
     class="flex flex-col"
     on:mouseover={() => (openNav = true)}
@@ -37,11 +37,11 @@
   >
     {#each links as link}
       <div class="flex items-center">
-        <span class="mb-4 hover:cursor-pointer" on:click={() => goto(link.route)}>
+        <a class="mb-4 hover:cursor-pointer" on:click={() => goto(link.route)}>
           <div in:fade class="w-8 mr-2">
             {@html link?.icon}
           </div>
-        </span>
+        </a>
         {#if openNav}
           <span
             class="flex items-center mb-4 hover:cursor-pointer"

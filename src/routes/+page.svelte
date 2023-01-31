@@ -41,8 +41,8 @@
   <title>{$translate('app.titles.home')}</title>
 </svelte:head>
 
+<SideNav />
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <SideNav />
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
       <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
