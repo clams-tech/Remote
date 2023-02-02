@@ -40,8 +40,12 @@ function registerSideEffects() {
 
   // update settings in storage
   settings$.pipe(filter((x) => !!x)).subscribe((update) => {
-    document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update))
+    try {
+      document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(update))
+    } catch (error) {
+      logger.error('Could not save settings to storage, access to local storage denied')
+    }
   })
 
   // update auth in storage
@@ -51,15 +55,19 @@ function registerSideEffects() {
       filter((x) => !!x)
     )
     .subscribe((auth) => {
-      const { encrypt } = settings$.getValue()
-      const pin = pin$.getValue()
+      try {
+        const { encrypt } = settings$.getValue()
+        const pin = pin$.getValue()
 
-      const dataString = JSON.stringify(auth)
+        const dataString = JSON.stringify(auth)
 
-      localStorage.setItem(
-        AUTH_STORAGE_KEY,
-        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
-      )
+        localStorage.setItem(
+          AUTH_STORAGE_KEY,
+          encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+        )
+      } catch (error) {
+        logger.error('Could not save auth to storage, access to local storage denied')
+      }
     })
 
   // update info in storage
@@ -69,15 +77,19 @@ function registerSideEffects() {
       filter((x) => !!x)
     )
     .subscribe(({ data }) => {
-      const { encrypt } = settings$.getValue()
-      const pin = pin$.getValue()
+      try {
+        const { encrypt } = settings$.getValue()
+        const pin = pin$.getValue()
 
-      const dataString = JSON.stringify(data)
+        const dataString = JSON.stringify(data)
 
-      localStorage.setItem(
-        INFO_STORAGE_KEY,
-        encrypt && pin ? encryptWithAES(dataString, pin) : dataString
-      )
+        localStorage.setItem(
+          INFO_STORAGE_KEY,
+          encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+        )
+      } catch (error) {
+        logger.error('Could not save node info to storage, access to local storage denied')
+      }
     })
 
   // update funds in storage
@@ -87,28 +99,36 @@ function registerSideEffects() {
       filter((x) => !!x)
     )
     .subscribe(({ data }) => {
+      try {
+        const { encrypt } = settings$.getValue()
+        const pin = pin$.getValue()
+
+        const dataString = JSON.stringify(data)
+
+        localStorage.setItem(
+          FUNDS_STORAGE_KEY,
+          encrypt && pin ? encryptWithAES(dataString, pin) : dataString
+        )
+      } catch (error) {
+        logger.error('Could not save funds to storage, access to local storage denied')
+      }
+    })
+
+  // update payments in storage
+  payments$.pipe(skip(1)).subscribe(({ data }) => {
+    try {
       const { encrypt } = settings$.getValue()
       const pin = pin$.getValue()
 
       const dataString = JSON.stringify(data)
 
       localStorage.setItem(
-        FUNDS_STORAGE_KEY,
+        PAYMENTS_STORAGE_KEY,
         encrypt && pin ? encryptWithAES(dataString, pin) : dataString
       )
-    })
-
-  // update payments in storage
-  payments$.pipe(skip(1)).subscribe(({ data }) => {
-    const { encrypt } = settings$.getValue()
-    const pin = pin$.getValue()
-
-    const dataString = JSON.stringify(data)
-
-    localStorage.setItem(
-      PAYMENTS_STORAGE_KEY,
-      encrypt && pin ? encryptWithAES(dataString, pin) : dataString
-    )
+    } catch (error) {
+      logger.error('Could not save payments to storage, access to local storage denied')
+    }
   })
 
   // get and update bitcoin exchange rate

@@ -40,6 +40,10 @@ section {
 }
 
 /* Hide arrows on Firefox number input  */
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
+}
+
+input[type='radio'] {
+  @apply accent-purple-500;
 }

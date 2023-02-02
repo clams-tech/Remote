@@ -1502,10 +1502,10 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-lnmessage@^0.0.13:
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.0.13.tgz#bb0d4bcaf99e182c76ed3825aebd92bb7635b333"
-  integrity sha512-0lg68fxRsCPTZwB8cZOwYY0arT8nkcPhxDgbUHitdkwuRomja9wmpX8lFQqPFiB+jd4szwug/N6VPPwzjMOXNA==
+lnmessage@^0.0.18:
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.0.18.tgz#bb578a324bae85894bcea12011fe6f27a3021289"
+  integrity sha512-6uwPNajtVdgcE9wJ5DhWmlfrksXks68MnbsJrKRR+d000DG1asFmERPWDeofFSVmkYfDuCJFHA63h6miQV+P0Q==
   dependencies:
     buffer "^6.0.3"
     crypto-js "^4.1.1"
@@ -2416,10 +2416,10 @@ typescript@^4.9.3:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.4.tgz#a2a3d2756c079abda241d75f149df9d561091e78"
   integrity sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==
 
-ua-parser-js@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.2.tgz#e2976c34dbfb30b15d2c300b2a53eac87c57a775"
-  integrity sha512-00y/AXhx0/SsnI51fTc0rLRmafiGOM4/O+ny10Ps7f+j/b8p/ZY11ytMgznXkOVo4GQ+KwQG5UQLkLGirsACRg==
+ua-parser-js@^1.0.33:
+  version "1.0.33"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.33.tgz#f21f01233e90e7ed0f059ceab46eb190ff17f8f4"
+  integrity sha512-RqshF7TPTE0XLYAqmjlu5cLLuGdKrNu9O1KLA/qp39QtbZwuzwv1dT46DZSopoUMsYgXpB3Cv8a03FI8b74oFQ==
 
 undici@5.14.0:
   version "5.14.0"
