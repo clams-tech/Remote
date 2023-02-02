@@ -57,7 +57,8 @@
         <div
           class:bg-utility-success={$connectionStatus$ === 'connected'}
           class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
-            $connectionStatus$ === 'waiting_reconnect'}
+            $connectionStatus$ === 'waiting_reconnect' ||
+            !$connectionStatus$}
           class:bg-utility-error={$connectionStatus$ === 'disconnected'}
           class="w-4 h-4 rounded-full ml-2 transition-colors"
         />
