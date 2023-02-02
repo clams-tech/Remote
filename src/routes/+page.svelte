@@ -11,6 +11,7 @@
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
   import Nav from '$lib/components/Nav.svelte'
+  import lightning from '$lib/lightning'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -35,6 +36,10 @@
       from: BitcoinDenomination.msats,
       to: $settings$.secondaryDenomination
     })
+
+  const lnAPI = lightning.getLn()
+
+  const { connectionStatus$ } = lnAPI.connection
 </script>
 
 <svelte:head>
@@ -42,14 +47,18 @@
 </svelte:head>
 
 <Nav />
+
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
       <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
         >{$nodeInfo$.data.alias}
         <span
-          style="background-color: #{$nodeInfo$.data.color};"
-          class="w-4 h-4 rounded-full ml-2"
+          class:bg-utility-success={$connectionStatus$ === 'connected'}
+          class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
+            $connectionStatus$ === 'waiting_reconnect'}
+          class:bg-utility-error={$connectionStatus$ === 'disconnected'}
+          class="w-4 h-4 rounded-full ml-2 transition-colors"
         /></span
       >
     {/if}
