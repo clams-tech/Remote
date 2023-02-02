@@ -42,7 +42,7 @@
 </svelte:head>
 
 <Nav />
-<div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
+<div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
       <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
