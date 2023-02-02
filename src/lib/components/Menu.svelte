@@ -22,37 +22,4 @@
       </div>
     </a>
   {/if}
-  {#if path === '/' && device.type === 'mobile'}
-    <div class="w-10 cursor-pointer absolute right-4 top-4" on:click={() => (menuOpen = !menuOpen)}>
-      {#if !menuOpen}
-        {@html menuIcon}
-      {:else}
-        {@html crossIcon}
-      {/if}
-    </div>
-    {#if menuOpen}
-      <div
-        class="h-screen bg-white dark:bg-neutral-900 p-16 pt-10 shadow-lg shadow-purple-500"
-        transition:fly={{ x: 36 }}
-      >
-        {#each NAV_LINKS as link}
-          <div class="flex">
-            <div
-              in:fade
-              class="mt-4 w-8 mr-2 hover:cursor-pointer"
-              on:click={() => goto(link.route)}
-            >
-              {@html link.icon}
-            </div>
-            <span
-              class="flex items-center mt-4 hover:cursor-pointer"
-              on:click={() => goto(link.route)}
-            >
-              <p>{link.title}</p>
-            </span>
-          </div>
-        {/each}
-      </div>
-    {/if}
-  {/if}
 </div>

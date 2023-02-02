@@ -10,8 +10,7 @@
   import RecentPayment from '$lib/components/RecentPayment.svelte'
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
-  import SideNav from '$lib/components/SideNav.svelte'
-  import Refresh from '$lib/components/Refresh.svelte'
+  import Nav from '$lib/components/Nav.svelte'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -42,9 +41,8 @@
   <title>{$translate('app.titles.home')}</title>
 </svelte:head>
 
-<SideNav />
+<Nav />
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <Refresh />
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
       <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
