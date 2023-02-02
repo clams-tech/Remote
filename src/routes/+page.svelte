@@ -11,6 +11,7 @@
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
   import Nav from '$lib/components/Nav.svelte'
+  import Refresh from '$lib/components/Refresh.svelte'
   import lightning from '$lib/lightning'
 
   const buttons = [
@@ -38,7 +39,6 @@
     })
 
   const lnAPI = lightning.getLn()
-
   const { connectionStatus$ } = lnAPI.connection
 </script>
 
@@ -51,16 +51,17 @@
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
-      <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
-        >{$nodeInfo$.data.alias}
-        <span
+      <div in:fade class="flex items-center w-full justify-center text-xl p-4">
+        <Refresh />
+        <div class="ml-2 mt-[2px]">{$nodeInfo$.data.alias}</div>
+        <div
           class:bg-utility-success={$connectionStatus$ === 'connected'}
           class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
             $connectionStatus$ === 'waiting_reconnect'}
           class:bg-utility-error={$connectionStatus$ === 'disconnected'}
           class="w-4 h-4 rounded-full ml-2 transition-colors"
-        /></span
-      >
+        />
+      </div>
     {/if}
 
     {#if $funds$.loading && !$funds$.data}
