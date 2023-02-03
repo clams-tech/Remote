@@ -15,31 +15,26 @@
     format: Format
     text: string
     website: string
-    fileName: string
   }[] = [
     {
       format: 'koinly',
       text: 'Koinly',
-      website: 'https://koinly.io/',
-      fileName: 'koinly.csv'
+      website: 'https://koinly.io/'
     },
     {
       format: 'cointracker',
       text: 'Cointracker',
-      website: 'https://www.cointracker.io/',
-      fileName: 'cointracker.csv'
+      website: 'https://www.cointracker.io/'
     },
     {
       format: 'quickbooks',
       text: 'Quickbooks',
-      website: 'https://quickbooks.intuit.com/',
-      fileName: 'quickbooks.csv'
+      website: 'https://quickbooks.intuit.com/'
     },
     {
       format: 'harmony',
       text: 'Harmony',
-      website: 'https://www.harmony.co.id/', // @TODO verify
-      fileName: 'harmony.csv'
+      website: 'https://www.harmony.co.id/' // @TODO verify
     }
   ]
 
@@ -322,7 +317,7 @@
               text={$translate('app.buttons.download_csv')}
               on:click={async () => {
                 await importFormatInTimeZone()
-                downloadFile(createCSVString(link.format), link.fileName)
+                downloadFile(createCSVString(link.format), `${link.format}.csv`)
               }}
             />
           </div>
