@@ -5,41 +5,48 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { incomeEvents$ } from '$lib/streams'
-  import { formatInTimeZone } from 'date-fns-tz'
   import lightning from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
 
-  const links = [
+  type Format = 'koinly' | 'cointracker' | 'quickbooks' | 'harmony'
+  type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
+
+  const links: {
+    format: Format
+    text: string
+    website: string
+    fileName: string
+  }[] = [
     {
-      type: 'koinly',
+      format: 'koinly',
       text: 'Koinly',
       website: 'https://koinly.io/',
       fileName: 'koinly.csv'
     },
     {
-      type: 'cointracker',
+      format: 'cointracker',
       text: 'Cointracker',
       website: 'https://www.cointracker.io/',
       fileName: 'cointracker.csv'
     },
     {
-      type: 'quickbooks',
+      format: 'quickbooks',
       text: 'Quickbooks',
       website: 'https://quickbooks.intuit.com/',
       fileName: 'quickbooks.csv'
     },
     {
-      type: 'harmony',
+      format: 'harmony',
       text: 'Harmony',
       website: 'https://www.harmony.co.id/', // @TODO verify
       fileName: 'harmony.csv'
     }
   ]
 
+  let formatInTZ: (arg0: Date, arg1: string, arg2: string) => string
+
   // Fetch bookkeeper income events
   lightning.updateIncomeEvents(lightning.getLn())
-
-  type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
   $: incomeEvents = $incomeEvents$.data?.income_events || []
 
@@ -65,6 +72,14 @@
       return incomeEvent.tag !== 'invoice_fee'
     }) || []
 
+  async function importFormatInTimeZone() {
+    if (!formatInTZ) {
+      const { formatInTimeZone } = await import('date-fns-tz')
+      formatInTZ = formatInTimeZone
+    }
+    return
+  }
+
   function createKoinlyRow(event: IncomeEvent) {
     const {
       timestamp,
@@ -77,8 +92,9 @@
       payment_id,
       fee_amount
     } = event
+
     function formatDate(timestamp: number) {
-      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'yyyy-MM-dd HH:mm') + ' UTC'
+      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'yyyy-MM-dd HH:mm') + ' UTC'
     }
 
     return [
@@ -99,7 +115,7 @@
     const { timestamp, debit_msat, credit_msat, tag, account, fee_amount } = event
 
     function formatDate(timestamp: number) {
-      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'MM/dd/yyyy HH:mm:ss')
+      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'MM/dd/yyyy HH:mm:ss')
     }
 
     return [
@@ -119,7 +135,7 @@
     const { timestamp, description, debit_msat, credit_msat, tag, account } = event
 
     function formatDate(timestamp: number) {
-      return formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd/MM/yyyy')
+      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'dd/MM/yyyy')
     }
 
     return [
@@ -144,7 +160,7 @@
     } = event
 
     function formatDate(timestamp: number) {
-      const date = formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd-MM-yyyy HH:mm:ss')
+      const date = formatInTZ(new Date(timestamp * 1000), 'UTC', 'dd-MM-yyyy HH:mm:ss')
       return date.replace(' ', 'T') + 'Z'
     }
 
@@ -194,8 +210,8 @@
     ]
   }
 
-  function createCSVString(type: 'koinly' | 'cointracker' | 'quickbooks' | 'harmony') {
-    switch (type) {
+  function createCSVString(format: Format) {
+    switch (format) {
       case 'koinly':
         return [
           [
@@ -304,7 +320,10 @@
           <div class="text-center">
             <Button
               text={$translate('app.buttons.download_csv')}
-              on:click={() => downloadFile(createCSVString('koinly'), link.fileName)}
+              on:click={async () => {
+                await importFormatInTimeZone()
+                downloadFile(createCSVString(link.format), link.fileName)
+              }}
             />
           </div>
         </div>
