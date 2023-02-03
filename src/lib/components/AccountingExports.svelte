@@ -9,19 +9,45 @@
   import lightning from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
 
+  const links = [
+    {
+      type: 'koinly',
+      text: 'Koinly',
+      website: 'https://koinly.io/',
+      fileName: 'koinly.csv'
+    },
+    {
+      type: 'cointracker',
+      text: 'Cointracker',
+      website: 'https://www.cointracker.io/',
+      fileName: 'cointracker.csv'
+    },
+    {
+      type: 'quickbooks',
+      text: 'Quickbooks',
+      website: 'https://quickbooks.intuit.com/',
+      fileName: 'quickbooks.csv'
+    },
+    {
+      type: 'harmony',
+      text: 'Harmony',
+      website: 'https://www.harmony.co.id/', // @TODO verify
+      fileName: 'harmony.csv'
+    }
+  ]
+
   // Fetch bookkeeper income events
   lightning.updateIncomeEvents(lightning.getLn())
 
   type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
-  $: incomeEvents = $incomeEvents$.data?.income_events
+  $: incomeEvents = $incomeEvents$.data?.income_events || []
 
   $: invoiceFeeEvents =
     incomeEvents &&
     incomeEvents.filter((incomeEvent) => {
       return incomeEvent.tag === 'invoice_fee'
     })
-
   // "Fee Amount" column for Koinly & Cointracker rows
   $: incomeEvents?.forEach((incomeEvent) => {
     invoiceFeeEvents?.forEach((invoiceFeeEvent: InvoiceFeeEvent) => {
@@ -34,9 +60,10 @@
     })
   })
   // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
-  $: filteredIncomeEvents = incomeEvents?.filter((incomeEvent) => {
-    return incomeEvent.tag !== 'invoice_fee'
-  })
+  $: filteredIncomeEvents =
+    incomeEvents?.filter((incomeEvent) => {
+      return incomeEvent.tag !== 'invoice_fee'
+    }) || []
 
   function createKoinlyRow(event: IncomeEvent) {
     const {
@@ -167,13 +194,10 @@
     ]
   }
 
-  $: links = incomeEvents &&
-    filteredIncomeEvents && [
-      {
-        text: 'Koinly',
-        website: 'https://koinly.io/',
-        fileName: 'koinly.csv',
-        csvString: [
+  function createCSVString(type: 'koinly' | 'cointracker' | 'quickbooks' | 'harmony') {
+    switch (type) {
+      case 'koinly':
+        return [
           [
             'Date',
             'Sent Amount',
@@ -190,12 +214,8 @@
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      },
-      {
-        text: 'Cointracker',
-        website: 'https://www.cointracker.io/',
-        fileName: 'cointracker.csv',
-        csvString: [
+      case 'cointracker':
+        return [
           [
             'Date',
             'Received Quantity',
@@ -211,23 +231,15 @@
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      },
-      {
-        text: 'Quickbooks',
-        website: 'https://quickbooks.intuit.com/',
-        fileName: 'quickbooks.csv',
-        csvString: [
+      case 'quickbooks':
+        return [
           ['Date', 'Description', 'Credit', 'Debit'],
           ...incomeEvents.map(createQuickbooksRow)
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      },
-      {
-        text: 'Harmony',
-        website: 'https://www.harmony.co.id/', // @TODO verify
-        fileName: 'harmony.csv',
-        csvString: [
+      case 'harmony':
+        return [
           ['HarmonyCSV v0.2'],
           ['Provenance', 'cln-bookkeeper'],
           [
@@ -246,8 +258,21 @@
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      }
-    ]
+    }
+  }
+
+  function downloadFile(csvString: string, fileName: string) {
+    const blob = new Blob([csvString], { type: 'text/csv' })
+    const URL = window.URL || window.webkitURL
+    const objectURL = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = objectURL
+    a.download = fileName
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    a.click()
+    URL.revokeObjectURL(objectURL)
+  }
 </script>
 
 <section class="max-w-m p-6">
@@ -276,15 +301,12 @@
             target="_blank"
             rel="noopener noreferrer">{link.text}</a
           >
-          <a
-            class="text-center"
-            href={window.URL.createObjectURL(new Blob([link.csvString], { type: 'text/csv' }))}
-            target="_blank"
-            rel="noopener noreferrer"
-            download={link.fileName}
-          >
-            <Button text={$translate('app.buttons.download_csv')} /></a
-          >
+          <div class="text-center">
+            <Button
+              text={$translate('app.buttons.download_csv')}
+              on:click={() => downloadFile(createCSVString('koinly'), link.fileName)}
+            />
+          </div>
         </div>
       {/each}
     </div>
