@@ -14,6 +14,7 @@
     "settings_app": "App Settings",
     "settings_help": "Help",
     "settings_currency": "Currency Settings",
+    "settings_connection": "Connection Settings",
     "settings_language": "Language Settings",
     "settings_unit": "Unit Settings",
     "settings_logs": "Debug Logs",
@@ -67,6 +68,7 @@
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
+    "connection": "Connection",
     "app": "App",
     "discord": "Discord Server",
     "docs": "Documentation",
@@ -82,7 +84,10 @@
     "max_sendable": "Maximum Sendable:",
     "min_withdrawable": "Minimum Withdrawable:",
     "max_withdrawable": "Maximum Withdrawable:",
-    "fixed_withdrawable": "Withdrawable:"
+    "fixed_withdrawable": "Withdrawable:",
+    "app_proxy": "App Proxy",
+    "custom_proxy": "Custom Proxy",
+    "direct_connection": "Direct Connection"
   },
   "time": {
     "mins": "mins"
@@ -122,6 +127,8 @@
     "data_request": "Data Request Error",
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
+    "reset_error": "Error trying to reset app",
+    "storage_access": "Access to local storage denied, so data cannot be deleted",
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
     "bkpr_list_income": "Error trying to list income",

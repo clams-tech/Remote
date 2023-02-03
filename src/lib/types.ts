@@ -1,3 +1,5 @@
+import type { LnWebSocketOptions } from 'lnmessage/dist/types'
+
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
   address: string
@@ -22,6 +24,8 @@ export type Settings = {
   notifications: boolean
   darkmode: boolean
   encrypt: boolean
+  wsProxy: LnWebSocketOptions['wsProxy']
+  directConnection?: LnWebSocketOptions['wsProtocol']
 }
 
 // locale => Display language

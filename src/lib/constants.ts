@@ -1,7 +1,8 @@
 import bitcoin from './icons/bitcoin'
-import lightning from './icons/lightning'
-import settings from '$lib/icons/settings'
-import graph from '$lib/icons/graph'
+import lightningIcon from './icons/lightning'
+import lightningOutlineIcon from './icons/lightning-outline'
+import settingsOutlineIcon from '$lib/icons/settings-outline'
+import feeOutlineIcon from '$lib/icons/fee-outline'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
@@ -37,7 +38,9 @@ export const DEFAULT_SETTINGS: Settings = {
   sendTimeoutSeconds: 120,
   notifications: true,
   darkmode: false,
-  encrypt: false
+  encrypt: false,
+  wsProxy: WS_PROXY,
+  directConnection: undefined
 }
 
 export const SUPPORTED_LOCALES = ['en-US', 'en-GB']
@@ -66,28 +69,29 @@ export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
+
 export const NAV_LINKS = [
   {
     title: 'Payments',
-    icon: lightning,
+    icon: lightningOutlineIcon,
     route: '/payments'
   },
   {
     title: 'Bookkeeper',
-    icon: graph,
+    icon: feeOutlineIcon,
     route: '/bkpr'
   },
   {
     title: 'Settings',
-    icon: settings,
+    icon: settingsOutlineIcon,
     route: '/settings'
   }
 ]
 
 export const currencySymbols = {
   btc: bitcoin,
-  sats: lightning,
-  msats: lightning,
+  sats: lightningIcon,
+  msats: lightningIcon,
   usd: '$',
   eur: '€',
   gbp: '£',

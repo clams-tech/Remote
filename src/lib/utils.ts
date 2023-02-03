@@ -3,7 +3,9 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
-import { log$ } from './streams'
+import { customNotifications$, log$ } from './streams'
+import { get } from 'svelte/store'
+import { translate } from './i18n/translations'
 
 import {
   ALL_DATA_KEYS,
@@ -201,8 +203,13 @@ export function sha256(str: string) {
 }
 
 export function getDataFromStorage(storageKey: string): string | null {
-  if (typeof window === 'undefined') return null
-  return window.localStorage.getItem(storageKey)
+  try {
+    if (typeof window === 'undefined') return null
+    return window.localStorage.getItem(storageKey)
+  } catch (error) {
+    logger.error('Could no get data from storage, access to local storage is blocked')
+    return null
+  }
 }
 
 // Svelte action to use when wanting to do something when there is a click outside of element
@@ -339,20 +346,25 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
   if (port && (port < 1 || port > 65535)) return false
 
   if (!publicKey.match(nodePublicKeyRegex)) return false
-  if (!ip.match(ipRegex)) return false
+
+  if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
 
   return true
 }
 
 export function encryptAllData(pin: string) {
-  ENCRYPTED_DATA_KEYS.forEach((key) => {
-    const data = window.localStorage.getItem(key)
+  try {
+    ENCRYPTED_DATA_KEYS.forEach((key) => {
+      const data = window.localStorage.getItem(key)
 
-    if (data) {
-      const encrypted = encryptWithAES(data, pin)
-      window.localStorage.setItem(key, encrypted)
-    }
-  })
+      if (data) {
+        const encrypted = encryptWithAES(data, pin)
+        window.localStorage.setItem(key, encrypted)
+      }
+    })
+  } catch (error) {
+    logger.error('Could not encrypt data, access to local storage is blocked')
+  }
 }
 
 export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
@@ -367,7 +379,17 @@ export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
 }
 
 export function resetApp() {
-  ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
+  try {
+    ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
+  } catch (error) {
+    customNotifications$.next({
+      id: createRandomHex(),
+      type: 'error',
+      heading: get(translate)('app.errors.reset_error'),
+      message: get(translate)('app.errors.storage_access')
+    })
+  }
+
   window.location.reload()
 }
 
