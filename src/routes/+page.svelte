@@ -2,7 +2,7 @@
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
-  import { calculateBalance } from '$lib/utils'
+  import { calculateBalance, isPWA, logger } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
@@ -11,6 +11,7 @@
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
+  import { browser } from '$app/environment'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -35,6 +36,15 @@
       from: BitcoinDenomination.msats,
       to: $settings$.secondaryDenomination
     })
+
+  if (browser && !isPWA()) {
+    try {
+      logger.info('Attemptin to register protocol handler')
+      navigator.registerProtocolHandler('bitcoin', '/send?destination=%s')
+    } catch (error) {
+      logger.warn('Could not register bitcoin protocol handler')
+    }
+  }
 </script>
 
 <svelte:head>

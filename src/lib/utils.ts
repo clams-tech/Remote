@@ -330,7 +330,10 @@ export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | n
 export const noop = () => {}
 
 export function isPWA(): boolean {
-  return window.matchMedia('(display-mode: standalone)').matches
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches
+  )
 }
 
 export function parseNodeAddress(address: string): ParsedNodeAddress {
