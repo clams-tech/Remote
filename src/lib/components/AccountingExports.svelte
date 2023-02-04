@@ -9,7 +9,6 @@
   import { translate } from '$lib/i18n/translations'
 
   type Format = 'koinly' | 'cointracker' | 'quickbooks' | 'harmony'
-  type InvoiceFeeEvent = IncomeEvent & { used_fee_amount?: boolean }
 
   const links: {
     format: Format
@@ -38,44 +37,45 @@
     }
   ]
 
-  let formatInTZ: (arg0: Date, arg1: string, arg2: string) => string
-
   // Fetch bookkeeper income events
   lightning.updateIncomeEvents(lightning.getLn())
 
-  $: incomeEvents = $incomeEvents$.data?.income_events || []
+  // spinner state for when formatting and downloading csv
+  let formatting = false
 
-  $: invoiceFeeEvents =
-    incomeEvents &&
-    incomeEvents.filter((incomeEvent) => {
-      return incomeEvent.tag === 'invoice_fee'
-    })
-  // "Fee Amount" column for Koinly & Cointracker rows
-  $: incomeEvents?.forEach((incomeEvent) => {
-    invoiceFeeEvents?.forEach((invoiceFeeEvent: InvoiceFeeEvent) => {
-      if (!incomeEvent.fee_amount && !invoiceFeeEvent.used_fee_amount) {
-        if (incomeEvent.payment_id === invoiceFeeEvent.payment_id) {
-          incomeEvent.fee_amount = msatsToBtc(invoiceFeeEvent.debit_msat.toString())
-          invoiceFeeEvent.used_fee_amount = true
+  // formatted so that fee events are combined with invoice events
+  let combinedPaymentsFees: IncomeEvent[]
+
+  // will combine fee events with invoice events
+  function combineInvoicePaymentsWithFees(events: IncomeEvent[]): IncomeEvent[] {
+    if (!combinedPaymentsFees) {
+      combinedPaymentsFees = events.reduce((acc, event) => {
+        const { tag } = event
+
+        if (tag === 'invoice_fee') {
+          // grab the invoice this fee belongs to
+          const invoice = acc.pop()
+
+          if (invoice && invoice.payment_id === event.payment_id) {
+            invoice.fee_amount = msatsToBtc(event.debit_msat.toString())
+          }
+
+          // put back in the collection
+          invoice && acc.push(invoice)
+        } else {
+          acc.push(event)
         }
-      }
-    })
-  })
-  // Remove 'invoice_fee' tagged events for Koinly & Cointracker CSVs
-  $: filteredIncomeEvents =
-    incomeEvents?.filter((incomeEvent) => {
-      return incomeEvent.tag !== 'invoice_fee'
-    }) || []
 
-  async function importFormatInTimeZone() {
-    if (!formatInTZ) {
-      const { formatInTimeZone } = await import('date-fns-tz')
-      formatInTZ = formatInTimeZone
+        return acc
+      }, [] as IncomeEvent[])
     }
-    return
+
+    return combinedPaymentsFees
   }
 
-  function createKoinlyRow(event: IncomeEvent) {
+  async function createKoinlyRow(event: IncomeEvent) {
+    const { formatInTimeZone } = await import('date-fns-tz')
+
     const {
       timestamp,
       debit_msat,
@@ -88,12 +88,8 @@
       fee_amount
     } = event
 
-    function formatDate(timestamp: number) {
-      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'yyyy-MM-dd HH:mm') + ' UTC'
-    }
-
     return [
-      formatDate(timestamp), // Date
+      formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'yyyy-MM-dd HH:mm') + ' UTC', // Date
       debit_msat ? msatsToBtc(debit_msat.toString()) : '', // Sent Amount
       debit_msat ? 'btc' : '', // Sent Currency
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Received Amount
@@ -106,15 +102,12 @@
     ]
   }
 
-  function createCointrackerRow(event: IncomeEvent) {
+  async function createCointrackerRow(event: IncomeEvent) {
+    const { formatInTimeZone } = await import('date-fns-tz')
     const { timestamp, debit_msat, credit_msat, tag, account, fee_amount } = event
 
-    function formatDate(timestamp: number) {
-      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'MM/dd/yyyy HH:mm:ss')
-    }
-
     return [
-      formatDate(timestamp), // Date
+      formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'MM/dd/yyyy HH:mm:ss'), // Date
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Received Quantity
       credit_msat ? 'btc' : '', // Received Currency
       debit_msat ? msatsToBtc(debit_msat.toString()) : '', // Sent Quantity
@@ -126,22 +119,21 @@
     ]
   }
 
-  function createQuickbooksRow(event: IncomeEvent) {
+  async function createQuickbooksRow(event: IncomeEvent) {
+    const { formatInTimeZone } = await import('date-fns-tz')
     const { timestamp, description, debit_msat, credit_msat, tag, account } = event
 
-    function formatDate(timestamp: number) {
-      return formatInTZ(new Date(timestamp * 1000), 'UTC', 'dd/MM/yyyy')
-    }
-
     return [
-      formatDate(timestamp), // Date
+      formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd/MM/yyyy'), // Date
       `${tag} (${account}) bc: ${description || 'no desc'}`, // Description
       credit_msat ? msatsToBtc(credit_msat.toString()) : '', // Credit
       debit_msat ? msatsToBtc(debit_msat.toString()) : '' // Debit
     ]
   }
 
-  function createHarmonyRow(event: IncomeEvent) {
+  async function createHarmonyRow(event: IncomeEvent) {
+    const { formatInTimeZone } = await import('date-fns-tz')
+
     const {
       timestamp,
       description,
@@ -153,11 +145,6 @@
       txid,
       payment_id
     } = event
-
-    function formatDate(timestamp: number) {
-      const date = formatInTZ(new Date(timestamp * 1000), 'UTC', 'dd-MM-yyyy HH:mm:ss')
-      return date.replace(' ', 'T') + 'Z'
-    }
 
     function formatType(tag: string, credit: number | '') {
       switch (tag) {
@@ -192,7 +179,8 @@
     }
 
     return [
-      formatDate(timestamp), // Timestamp
+      formatInTimeZone(new Date(timestamp * 1000), 'UTC', 'dd-MM-yyyy HH:mm:ss').replace(' ', 'T') +
+        'Z', // Timestamp
       'cln', // Venue
       formatType(tag, credit_msat || ''), // Type
       formatAmount(credit_msat, debit_msat), // Amount
@@ -205,9 +193,12 @@
     ]
   }
 
-  function createCSVString(format: Format) {
+  async function createCSVString(format: Format) {
     switch (format) {
-      case 'koinly':
+      case 'koinly': {
+        const formattedIncomeEvents = combineInvoicePaymentsWithFees($incomeEvents$.data!)
+        const rows = await Promise.all(formattedIncomeEvents.map(createKoinlyRow))
+
         return [
           [
             'Date',
@@ -221,11 +212,15 @@
             'Description',
             'TxHash'
           ],
-          ...filteredIncomeEvents.map(createKoinlyRow)
+          ...rows
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      case 'cointracker':
+      }
+      case 'cointracker': {
+        const formattedIncomeEvents = combineInvoicePaymentsWithFees($incomeEvents$.data!)
+        const rows = await Promise.all(formattedIncomeEvents.map(createCointrackerRow))
+
         return [
           [
             'Date',
@@ -238,18 +233,21 @@
             'Tag',
             'Account'
           ],
-          ...filteredIncomeEvents.map(createCointrackerRow)
+          ...rows
         ]
           .map((item) => item.join(','))
           .join('\r\n')
-      case 'quickbooks':
-        return [
-          ['Date', 'Description', 'Credit', 'Debit'],
-          ...incomeEvents.map(createQuickbooksRow)
-        ]
+      }
+      case 'quickbooks': {
+        const rows = await Promise.all($incomeEvents$.data!.map(createQuickbooksRow))
+
+        return [['Date', 'Description', 'Credit', 'Debit'], ...rows]
           .map((item) => item.join(','))
           .join('\r\n')
-      case 'harmony':
+      }
+      case 'harmony': {
+        const rows = await Promise.all($incomeEvents$.data!.map(createHarmonyRow))
+
         return [
           ['HarmonyCSV v0.2'],
           ['Provenance', 'cln-bookkeeper'],
@@ -265,10 +263,20 @@
             'Network ID',
             'Note'
           ],
-          ...incomeEvents.map(createHarmonyRow)
+          ...rows
         ]
           .map((item) => item.join(','))
           .join('\r\n')
+      }
+    }
+  }
+
+  function downloadCSV(format: Format): () => Promise<void> {
+    return async () => {
+      formatting = true
+      const csvString = await createCSVString(format)
+      downloadFile(csvString, `${format}.csv`)
+      formatting = false
     }
   }
 
@@ -296,7 +304,7 @@
     <div class="w-full h-full flex items-center justify-center">
       <ErrorMsg message={$incomeEvents$.error} />
     </div>
-  {:else if links}
+  {:else}
     <h1 class="text-4xl w-full mb-6 font-bold">
       {$translate('app.headings.accounting_exports')}
     </h1>
@@ -304,21 +312,19 @@
       {$translate('app.subheadings.accounting_exports')}
     </p>
     <div class="w-full mt-6">
-      {#each links as link}
+      {#each links as { website, text, format }}
         <div class="flex items-center p-3">
           <a
             class="w-1/2 text-center underline text-lg"
-            href={link.website}
+            href={website}
             target="_blank"
-            rel="noopener noreferrer">{link.text}</a
+            rel="noopener noreferrer">{text}</a
           >
           <div class="text-center">
             <Button
+              requesting={formatting}
               text={$translate('app.buttons.download_csv')}
-              on:click={async () => {
-                await importFormatInTimeZone()
-                downloadFile(createCSVString(link.format), `${link.format}.csv`)
-              }}
+              on:click={downloadCSV(format)}
             />
           </div>
         </div>

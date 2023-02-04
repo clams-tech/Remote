@@ -24,5 +24,22 @@
     }
   ],
   "theme_color": "#6305f0",
-  "background_color": "#fafafa"
+  "background_color": "#fafafa",
+  "protocol_handlers": [
+    {
+      "name": "Clams",
+      "protocol": "bitcoin",
+      "url": "/send?destination=%s"
+    },
+    {
+      "name": "Clams",
+      "protocol": "web+lightning",
+      "url": "/send?destination=%s"
+    },
+    {
+      "name": "Clams",
+      "protocol": "web+lnurl",
+      "url": "/send?destination=%s"
+    }
+  ]
 }

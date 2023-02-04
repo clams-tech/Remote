@@ -167,10 +167,10 @@ class Lightning {
   public async updateIncomeEvents(lnApi: LnAPI) {
     try {
       incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
-      const incomeEvents = await lnApi.bkprListIncome()
-      incomeEvents$.next({ loading: false, data: incomeEvents })
+      const { income_events } = await lnApi.bkprListIncome()
+      incomeEvents$.next({ loading: false, data: income_events })
 
-      return incomeEvents
+      return income_events
     } catch (error) {
       const { message } = error as Error
       incomeEvents$.next({ loading: false, data: null, error: message })
