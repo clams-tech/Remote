@@ -41,7 +41,7 @@
 
   const lnAPI = lightning.getLn()
   const { connectionStatus$ } = lnAPI.connection
-
+  
   if (browser && !isPWA()) {
     try {
       logger.info('Attemptin to register protocol handler')
