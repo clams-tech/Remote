@@ -2,7 +2,7 @@
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
-  import { calculateBalance } from '$lib/utils'
+  import { calculateBalance, isPWA, logger } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
@@ -13,6 +13,7 @@
   import Nav from '$lib/components/Nav.svelte'
   import Refresh from '$lib/components/Refresh.svelte'
   import lightning from '$lib/lightning'
+  import { browser } from '$app/environment'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -40,6 +41,15 @@
 
   const lnAPI = lightning.getLn()
   const { connectionStatus$ } = lnAPI.connection
+
+  if (browser && !isPWA()) {
+    try {
+      logger.info('Attemptin to register protocol handler')
+      navigator.registerProtocolHandler('bitcoin', '/send?destination=%s')
+    } catch (error) {
+      logger.warn('Could not register bitcoin protocol handler')
+    }
+  }
 </script>
 
 <svelte:head>
