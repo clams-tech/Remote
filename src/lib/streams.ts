@@ -113,7 +113,7 @@ export const funds$ = new BehaviorSubject<{
 }>({ loading: true, data: null })
 
 export const incomeEvents$ = new BehaviorSubject<{
-  data: BkprListIncomeResponse | null
+  data: BkprListIncomeResponse['income_events'] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
