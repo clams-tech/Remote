@@ -1,5 +1,8 @@
 import bitcoin from './icons/bitcoin'
-import lightning from './icons/lightning'
+import lightningIcon from './icons/lightning'
+import lightningOutlineIcon from './icons/lightning-outline'
+import settingsOutlineIcon from '$lib/icons/settings-outline'
+import feeOutlineIcon from '$lib/icons/fee-outline'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 
 export const DEV = import.meta.env.DEV
@@ -67,10 +70,28 @@ export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
+export const NAV_LINKS = [
+  {
+    title: 'Payments',
+    icon: lightningOutlineIcon,
+    route: '/payments'
+  },
+  {
+    title: 'Bookkeeper',
+    icon: feeOutlineIcon,
+    route: '/bkpr'
+  },
+  {
+    title: 'Settings',
+    icon: settingsOutlineIcon,
+    route: '/settings'
+  }
+]
+
 export const currencySymbols = {
   btc: bitcoin,
-  sats: lightning,
-  msats: lightning,
+  sats: lightningIcon,
+  msats: lightningIcon,
   usd: '$',
   eur: '€',
   gbp: '£',
