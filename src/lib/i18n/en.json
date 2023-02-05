@@ -14,10 +14,12 @@
     "settings_app": "App Settings",
     "settings_help": "Help",
     "settings_currency": "Currency Settings",
+    "settings_connection": "Connection Settings",
     "settings_language": "Language Settings",
     "settings_unit": "Unit Settings",
     "settings_logs": "Debug Logs",
-    "lnurl": "LNURL"
+    "lnurl": "LNURL",
+    "bkpr": "Bookkeeper"
   },
   "inputs": {
     "destination": {
@@ -66,6 +68,7 @@
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
+    "connection": "Connection",
     "app": "App",
     "discord": "Discord Server",
     "docs": "Documentation",
@@ -81,7 +84,10 @@
     "max_sendable": "Maximum Sendable:",
     "min_withdrawable": "Minimum Withdrawable:",
     "max_withdrawable": "Maximum Withdrawable:",
-    "fixed_withdrawable": "Withdrawable:"
+    "fixed_withdrawable": "Withdrawable:",
+    "app_proxy": "App Proxy",
+    "custom_proxy": "Custom Proxy",
+    "direct_connection": "Direct Connection"
   },
   "time": {
     "mins": "mins"
@@ -121,12 +127,16 @@
     "data_request": "Data Request Error",
     "list_funds": "Error trying to list funds",
     "get_info": "Error trying to get node info",
+    "reset_error": "Error trying to reset app",
+    "storage_access": "Access to local storage denied, so data cannot be deleted",
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
+    "bkpr_list_income": "Error trying to list income",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
     "lnurl_parse_error": "Failed to parse LNURL.",
-    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported."
+    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported.",
+    "download": "Download Error"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -153,7 +163,8 @@
     "github": "Contribute on Github",
     "open": "Open",
     "copy": "Copy",
-    "go_to_payment": "Go to payment"
+    "go_to_payment": "Go to payment",
+    "download": "Download"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -174,7 +185,8 @@
     "decrypt": "Decrypt",
     "encrypt": "Encryption Key",
     "pay_request": "LNURL Pay Request",
-    "withdraw_request": "LNURL Withdraw Request"
+    "withdraw_request": "LNURL Withdraw Request",
+    "accounting_exports": "Accounting Exports"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -184,7 +196,8 @@
     "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
     "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
-    "decrypt": "Enter your 4 digit pin number to decrypt your local data."
+    "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
+    "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
@@ -198,5 +211,8 @@
       "heading": "Notifications",
       "description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
     }
+  },
+  "loading": {
+    "accounting_exports": "Loading accounting data..."
   }
 }

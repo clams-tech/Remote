@@ -13,10 +13,12 @@
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { createRandomHex, splitDestination } from '$lib/utils'
+  import type { PageData } from './$types'
+
+  export let data: PageData
 
   let previousSlide = 0
   let slide = 0
-
   let errorMsg = ''
 
   function next() {
@@ -46,8 +48,8 @@
   }
 
   const sendPayment$ = new SvelteSubject<SendPayment>({
-    destination: '',
-    type: null,
+    destination: data.destination || '',
+    type: data.type || null,
     description: '',
     expiry: null,
     timestamp: null,

@@ -556,6 +556,24 @@ export type SignMessageResponse = {
   zbase: string
 }
 
+export type IncomeEvent = {
+  account: string
+  tag: 'deposit' | 'withdrawal' | 'onchain_fee' | 'invoice' | 'invoice_fee' | 'routed' | string
+  credit_msat: number
+  debit_msat: number
+  currency: string
+  timestamp: number
+  description?: string
+  outpoint?: string
+  txid?: string
+  payment_id?: string
+  fee_amount?: string
+}
+
+export type BkprListIncomeResponse = {
+  income_events: IncomeEvent[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -567,5 +585,6 @@ export type LNResponse =
   | WaitInvoiceResponse
   | WaitAnyInvoiceResponse
   | SignMessageResponse
+  | BkprListIncomeResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

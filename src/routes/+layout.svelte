@@ -56,8 +56,7 @@
     </div>
   {:else}
     <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
-
-    <div class="absolute top-4 right-4 z-20">
+    <div class="absolute top-0 right-0 z-20">
       <Menu />
     </div>
 

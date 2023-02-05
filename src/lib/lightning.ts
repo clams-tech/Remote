@@ -32,7 +32,8 @@ import {
   payments$,
   paymentUpdates$,
   customNotifications$,
-  pin$
+  pin$,
+  incomeEvents$
 } from './streams'
 
 class Lightning {
@@ -41,7 +42,7 @@ class Lightning {
   constructor() {}
 
   public getLn(initialAuth?: Auth): LnAPI {
-    if (!this.ln) {
+    if (!this.ln || initialAuth) {
       const auth = initialAuth || auth$.getValue()
 
       if (!auth) {
@@ -98,9 +99,7 @@ class Lightning {
     logger.info('Refreshing data')
     const lnApi = this.getLn()
 
-    await this.updateFunds(lnApi)
-    await this.updateInfo(lnApi)
-    await this.updatePayments(lnApi)
+    await Promise.all([this.updateFunds(lnApi), this.updateInfo(lnApi), this.updatePayments(lnApi)])
 
     logger.info('Refresh data complete')
   }
@@ -160,7 +159,27 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.list_payments')}: ${message}`
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateIncomeEvents(lnApi: LnAPI) {
+    try {
+      incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
+      const { income_events } = await lnApi.bkprListIncome()
+      incomeEvents$.next({ loading: false, data: income_events })
+
+      return income_events
+    } catch (error) {
+      const { message } = error as Error
+      incomeEvents$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
       })
     }
   }
@@ -192,7 +211,15 @@ class Lightning {
         logger.info(`Listening for invoice updates after pay index: ${payIndex}`)
 
         const reqId = createRandomHex(8)
-        localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
+
+        try {
+          localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
+        } catch (error) {
+          throw new Error(
+            'Could not save invoice index to local storage, so will not listen for all invoices'
+          )
+        }
+
         invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex, reqId), disconnectProm])
       } catch (error) {
         const { message } = error as { message: string }

@@ -26,6 +26,9 @@ module.exports = {
         black: '#000000',
         white: '#ffffff',
         transparent: 'transparent'
+      },
+      screens: {
+        tall: { raw: '(min-height: 900px)' }
       }
     }
   },

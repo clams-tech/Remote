@@ -3,10 +3,11 @@ import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import { invoiceToPayment, payToPayment } from './utils'
-import { WS_PROXY } from '$lib/constants'
 import type { Logger } from 'lnmessage/dist/types'
+import { settings$ } from '$lib/streams'
 
 import type {
+  BkprListIncomeResponse,
   GetinfoResponse,
   InvoiceRequest,
   InvoiceResponse,
@@ -24,13 +25,15 @@ class CoreLn {
   public connection: LnMessage
   public rune: string
 
-  constructor(auth: Auth, wsProxy = WS_PROXY, logger?: Logger) {
+  constructor(auth: Auth, logger?: Logger) {
     const { address, token, sessionSecret } = auth
+    const { wsProxy, directConnection } = settings$.value
     const { publicKey, ip, port } = parseNodeAddress(address)
 
     this.connection = new LnMessage({
       remoteNodePublicKey: publicKey,
-      wsProxy,
+      wsProxy: directConnection ? undefined : wsProxy,
+      wsProtocol: directConnection,
       ip,
       port: port || 9735,
       privateKey: sessionSecret,
@@ -246,6 +249,15 @@ class CoreLn {
     })
 
     return result as SignMessageResponse
+  }
+
+  async bkprListIncome(): Promise<BkprListIncomeResponse> {
+    const result = await this.connection.commando({
+      method: 'bkpr-listincome',
+      rune: this.rune
+    })
+
+    return result as BkprListIncomeResponse
   }
 }
 

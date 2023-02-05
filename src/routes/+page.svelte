@@ -2,15 +2,18 @@
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
-  import { calculateBalance } from '$lib/utils'
+  import { calculateBalance, isPWA, logger } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import arrow from '$lib/icons/arrow'
   import qr from '$lib/icons/qr'
+  import Nav from '$lib/components/Nav.svelte'
+  import Refresh from '$lib/components/Refresh.svelte'
+  import lightning from '$lib/lightning'
+  import { browser } from '$app/environment'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -35,26 +38,41 @@
       from: BitcoinDenomination.msats,
       to: $settings$.secondaryDenomination
     })
+
+  const lnAPI = lightning.getLn()
+  const { connectionStatus$ } = lnAPI.connection
+  
+  if (browser && !isPWA()) {
+    try {
+      logger.info('Attemptin to register protocol handler')
+      navigator.registerProtocolHandler('bitcoin', '/send?destination=%s')
+    } catch (error) {
+      logger.warn('Could not register bitcoin protocol handler')
+    }
+  }
 </script>
 
 <svelte:head>
   <title>{$translate('app.titles.home')}</title>
 </svelte:head>
 
-<div in:fade class="h-full w-full flex flex-col items-center justify-center relative">
-  <div class="w-24 absolute top-2 left-2">
-    <ClamsLogo disableAnimation />
-  </div>
+<Nav />
 
+<div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
   <div class="w-full max-w-lg p-6">
     {#if $nodeInfo$.data}
-      <span in:fade class="flex items-center w-full justify-center text-xl mb-4"
-        >{$nodeInfo$.data.alias}
-        <span
-          style="background-color: #{$nodeInfo$.data.color};"
-          class="w-4 h-4 rounded-full ml-2"
-        /></span
-      >
+      <div in:fade class="flex items-center w-full justify-center text-xl p-4">
+        <Refresh />
+        <div class="ml-2 mt-[2px]">{$nodeInfo$.data.alias}</div>
+        <div
+          class:bg-utility-success={$connectionStatus$ === 'connected'}
+          class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
+            $connectionStatus$ === 'waiting_reconnect' ||
+            !$connectionStatus$}
+          class:bg-utility-error={$connectionStatus$ === 'disconnected'}
+          class="w-4 h-4 rounded-full ml-2 transition-colors"
+        />
+      </div>
     {/if}
 
     {#if $funds$.loading && !$funds$.data}

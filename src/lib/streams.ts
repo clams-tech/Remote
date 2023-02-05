@@ -1,9 +1,10 @@
 import { BehaviorSubject, defer, fromEvent, Observable, of, ReplaySubject, Subject } from 'rxjs'
 import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
-import type { GetinfoResponse, ListfundsResponse } from './backends'
+import type { BkprListIncomeResponse, GetinfoResponse, ListfundsResponse } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
+import { logger } from './utils'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -35,13 +36,21 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
-const storedSettings =
-  typeof window !== 'undefined' ? localStorage.getItem(SETTINGS_STORAGE_KEY) : null
+let storedSettings: null | string = null
+
+if (typeof window !== 'undefined') {
+  try {
+    storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
+  } catch (error) {
+    logger.error('Could not retrieve settings, access to local storage denied')
+  }
+}
 
 // app settings$
-export const settings$ = new SvelteSubject<Settings>(
-  storedSettings ? JSON.parse(storedSettings) : DEFAULT_SETTINGS
-)
+export const settings$ = new SvelteSubject<Settings>({
+  ...DEFAULT_SETTINGS,
+  ...(storedSettings ? JSON.parse(storedSettings) : {})
+})
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
@@ -59,7 +68,7 @@ export const pin$ = new BehaviorSubject<string | null>(null)
 export const log$ = new Subject<string>()
 
 // log to console in staging
-if (import.meta.env.MODE === 'staging') {
+if (import.meta.env.MODE === 'staging' || import.meta.env.DEV) {
   log$.subscribe(console.log)
 }
 
@@ -100,6 +109,12 @@ export const payments$ = new BehaviorSubject<{
 
 export const funds$ = new BehaviorSubject<{
   data: ListfundsResponse | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const incomeEvents$ = new BehaviorSubject<{
+  data: BkprListIncomeResponse['income_events'] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
