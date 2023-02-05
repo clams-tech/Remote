@@ -47,9 +47,10 @@ if (typeof window !== 'undefined') {
 }
 
 // app settings$
-export const settings$ = new SvelteSubject<Settings>(
-  storedSettings ? JSON.parse(storedSettings) : DEFAULT_SETTINGS
-)
+export const settings$ = new SvelteSubject<Settings>({
+  ...DEFAULT_SETTINGS,
+  ...(storedSettings ? JSON.parse(storedSettings) : {})
+})
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)

@@ -4,9 +4,12 @@
   import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import { incomeEvents$ } from '$lib/streams'
+  import { customNotifications$, incomeEvents$ } from '$lib/streams'
   import lightning from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
+  import { onMount } from 'svelte'
+  import download from '$lib/icons/download'
+  import { createRandomHex } from '$lib/utils'
 
   type Format = 'koinly' | 'cointracker' | 'quickbooks' | 'harmony'
 
@@ -38,10 +41,12 @@
   ]
 
   // Fetch bookkeeper income events
-  lightning.updateIncomeEvents(lightning.getLn())
+  onMount(() => {
+    lightning.updateIncomeEvents(lightning.getLn())
+  })
 
   // spinner state for when formatting and downloading csv
-  let formatting = false
+  let formatting = ''
 
   // formatted so that fee events are combined with invoice events
   let combinedPaymentsFees: IncomeEvent[]
@@ -273,10 +278,21 @@
 
   function downloadCSV(format: Format): () => Promise<void> {
     return async () => {
-      formatting = true
-      const csvString = await createCSVString(format)
-      downloadFile(csvString, `${format}.csv`)
-      formatting = false
+      try {
+        formatting = format
+        const csvString = await createCSVString(format)
+        downloadFile(csvString, `${format}.csv`)
+        formatting = ''
+      } catch (error) {
+        const { message } = error as { message: string }
+
+        customNotifications$.next({
+          id: createRandomHex(),
+          type: 'error',
+          heading: $translate('app.errors.download'),
+          message: message
+        })
+      }
     }
   }
 
@@ -294,11 +310,11 @@
   }
 </script>
 
-<section class="max-w-m p-6">
+<section class="max-w-md p-6">
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
-    <div class="w-full h-full flex items-center justify-center">
+    <div class="w-full h-full flex flex-col items-center justify-center">
       <Spinner />
-      <p class="ml-2">{$translate('app.loading.accounting_exports')}</p>
+      <p class="mt-2">{$translate('app.loading.accounting_exports')}</p>
     </div>
   {:else if $incomeEvents$.error}
     <div class="w-full h-full flex items-center justify-center">
@@ -313,19 +329,17 @@
     </p>
     <div class="w-full mt-6">
       {#each links as { website, text, format }}
-        <div class="flex items-center p-3">
-          <a
-            class="w-1/2 text-center underline text-lg"
-            href={website}
-            target="_blank"
-            rel="noopener noreferrer">{text}</a
-          >
+        <div class="flex items-center justify-between pb-4">
+          <a class="underline" href={website} target="_blank" rel="noopener noreferrer">{text}</a>
           <div class="text-center">
             <Button
-              requesting={formatting}
-              text={$translate('app.buttons.download_csv')}
+              requesting={formatting === format}
+              text={$translate('app.buttons.download')}
               on:click={downloadCSV(format)}
-            />
+              small
+            >
+              <div class="w-4 mr-1" slot="iconLeft">{@html download}</div>
+            </Button>
           </div>
         </div>
       {/each}

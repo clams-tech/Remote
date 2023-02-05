@@ -135,7 +135,8 @@
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
     "lnurl_parse_error": "Failed to parse LNURL.",
-    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported."
+    "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported.",
+    "download": "Download Error"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -163,7 +164,7 @@
     "open": "Open",
     "copy": "Copy",
     "go_to_payment": "Go to payment",
-    "download_csv": "Download CSV"
+    "download": "Download"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -196,7 +197,7 @@
     "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
     "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
-    "accounting_exports": "All income events, conveniently converted to CSV files. We support the following export formats:"
+    "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
