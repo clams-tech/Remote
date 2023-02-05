@@ -1,5 +1,8 @@
 module.exports = {
   content: ['./src/**/*.{html,js,svelte,ts}'],
+  future: {
+    hoverOnlyWhenSupported: true
+  },
   theme: {
     extend: {
       colors: {
