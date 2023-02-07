@@ -83,7 +83,7 @@ export type Denomination = BitcoinDenomination | FiatDenomination
 
 export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
-export type PaymentType = 'node_public_key' | 'payment_request' | 'lightning_address' | 'lnurl'
+export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'onchain'
 
 export type Payment = {
   id: string
@@ -142,4 +142,27 @@ export type ParsedNodeAddress = {
 export type DecodedInvoice = {
   paymentRequest: string
   sections: { name: string; value?: string | number }[]
+}
+
+export type ParsedBitcoinURL = {
+  protocol: string
+  address: string
+  lightning: string | null
+  metadata?: {
+    amount: string | null
+    label: string | null
+    message: string | null
+  }
+}
+
+export type ParsedPaymentInput = ParsedBitcoinURL & { type: PaymentType | null; error?: string }
+
+export type SendPayment = {
+  destination: string
+  type: PaymentType | null
+  description: string
+  expiry: number | null
+  timestamp: number | null
+  amount: string // invoice amount
+  value: string // user input amount
 }

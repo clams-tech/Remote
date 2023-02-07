@@ -4,7 +4,7 @@
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import Slide from '$lib/elements/Slide.svelte'
-  import { BitcoinDenomination, type PaymentType } from '$lib/types'
+  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
   import { convertValue } from '$lib/conversion'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
@@ -12,7 +12,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
-  import { createRandomHex, splitDestination } from '$lib/utils'
+  import { createRandomHex, parsePaymentInput } from '$lib/utils'
   import type { PageData } from './$types'
 
   export let data: PageData
@@ -37,16 +37,6 @@
 
   let requesting = false
 
-  type SendPayment = {
-    destination: string
-    type: PaymentType | null
-    description: string
-    expiry: number | null
-    timestamp: number | null
-    amount: string // invoice amount
-    value: string // user input amount
-  }
-
   const sendPayment$ = new SvelteSubject<SendPayment>({
     destination: data.destination || '',
     type: data.type || null,
@@ -62,15 +52,15 @@
     const { destination, value, type, description } = sendPayment$.getValue()
     const { primaryDenomination } = $settings$
 
+    let payment: Payment | null = null
+
     try {
-      let paymentId
       const lnApi = lightning.getLn()
+      const id = createRandomHex()
 
       switch (type) {
-        case 'payment_request': {
-          const id = createRandomHex()
-
-          const payment = await lnApi.payInvoice({
+        case 'bolt11': {
+          payment = await lnApi.payInvoice({
             id,
             bolt11: destination,
             amount_msat:
@@ -87,15 +77,10 @@
                 : undefined
           })
 
-          paymentUpdates$.next({ ...payment, description })
-          paymentId = payment.id
-
           break
         }
-        case 'node_public_key': {
-          const id = createRandomHex()
-
-          const payment = await lnApi.payKeysend({
+        case 'keysend': {
+          payment = await lnApi.payKeysend({
             id,
             destination,
             amount_msat: Big(
@@ -109,16 +94,17 @@
               .toString()
           })
 
-          paymentUpdates$.next(payment)
-          paymentId = payment.id
-
           break
         }
       }
 
-      // delay to allow time for node to update
-      setTimeout(() => lightning.updateFunds(lnApi), 1000)
-      goto(`/payments/${paymentId}`)
+      if (payment) {
+        paymentUpdates$.next({ ...payment, description })
+
+        // delay to allow time for node to update
+        setTimeout(() => lightning.updateFunds(lnApi), 1000)
+        goto(`/payments/${payment.id}`)
+      }
     } catch (error) {
       requesting = false
 
@@ -130,20 +116,20 @@
 
   function destinationNext() {
     const { type, destination, amount } = $sendPayment$
-    const value = splitDestination(destination)[1]
+    const { address, lightning } = parsePaymentInput(destination)
 
     if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${value}`)
+      goto(`/lnurl?lnurl=${lightning || address}`)
       return
     }
 
-    if (type === 'payment_request' && amount && amount !== '0') {
+    if (type === 'bolt11' && amount && amount !== '0') {
       to(3)
       return
     }
 
     next()
-    $sendPayment$.destination = value
+    $sendPayment$.destination = lightning || address
   }
 </script>
 

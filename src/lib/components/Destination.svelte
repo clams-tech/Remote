@@ -1,6 +1,5 @@
 <script lang="ts">
   import lodashDebounce from 'lodash.debounce'
-  import { decode } from 'light-bolt11-decoder'
   import { onMount, createEventDispatcher, onDestroy } from 'svelte'
   import type { PaymentType } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
@@ -11,11 +10,10 @@
   import arrow from '$lib/icons/arrow'
 
   import {
-    formatDecodedInvoice,
     getClipboardPermissions,
     readClipboardValue,
-    getPaymentType,
-    splitDestination
+    parsePaymentInput,
+    decodeBolt11
   } from '$lib/utils'
 
   export let destination: string
@@ -29,7 +27,7 @@
 
   const dispatch = createEventDispatcher()
 
-  let error = ''
+  let errorMsg = ''
   let blurTimeout: NodeJS.Timeout
   let showClipboardModal = false
 
@@ -37,27 +35,42 @@
     showClipboardModal = false
   }
 
-  $: if (destination) {
-    const [prefix, formattedDestination] = splitDestination(destination)
+  function handleDestinationChange() {
+    errorMsg = ''
 
-    error = ''
-    type = getPaymentType(prefix, formattedDestination)
+    const {
+      address,
+      lightning,
+      type,
+      error
+      // protocol,
+      // metadata
+    } = parsePaymentInput(destination)
 
-    if (type === 'payment_request') {
-      try {
-        const decodedInvoice = decode(formattedDestination)
-        const formattedInvoice = formatDecodedInvoice(decodedInvoice)
+    if (error) {
+      errorMsg = error
+      return
+    }
 
-        amount = formattedInvoice.amount || '0'
-        expiry = formattedInvoice.expiry || 3600
-        description = formattedInvoice.description || ''
-        timestamp = formattedInvoice.timestamp
-      } catch (e) {
-        error = $translate('app.inputs.destination.invalid_invoice')
+    if (type === 'bolt11') {
+      const decodedInvoice = decodeBolt11(lightning || address)
+
+      if (!decodedInvoice) {
+        errorMsg = $translate('app.inputs.destination.invalid_bolt11')
+        return
       }
+
+      amount = decodedInvoice.amount || '0'
+      expiry = decodedInvoice.expiry || 3600
+      description = decodedInvoice.description || ''
+      timestamp = decodedInvoice.timestamp
     }
 
     debouncedValidate()
+  }
+
+  $: if (destination) {
+    handleDestinationChange()
   }
 
   onDestroy(() => {
@@ -66,7 +79,7 @@
 
   function validate() {
     blurTimeout = setTimeout(() => {
-      error = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
+      errorMsg = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
     }, 500)
   }
 
@@ -81,13 +94,12 @@
     const clipboardValue = await readClipboardValue()
 
     if (clipboardValue) {
-      const [prefix, formattedDestination] = splitDestination(destination)
-      const paymentType = getPaymentType(prefix, formattedDestination)
+      const { type } = parsePaymentInput(clipboardValue)
 
-      if (paymentType) {
+      if (type) {
         return {
           value: clipboardValue,
-          type: paymentType
+          type
         }
       }
     }
@@ -107,9 +119,10 @@
   }
 
   onMount(async () => {
-    // wait for animation to complete to focus
+    // wait for animation to complete then focus input
     setTimeout(focusInput, 500)
 
+    // already have a destination
     if (destination) return
 
     const clipboardPermission = await getClipboardPermissions()
@@ -117,6 +130,7 @@
     if (clipboardPermission) {
       setTimeout(async () => {
         clipboard = await checkClipboard()
+
         if (clipboard) {
           showClipboardModal = true
         }
@@ -144,15 +158,15 @@
     name="to"
     {readonly}
     on:blur={validate}
-    invalid={error}
+    invalid={errorMsg}
   >
-    <div on:click|stopPropagation={paste} class="w-6 absolute right-2 bottom-2 cursor-pointer">
+    <button on:click|stopPropagation={paste} class="w-6 absolute right-2 bottom-2 cursor-pointer">
       {@html pasteIcon}
-    </div>
+    </button>
   </TextInput>
 
   <div class="mt-6 w-full">
-    <Button on:click={next} text={$translate('app.buttons.next')} primary disabled={!!error}>
+    <Button on:click={next} text={$translate('app.buttons.next')} primary disabled={!!errorMsg}>
       <div slot="iconRight" class="w-6 -rotate-90">
         {@html arrow}
       </div>

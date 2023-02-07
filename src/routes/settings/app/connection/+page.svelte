@@ -7,7 +7,6 @@
   import Button from '$lib/elements/Button.svelte'
   import { auth$ } from '$lib/streams'
   import lightning from '$lib/lightning'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
   import close from '$lib/icons/close'
@@ -23,7 +22,7 @@
     connectStatus = 'connecting'
 
     const currentConnection = lightning.getLn()
-    await currentConnection.disconnect()
+    currentConnection.disconnect()
 
     try {
       const lnApi = lightning.getLn($auth$!)

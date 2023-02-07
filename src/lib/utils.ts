@@ -1,11 +1,13 @@
 import CryptoJS from 'crypto-js'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
+import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
 import type { ListfundsResponse } from './backends'
 import { customNotifications$, log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
+import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
 
 import {
   ALL_DATA_KEYS,
@@ -22,24 +24,10 @@ import type {
   FormattedSections,
   ParsedNodeAddress,
   Auth,
-  DecodedInvoice
+  DecodedInvoice,
+  ParsedBitcoinURL,
+  ParsedPaymentInput
 } from './types'
-
-export function formatDecodedInvoice(
-  decodedInvoice: DecodedInvoice
-): FormattedSections & { paymentRequest: string } {
-  const { sections, paymentRequest } = decodedInvoice
-
-  const formattedSections = sections.reduce((acc, { name, value }) => {
-    if (name && value) {
-      acc[name] = value
-    }
-
-    return acc
-  }, {} as FormattedSections)
-
-  return { paymentRequest, ...formattedSections }
-}
 
 export function deriveLastPayIndex(payments: Payment[]): number {
   return payments.length
@@ -163,31 +151,6 @@ export async function writeClipboardValue(text: string): Promise<boolean> {
   }
 }
 
-export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
-export const lightningInvoiceRegex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
-const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
-
-export function getPaymentType(prefix: string, value: string): PaymentType | null {
-  if (
-    value.startsWith('lnurl') ||
-    prefix.startsWith('lnurl') ||
-    prefix.startsWith('keyauth') ||
-    decodeLightningAddress(value)
-  ) {
-    return 'lnurl'
-  }
-
-  if (nodePublicKeyRegex.test(value)) {
-    return 'node_public_key'
-  }
-
-  if (lightningInvoiceRegex.test(value)) {
-    return 'payment_request'
-  }
-
-  return null
-}
-
 export const encryptWithAES = (text: string, passphrase: string) => {
   return CryptoJS.AES.encrypt(text, passphrase).toString()
 }
@@ -270,8 +233,8 @@ export async function formatCountdown(options: { date: Date; language: string })
 
 export function formatDestination(destination: string, type: PaymentType): string {
   switch (type) {
-    case 'payment_request':
-    case 'node_public_key':
+    case 'bolt11':
+    case 'keysend':
       return truncateValue(destination)
     default:
       return destination
@@ -464,13 +427,100 @@ export function decodeLightningAddress(val: string): { username: string; domain:
   return { username, domain }
 }
 
-export function splitDestination(destination: string): [string, string] {
-  const lowerCaseDestination = destination.toLowerCase()
-  const [prefix, value] = lowerCaseDestination.includes(':')
-    ? lowerCaseDestination.split(':')
-    : ['', lowerCaseDestination]
+export function decodeBolt11(bolt11: string) {
+  try {
+    const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
 
-  const formattedDestination = value.startsWith('//') ? `https:${value}` : value
+    const formattedSections = sections.reduce((acc, { name, value }) => {
+      if (name && value) {
+        acc[name] = value
+      }
 
-  return [prefix, formattedDestination]
+      return acc
+    }, {} as FormattedSections)
+
+    return { bolt11, ...formattedSections }
+  } catch (error) {
+    return null
+  }
+}
+
+export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
+export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
+const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
+
+export function getPaymentType(destination: string, protocol = ''): PaymentType | null {
+  if (
+    destination.startsWith('lnurl') ||
+    protocol.startsWith('lnurl') ||
+    protocol.startsWith('keyauth') ||
+    decodeLightningAddress(destination)
+  ) {
+    return 'lnurl'
+  }
+
+  if (nodePublicKeyRegex.test(destination)) {
+    return 'keysend'
+  }
+
+  if (bolt11Regex.test(destination)) {
+    return 'bolt11'
+  }
+
+  if (isValidBitcoinAddress(destination)) {
+    return 'onchain'
+  }
+
+  return null
+}
+
+export function parseBitcoinUrl(url: string): ParsedBitcoinURL {
+  const parsed = new URL(url)
+  const lightning = parsed.searchParams.get('lightning')
+
+  return {
+    protocol: parsed.protocol.toLowerCase(),
+    address: parsed.pathname.toLowerCase(),
+    lightning: lightning && lightning.toLowerCase(),
+    metadata: {
+      amount: parsed.searchParams.get('amount'),
+      label: parsed.searchParams.get('label'),
+      message: parsed.searchParams.get('message')
+    }
+  }
+}
+
+export function parsePaymentInput(val: string): ParsedPaymentInput {
+  const parsed: ParsedPaymentInput = {
+    protocol: '',
+    address: '',
+    lightning: null,
+    type: null
+  }
+
+  // try and parse as URI
+  try {
+    const parsedBitcoinUrl = parseBitcoinUrl(val)
+
+    parsed.protocol = parsedBitcoinUrl.protocol
+    parsed.address = parsedBitcoinUrl.address
+    parsed.lightning = parsedBitcoinUrl.lightning
+    parsed.metadata = parsedBitcoinUrl.metadata
+  } catch (error) {
+    // not URI, so could be an address
+    parsed.address = val
+  } finally {
+    parsed.type = getPaymentType(parsed.lightning || parsed.address, parsed.protocol)
+  }
+
+  if (!parsed.type) {
+    parsed.error = get(translate)('app.errors.invalid_qr')
+  }
+
+  // onchain payments not yet supported
+  if (parsed.type === 'onchain') {
+    parsed.error = get(translate)('app.errors.onchain_unsupported')
+  }
+
+  return parsed
 }

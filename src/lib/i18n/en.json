@@ -24,7 +24,7 @@
   "inputs": {
     "destination": {
       "label": "Pay To",
-      "hint": "{{paymentType; payment_request:Lightning Invoice; node_public_key:Node Public Key;}}",
+      "hint": "{{paymentType; bolt11:Lightning Invoice; keysend:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
       "placeholder": "Bolt11 Invoice / Node Public Key / LNURL / Lightning Address"
@@ -107,6 +107,8 @@
     "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
     "node_connect": "Connection error",
     "invalid_qr": "Unrecognized QR encoding",
+    "invalid_bolt11": "Invalid Bolt11 Payment Request",
+    "onchain_unsupported": "Onchain payments are not yet supported",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
     "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
     "-1": "Oops something went wrong.",
@@ -204,8 +206,8 @@
   },
   "modals": {
     "clipboard": {
-      "paragraph_one": "You have a {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} on your clipboard.",
-      "paragraph_two": "Would you like to use this {{paymentType; payment_request:Lightning Invoice; account:Clams tag; wallet:Clams wallet; node_public_key:Node Public Key;}} for a transaction?"
+      "paragraph_one": "You have a {{paymentType; bolt11:Lightning Invoice; account:Clams tag; wallet:Clams wallet; keysend:Node Public Key;}} on your clipboard.",
+      "paragraph_two": "Would you like to use this {{paymentType; bolt11:Lightning Invoice; account:Clams tag; wallet:Clams wallet; keysend:Node Public Key;}} for a transaction?"
     },
     "notifications": {
       "heading": "Notifications",
