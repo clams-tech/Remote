@@ -25,8 +25,7 @@ import type {
   ParsedNodeAddress,
   Auth,
   DecodedInvoice,
-  ParsedBitcoinURL,
-  ParsedPaymentInput
+  ParsedBitcoinUrl
 } from './types'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
@@ -449,78 +448,57 @@ export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
-export function getPaymentType(destination: string, protocol = ''): PaymentType | null {
+export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinUrl {
+  destination = destination.toLowerCase()
+  protocol = protocol.toLowerCase()
+
   if (
     destination.startsWith('lnurl') ||
     protocol.startsWith('lnurl') ||
     protocol.startsWith('keyauth') ||
     decodeLightningAddress(destination)
   ) {
-    return 'lnurl'
+    return { lnurl: destination, type: 'lnurl' }
   }
 
   if (nodePublicKeyRegex.test(destination)) {
-    return 'keysend'
+    return { keysend: destination, type: 'keysend' }
   }
 
   if (bolt11Regex.test(destination)) {
-    return 'bolt11'
+    return { bolt11: destination, type: 'bolt11' }
   }
 
   if (isValidBitcoinAddress(destination)) {
-    return 'onchain'
-  }
-
-  return null
-}
-
-export function parseBitcoinUrl(url: string): ParsedBitcoinURL {
-  const parsed = new URL(url)
-  const lightning = parsed.searchParams.get('lightning')
-
-  return {
-    protocol: parsed.protocol.toLowerCase(),
-    address: parsed.pathname.toLowerCase(),
-    lightning: lightning && lightning.toLowerCase(),
-    metadata: {
-      amount: parsed.searchParams.get('amount'),
-      label: parsed.searchParams.get('label'),
-      message: parsed.searchParams.get('message')
+    return {
+      type: 'onchain',
+      onchain: {
+        address: destination
+      }
     }
   }
+
+  return { error: get(translate)('app.errors.unrecognized_payment_type'), type: null }
 }
 
-export function parsePaymentInput(val: string): ParsedPaymentInput {
-  const parsed: ParsedPaymentInput = {
-    protocol: '',
-    address: '',
-    lightning: null,
-    type: null
-  }
-
-  // try and parse as URI
+export function parseBitcoinUrl(input: string): ParsedBitcoinUrl {
+  // try parsing as URL first
   try {
-    const parsedBitcoinUrl = parseBitcoinUrl(val)
+    const { pathname: value, searchParams: params } = new URL(input)
+    const lightningParam = params.get('lightning')
 
-    parsed.protocol = parsedBitcoinUrl.protocol
-    parsed.address = parsedBitcoinUrl.address
-    parsed.lightning = parsedBitcoinUrl.lightning
-    parsed.metadata = parsedBitcoinUrl.metadata
+    const main = getPaymentDetails(value.toLowerCase())
+
+    if (main.onchain) {
+      main.onchain.amount = params.get('amount')
+      main.onchain.label = params.get('label')
+      main.onchain.message = params.get('message')
+    }
+
+    const lightning = lightningParam ? getPaymentDetails(lightningParam.toLowerCase()) : {}
+
+    return { ...main, ...lightning }
   } catch (error) {
-    // not URI, so could be an address
-    parsed.address = val
-  } finally {
-    parsed.type = getPaymentType(parsed.lightning || parsed.address, parsed.protocol)
+    return getPaymentDetails(input)
   }
-
-  if (!parsed.type) {
-    parsed.error = get(translate)('app.errors.invalid_qr')
-  }
-
-  // onchain payments not yet supported
-  if (parsed.type === 'onchain') {
-    parsed.error = get(translate)('app.errors.onchain_unsupported')
-  }
-
-  return parsed
 }

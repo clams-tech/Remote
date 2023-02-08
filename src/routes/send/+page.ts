@@ -1,14 +1,14 @@
-import { parsePaymentInput } from '$lib/utils'
+import { parseBitcoinUrl } from '$lib/utils'
 import type { PageLoad } from './$types'
 
 export const load: PageLoad = async ({ url }) => {
   const destination = url.searchParams.get('destination')
 
   if (destination) {
-    const { address, lightning, type } = parsePaymentInput(destination)
+    const { bolt11, lnurl, onchain, keysend, type } = parseBitcoinUrl(destination)
 
     return {
-      destination: lightning || address,
+      destination: bolt11 || lnurl || keysend || onchain?.address,
       type
     }
   }

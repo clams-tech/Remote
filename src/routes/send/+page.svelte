@@ -12,7 +12,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
-  import { createRandomHex, parsePaymentInput } from '$lib/utils'
+  import { createRandomHex, parseBitcoinUrl } from '$lib/utils'
   import type { PageData } from './$types'
 
   export let data: PageData
@@ -115,21 +115,37 @@
   }
 
   function destinationNext() {
-    const { type, destination, amount } = $sendPayment$
-    const { address, lightning } = parsePaymentInput(destination)
+    const { destination, amount } = $sendPayment$
+    const { lnurl, bolt11, onchain, error, type } = parseBitcoinUrl(destination)
 
-    if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${lightning || address}`)
+    if (error) {
+      errorMsg = error
       return
     }
 
-    if (type === 'bolt11' && amount && amount !== '0') {
-      to(3)
+    $sendPayment$.type = type
+
+    if (lnurl) {
+      goto(`/lnurl?lnurl=${lnurl}`)
+      return
+    }
+
+    if (bolt11) {
+      $sendPayment$.destination = bolt11
+
+      if (amount && amount !== '0') {
+        to(3)
+        return
+      }
+    }
+
+    // onchain not currently supported
+    if (onchain && !bolt11) {
+      errorMsg = $translate('app.errors.onchain_unsupported')
       return
     }
 
     next()
-    $sendPayment$.destination = lightning || address
   }
 </script>
 

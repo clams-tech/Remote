@@ -12,7 +12,7 @@
   import {
     getClipboardPermissions,
     readClipboardValue,
-    parsePaymentInput,
+    parseBitcoinUrl,
     decodeBolt11
   } from '$lib/utils'
 
@@ -38,22 +38,17 @@
   function handleDestinationChange() {
     errorMsg = ''
 
-    const {
-      address,
-      lightning,
-      type,
-      error
-      // protocol,
-      // metadata
-    } = parsePaymentInput(destination)
+    const { error, bolt11, type: destinationType } = parseBitcoinUrl(destination)
 
     if (error) {
       errorMsg = error
       return
     }
 
-    if (type === 'bolt11') {
-      const decodedInvoice = decodeBolt11(lightning || address)
+    type = destinationType
+
+    if (bolt11) {
+      const decodedInvoice = decodeBolt11(bolt11)
 
       if (!decodedInvoice) {
         errorMsg = $translate('app.inputs.destination.invalid_bolt11')
@@ -79,42 +74,62 @@
 
   function validate() {
     blurTimeout = setTimeout(() => {
-      errorMsg = !destination ? 'required' : !type ? $translate('app.inputs.destination.error') : ''
+      if (!destination) {
+        errorMsg = $translate('app.validation.required')
+        return
+      }
+
+      if (!type) {
+        errorMsg = $translate('app.inputs.destination.error')
+        return
+      }
+
+      if (type === 'onchain') {
+        errorMsg = $translate('app.errors.onchain_unsupported')
+        return
+      }
+
+      errorMsg = ''
     }, 500)
   }
 
   const debouncedValidate = lodashDebounce(validate, 500)
 
-  type ClipboardValue = { value: string; type: PaymentType }
+  type Clipboard = {
+    type: PaymentType | null
+    value: string
+  }
 
-  let clipboard: null | ClipboardValue
+  let clipboard: Clipboard | null | undefined
   let focusInput: () => void
 
-  async function checkClipboard(): Promise<ClipboardValue | null> {
+  async function checkClipboard(): Promise<Clipboard | null | undefined> {
     const clipboardValue = await readClipboardValue()
 
-    if (clipboardValue) {
-      const { type } = parsePaymentInput(clipboardValue)
+    if (clipboardValue === null) return clipboardValue
 
-      if (type) {
+    if (clipboardValue) {
+      const { error, bolt11, lnurl, keysend, onchain, type } = parseBitcoinUrl(clipboardValue)
+
+      if (!error) {
         return {
-          value: clipboardValue,
+          value: (bolt11 || lnurl || keysend || onchain?.address) as string,
           type
         }
       }
     }
-
-    return null
   }
 
   async function paste() {
-    const clipboardValue = await checkClipboard()
+    const clipboard = await checkClipboard()
 
-    if (clipboardValue) {
-      destination = clipboardValue.value
-      type = clipboardValue.type
-    } else {
+    if (clipboard === null) {
       dispatch('clipboardError', $translate('app.errors.permissions_clipboard'))
+    }
+
+    if (clipboard) {
+      type = clipboard.type
+      destination = clipboard.value
     }
   }
 

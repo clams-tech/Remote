@@ -12,7 +12,7 @@
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
-  import { createRandomHex, decodeBolt11, parsePaymentInput } from '$lib/utils'
+  import { createRandomHex, decodeBolt11, parseBitcoinUrl } from '$lib/utils'
 
   let requesting = false
   let errorMsg = ''
@@ -28,14 +28,7 @@
   })
 
   async function handleScanResult(scanResult: string) {
-    const {
-      address,
-      lightning,
-      type,
-      error
-      // protocol,
-      // metadata
-    } = parsePaymentInput(scanResult)
+    const { error, lnurl, keysend, bolt11, onchain } = parseBitcoinUrl(scanResult)
 
     if (error) {
       errorMsg = error
@@ -43,16 +36,16 @@
     }
 
     // lnurl
-    if (type === 'lnurl' || type === 'lightning_address') {
-      goto(`/lnurl?lnurl=${lightning || address}`)
+    if (lnurl) {
+      goto(`/lnurl?lnurl=${lnurl}`)
       return
     }
 
     // keysend
-    if (type === 'keysend') {
+    if (keysend) {
       sendPayment$.next({
-        type,
-        destination: address,
+        type: 'keysend',
+        destination: keysend,
         description: '',
         expiry: null,
         value: '',
@@ -65,18 +58,18 @@
       return
     }
 
-    if (type === 'bolt11') {
-      const decoded = decodeBolt11(lightning || address)
+    if (bolt11) {
+      const decoded = decodeBolt11(bolt11)
 
       if (!decoded) {
         errorMsg = $translate('app.errors.invalid_bolt11')
         return
       }
 
-      const { bolt11, description, expiry, amount, timestamp } = decoded
+      const { description, expiry, amount, timestamp } = decoded
 
       sendPayment$.next({
-        type,
+        type: 'bolt11',
         destination: bolt11,
         description: description || '',
         expiry: expiry || 3600,
@@ -92,6 +85,10 @@
       }
 
       return
+    }
+
+    if (onchain) {
+      errorMsg = $translate('app.errors.onchain_unsupported')
     }
   }
 
