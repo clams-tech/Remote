@@ -115,7 +115,7 @@
 {#if slide === 2}
   <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
-      type="payment_request"
+      type="bolt11"
       value={$receivePayment$.value}
       description={$receivePayment$.description}
       bind:expiry={$receivePayment$.expiry}

@@ -16,14 +16,14 @@
     {#each NAV_LINKS as link}
       <a
         href={link.route}
-        class="flex items-center justify-center w-8 group/item sm:tall:group-hover/sidebar:w-32 transition-all overflow-hidden"
+        class="flex items-center justify-center w-8 group/item sm:group-hover/sidebar:w-32 transition-all overflow-hidden"
       >
         <div class="w-8 group-hover/item:text-purple-400 transition-all">
           {@html link.icon}
         </div>
 
         <div
-          class="w-0 overflow-hidden sm:tall:group-hover/sidebar:w-24 sm:tall:group-hover/sidebar:pl-2 transition-all"
+          class="w-0 overflow-hidden sm:group-hover/sidebar:w-24 sm:group-hover/sidebar:pl-2 transition-all"
         >
           {link.title}
         </div>

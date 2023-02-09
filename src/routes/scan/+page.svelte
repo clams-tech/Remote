@@ -1,68 +1,77 @@
 <script lang="ts">
-  import { decode } from 'light-bolt11-decoder'
   import Big from 'big.js'
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
   import Scanner from '$lib/components/Scanner.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import { BitcoinDenomination, type Payment } from '$lib/types'
+  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
-
-  import {
-    createRandomHex,
-    formatDecodedInvoice,
-    getPaymentType,
-    splitDestination
-  } from '$lib/utils'
+  import { createRandomHex, decodeBolt11, parseBitcoinUrl } from '$lib/utils'
 
   let requesting = false
   let errorMsg = ''
 
-  const sendPayment$ = new SvelteSubject<
-    Pick<Payment, 'bolt11' | 'description' | 'value'> & {
-      expiry: number | null
-      timestamp: number | null
-      amount: string
-    }
-  >({
-    bolt11: '',
+  const sendPayment$ = new SvelteSubject<SendPayment>({
+    destination: '',
+    type: null,
     description: '',
     expiry: null,
-    value: '0',
+    timestamp: null,
     amount: '',
-    timestamp: null
+    value: ''
   })
 
   async function handleScanResult(scanResult: string) {
-    const [prefix, formattedDestination] = splitDestination(scanResult)
+    const { error, lnurl, keysend, bolt11, onchain } = parseBitcoinUrl(scanResult)
 
-    if (!formattedDestination) {
-      errorMsg = $translate('app.errors.invalid_qr')
+    if (error) {
+      errorMsg = error
       return
     }
 
-    const type = getPaymentType(prefix, formattedDestination)
-
-    // check if lnurl
-    if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${formattedDestination}`)
+    // lnurl
+    if (lnurl) {
+      goto(`/lnurl?lnurl=${lnurl}`)
       return
     }
 
-    try {
-      const decodedInvoice = decode(formattedDestination)
-      const { paymentRequest, description, expiry, amount, timestamp } =
-        formatDecodedInvoice(decodedInvoice)
+    // keysend
+    if (keysend) {
+      sendPayment$.next({
+        type: 'keysend',
+        destination: keysend,
+        description: '',
+        expiry: null,
+        value: '',
+        amount: '',
+        timestamp: null
+      })
+
+      next()
+
+      return
+    }
+
+    if (bolt11) {
+      const decoded = decodeBolt11(bolt11)
+
+      if (!decoded) {
+        errorMsg = $translate('app.errors.invalid_bolt11')
+        return
+      }
+
+      const { description, expiry, amount, timestamp } = decoded
 
       sendPayment$.next({
-        bolt11: paymentRequest,
-        description,
+        type: 'bolt11',
+        destination: bolt11,
+        description: description || '',
         expiry: expiry || 3600,
         value: '0',
         amount,
@@ -74,13 +83,17 @@
       } else {
         to(2)
       }
-    } catch (error) {
-      errorMsg = $translate('app.errors.invalid_invoice')
+
+      return
+    }
+
+    if (onchain) {
+      errorMsg = $translate('app.errors.onchain_unsupported')
     }
   }
 
   async function sendPayment() {
-    const { bolt11, description, value } = sendPayment$.getValue()
+    const { destination, description, value, type } = sendPayment$.getValue()
     const { primaryDenomination } = $settings$
 
     errorMsg = ''
@@ -90,22 +103,46 @@
 
     try {
       const lnApi = lightning.getLn()
-      const payment = await lnApi.payInvoice({
-        bolt11: bolt11 as string,
-        id,
-        amount_msat:
-          value && value !== '0'
-            ? Big(
-                convertValue({
-                  value,
-                  from: primaryDenomination,
-                  to: BitcoinDenomination.msats
-                }) as string
-              )
-                .round()
-                .toString()
-            : undefined
-      })
+
+      let payment: Payment | null = null
+
+      if (type === 'keysend') {
+        payment = await lnApi.payKeysend({
+          id,
+          destination,
+          amount_msat: Big(
+            convertValue({
+              value,
+              from: primaryDenomination,
+              to: BitcoinDenomination.msats
+            }) as string
+          )
+            .round()
+            .toString()
+        })
+      }
+
+      if (type === 'bolt11') {
+        payment = await lnApi.payInvoice({
+          bolt11: destination,
+          id,
+          amount_msat:
+            value && value !== '0'
+              ? Big(
+                  convertValue({
+                    value,
+                    from: primaryDenomination,
+                    to: BitcoinDenomination.msats
+                  }) as string
+                )
+                  .round()
+                  .toString()
+              : undefined
+        })
+      }
+
+      if (!payment) return
+
       paymentUpdates$.next({ ...payment, description })
       goto(`/payments/${payment.id}`)
     } catch (error) {
@@ -160,8 +197,8 @@
 {#if slide === 2}
   <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
-      destination={$sendPayment$.bolt11}
-      type="payment_request"
+      destination={$sendPayment$.destination}
+      type="bolt11"
       value={$sendPayment$.value && $sendPayment$.value !== '0'
         ? $sendPayment$.value
         : convertValue({

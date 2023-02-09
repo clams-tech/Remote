@@ -1,10 +1,7 @@
 import Big from 'big.js'
-import { decode } from 'light-bolt11-decoder'
-import type { DecodedInvoice, Payment } from '$lib/types'
-import { formatDecodedInvoice, formatMsat, logger } from '$lib/utils'
-
+import type { Payment } from '$lib/types'
+import { decodeBolt11, formatMsat, logger } from '$lib/utils'
 import type { InvoiceStatus, Invoice, Pay } from './types'
-import { MIN_IN_SECS } from '$lib/constants'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -32,14 +29,16 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     pay_index
   } = invoice
 
-  let timestamp: number
+  let timestamp: number | null = new Date().getTime() / 1000
 
-  try {
-    const decodedInvoice: DecodedInvoice = decode(bolt11)
-    timestamp = formatDecodedInvoice(decodedInvoice).timestamp
-  } catch (error) {
-    logger.error(`Unable to decode bolt11: ${bolt11}`)
-    timestamp = expires_at - 15 * MIN_IN_SECS
+  if (bolt11) {
+    const decoded = decodeBolt11(bolt11)
+
+    if (decoded) {
+      timestamp = decoded.timestamp
+    } else {
+      logger.error(`Unable to decode bolt11: ${bolt11}`)
+    }
   }
 
   return {
@@ -47,7 +46,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     bolt11: bolt11 || null,
     hash: payment_hash,
     direction: 'receive',
-    type: 'payment_request',
+    type: 'bolt11',
     preimage: payment_preimage,
     value: formatMsat(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
@@ -78,11 +77,14 @@ export function payToPayment(pay: Pay): Payment {
 
   let description: string | undefined
 
-  try {
-    const decodedInvoice: DecodedInvoice | undefined = bolt11 && decode(bolt11)
-    description = decodedInvoice && formatDecodedInvoice(decodedInvoice).description
-  } catch (error) {
-    logger.error(`Unable to decode bolt11: ${bolt11}`)
+  if (bolt11) {
+    const decoded = decodeBolt11(bolt11)
+
+    if (decoded) {
+      description = decoded.description
+    } else {
+      logger.error(`Unable to decode bolt11: ${bolt11}`)
+    }
   }
 
   const amountMsat = formatMsat(amount_msat)
@@ -98,7 +100,7 @@ export function payToPayment(pay: Pay): Payment {
     value: amountMsat,
     fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
     direction: 'send',
-    type: bolt11 ? 'payment_request' : 'node_public_key',
+    type: bolt11 ? 'bolt11' : 'keysend',
     expiresAt: null,
     completedAt: timestamp,
     description
