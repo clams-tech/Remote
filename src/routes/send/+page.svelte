@@ -191,10 +191,7 @@
 {/if}
 
 {#if slide === 3}
-  <Slide
-    back={() => ($sendPayment$.amount ? to(0) : prev())}
-    direction={previousSlide > slide ? 'right' : 'left'}
-  >
+  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
       direction="send"
       type={$sendPayment$.type}
