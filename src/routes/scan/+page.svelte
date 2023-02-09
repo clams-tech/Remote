@@ -195,7 +195,7 @@
 {/if}
 
 {#if slide === 2}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
       destination={$sendPayment$.destination}
       type="bolt11"
