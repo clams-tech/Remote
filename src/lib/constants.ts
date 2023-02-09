@@ -37,7 +37,10 @@ export const DEFAULT_SETTINGS: Settings = {
   sendMaxFeePercent: 0.5,
   sendTimeoutSeconds: 120,
   notifications: true,
-  darkmode: false,
+  darkmode:
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches,
   encrypt: false,
   wsProxy: WS_PROXY,
   directConnection: undefined
