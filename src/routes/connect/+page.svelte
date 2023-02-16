@@ -70,7 +70,6 @@
 
     if (decodedRune) {
       blurRuneInput()
-      showDecodedRuneModal = true
     }
   }
 
@@ -384,13 +383,23 @@
         </div>
       </div>
 
-      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
-        <div class="w-5 mr-2 border-2 rounded-full border-current">
-          {@html info}
+      <div
+        class="flex items-center w-full justify-between mb-6 font-thin text-sm dark:text-purple-200 text-purple-700"
+      >
+        <div class="flex items-center">
+          <div class="w-5 mr-2 border-2 rounded-full border-current">
+            {@html info}
+          </div>
+          <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
+            >{$translate('app.hints.help')}</a
+          >
         </div>
-        <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
-          >{$translate('app.hints.help')}</a
-        >
+
+        {#if decodedRune}
+          <div in:fade>
+            <Button text="Decode Rune" on:click={() => (showDecodedRuneModal = true)} small />
+          </div>
+        {/if}
       </div>
 
       <div class="w-full">

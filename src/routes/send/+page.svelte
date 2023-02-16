@@ -4,7 +4,7 @@
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import Slide from '$lib/elements/Slide.svelte'
-  import { BitcoinDenomination, type PaymentType } from '$lib/types'
+  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
   import { convertValue } from '$lib/conversion'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
@@ -12,7 +12,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
-  import { createRandomHex, splitDestination } from '$lib/utils'
+  import { createRandomHex, parseBitcoinUrl } from '$lib/utils'
   import type { PageData } from './$types'
 
   export let data: PageData
@@ -37,16 +37,6 @@
 
   let requesting = false
 
-  type SendPayment = {
-    destination: string
-    type: PaymentType | null
-    description: string
-    expiry: number | null
-    timestamp: number | null
-    amount: string // invoice amount
-    value: string // user input amount
-  }
-
   const sendPayment$ = new SvelteSubject<SendPayment>({
     destination: data.destination || '',
     type: data.type || null,
@@ -62,15 +52,15 @@
     const { destination, value, type, description } = sendPayment$.getValue()
     const { primaryDenomination } = $settings$
 
+    let payment: Payment | null = null
+
     try {
-      let paymentId
       const lnApi = lightning.getLn()
+      const id = createRandomHex()
 
       switch (type) {
-        case 'payment_request': {
-          const id = createRandomHex()
-
-          const payment = await lnApi.payInvoice({
+        case 'bolt11': {
+          payment = await lnApi.payInvoice({
             id,
             bolt11: destination,
             amount_msat:
@@ -87,15 +77,10 @@
                 : undefined
           })
 
-          paymentUpdates$.next({ ...payment, description })
-          paymentId = payment.id
-
           break
         }
-        case 'node_public_key': {
-          const id = createRandomHex()
-
-          const payment = await lnApi.payKeysend({
+        case 'keysend': {
+          payment = await lnApi.payKeysend({
             id,
             destination,
             amount_msat: Big(
@@ -109,16 +94,17 @@
               .toString()
           })
 
-          paymentUpdates$.next(payment)
-          paymentId = payment.id
-
           break
         }
       }
 
-      // delay to allow time for node to update
-      setTimeout(() => lightning.updateFunds(lnApi), 1000)
-      goto(`/payments/${paymentId}`)
+      if (payment) {
+        paymentUpdates$.next({ ...payment, description })
+
+        // delay to allow time for node to update
+        setTimeout(() => lightning.updateFunds(lnApi), 1000)
+        goto(`/payments/${payment.id}`)
+      }
     } catch (error) {
       requesting = false
 
@@ -129,21 +115,37 @@
   }
 
   function destinationNext() {
-    const { type, destination, amount } = $sendPayment$
-    const value = splitDestination(destination)[1]
+    const { destination, amount } = $sendPayment$
+    const { lnurl, bolt11, onchain, error, type } = parseBitcoinUrl(destination)
 
-    if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${value}`)
+    if (error) {
+      errorMsg = error
       return
     }
 
-    if (type === 'payment_request' && amount && amount !== '0') {
-      to(3)
+    $sendPayment$.type = type
+
+    if (lnurl) {
+      goto(`/lnurl?lnurl=${lnurl}`)
+      return
+    }
+
+    if (bolt11) {
+      $sendPayment$.destination = bolt11
+
+      if (amount && amount !== '0') {
+        to(3)
+        return
+      }
+    }
+
+    // onchain not currently supported
+    if (onchain && !bolt11) {
+      errorMsg = $translate('app.errors.onchain_unsupported')
       return
     }
 
     next()
-    $sendPayment$.destination = value
   }
 </script>
 
@@ -189,10 +191,7 @@
 {/if}
 
 {#if slide === 3}
-  <Slide
-    back={() => ($sendPayment$.amount ? to(0) : prev())}
-    direction={previousSlide > slide ? 'right' : 'left'}
-  >
+  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
       direction="send"
       type={$sendPayment$.type}

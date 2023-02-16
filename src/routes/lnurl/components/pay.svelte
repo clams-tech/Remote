@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { decode } from 'light-bolt11-decoder'
   import Amount from '$lib/components/Amount.svelte'
   import Description from '$lib/components/Description.svelte'
   import Summary from '$lib/components/Summary.svelte'
@@ -14,7 +13,7 @@
   import arrow from '$lib/icons/arrow'
   import { paymentUpdates$, settings$ } from '$lib/streams'
   import { BitcoinDenomination, type FormattedSections, type Payment } from '$lib/types'
-  import { createRandomHex, formatDecodedInvoice, mainDomain, sha256 } from '$lib/utils'
+  import { createRandomHex, decodeBolt11, mainDomain, sha256 } from '$lib/utils'
   import Big from 'big.js'
   import lightning from '$lib/lightning'
   import check from '$lib/icons/check'
@@ -139,7 +138,7 @@
   type SuccessAES = { tag: 'aes'; description: string; ciphertext: string; iv: string }
   type SuccessAction = SuccessMessage | SuccessUrl | SuccessAES
 
-  let decodedPaymentRequest: FormattedSections & { paymentRequest: string }
+  let decodedPaymentRequest: (FormattedSections & { bolt11: string }) | null
   let completedPayment: Payment
   let success: SuccessAction
   let decryptedAes: string
@@ -181,7 +180,11 @@
       const { pr: paymentRequest, successAction } = result
 
       success = successAction
-      decodedPaymentRequest = formatDecodedInvoice(decode(paymentRequest))
+      decodedPaymentRequest = decodeBolt11(paymentRequest)
+
+      if (!decodedPaymentRequest) {
+        throw new Error($translate('app.errors.invalid_bolt11'))
+      }
 
       const { description_hash, amount: paymentRequestAmount } = decodedPaymentRequest
 

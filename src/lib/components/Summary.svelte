@@ -133,7 +133,7 @@
     </SummaryRow>
 
     <!-- EXPIRY -->
-    {#if type === 'payment_request' && expiry}
+    {#if type === 'bolt11' && expiry}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.expiry')}</span>
         <span class="flex items-center w-full justify-end" slot="value">

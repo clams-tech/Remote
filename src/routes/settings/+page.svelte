@@ -124,7 +124,12 @@
 </Slide>
 
 {#if showPinEntryModal}
-  <Modal on:close={() => (showPinEntryModal = false)}>
+  <Modal
+    on:close={() => {
+      showPinEntryModal = false
+      toggle('encrypt')
+    }}
+  >
     <h2 class="p-4 md:mb-6 mb-4 font-semibold text-xl md:text-2xl">
       {$translate('app.headings.encrypt')}
     </h2>
