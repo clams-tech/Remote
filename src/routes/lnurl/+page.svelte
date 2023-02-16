@@ -74,13 +74,13 @@
         metadata = result.metadata
         commentAllowed = result.commentAllowed
         defaultDescription = result.defaultDescription
-        parsingLnurl = false
       } else {
         k1 = url.searchParams.get('k1') || ''
         action = url.searchParams.get('action') || 'login'
       }
     } catch (e) {
       parseLnurlError = (e as { message: string }).message
+    } finally {
       parsingLnurl = false
     }
   }
@@ -95,7 +95,7 @@
 {#if parsingLnurl}
   <Spinner />
 {:else if parseLnurlError}
-  <section class="w-full p-6 max-w-lg">
+  <section class="w-full p-6 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>{$translate('app.errors.lnurl_parse_error')}</p>
