@@ -7,6 +7,7 @@ import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
 
 import type {
+  BkprChannelsAPYResponse,
   BkprListIncomeResponse,
   GetinfoResponse,
   InvoiceRequest,
@@ -258,6 +259,15 @@ class CoreLn {
     })
 
     return result as BkprListIncomeResponse
+  }
+
+  async bkprChannelsAPY(): Promise<BkprChannelsAPYResponse> {
+    const result = await this.connection.commando({
+      method: 'bkpr-channelsapy',
+      rune: this.rune
+    })
+
+    return result as BkprChannelsAPYResponse
   }
 }
 

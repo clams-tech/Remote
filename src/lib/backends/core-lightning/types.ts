@@ -574,6 +574,34 @@ export type BkprListIncomeResponse = {
   income_events: IncomeEvent[]
 }
 
+export type ChannelAPY = {
+  account: 'net' | string
+  routed_out_msat: number
+  routed_in_msat: number
+  lease_fee_paid_msat: number
+  lease_fee_earned_msat: number
+  pushed_out_msat: number
+  pushed_in_msat: number
+  our_start_balance_msat: number
+  channel_start_balance_msat: number
+  fees_out_msat: number
+  fees_in_msat: number
+  utilization_out: string
+  utilization_out_initial: string
+  utilization_in: string
+  utilization_in_initial: string
+  apy_out: string
+  apy_out_initial: string
+  apy_in: string
+  apy_in_initial: string
+  apy_total: string
+  apy_total_initial: string
+}
+
+export type BkprChannelsAPYResponse = {
+  channels_apy: ChannelAPY[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse

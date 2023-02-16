@@ -33,7 +33,8 @@ import {
   paymentUpdates$,
   customNotifications$,
   pin$,
-  incomeEvents$
+  incomeEvents$,
+  channelsAPY$
 } from './streams'
 
 class Lightning {
@@ -180,6 +181,27 @@ class Lightning {
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateChannelsAPY(lnApi: LnAPI) {
+    try {
+      channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
+      const { channels_apy } = await lnApi.bkprChannelsAPY()
+      channelsAPY$.next({ loading: false, data: channels_apy })
+
+      return channels_apy
+    } catch (error) {
+      const { message } = error as Error
+      channelsAPY$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        // @TODO add error messaging to en file
+        message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
       })
     }
   }
