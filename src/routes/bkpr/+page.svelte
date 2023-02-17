@@ -23,14 +23,14 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="overflow-scroll">
+<div class="overflow-scroll w-full flex flex-col items-center">
   {#if $channelsAPY$.loading && !$channelsAPY$.data}
-    <div class="flex flex-col items-center justify-center">
+    <div>
       <Spinner />
       <p class="mt-2">{$translate('app.loading.channels_apy')}</p>
     </div>
   {:else if $channelsAPY$.error}
-    <div class="flex items-center justify-center">
+    <div>
       <ErrorMsg message={$channelsAPY$.error} />
     </div>
   {:else}

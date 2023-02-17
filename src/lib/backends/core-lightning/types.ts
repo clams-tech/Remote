@@ -587,15 +587,16 @@ export type ChannelAPY = {
   fees_out_msat: number
   fees_in_msat: number
   utilization_out: string
-  utilization_out_initial: string
+  utilization_out_initial?: string
   utilization_in: string
-  utilization_in_initial: string
+  utilization_in_initial?: string
   apy_out: string
   apy_out_initial: string
   apy_in: string
   apy_in_initial: string
   apy_total: string
   apy_total_initial: string
+  apy_lease?: string
 }
 
 export type BkprChannelsAPYResponse = {

@@ -310,7 +310,7 @@
   }
 </script>
 
-<section class="p-6">
+<section class="p-6 max-w-md">
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="flex flex-col items-center justify-center">
       <Spinner />
@@ -327,7 +327,7 @@
     <p>
       {$translate('app.subheadings.accounting_exports')}
     </p>
-    <div class="w-full mt-6 max-w-md">
+    <div class="w-full mt-6">
       {#each links as { website, text, format }}
         <div class="flex items-center justify-between pb-4">
           <a class="underline" href={website} target="_blank" rel="noopener noreferrer">{text}</a>

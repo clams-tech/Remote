@@ -209,8 +209,8 @@
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
     "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
     "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:",
-    "routing_performance": "@TODO description",
-    "account_insights": "@TODO description"
+    "routing_performance": "Fees earned by your node for routing value (inbound vs outbound):",
+    "account_insights": "Total fees earned by individual accounts (channels):"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"

@@ -15,8 +15,6 @@
       id: 'apyByAccountChart'
     }
   ]
-  let routingFeesByAccountChart
-  let apyByAccountChart
 
   function routingFeesByAccount() {
     let labels: string[] = []
@@ -46,7 +44,7 @@
     const el: ChartItem | null = document.getElementById('routingFeesByAccountChart') as ChartItem
 
     if (el) {
-      routingFeesByAccountChart = new Chart(el, {
+      new Chart(el, {
         type: 'bar',
         data: {
           labels,
@@ -79,7 +77,7 @@
     const el: ChartItem | null = document.getElementById('apyByAccountChart') as ChartItem
 
     if (el) {
-      apyByAccountChart = new Chart(el, {
+      new Chart(el, {
         type: 'bar',
         data: {
           labels,
@@ -103,7 +101,7 @@
   onDestroy(() => {})
 </script>
 
-<section class="p-6">
+<section class="p-6 max-w-md">
   <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
   <p>{$translate('app.subheadings.account_insights')}</p>
   <section class="mt-6 w-full flex justify-between flex-wrap gap-6">
