@@ -36,7 +36,11 @@ export function deriveLastPayIndex(payments: Payment[]): number {
     : 0
 }
 
-export function truncateValue(request: string): string {
+export function truncateValue(request: string, length?: number): string {
+  if (length) {
+    return `${request.slice(0, length)}...${request.slice(-length)}`
+  }
+
   return `${request.slice(0, 9)}...${request.slice(-9)}`
 }
 

@@ -6,38 +6,39 @@
   import { onDestroy, onMount } from 'svelte'
   import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
+  import type { ChannelAPY } from '$lib/backends'
 
   const charts = [
     {
-      id: 'routingFeesByAccountChart'
+      id: 'routingFeesByAccountChart',
+      title: $translate('app.labels.routing_chart')
     },
     {
-      id: 'apyByAccountChart'
+      id: 'apyByAccountChart',
+      title: $translate('app.labels.apy_chart')
     }
   ]
 
-  function routingFeesByAccount() {
+  function renderRoutingFeesByAccountChart(channels: ChannelAPY[]) {
     let labels: string[] = []
     let data: number[] = []
 
-    channelsAPY$.value.data?.forEach(({ account, fees_in_msat, fees_out_msat }) => {
-      if (account !== 'net') {
-        const routingFees = fees_in_msat + fees_out_msat
+    channels?.forEach(({ account, fees_in_msat, fees_out_msat }) => {
+      const routingFees = fees_in_msat + fees_out_msat
 
-        if (routingFees) {
-          const value = Math.round(
-            Number(
-              convertValue({
-                value: routingFees.toString(),
-                from: BitcoinDenomination.msats,
-                to: BitcoinDenomination.sats
-              })
-            )
+      if (routingFees) {
+        const value = Math.round(
+          Number(
+            convertValue({
+              value: routingFees.toString(),
+              from: BitcoinDenomination.msats,
+              to: BitcoinDenomination.sats
+            })
           )
+        )
 
-          labels.push(truncateValue(account))
-          data.push(value)
-        }
+        labels.push(truncateValue(account, 5))
+        data.push(value)
       }
     })
 
@@ -45,12 +46,11 @@
 
     if (el) {
       new Chart(el, {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels,
           datasets: [
             {
-              label: 'Routing fees by account (sats)',
               data
             }
           ]
@@ -59,18 +59,16 @@
     }
   }
 
-  function apyByAccount() {
+  function renderApyByAccountChart(channels: ChannelAPY[]) {
     let labels: string[] = []
     let data: number[] = []
 
-    channelsAPY$.value.data?.forEach(({ account, apy_total }) => {
-      if (account !== 'net') {
-        const total = Number(apy_total.substring(0, apy_total.length - 1))
+    channels?.forEach(({ account, apy_total }) => {
+      const total = Number(apy_total.substring(0, apy_total.length - 1))
 
-        if (total) {
-          labels.push(truncateValue(account))
-          data.push(Number(apy_total.substring(0, apy_total.length - 1)))
-        }
+      if (total) {
+        labels.push(truncateValue(account, 5))
+        data.push(Number(apy_total.substring(0, apy_total.length - 1)))
       }
     })
 
@@ -78,12 +76,11 @@
 
     if (el) {
       new Chart(el, {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels,
           datasets: [
             {
-              label: 'APY by account (%)',
               data
             }
           ]
@@ -94,8 +91,12 @@
 
   // @TODO handle node with accounts that have not routed any value, have no fees - or APY
   onMount(() => {
-    routingFeesByAccount()
-    apyByAccount()
+    const channels = channelsAPY$.value.data?.filter((item) => item.account !== 'net')
+
+    if (channels) {
+      renderRoutingFeesByAccountChart(channels)
+      renderApyByAccountChart(channels)
+    }
   })
 
   onDestroy(() => {})
@@ -105,8 +106,9 @@
   <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
   <p>{$translate('app.subheadings.account_insights')}</p>
   <section class="mt-6 w-full flex justify-between flex-wrap gap-6">
-    {#each charts as { id }}
-      <div class="flex flex-1 flex-wrap relative h-56">
+    {#each charts as { title, id }}
+      <div class="flex flex-col flex-wrap">
+        <h3 class="text-sm text-neutral-400">{title}</h3>
         <canvas height="auto" width="auto" class="block" {id} />
       </div>
     {/each}
