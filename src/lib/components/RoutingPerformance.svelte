@@ -27,7 +27,7 @@
   }
 
   function formatAPY(apy: string) {
-    // Three decimals without trailing zeros
+    // Three decimals minus trailing zeros
     return parseFloat(Number(apy.slice(0, -1)).toFixed(3))
   }
 </script>
