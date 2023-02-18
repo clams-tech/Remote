@@ -200,7 +200,6 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
-        // @TODO add error messaging to en file
         message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
       })
     }
