@@ -230,7 +230,7 @@
 
 {#if step === 'connect'}
   <Slide>
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="w-full p-6 max-w-lg m-auto">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">
@@ -326,9 +326,7 @@
       step = 'connect'
     }}
   >
-    <section
-      class="flex flex-col justify-center items-start w-full h-full px-6 pb-4 pt-10 max-w-lg"
-    >
+    <section class="w-full p-6 max-w-lg m-auto">
       <div class="h-8" />
 
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>

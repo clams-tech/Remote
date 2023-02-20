@@ -62,7 +62,7 @@
 
     <!-- CONTENT -->
     <main
-      class="flex flex-grow w-full justify-center flex-col items-center bg-inherit transition-all overflow-hidden"
+      class="flex h-full w-full justify-center flex-col items-center bg-inherit transition-all overflow-hidden"
     >
       <slot />
     </main>
