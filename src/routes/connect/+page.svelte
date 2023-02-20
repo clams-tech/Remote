@@ -298,7 +298,7 @@
         <div
           in:fade
           class:h-28={!!expandConnectionSettings}
-          class="text-sm mt-2 px-4 flex flex-col items-start overflow-hidden h-0 transition-all"
+          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start overflow-y-hidden h-0 transition-all"
         >
           <ConnectionSettings
             bind:invalid={invalidConnectionOptions}
