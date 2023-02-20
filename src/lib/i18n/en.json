@@ -35,9 +35,9 @@
       "invalid": "Invalid address"
     },
     "add_rune": {
-      "recipes": "Rune recipes for your session public key (CLN v22.x.x):",
-      "readonly": "ReadOnly",
-      "payments": "Payments",
+      "recipes": "Pre-made rune commands for your session public key (CLN v22.x.x):",
+      "readonly": "Read",
+      "clams": "Clams",
       "admin": "Admin",
       "label": "Rune",
       "placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
