@@ -3,15 +3,9 @@
   import { BitcoinDenomination } from '$lib/types'
   import { formatValueForDisplay } from '$lib/utils'
   import { channelsAPY$, settings$ } from '$lib/streams'
-  import { onMount } from 'svelte'
-  import type { ChannelAPY } from '$lib/backends'
   import { translate } from '$lib/i18n/translations'
 
-  let net: ChannelAPY | undefined
-
-  onMount(() => {
-    net = channelsAPY$.value.data?.filter((item) => item.account === 'net')[0]
-  })
+  $: net = channelsAPY$.value.data?.filter((item) => item.account === 'net')[0]
 
   // Format value or fees
   function formatValue(value: number) {

@@ -1,8 +1,8 @@
 <script>
   import BackButton from '$lib/elements/BackButton.svelte'
-  import RoutingPerformance from '$lib/components/RoutingPerformance.svelte'
-  import AccountInsights from '$lib/components/AccountInsights.svelte'
-  import AccountingExports from '$lib/components/AccountingExports.svelte'
+  import RoutingPerformance from './components/RoutingPerformance.svelte'
+  import AccountInsights from './components/AccountInsights.svelte'
+  import AccountingExports from './components/AccountingExports.svelte'
   import { translate } from '$lib/i18n/translations'
   import { goto } from '$app/navigation'
   import lightning from '$lib/lightning'

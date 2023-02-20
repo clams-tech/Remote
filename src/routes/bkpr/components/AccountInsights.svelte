@@ -6,9 +6,11 @@
   import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
-  import type { ChartItem } from 'chart.js'
+  import type { Chart, ChartItem } from 'chart.js'
 
   let showZeroFeesMessage = false
+  let feesChart: Chart<'pie', number[], string>
+  let apyChart: Chart<'pie', number[], string>
 
   enum ChartIDs {
     fees = 'fees',
@@ -24,6 +26,10 @@
       title: $translate('app.labels.apy_chart')
     }
   ]
+
+  $: net = channelsAPY$.value.data?.filter((item) => item.account === 'net')
+
+  $: channels = channelsAPY$.value.data?.filter((item) => item.account !== 'net')
 
   async function renderFeesChart(channels: ChannelAPY[]) {
     const { Chart } = await import('chart.js/auto')
@@ -50,20 +56,26 @@
       }
     })
 
-    const el: ChartItem | null = document.getElementById(ChartIDs.fees) as ChartItem
+    // If chart exists, update data
+    if (feesChart) {
+      feesChart.data.datasets[0].data = data
+    } else {
+      // Create new chart
+      const el = document.getElementById(ChartIDs.fees) as ChartItem
 
-    if (el) {
-      new Chart(el, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [
-            {
-              data
-            }
-          ]
-        }
-      })
+      if (el) {
+        feesChart = new Chart(el, {
+          type: 'pie',
+          data: {
+            labels,
+            datasets: [
+              {
+                data
+              }
+            ]
+          }
+        })
+      }
     }
   }
 
@@ -82,32 +94,35 @@
       }
     })
 
-    const el: ChartItem | null = document.getElementById(ChartIDs.apy) as ChartItem
+    // If chart exists, update data
+    if (apyChart) {
+      apyChart.data.datasets[0].data = data
+      return
+    } else {
+      // Create new chart
+      const el = document.getElementById(ChartIDs.apy) as ChartItem
 
-    if (el) {
-      new Chart(el, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [
-            {
-              data
-            }
-          ]
-        }
-      })
+      if (el) {
+        apyChart = new Chart(el, {
+          type: 'pie',
+          data: {
+            labels,
+            datasets: [
+              {
+                data
+              }
+            ]
+          }
+        })
+      }
     }
   }
 
   onMount(async () => {
-    const net = channelsAPY$.value.data?.filter((item) => item.account === 'net')[0]
-
-    if (net && net?.fees_in_msat + net?.fees_out_msat === 0) {
+    if (net && net[0]?.fees_in_msat + net[0]?.fees_out_msat === 0) {
       showZeroFeesMessage = true
       return
     }
-
-    const channels = channelsAPY$.value.data?.filter((item) => item.account !== 'net')
 
     if (channels) {
       await renderFeesChart(channels)
@@ -115,7 +130,10 @@
     }
   })
 
-  onDestroy(() => {})
+  onDestroy(() => {
+    feesChart.destroy()
+    apyChart.destroy()
+  })
 </script>
 
 <section class="p-6 max-w-md">
