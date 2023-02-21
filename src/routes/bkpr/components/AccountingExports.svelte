@@ -310,7 +310,7 @@
   }
 </script>
 
-<section class="p-6 max-w-md">
+<section class="p-6 border max-w-md rounded-md">
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="flex flex-col items-center justify-center">
       <Spinner />

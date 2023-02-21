@@ -27,7 +27,7 @@
 </script>
 
 {#if net}
-  <section class="mt-10 p-6 max-w-md">
+  <section class="p-6 border rounded-md">
     <h1 class="text-4xl w-full mb-6 font-bold">{$translate('app.headings.routing_performance')}</h1>
     <p>{$translate('app.subheadings.routing_performance')}</p>
     <div class="mt-6 rounded-lg shadow-lg border">

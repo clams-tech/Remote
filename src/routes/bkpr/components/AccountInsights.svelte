@@ -140,7 +140,7 @@
 </script>
 
 {#if showComponent}
-  <section class="p-6 max-w-md">
+  <section class="p-6 border rounded-md">
     <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
     <p>
       {$translate('app.subheadings.account_insights')}

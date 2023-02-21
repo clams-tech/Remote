@@ -23,7 +23,7 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="overflow-scroll w-full flex flex-col items-center">
+<div class="w-full h-full overflow-scroll flex flex-wrap gap-8 p-4 pt-16">
   {#if $channelsAPY$.loading && !$channelsAPY$.data}
     <div>
       <Spinner />
