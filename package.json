@@ -57,7 +57,7 @@
     "hammerjs": "^2.0.8",
     "js-lnurl": "^0.5.1",
     "jsqr": "^1.4.0",
-    "light-bolt11-decoder": "^2.1.0",
+    "light-bolt11-decoder": "^3.0.0",
     "lnmessage": "^0.0.19",
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",

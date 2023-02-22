@@ -210,6 +210,11 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
   integrity sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==
 
+"@scure/base@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
+  integrity sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==
+
 "@sveltejs/adapter-static@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@sveltejs/adapter-static/-/adapter-static-2.0.0.tgz#508d0eb5d060094b49c592cfcbd72349b4f1d6bb"
@@ -575,7 +580,7 @@ base64-js@^1.3.1:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
 
-bech32@^1.1.2, bech32@^1.1.4:
+bech32@^1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
   integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
@@ -604,7 +609,7 @@ bitcoin-address-validation@^2.2.1:
     bech32 "^2.0.0"
     sha256-uint8array "^0.10.3"
 
-bn.js@^4.11.8, bn.js@^4.11.9:
+bn.js@^4.11.9:
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
@@ -1474,14 +1479,12 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
-light-bolt11-decoder@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/light-bolt11-decoder/-/light-bolt11-decoder-2.1.0.tgz#46b122790ae0eb415841227eba770eae7303ecf5"
-  integrity sha512-/AaSWTldx3aaFD7DgMVbX77MVEgLEPI0Zyx4Fjg23u3WpEoc536vz5LTXBU8oXAcrEcyDyn5GpBi2pEYuL351Q==
+light-bolt11-decoder@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/light-bolt11-decoder/-/light-bolt11-decoder-3.0.0.tgz#f644576120426c9ef65621bde254f11016055044"
+  integrity sha512-AKvOigD2pmC8ktnn2TIqdJu0K0qk6ukUmTvHwF3JNkm8uWCqt18Ijn33A/a7gaRZ4PghJ59X+8+MXrzLKdBTmQ==
   dependencies:
-    bech32 "^1.1.2"
-    bn.js "^4.11.8"
-    buffer "^6.0.3"
+    "@scure/base" "1.1.1"
 
 lilconfig@2.0.5:
   version "2.0.5"
