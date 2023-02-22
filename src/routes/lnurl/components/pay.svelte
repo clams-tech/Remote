@@ -211,7 +211,7 @@
       paymentUpdates$.next({ ...completedPayment, description })
 
       // delay to allow time for node to update
-      setTimeout(() => lightning.updateFunds(lnApi), 1000)
+      setTimeout(() => lightning.updateFunds(), 1000)
 
       if (!successAction) {
         goto(`/payments/${completedPayment.id}`)

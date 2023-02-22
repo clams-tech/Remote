@@ -32,9 +32,8 @@ function registerSideEffects() {
     updatePayments(update)
 
     if (update.status === 'complete') {
-      const lnApi = lightning.getLn()
       // delay 1 second to allow for updated data from node
-      setTimeout(() => lightning.updateFunds(lnApi), 1000)
+      setTimeout(() => lightning.updateFunds(), 1000)
     }
   })
 

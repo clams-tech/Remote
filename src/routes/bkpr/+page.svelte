@@ -7,13 +7,11 @@
   import { goto } from '$app/navigation'
   import lightning from '$lib/lightning'
   import { onMount } from 'svelte'
-  import { channelsAPY$ } from '$lib/streams'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import Spinner from '$lib/elements/Spinner.svelte'
 
   // Fetch bookkeeper channels apy
   onMount(() => {
-    lightning.updateChannelsAPY(lightning.getLn())
+    lightning.updateChannelsAPY()
+    lightning.updateIncomeEvents()
   })
 </script>
 
@@ -23,19 +21,13 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="w-full h-full overflow-scroll flex flex-wrap gap-8 p-4 pt-16">
-  {#if $channelsAPY$.loading && !$channelsAPY$.data}
-    <div>
-      <Spinner />
-      <p class="mt-2">{$translate('app.loading.channels_apy')}</p>
-    </div>
-  {:else if $channelsAPY$.error}
-    <div>
-      <ErrorMsg message={$channelsAPY$.error} />
-    </div>
-  {:else}
+<div class="w-full h-full flex flex-col justify-center items-center px-6 pb-6">
+  <div class="h-24" />
+  <div
+    class="grid gap-4 grid-cols-1 overflow-scroll p-2 md:grid-flow-col-dense md:auto-cols-min md:auto-rows-fr"
+  >
     <RoutingPerformance />
     <AccountInsights />
-  {/if}
-  <AccountingExports />
+    <AccountingExports />
+  </div>
 </div>

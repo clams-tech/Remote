@@ -5,9 +5,7 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { customNotifications$, incomeEvents$ } from '$lib/streams'
-  import lightning from '$lib/lightning'
   import { translate } from '$lib/i18n/translations'
-  import { onMount } from 'svelte'
   import download from '$lib/icons/download'
   import { createRandomHex } from '$lib/utils'
 
@@ -39,11 +37,6 @@
       website: 'https://www.harmony.co.id/' // @TODO verify
     }
   ]
-
-  // Fetch bookkeeper income events
-  onMount(() => {
-    lightning.updateIncomeEvents(lightning.getLn())
-  })
 
   // spinner state for when formatting and downloading csv
   let formatting = ''
@@ -310,7 +303,9 @@
   }
 </script>
 
-<section class="p-6 border max-w-md rounded-md">
+<section
+  class="p-6 border border-current flex flex-col max-w-full rounded-md shadow-sm shadow-purple-400"
+>
   {#if $incomeEvents$.loading && !$incomeEvents$.data}
     <div class="flex flex-col items-center justify-center">
       <Spinner />

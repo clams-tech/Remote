@@ -98,14 +98,14 @@ class Lightning {
 
   public async refreshData() {
     logger.info('Refreshing data')
-    const lnApi = this.getLn()
-
-    await Promise.all([this.updateFunds(lnApi), this.updateInfo(lnApi), this.updatePayments(lnApi)])
+    await Promise.all([this.updateFunds(), this.updateInfo(), this.updatePayments()])
 
     logger.info('Refresh data complete')
   }
 
-  public async updateFunds(lnApi: LnAPI) {
+  public async updateFunds() {
+    const lnApi = this.getLn()
+
     try {
       funds$.next({ loading: true, data: funds$.getValue().data })
       const funds = await lnApi.listFunds()
@@ -125,7 +125,9 @@ class Lightning {
     }
   }
 
-  public async updateInfo(lnApi: LnAPI) {
+  public async updateInfo() {
+    const lnApi = this.getLn()
+
     try {
       nodeInfo$.next({ loading: true, data: nodeInfo$.getValue().data })
       const info = await lnApi.getInfo()
@@ -145,7 +147,9 @@ class Lightning {
     }
   }
 
-  public async updatePayments(lnApi: LnAPI) {
+  public async updatePayments() {
+    const lnApi = this.getLn()
+
     try {
       payments$.next({ loading: true, data: payments$.getValue().data })
       const payments = await lnApi.getPayments()
@@ -165,7 +169,9 @@ class Lightning {
     }
   }
 
-  public async updateIncomeEvents(lnApi: LnAPI) {
+  public async updateIncomeEvents() {
+    const lnApi = this.getLn()
+
     try {
       incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
       const { income_events } = await lnApi.bkprListIncome()
@@ -185,7 +191,9 @@ class Lightning {
     }
   }
 
-  public async updateChannelsAPY(lnApi: LnAPI) {
+  public async updateChannelsAPY() {
+    const lnApi = this.getLn()
+
     try {
       channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
       const { channels_apy } = await lnApi.bkprChannelsAPY()

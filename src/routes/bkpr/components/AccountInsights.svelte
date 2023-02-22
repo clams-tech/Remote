@@ -7,6 +7,7 @@
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
+  import Big from 'big.js'
 
   let showComponent = false
   let feesChart: Chart<'pie', number[], string>
@@ -28,7 +29,7 @@
     }
   ]
 
-  $: ({ net, channels } = (channelsAPY$.value.data || []).reduce(
+  $: ({ net, channels } = ($channelsAPY$.data || []).reduce(
     (acc, item) => {
       acc[item.account === 'net' ? 'net' : 'channels'].push(item)
       return acc
@@ -43,27 +44,24 @@
     let data: number[] = []
 
     channels.forEach(({ account, fees_in_msat, fees_out_msat }) => {
-      const routingFees = fees_in_msat + fees_out_msat
+      const totalRoutingFees = Big(fees_in_msat).add(fees_out_msat)
 
-      if (routingFees) {
-        const value = Math.round(
-          Number(
-            convertValue({
-              value: routingFees.toString(),
-              from: BitcoinDenomination.msats,
-              to: BitcoinDenomination.sats
-            })
-          )
-        )
+      const value = convertValue({
+        value: totalRoutingFees.toString(),
+        from: BitcoinDenomination.msats,
+        to: BitcoinDenomination.sats
+      })
 
+      if (value) {
         labels.push(truncateValue(account, 5))
-        data.push(value)
+        data.push(parseFloat(value))
       }
     })
 
     // If chart exists, update data
     if (feesChart) {
-      feesChart.data.datasets[0].data = data
+      feesChart.data = { labels, datasets: [{ data }] }
+      feesChart.update()
     } else {
       // Create new chart
       const el = document.getElementById(ChartIDs.fees) as ChartItem
@@ -93,15 +91,14 @@
     channels.forEach(({ account, apy_total }) => {
       const total = Number(apy_total.substring(0, apy_total.length - 1))
 
-      if (total) {
-        labels.push(truncateValue(account, 5))
-        data.push(Number(apy_total.substring(0, apy_total.length - 1)))
-      }
+      labels.push(truncateValue(account, 5))
+      data.push(total)
     })
 
     // If chart exists, update data
     if (apyChart) {
-      apyChart.data.datasets[0].data = data
+      apyChart.data = { labels, datasets: [{ data }] }
+      apyChart.update()
       return
     } else {
       // Create new chart
@@ -127,9 +124,9 @@
     if (net && net[0]?.fees_in_msat + net[0]?.fees_out_msat === 0) {
       showComponent = false
     } else {
+      showComponent = true
       renderFeesChart(channels)
       renderApyChart(channels)
-      showComponent = true
     }
   }
 
@@ -140,12 +137,14 @@
 </script>
 
 {#if showComponent}
-  <section class="p-6 border rounded-md">
+  <section
+    class="p-6 border border-current rounded-md row-span-2 max-w-full flex flex-col shadow-sm shadow-purple-400"
+  >
     <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
     <p>
       {$translate('app.subheadings.account_insights')}
     </p>
-    <section class="mt-6 w-full flex justify-between flex-wrap gap-6">
+    <section class="mt-6 w-full flex flex-wrap gap-6">
       {#each charts as { title, id }}
         <div class="flex flex-col flex-wrap">
           <h3 class="text-sm text-neutral-400">{title}</h3>
