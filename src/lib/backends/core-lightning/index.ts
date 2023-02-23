@@ -2,14 +2,16 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
-import { invoiceToPayment, payToPayment } from './utils'
+import { formatChannelsAPY, formatIncomeEvents, invoiceToPayment, payToPayment } from './utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
 
 import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
+  ChannelAPY,
   GetinfoResponse,
+  IncomeEvent,
   InvoiceRequest,
   InvoiceResponse,
   KeysendResponse,
@@ -252,22 +254,26 @@ class CoreLn {
     return result as SignMessageResponse
   }
 
-  async bkprListIncome(): Promise<BkprListIncomeResponse> {
-    const result = await this.connection.commando({
+  async bkprListIncome(): Promise<IncomeEvent[]> {
+    const result = (await this.connection.commando({
       method: 'bkpr-listincome',
       rune: this.rune
-    })
+    })) as BkprListIncomeResponse
 
-    return result as BkprListIncomeResponse
+    const formatted = formatIncomeEvents(result.income_events)
+
+    return formatted
   }
 
-  async bkprChannelsAPY(): Promise<BkprChannelsAPYResponse> {
-    const result = await this.connection.commando({
+  async bkprChannelsAPY(): Promise<ChannelAPY[]> {
+    const result = (await this.connection.commando({
       method: 'bkpr-channelsapy',
       rune: this.rune
-    })
+    })) as BkprChannelsAPYResponse
 
-    return result as BkprChannelsAPYResponse
+    const formatted = formatChannelsAPY(result.channels_apy)
+
+    return formatted
   }
 }
 

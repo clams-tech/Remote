@@ -8,8 +8,10 @@
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
   import Big from 'big.js'
+  import Spinner from '$lib/elements/Spinner.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import info from '$lib/icons/info'
 
-  let showComponent = false
   let feesChart: Chart<'pie', number[], string>
   let apyChart: Chart<'pie', number[], string>
 
@@ -36,6 +38,17 @@
     },
     { net: [], channels: [] } as { net: ChannelAPY[]; channels: ChannelAPY[] }
   ))
+
+  $: noRoutingFees =
+    net &&
+    Big(net[0]?.fees_in_msat || '0')
+      .plus(net[0]?.fees_out_msat || '0')
+      .toString() === '0'
+
+  $: if (channels && !noRoutingFees) {
+    renderFeesChart(channels)
+    renderApyChart(channels)
+  }
 
   async function renderFeesChart(channels: ChannelAPY[]) {
     const { Chart } = await import('chart.js/auto')
@@ -120,37 +133,46 @@
     }
   }
 
-  $: {
-    if (net && net[0]?.fees_in_msat + net[0]?.fees_out_msat === 0) {
-      showComponent = false
-    } else {
-      showComponent = true
-      renderFeesChart(channels)
-      renderApyChart(channels)
-    }
-  }
-
   onDestroy(() => {
     feesChart && feesChart.destroy()
     apyChart && apyChart.destroy()
   })
 </script>
 
-{#if showComponent}
-  <section
-    class="p-6 border border-current rounded-md row-span-2 max-w-full flex flex-col shadow-sm shadow-purple-400"
-  >
-    <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
-    <p>
-      {$translate('app.subheadings.account_insights')}
-    </p>
-    <section class="mt-6 w-full flex flex-wrap gap-6">
-      {#each charts as { title, id }}
-        <div class="flex flex-col flex-wrap">
-          <h3 class="text-sm text-neutral-400">{title}</h3>
-          <canvas height="auto" width="auto" class="block" {id} />
-        </div>
-      {/each}
+<section
+  class="p-6 border border-current rounded-md row-span-2 min-w-[320px] flex flex-col shadow-sm shadow-purple-400"
+>
+  <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
+  <p>
+    {$translate('app.subheadings.account_insights')}
+  </p>
+
+  {#if $channelsAPY$.loading}
+    <!-- {#if true} -->
+    <section class="w-full h-full flex items-center justify-center">
+      <Spinner />
     </section>
-  </section>
-{/if}
+  {:else if $channelsAPY$.error}
+    <div class="flex items-center justify-center">
+      <ErrorMsg message={$channelsAPY$.error} closable={false} />
+    </div>
+  {:else}
+    <section class="mt-6 w-full h-full flex flex-wrap gap-6">
+      {#if noRoutingFees}
+        <div class="flex items-center w-full">
+          <div class="text-utility-pending p-2 border border-current rounded flex items-start">
+            <div class="w-6 mr-2 border border-current rounded-full">{@html info}</div>
+            <span class="text-sm">{$translate('app.hints.no_routing_fees')}</span>
+          </div>
+        </div>
+      {:else}
+        {#each charts as { title, id }}
+          <div class="flex flex-col flex-wrap">
+            <h3 class="text-sm text-neutral-400">{title}</h3>
+            <canvas height="auto" width="auto" class="block" {id} />
+          </div>
+        {/each}
+      {/if}
+    </section>
+  {/if}
+</section>

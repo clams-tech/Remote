@@ -559,8 +559,8 @@ export type SignMessageResponse = {
 export type IncomeEvent = {
   account: string
   tag: 'deposit' | 'withdrawal' | 'onchain_fee' | 'invoice' | 'invoice_fee' | 'routed' | string
-  credit_msat: number
-  debit_msat: number
+  credit_msat: number | string
+  debit_msat: number | string
   currency: string
   timestamp: number
   description?: string
@@ -576,16 +576,16 @@ export type BkprListIncomeResponse = {
 
 export type ChannelAPY = {
   account: 'net' | string
-  routed_out_msat: number
-  routed_in_msat: number
-  lease_fee_paid_msat: number
-  lease_fee_earned_msat: number
-  pushed_out_msat: number
-  pushed_in_msat: number
-  our_start_balance_msat: number
-  channel_start_balance_msat: number
-  fees_out_msat: number
-  fees_in_msat: number
+  routed_out_msat: number | string
+  routed_in_msat: number | string
+  lease_fee_paid_msat: number | string
+  lease_fee_earned_msat: number | string
+  pushed_out_msat: number | string
+  pushed_in_msat: number | string
+  our_start_balance_msat: number | string
+  channel_start_balance_msat: number | string
+  fees_out_msat: number | string
+  fees_in_msat: number | string
   utilization_out: string
   utilization_out_initial?: string
   utilization_in: string

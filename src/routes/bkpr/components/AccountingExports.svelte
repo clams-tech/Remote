@@ -144,7 +144,7 @@
       payment_id
     } = event
 
-    function formatType(tag: string, credit: number | '') {
+    function formatType(tag: string, credit: number | string) {
       switch (tag) {
         case 'deposit':
           return 'transfer:desposit'
@@ -163,9 +163,9 @@
       }
     }
 
-    function formatAmount(credit_msat: number, debit_msat: number) {
+    function formatAmount(credit_msat: number | string, debit_msat: number | string) {
       // zero fee route
-      if (debit_msat === 0 && credit_msat === 0) {
+      if (debit_msat.toString() === '0' && credit_msat.toString() === '0') {
         return 0
       }
 
@@ -304,24 +304,24 @@
 </script>
 
 <section
-  class="p-6 border border-current flex flex-col max-w-full rounded-md shadow-sm shadow-purple-400"
+  class="p-6 border border-current flex flex-col max-w-lg rounded-md shadow-sm shadow-purple-400"
 >
-  {#if $incomeEvents$.loading && !$incomeEvents$.data}
-    <div class="flex flex-col items-center justify-center">
+  <h1 class="text-4xl w-full mb-6 font-bold">
+    {$translate('app.headings.accounting_exports')}
+  </h1>
+  <p>
+    {$translate('app.subheadings.accounting_exports')}
+  </p>
+
+  {#if $incomeEvents$.loading}
+    <div class="flex flex-col w-full h-full items-center justify-center mt-6">
       <Spinner />
-      <p class="mt-2">{$translate('app.loading.accounting_exports')}</p>
     </div>
   {:else if $incomeEvents$.error}
     <div class="flex items-center justify-center">
-      <ErrorMsg message={$incomeEvents$.error} />
+      <ErrorMsg message={$incomeEvents$.error} closable={false} />
     </div>
   {:else}
-    <h1 class="text-4xl w-full mb-6 font-bold">
-      {$translate('app.headings.accounting_exports')}
-    </h1>
-    <p>
-      {$translate('app.subheadings.accounting_exports')}
-    </p>
     <div class="w-full mt-6">
       {#each links as { website, text, format }}
         <div class="flex items-center justify-between pb-4">

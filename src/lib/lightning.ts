@@ -174,10 +174,10 @@ class Lightning {
 
     try {
       incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
-      const { income_events } = await lnApi.bkprListIncome()
-      incomeEvents$.next({ loading: false, data: income_events })
+      const incomeEvents = await lnApi.bkprListIncome()
+      incomeEvents$.next({ loading: false, data: incomeEvents })
 
-      return income_events
+      return incomeEvents
     } catch (error) {
       const { message } = error as Error
       incomeEvents$.next({ loading: false, data: null, error: message })
@@ -196,10 +196,10 @@ class Lightning {
 
     try {
       channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
-      const { channels_apy } = await lnApi.bkprChannelsAPY()
-      channelsAPY$.next({ loading: false, data: channels_apy })
+      const channelsAPY = await lnApi.bkprChannelsAPY()
+      channelsAPY$.next({ loading: false, data: channelsAPY })
 
-      return channels_apy
+      return channelsAPY
     } catch (error) {
       const { message } = error as Error
       channelsAPY$.next({ loading: false, data: null, error: message })

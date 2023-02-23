@@ -4,11 +4,14 @@
   import { formatValueForDisplay } from '$lib/utils'
   import { channelsAPY$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
+  import Spinner from '$lib/elements/Spinner.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import Big from 'big.js'
 
-  $: net = channelsAPY$.value.data?.filter((item) => item.account === 'net')[0]
+  $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
 
   // Format value or fees
-  function formatValue(value: number) {
+  function formatValue(value: number | string) {
     return formatValueForDisplay({
       value: convertValue({
         value: value.toString(),
@@ -26,12 +29,22 @@
   }
 </script>
 
-{#if net}
-  <section
-    class="p-6 border border-current rounded-md max-w-full flex flex-col shadow-sm shadow-purple-400"
-  >
-    <h1 class="text-4xl w-full mb-6 font-bold">{$translate('app.headings.routing_performance')}</h1>
-    <p>{$translate('app.subheadings.routing_performance')}</p>
+<section
+  class="p-6 border border-current rounded-md max-w-lg flex flex-col shadow-sm shadow-purple-400"
+>
+  <h1 class="text-4xl w-full mb-6 font-bold">{$translate('app.headings.routing_performance')}</h1>
+  <p>{$translate('app.subheadings.routing_performance')}</p>
+
+  {#if $channelsAPY$.loading}
+    <!-- {#if true} -->
+    <section class="w-full h-full flex items-center justify-center">
+      <Spinner />
+    </section>
+  {:else if $channelsAPY$.error}
+    <div class="flex items-center justify-center">
+      <ErrorMsg message={$channelsAPY$.error} closable={false} />
+    </div>
+  {:else if net}
     <div class="mt-6 rounded-lg shadow-lg border">
       <table class="w-full">
         <thead>
@@ -76,11 +89,11 @@
             >
             <!-- Value -->
             <td class="px-2 py-2 border-l border-r">
-              {formatValue(net.routed_in_msat + net.routed_out_msat)}</td
+              {formatValue(Big(net.routed_in_msat).plus(net.routed_out_msat).toString())}</td
             >
             <!-- Fees -->
             <td class="px-2 py-2 border-l border-r">
-              {formatValue(net.fees_in_msat + net.fees_out_msat)}</td
+              {formatValue(Big(net.fees_in_msat).plus(net.fees_out_msat).toString())}</td
             >
             <!-- APY -->
             <td class="px-2 py-2 border-t">{formatAPY(net.apy_total)}</td>
@@ -88,5 +101,5 @@
         </tbody>
       </table>
     </div>
-  </section>
-{/if}
+  {/if}
+</section>
