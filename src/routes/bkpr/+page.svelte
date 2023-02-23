@@ -21,10 +21,10 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="w-full h-full flex flex-col justify-center items-center px-6 pb-6">
-  <div class="h-24" />
+<div class="w-full h-full flex overflow-hidden flex-col justify-center items-center p-6">
+  <div class="h-28 w-full" />
   <div
-    class="grid gap-4 grid-cols-1 overflow-scroll p-2 md:grid-flow-col-dense md:auto-cols-min md:auto-rows-fr"
+    class="grid gap-4 grid-cols-1 overflow-scroll md:grid-flow-col-dense p-2 md:auto-cols-min md:auto-rows-fr"
   >
     <RoutingPerformance />
     <AccountInsights />

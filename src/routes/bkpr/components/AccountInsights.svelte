@@ -140,7 +140,7 @@
 </script>
 
 <section
-  class="p-6 border border-current rounded-md row-span-2 min-w-[320px] flex flex-col shadow-sm shadow-purple-400"
+  class="p-4 border border-current rounded-md row-span-2 min-w-[300px] flex flex-col shadow-sm shadow-purple-400"
 >
   <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
   <p>

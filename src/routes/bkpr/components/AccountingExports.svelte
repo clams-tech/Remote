@@ -304,7 +304,7 @@
 </script>
 
 <section
-  class="p-6 border border-current flex flex-col max-w-lg rounded-md shadow-sm shadow-purple-400"
+  class="p-4 border border-current flex flex-col w-full max-w-xlg rounded-md shadow-sm shadow-purple-400"
 >
   <h1 class="text-4xl w-full mb-6 font-bold">
     {$translate('app.headings.accounting_exports')}

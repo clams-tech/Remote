@@ -30,7 +30,7 @@
 </script>
 
 <section
-  class="p-6 border border-current rounded-md max-w-lg flex flex-col shadow-sm shadow-purple-400"
+  class="p-4 border border-current rounded-md max-w-xlg w-full flex flex-col shadow-sm shadow-purple-400"
 >
   <h1 class="text-4xl w-full mb-6 font-bold">{$translate('app.headings.routing_performance')}</h1>
   <p>{$translate('app.subheadings.routing_performance')}</p>
