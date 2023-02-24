@@ -201,7 +201,7 @@
     "withdraw_request": "LNURL Withdraw Request",
     "accounting_exports": "Accounting Exports",
     "routing_performance": "Routing Performance",
-    "account_insights": "Account Insights"
+    "account_insights": "Channel Insights"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
