@@ -21,7 +21,7 @@
       authenticating = true
 
       const signer = await getAuthSigner(url.host)
-      const signature = await signer.sign(k1)
+      const signature = signer.sign(k1)
       const loginURL = new URL(url.toString())
 
       loginURL.searchParams.set('sig', signature)
