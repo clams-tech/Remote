@@ -33,7 +33,8 @@ import {
   paymentUpdates$,
   customNotifications$,
   pin$,
-  incomeEvents$
+  incomeEvents$,
+  channelsAPY$
 } from './streams'
 
 class Lightning {
@@ -97,14 +98,14 @@ class Lightning {
 
   public async refreshData() {
     logger.info('Refreshing data')
-    const lnApi = this.getLn()
-
-    await Promise.all([this.updateFunds(lnApi), this.updateInfo(lnApi), this.updatePayments(lnApi)])
+    await Promise.all([this.updateFunds(), this.updateInfo(), this.updatePayments()])
 
     logger.info('Refresh data complete')
   }
 
-  public async updateFunds(lnApi: LnAPI) {
+  public async updateFunds() {
+    const lnApi = this.getLn()
+
     try {
       funds$.next({ loading: true, data: funds$.getValue().data })
       const funds = await lnApi.listFunds()
@@ -124,7 +125,9 @@ class Lightning {
     }
   }
 
-  public async updateInfo(lnApi: LnAPI) {
+  public async updateInfo() {
+    const lnApi = this.getLn()
+
     try {
       nodeInfo$.next({ loading: true, data: nodeInfo$.getValue().data })
       const info = await lnApi.getInfo()
@@ -144,7 +147,9 @@ class Lightning {
     }
   }
 
-  public async updatePayments(lnApi: LnAPI) {
+  public async updatePayments() {
+    const lnApi = this.getLn()
+
     try {
       payments$.next({ loading: true, data: payments$.getValue().data })
       const payments = await lnApi.getPayments()
@@ -164,13 +169,15 @@ class Lightning {
     }
   }
 
-  public async updateIncomeEvents(lnApi: LnAPI) {
+  public async updateIncomeEvents() {
+    const lnApi = this.getLn()
+
     try {
       incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
-      const { income_events } = await lnApi.bkprListIncome()
-      incomeEvents$.next({ loading: false, data: income_events })
+      const incomeEvents = await lnApi.bkprListIncome()
+      incomeEvents$.next({ loading: false, data: incomeEvents })
 
-      return income_events
+      return incomeEvents
     } catch (error) {
       const { message } = error as Error
       incomeEvents$.next({ loading: false, data: null, error: message })
@@ -180,6 +187,28 @@ class Lightning {
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateChannelsAPY() {
+    const lnApi = this.getLn()
+
+    try {
+      channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
+      const channelsAPY = await lnApi.bkprChannelsAPY()
+      channelsAPY$.next({ loading: false, data: channelsAPY })
+
+      return channelsAPY
+    } catch (error) {
+      const { message } = error as Error
+      channelsAPY$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
       })
     }
   }
