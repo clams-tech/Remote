@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$ } from '$lib/streams'
+  import { channelsAPY$, log$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
@@ -45,9 +45,14 @@
       .plus(net[0]?.fees_out_msat || '0')
       .toString() === '0'
 
+  $: noAPY = net && net[0]?.apy_total.slice(0, -1) === '0.0000'
+
   $: if (channels && !noRoutingFees) {
     renderFeesChart(channels)
-    renderApyChart(channels)
+
+    if (!noAPY) {
+      renderApyChart(channels)
+    }
   }
 
   async function renderFeesChart(channels: ChannelAPY[]) {
@@ -102,10 +107,12 @@
     let data: number[] = []
 
     channels.forEach(({ account, apy_total }) => {
-      const total = Number(apy_total.substring(0, apy_total.length - 1))
+      const total = parseFloat(apy_total.slice(0, -1))
 
-      labels.push(truncateValue(account, 5))
-      data.push(total)
+      if (total) {
+        labels.push(truncateValue(account, 5))
+        data.push(total)
+      }
     })
 
     // If chart exists, update data
@@ -148,7 +155,7 @@
   </p>
 
   {#if $channelsAPY$.loading}
-    <section class="w-full h-full flex items-center justify-center">
+    <section class="w-full py-6 flex items-center justify-center">
       <Spinner />
     </section>
   {:else if $channelsAPY$.error}
@@ -166,12 +173,14 @@
         </div>
       {:else}
         {#each charts as { title, id }}
-          <div>
-            <h3 class="text-sm text-neutral-400">{title}</h3>
-            <div class="flex relative">
-              <canvas {id} width="auto" height="auto" />
+          {#if id !== 'apy' || !noAPY}
+            <div>
+              <h3 class="text-sm text-neutral-400">{title}</h3>
+              <div class="flex relative">
+                <canvas {id} width="auto" height="auto" />
+              </div>
             </div>
-          </div>
+          {/if}
         {/each}
       {/if}
     </section>

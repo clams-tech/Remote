@@ -36,7 +36,7 @@
   <p>{$translate('app.subheadings.routing_performance')}</p>
 
   {#if $channelsAPY$.loading}
-    <section class="w-full h-full flex items-center justify-center">
+    <section class="w-full py-6 flex items-center justify-center">
       <Spinner />
     </section>
   {:else if $channelsAPY$.error}
