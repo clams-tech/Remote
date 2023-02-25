@@ -190,16 +190,16 @@
 
   {#if showClipboardModal && clipboard}
     <Modal on:close={closeModal}>
-      <div class="flex flex-col justify-center items-center">
-        <p class="font-semibold mb-4 text-center">
+      <div>
+        <p class="font-semibold mb-4">
           {$translate('app.modals.clipboard.paragraph_one', { paymentType: clipboard.type })}
         </p>
 
-        <p class="text-center text-neutral-600 text-sm">
-          {$translate('app.modals.clipboard.paragraph_two', { paymentType: clipboard.type })}
+        <p class="text-neutral-600 dark:text-neutral-300 text-sm">
+          {$translate('app.modals.clipboard.paragraph_two')}
         </p>
 
-        <div class="flex w-full items-center mt-4">
+        <div class="flex w-full items-center mt-6">
           <div class="w-1/2 mr-2">
             <Button on:click={closeModal} text={$translate('app.buttons.no')} />
           </div>

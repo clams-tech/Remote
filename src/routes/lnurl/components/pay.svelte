@@ -148,6 +148,19 @@
   let success: SuccessAction
   let decryptedAes: string
 
+  function handleNext() {
+    if (minSendable === maxSendable) {
+      amount = convertValue({
+        value: minSendable.toString(),
+        from: BitcoinDenomination.msats,
+        to: $settings$.primaryDenomination
+      }) as string
+      next(2)
+    } else {
+      next()
+    }
+  }
+
   async function initiatePay() {
     try {
       const amountMsats = convertValue({
@@ -216,7 +229,7 @@
       paymentUpdates$.next({ ...completedPayment, description })
 
       // delay to allow time for node to update
-      setTimeout(() => lightning.updateFunds(lnApi), 1000)
+      setTimeout(() => lightning.updateFunds(), 1000)
 
       if (!successAction) {
         goto(`/payments/${completedPayment.id}`)
@@ -297,7 +310,7 @@
       </div>
 
       <div class="mt-6 w-full">
-        <Button text={$translate('app.buttons.next')} on:click={() => next()}>
+        <Button text={$translate('app.buttons.next')} on:click={handleNext}>
           <div slot="iconRight" class="w-6 -rotate-90">
             {@html arrow}
           </div>

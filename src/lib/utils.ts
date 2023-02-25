@@ -38,8 +38,8 @@ export function deriveLastPayIndex(payments: Payment[]): number {
     : 0
 }
 
-export function truncateValue(request: string): string {
-  return `${request.slice(0, 9)}...${request.slice(-9)}`
+export function truncateValue(request: string, length = 9): string {
+  return `${request.slice(0, length)}...${request.slice(-length)}`
 }
 
 export function supportsNotifications(): boolean {
@@ -72,7 +72,7 @@ export function formatValueForDisplay({
 
     case 'sats':
     case 'msats': {
-      const formatted = Big(value).round().toString()
+      const formatted = Big(value).toString()
       return commas ? formatWithCommas(formatted) : formatted
     }
 

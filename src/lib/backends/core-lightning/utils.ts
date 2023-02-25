@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import type { Payment } from '$lib/types'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
-import type { InvoiceStatus, Invoice, Pay } from './types'
+import type { InvoiceStatus, Invoice, Pay, ChannelAPY, IncomeEvent } from './types'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -105,4 +105,42 @@ export function payToPayment(pay: Pay): Payment {
     completedAt: timestamp,
     description
   }
+}
+
+export function formatIncomeEvents(events: IncomeEvent[]): IncomeEvent[] {
+  return events.map(({ credit_msat, debit_msat, ...rest }) => ({
+    ...rest,
+    credit_msat: formatMsat(credit_msat),
+    debit_msat: formatMsat(debit_msat)
+  }))
+}
+
+export function formatChannelsAPY(channels: ChannelAPY[]): ChannelAPY[] {
+  return channels.map(
+    ({
+      routed_out_msat,
+      routed_in_msat,
+      lease_fee_paid_msat,
+      lease_fee_earned_msat,
+      pushed_out_msat,
+      pushed_in_msat,
+      our_start_balance_msat,
+      channel_start_balance_msat,
+      fees_out_msat,
+      fees_in_msat,
+      ...rest
+    }) => ({
+      ...rest,
+      routed_out_msat: formatMsat(routed_out_msat),
+      routed_in_msat: formatMsat(routed_in_msat),
+      lease_fee_paid_msat: formatMsat(lease_fee_paid_msat),
+      lease_fee_earned_msat: formatMsat(lease_fee_earned_msat),
+      pushed_out_msat: formatMsat(pushed_out_msat),
+      pushed_in_msat: formatMsat(pushed_in_msat),
+      our_start_balance_msat: formatMsat(our_start_balance_msat),
+      channel_start_balance_msat: formatMsat(channel_start_balance_msat),
+      fees_out_msat: formatMsat(fees_out_msat),
+      fees_in_msat: formatMsat(fees_in_msat)
+    })
+  )
 }
