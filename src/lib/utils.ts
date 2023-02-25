@@ -1,4 +1,6 @@
-import CryptoJS from 'crypto-js'
+import AES from 'crypto-js/aes'
+import encUtf8 from 'crypto-js/enc-utf8'
+import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
@@ -151,17 +153,13 @@ export async function writeClipboardValue(text: string): Promise<boolean> {
 }
 
 export const encryptWithAES = (text: string, passphrase: string) => {
-  return CryptoJS.AES.encrypt(text, passphrase).toString()
+  return AES.encrypt(text, passphrase).toString()
 }
 
 export const decryptWithAES = (ciphertext: string, passphrase: string) => {
-  const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase)
-  const originalText = bytes.toString(CryptoJS.enc.Utf8)
+  const bytes = AES.decrypt(ciphertext, passphrase)
+  const originalText = bytes.toString(encUtf8)
   return originalText
-}
-
-export function sha256(str: string) {
-  return CryptoJS.enc.Hex.stringify(CryptoJS.SHA256(str))
 }
 
 export function getDataFromStorage(storageKey: string): string | null {
@@ -368,18 +366,13 @@ export function isProtectedRoute(route: string): boolean {
   }
 }
 
-export function toHexString(byteArray: Uint8Array) {
-  return byteArray.reduce((output, elem) => output + ('0' + elem.toString(16)).slice(-2), '')
-}
-
 export function hexStringToByte(str: string) {
   const match = str.match(/.{1,2}/g) || []
   return new Uint8Array(match.map((byte) => parseInt(byte, 16)))
 }
 
 export function createRandomHex(length = 32) {
-  const bytes = new Uint8Array(length)
-  return toHexString(crypto.getRandomValues(bytes))
+  return bytesToHex(randomBytes(length))
 }
 
 export function formatLog(type: 'INFO' | 'WARN' | 'ERROR', msg: string): string {

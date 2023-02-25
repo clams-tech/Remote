@@ -13,13 +13,18 @@
   import arrow from '$lib/icons/arrow'
   import { paymentUpdates$, settings$ } from '$lib/streams'
   import { BitcoinDenomination, type FormattedSections, type Payment } from '$lib/types'
-  import { createRandomHex, decodeBolt11, mainDomain, sha256 } from '$lib/utils'
+  import { createRandomHex, decodeBolt11, mainDomain } from '$lib/utils'
   import Big from 'big.js'
   import lightning from '$lib/lightning'
   import check from '$lib/icons/check'
   import link from '$lib/icons/link'
   import CopyValue from '$lib/elements/CopyValue.svelte'
-  import CryptoJS from 'crypto-js'
+  import AES from 'crypto-js/aes'
+  import encBase64 from 'crypto-js/enc-base64'
+  import encHex from 'crypto-js/enc-hex'
+  import encUtf8 from 'crypto-js/enc-utf8'
+  import { sha256 } from '@noble/hashes/sha256'
+  import { bytesToHex } from '@noble/hashes/utils'
 
   export let url: URL
   export let callback: string // The URL from LN SERVICE which will accept the pay request parameters
@@ -201,7 +206,7 @@
 
       const { description_hash, amount: paymentRequestAmount } = decodedPaymentRequest
 
-      const hashedMetadata = sha256(metadata)
+      const hashedMetadata = bytesToHex(sha256(metadata))
 
       if (hashedMetadata !== description_hash?.toString('hex')) {
         throw new Error($translate('app.errors.lnurl_metadata_hash'))
@@ -232,11 +237,11 @@
       }
 
       if (successAction.tag === 'aes') {
-        decryptedAes = CryptoJS.AES.decrypt(
+        decryptedAes = AES.decrypt(
           successAction.ciphertext,
-          CryptoJS.enc.Hex.parse(completedPayment.preimage!),
-          { iv: CryptoJS.enc.Base64.parse(successAction.iv) }
-        ).toString(CryptoJS.enc.Utf8)
+          encHex.parse(completedPayment.preimage!),
+          { iv: encBase64.parse(successAction.iv) }
+        ).toString(encUtf8)
       }
 
       next()
