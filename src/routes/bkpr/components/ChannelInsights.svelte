@@ -140,7 +140,7 @@
 </script>
 
 <section
-  class="p-4 border border-current rounded-md row-span-2 min-w-[300px] flex flex-col shadow-sm shadow-purple-400"
+  class="p-4 border border-current rounded-md md:row-span-2 w-full shadow-sm shadow-purple-400"
 >
   <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
   <p>
@@ -148,7 +148,6 @@
   </p>
 
   {#if $channelsAPY$.loading}
-    <!-- {#if true} -->
     <section class="w-full h-full flex items-center justify-center">
       <Spinner />
     </section>
@@ -157,7 +156,7 @@
       <ErrorMsg message={$channelsAPY$.error} closable={false} />
     </div>
   {:else}
-    <section class="mt-6 w-full h-full flex flex-wrap gap-6">
+    <section class="mt-6 flex flex-wrap">
       {#if noRoutingFees}
         <div class="flex items-center w-full">
           <div class="text-utility-pending p-2 border border-current rounded flex items-start">
@@ -167,9 +166,11 @@
         </div>
       {:else}
         {#each charts as { title, id }}
-          <div class="flex flex-col flex-wrap">
+          <div>
             <h3 class="text-sm text-neutral-400">{title}</h3>
-            <canvas height="auto" width="auto" class="block" {id} />
+            <div class="flex relative">
+              <canvas {id} width="auto" height="auto" />
+            </div>
           </div>
         {/each}
       {/if}

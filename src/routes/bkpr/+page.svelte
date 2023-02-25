@@ -1,7 +1,7 @@
 <script>
   import BackButton from '$lib/elements/BackButton.svelte'
   import RoutingPerformance from './components/RoutingPerformance.svelte'
-  import AccountInsights from './components/AccountInsights.svelte'
+  import ChannelInsights from './components/ChannelInsights.svelte'
   import AccountingExports from './components/AccountingExports.svelte'
   import { translate } from '$lib/i18n/translations'
   import { goto } from '$app/navigation'
@@ -21,13 +21,12 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="w-full h-full flex overflow-hidden flex-col justify-center items-center p-6">
-  <div class="h-28 w-full" />
+<div class="w-full h-full flex overflow-hidden flex-col justify-center items-center p-6 pt-16">
   <div
-    class="grid gap-4 grid-cols-1 overflow-scroll md:grid-flow-col-dense p-2 md:auto-cols-min md:auto-rows-fr"
+    class="grid gap-4 overflow-auto auto-cols-min auto-rows-min md:grid-cols-2 grid-cols-1 md:grid-flow-col-dense p-1 w-full max-w-3xl"
   >
     <RoutingPerformance />
-    <AccountInsights />
+    <ChannelInsights />
     <AccountingExports />
   </div>
 </div>

@@ -30,13 +30,12 @@
 </script>
 
 <section
-  class="p-4 border border-current rounded-md max-w-xlg w-full flex flex-col shadow-sm shadow-purple-400"
+  class="p-4 border border-current rounded-md md:col-span-1 md:row-span-1 w-full flex flex-col shadow-sm shadow-purple-400"
 >
   <h1 class="text-4xl w-full mb-6 font-bold">{$translate('app.headings.routing_performance')}</h1>
   <p>{$translate('app.subheadings.routing_performance')}</p>
 
   {#if $channelsAPY$.loading}
-    <!-- {#if true} -->
     <section class="w-full h-full flex items-center justify-center">
       <Spinner />
     </section>
