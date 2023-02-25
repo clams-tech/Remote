@@ -70,7 +70,7 @@ export function formatValueForDisplay({
 
     case 'sats':
     case 'msats': {
-      const formatted = Big(value).round().toString()
+      const formatted = Big(value).toString()
       return commas ? formatWithCommas(formatted) : formatted
     }
 
