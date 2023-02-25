@@ -87,7 +87,15 @@
     "fixed_withdrawable": "Withdrawable:",
     "app_proxy": "App Proxy",
     "custom_proxy": "Custom Proxy",
-    "direct_connection": "Direct Connection"
+    "direct_connection": "Direct Connection",
+    "value": "Value",
+    "fees": "Fees",
+    "apy": "APY",
+    "in": "In",
+    "out": "Out",
+    "total": "Total",
+    "routing_chart": "Fees (Channel IDs)",
+    "apy_chart": "APY (Channel IDs)"
   },
   "time": {
     "mins": "mins"
@@ -135,6 +143,7 @@
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
     "bkpr_list_income": "Error trying to list income",
+    "bkpr_channels_apy": "Error trying to show APY",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
     "lnurl_parse_error": "Failed to parse LNURL.",
@@ -175,7 +184,8 @@
     "how": "How does it work?",
     "forgot_pin": "Forgot your pin?",
     "translate": "Can you help translate this app?",
-    "pay_request": "This pay request accepts a minimum amount of {{min}} and a maximum of {{max}}."
+    "pay_request": "This pay request accepts a minimum amount of {{min}} and a maximum of {{max}}.",
+    "no_routing_fees": "Your channel(s) have not generated routing fees (yet!)"
   },
   "headings": {
     "summary": "{{direction; receive:Receive; send:Send;}} Payment",
@@ -189,7 +199,9 @@
     "encrypt": "Encryption Key",
     "pay_request": "LNURL Pay Request",
     "withdraw_request": "LNURL Withdraw Request",
-    "accounting_exports": "Accounting Exports"
+    "accounting_exports": "Accounting Exports",
+    "routing_performance": "Routing Performance",
+    "account_insights": "Channel Insights"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -200,7 +212,9 @@
     "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
     "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
-    "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:"
+    "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:",
+    "routing_performance": "Fees earned by your node for routing value (inbound vs outbound):",
+    "account_insights": "Fees earned and APY per channel (SATS):"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
@@ -214,8 +228,5 @@
       "heading": "Notifications",
       "description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
     }
-  },
-  "loading": {
-    "accounting_exports": "Loading accounting data..."
   }
 }

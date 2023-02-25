@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "1.4.1-0.2.2",
+  "version": "1.4.1-0.3.2",
   "scripts": {
     "dev": "vite dev",
     "dev-http": "vite dev --mode http",
@@ -48,6 +48,7 @@
   "type": "module",
   "dependencies": {
     "big.js": "^6.2.1",
+    "chart.js": "^4.2.1",
     "bitcoin-address-validation": "^2.2.1",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.28.0",
