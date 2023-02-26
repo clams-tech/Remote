@@ -159,7 +159,7 @@
       case 'readonly':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=waitanyinvoice","method=waitinvoice"],["method/listdatastore"], ["rate=60"]]'`
       case 'clams':
-        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage", "method^bkpr-"],["method/listdatastore"], ["rate=60"]]'`
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage", "method^bkpr-", "method=decode", "method=offer", "method=fetchinvoice", "method=sendinvoice"],["method/listdatastore"], ["rate=60"]]'`
       case 'admin':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["rate=60"]]'`
     }
