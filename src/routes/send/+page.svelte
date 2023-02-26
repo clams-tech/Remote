@@ -4,7 +4,14 @@
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import Slide from '$lib/elements/Slide.svelte'
-  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
+  import {
+    BitcoinDenomination,
+    type ParsedBitcoinStringError,
+    type ParsedOffChainString,
+    type ParsedOnchainString,
+    type Payment,
+    type SendPayment
+  } from '$lib/types'
   import { convertValue } from '$lib/conversion'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
@@ -116,22 +123,30 @@
 
   function destinationNext() {
     const { destination, amount } = $sendPayment$
-    const { lnurl, bolt11, onchain, error, type } = parseBitcoinUrl(destination)
+    const parsed = parseBitcoinUrl(destination)
+    const { error } = parsed as ParsedBitcoinStringError
 
     if (error) {
       errorMsg = error
       return
     }
 
+    const { type, value } = parsed as ParsedOffChainString | ParsedOnchainString
+
     $sendPayment$.type = type
 
-    if (lnurl) {
-      goto(`/lnurl?lnurl=${lnurl}`)
+    if (type === 'lnurl') {
+      goto(`/lnurl?lnurl=${value}`)
       return
     }
 
-    if (bolt11) {
-      $sendPayment$.destination = bolt11
+    if (type === 'bolt12') {
+      goto(`/offers?bolt12=${value}`)
+      return
+    }
+
+    if (type === 'bolt11') {
+      $sendPayment$.destination = value
 
       if (amount && amount !== '0') {
         to(3)
@@ -140,7 +155,7 @@
     }
 
     // onchain not currently supported
-    if (onchain && !bolt11) {
+    if (type === 'onchain') {
       errorMsg = $translate('app.errors.onchain_unsupported')
       return
     }

@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$, log$ } from '$lib/streams'
+  import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'

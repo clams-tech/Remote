@@ -27,7 +27,10 @@ import type {
   ParsedNodeAddress,
   Auth,
   DecodedInvoice,
-  ParsedBitcoinUrl
+  ParsedBitcoinString,
+  ParsedBitcoinStringError,
+  ParsedOnchainString,
+  ParsedOffChainString
 } from './types'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
@@ -420,6 +423,8 @@ export function decodeLightningAddress(val: string): { username: string; domain:
 }
 
 export function decodeBolt11(bolt11: string) {
+  // @TODO - Try and use `decode` rpc to see if we have access
+  // fallback to a dynamic import of the bolt11 decoder if not.
   try {
     const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
 
@@ -441,56 +446,79 @@ export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
-export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinUrl {
+export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinString {
   destination = destination.toLowerCase()
   protocol = protocol.toLowerCase()
 
+  // LNURL
   if (
     destination.startsWith('lnurl') ||
     protocol.startsWith('lnurl') ||
     protocol.startsWith('keyauth') ||
     decodeLightningAddress(destination)
   ) {
-    return { lnurl: destination, type: 'lnurl' }
+    return { value: destination, type: 'lnurl' }
   }
 
+  // Keysend
   if (nodePublicKeyRegex.test(destination)) {
-    return { keysend: destination, type: 'keysend' }
+    return { value: destination, type: 'keysend' }
   }
 
+  // Bolt11
   if (bolt11Regex.test(destination)) {
-    return { bolt11: destination, type: 'bolt11' }
+    return { value: destination, type: 'bolt11' }
   }
 
+  // Bolt 12
+  if (
+    // Offer
+    destination.startsWith('lno1') ||
+    // Invoice
+    destination.startsWith('lni1')
+  ) {
+    return {
+      type: 'bolt12',
+      value: destination
+    }
+  }
+
+  // Onchain
   if (isValidBitcoinAddress(destination)) {
     return {
       type: 'onchain',
-      onchain: {
+      value: {
         address: destination
       }
     }
   }
 
-  return { error: get(translate)('app.errors.unrecognized_payment_type'), type: null }
+  return { error: get(translate)('app.errors.unrecognized_payment_type') }
 }
 
-export function parseBitcoinUrl(input: string): ParsedBitcoinUrl {
+export function parseBitcoinUrl(input: string): ParsedBitcoinString {
   // try parsing as URL first
   try {
-    const { pathname: value, searchParams: params } = new URL(input)
-    const lightningParam = params.get('lightning')
+    const { pathname, searchParams } = new URL(input)
+    const lightningParam = searchParams.get('lightning')
 
-    const main = getPaymentDetails(value.toLowerCase())
+    const details = getPaymentDetails(pathname.toLowerCase())
 
-    if (main.onchain) {
-      main.onchain.amount = params.get('amount')
-      main.onchain.label = params.get('label')
-      main.onchain.message = params.get('message')
+    if ((details as ParsedBitcoinStringError).error) {
+      return details
+    }
+
+    const { type, value } = details as ParsedOnchainString
+
+    if (type === 'onchain') {
+      value.amount = searchParams.get('amount')
+      value.label = searchParams.get('label')
+      value.message = searchParams.get('message')
     }
 
     const lightning = lightningParam ? getPaymentDetails(lightningParam.toLowerCase()) : {}
 
-    return { ...main, ...lightning }
+    return { type, value, ...lightning }
   } catch (error) {
     return getPaymentDetails(input)
   }

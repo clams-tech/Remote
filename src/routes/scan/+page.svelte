@@ -5,7 +5,14 @@
   import Scanner from '$lib/components/Scanner.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
+  import {
+    BitcoinDenomination,
+    type ParsedBitcoinStringError,
+    type ParsedOffChainString,
+    type ParsedOnchainString,
+    type Payment,
+    type SendPayment
+  } from '$lib/types'
   import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
@@ -28,24 +35,33 @@
   })
 
   async function handleScanResult(scanResult: string) {
-    const { error, lnurl, keysend, bolt11, onchain } = parseBitcoinUrl(scanResult)
+    const parsed = parseBitcoinUrl(scanResult)
+    const { error } = parsed as ParsedBitcoinStringError
 
     if (error) {
       errorMsg = error
       return
     }
 
+    const { type, value } = parsed as ParsedOffChainString | ParsedOnchainString
+
     // lnurl
-    if (lnurl) {
-      goto(`/lnurl?lnurl=${lnurl}`)
+    if (type === 'lnurl') {
+      goto(`/lnurl?lnurl=${value}`)
+      return
+    }
+
+    // Bolt 12 Offers
+    if (type === 'bolt12') {
+      goto(`/offers?bolt12=${value}`)
       return
     }
 
     // keysend
-    if (keysend) {
+    if (type === 'keysend') {
       sendPayment$.next({
         type: 'keysend',
-        destination: keysend,
+        destination: value as string,
         description: '',
         expiry: null,
         value: '',
@@ -58,8 +74,8 @@
       return
     }
 
-    if (bolt11) {
-      const decoded = decodeBolt11(bolt11)
+    if (type === 'bolt11') {
+      const decoded = decodeBolt11(value as string)
 
       if (!decoded) {
         errorMsg = $translate('app.errors.invalid_bolt11')
@@ -70,7 +86,7 @@
 
       sendPayment$.next({
         type: 'bolt11',
-        destination: bolt11,
+        destination: value as string,
         description: description || '',
         expiry: expiry || 3600,
         value: '0',
@@ -87,7 +103,7 @@
       return
     }
 
-    if (onchain) {
+    if (type === 'onchain') {
       errorMsg = $translate('app.errors.onchain_unsupported')
     }
   }

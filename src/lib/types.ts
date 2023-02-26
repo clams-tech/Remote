@@ -83,7 +83,13 @@ export type Denomination = BitcoinDenomination | FiatDenomination
 
 export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
-export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'onchain'
+export type PaymentType =
+  | 'keysend'
+  | 'bolt11'
+  | 'lightning_address'
+  | 'lnurl'
+  | 'onchain'
+  | 'bolt12'
 
 export type Payment = {
   id: string
@@ -144,30 +150,29 @@ export type DecodedInvoice = {
   sections: { name: string; value?: string | number }[]
 }
 
-type ParsedBitcoinString = {
-  type: PaymentType | null
-  onchain?: {
+export type ParsedOnchainString = {
+  type: 'onchain'
+  value: {
     address: string
     amount?: string | null
     label?: string | null
     message?: string | null
   }
-  bolt11?: string // bolt11
-  lnurl?: string // lnurl
-  keysend?: string // node public key
-  error?: string
 }
 
-export type ParsedBitcoinUrl = RequireAtLeastOne<
-  ParsedBitcoinString,
-  keyof Omit<ParsedBitcoinString, 'type'>
->
+export type ParsedOffChainString = {
+  type: PaymentType
+  value: string
+}
 
-// https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist/49725198#49725198
-type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-  }[Keys]
+export type ParsedBitcoinStringError = {
+  error: string
+}
+
+export type ParsedBitcoinString =
+  | ParsedOnchainString
+  | ParsedOffChainString
+  | ParsedBitcoinStringError
 
 export type SendPayment = {
   destination: string

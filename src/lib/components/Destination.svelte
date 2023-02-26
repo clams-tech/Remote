@@ -1,7 +1,12 @@
 <script lang="ts">
   import lodashDebounce from 'lodash.debounce'
   import { onMount, createEventDispatcher, onDestroy } from 'svelte'
-  import type { PaymentType } from '$lib/types'
+  import type {
+    ParsedBitcoinStringError,
+    ParsedOffChainString,
+    ParsedOnchainString,
+    PaymentType
+  } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
   import Modal from '../elements/Modal.svelte'
@@ -38,17 +43,20 @@
   function handleDestinationChange() {
     errorMsg = ''
 
-    const { error, bolt11, type: destinationType } = parseBitcoinUrl(destination)
+    const parsed = parseBitcoinUrl(destination)
+    const { error } = parsed as ParsedBitcoinStringError
 
     if (error) {
       errorMsg = error
       return
     }
 
+    const { type: destinationType, value } = parsed as ParsedOffChainString | ParsedOnchainString
+
     type = destinationType
 
-    if (bolt11) {
-      const decodedInvoice = decodeBolt11(bolt11)
+    if (type === 'bolt11') {
+      const decodedInvoice = decodeBolt11(value as string)
 
       if (!decodedInvoice) {
         errorMsg = $translate('app.inputs.destination.invalid_bolt11')
@@ -109,11 +117,13 @@
     if (clipboardValue === null) return clipboardValue
 
     if (clipboardValue) {
-      const { error, bolt11, lnurl, keysend, onchain, type } = parseBitcoinUrl(clipboardValue)
+      const parsed = parseBitcoinUrl(clipboardValue)
+      const { error } = parsed as ParsedBitcoinStringError
 
       if (!error) {
+        const { value, type } = parsed as ParsedOffChainString | ParsedOnchainString
         return {
-          value: (bolt11 || lnurl || keysend || onchain?.address) as string,
+          value: type === 'onchain' ? (value as ParsedOnchainString['value']).address : value,
           type
         }
       }
