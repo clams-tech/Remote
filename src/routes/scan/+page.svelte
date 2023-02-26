@@ -75,7 +75,7 @@
     }
 
     if (type === 'bolt11') {
-      const decoded = decodeBolt11(value as string)
+      const decoded = await decodeBolt11(value as string)
 
       if (!decoded) {
         errorMsg = $translate('app.errors.invalid_bolt11')

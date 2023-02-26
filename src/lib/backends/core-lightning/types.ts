@@ -1,3 +1,4 @@
+import type { GenesisBlockhash } from '$lib/types'
 import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 // ==== REQUESTS ==== //
@@ -84,6 +85,13 @@ export type SignMessageRequest = {
   }
 }
 
+export type DecodeRequest = {
+  method: 'decode'
+  params: {
+    string: string
+  }
+}
+
 export type LNRequest =
   | PayRequest
   | GetinfoRequest
@@ -95,6 +103,7 @@ export type LNRequest =
   | KeysendRequest
   | ListfundsRequest
   | SignMessageRequest
+  | DecodeRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -603,6 +612,108 @@ export type BkprChannelsAPYResponse = {
   channels_apy: ChannelAPY[]
 }
 
+export type DecodedBolt11 = {
+  currency: string
+  created_at: number
+  expiry: number
+  payee: string
+  payment_hash: string
+  signature: string
+  min_final_cltv_expiry: number
+  amount_msat?: number | string
+  description?: string
+  description_hash?: string
+  payment_secret?: string
+  features?: string
+  payment_metadata?: string
+}
+
+export type DecodedCommon = {
+  type: 'bolt12 offer' | 'bolt12 invoice' | 'bolt12 invoice_request' | 'bolt11 invoice'
+  valid: boolean
+}
+
+export type TLV = {
+  type: number
+  length: number
+  value: string
+}
+
+export type OfferCommon = {
+  offer_id: string
+  offer_description: string
+  offer_node_id: string
+  offer_chains?: GenesisBlockhash[]
+  offer_metadata?: string
+  offer_currency?: string
+  currency_minor_unit?: number
+  offer_amount?: string | number
+  offer_amount_msat?: string | number
+  offer_issuer?: string
+  offer_features?: string
+  offer_absolute_expiry?: number
+  offer_quantity_max?: number
+  offer_recurrence?: {
+    time_unit: number
+    period: number
+    time_unit_name?: string
+    basetime?: number
+    start_any_period?: number
+    limit?: number
+    paywindow?: {
+      seconds_before: number
+      seconds_after: number
+      proportional_amount?: boolean
+    }
+  }
+  warning_unknown_offer_currency?: number
+}
+
+export type DecodedBolt12Offer = OfferCommon & {
+  unknown_offer_tlvs?: TLV[]
+}
+
+export type Bolt12InvoiceCommon = {
+  invreq_metadata: string
+  invreq_payer_id: string
+  invoice_created_at: number
+  invoice_payment_hash: string
+  invoice_amount_msat: string | number
+  signature: string
+  invreq_chain?: string
+  invreq_amount_msat?: string | number
+  invreq_features?: string
+  invreq_quantity?: number
+  invreq_payer_note?: string
+  invreq_recurrence_counter?: number
+  invreq_recurrence_start?: number
+}
+
+export type DecodedBolt12Invoice = OfferCommon &
+  Bolt12InvoiceCommon & {
+    invoice_relative_expiry?: number
+    invoice_fallbacks: {
+      version: number
+      hex: string
+      address?: string
+    }[]
+    invoice_features?: string
+    invoice_node_id?: string
+    invoice_recurrence_basetime?: number
+    unknown_invoice_tlvs?: TLV[]
+  }
+
+export type DecodedBolt12InvoiceRequest = OfferCommon &
+  Bolt12InvoiceCommon & {
+    unknown_invoice_request_tlvs: TLV[]
+  }
+
+export type DecodeResponse =
+  | DecodedBolt11
+  | DecodedBolt12Offer
+  | DecodedBolt12Invoice
+  | DecodedBolt12InvoiceRequest
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -615,5 +726,6 @@ export type LNResponse =
   | WaitAnyInvoiceResponse
   | SignMessageResponse
   | BkprListIncomeResponse
+  | DecodeResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

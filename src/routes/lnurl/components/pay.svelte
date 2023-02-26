@@ -12,7 +12,7 @@
   import { translate } from '$lib/i18n/translations'
   import arrow from '$lib/icons/arrow'
   import { paymentUpdates$, settings$ } from '$lib/streams'
-  import { BitcoinDenomination, type FormattedSections, type Payment } from '$lib/types'
+  import { BitcoinDenomination, type FormattedDecodedBolt11, type Payment } from '$lib/types'
   import { createRandomHex, decodeBolt11, mainDomain } from '$lib/utils'
   import Big from 'big.js'
   import lightning from '$lib/lightning'
@@ -143,7 +143,7 @@
   type SuccessAES = { tag: 'aes'; description: string; ciphertext: string; iv: string }
   type SuccessAction = SuccessMessage | SuccessUrl | SuccessAES
 
-  let decodedPaymentRequest: (FormattedSections & { bolt11: string }) | null
+  let decodedPaymentRequest: (FormattedDecodedBolt11 & { bolt11: string }) | null
   let completedPayment: Payment
   let success: SuccessAction
   let decryptedAes: string
@@ -198,7 +198,7 @@
       const { pr: paymentRequest, successAction } = result
 
       success = successAction
-      decodedPaymentRequest = decodeBolt11(paymentRequest)
+      decodedPaymentRequest = await decodeBolt11(paymentRequest)
 
       if (!decodedPaymentRequest) {
         throw new Error($translate('app.errors.invalid_bolt11'))
@@ -208,7 +208,7 @@
 
       const hashedMetadata = bytesToHex(sha256(metadata))
 
-      if (hashedMetadata !== description_hash?.toString('hex')) {
+      if (hashedMetadata !== description_hash) {
         throw new Error($translate('app.errors.lnurl_metadata_hash'))
       }
 

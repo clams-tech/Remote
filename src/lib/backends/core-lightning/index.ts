@@ -10,6 +10,7 @@ import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
   ChannelAPY,
+  DecodeResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
@@ -92,6 +93,18 @@ class CoreLn {
     }
 
     return payment
+  }
+
+  async decode(invoice: string): Promise<DecodeResponse> {
+    const result = await this.connection.commando({
+      method: 'decode',
+      params: {
+        string: invoice
+      },
+      rune: this.rune
+    })
+
+    return result as DecodeResponse
   }
 
   async waitForInvoicePayment(payment: Payment): Promise<Payment> {
@@ -223,8 +236,8 @@ class CoreLn {
   async getPayments(): Promise<Payment[]> {
     const { invoices } = await this.listInvoices()
     const { pays } = await this.listPays()
-    const invoicePayments: Payment[] = invoices.map(invoiceToPayment)
-    const sentPayments: Payment[] = pays.map(payToPayment)
+    const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
+    const sentPayments: Payment[] = await Promise.all(pays.map(payToPayment))
 
     return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))
   }
