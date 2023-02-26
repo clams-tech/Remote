@@ -3,7 +3,7 @@ import parser from '@sveltekit-i18n/parser-default'
 import type { Config, Parser } from '@sveltekit-i18n/parser-default'
 
 export interface Payload extends Parser.PayloadDefault {
-  paymentType?: string
+  paymentType?: string | null
   direction?: string
   status?: string
   feeType?: string

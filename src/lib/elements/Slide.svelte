@@ -13,12 +13,12 @@
   const x = direction === 'left' ? getValue() : -getValue()
 </script>
 
-<div class="h-full w-full overflow-hidden">
+<div class="h-full w-full">
   {#if back}
     <BackButton on:click={back} />
   {/if}
 
-  <div in:fly={{ x }} class="flex justify-center h-full overflow-hidden">
+  <div in:fly={{ x }} class="flex justify-center h-full overflow-auto">
     <slot />
   </div>
 </div>

@@ -77,53 +77,53 @@
   })
 </script>
 
-<div>
-  <div class="flex items-center border rounded-md">
+<div class="w-full">
+  <div class="flex border rounded-md">
     <label
-      class="flex items-center px-4 py-2 rounded cursor-pointer"
+      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
       class:bg-neutral-200={advancedConnectOption === 'default'}
       class:dark:bg-neutral-700={advancedConnectOption === 'default'}
     >
       <input
         type="radio"
-        class="appearance-none"
+        class="appearance-none hidden"
         bind:group={advancedConnectOption}
         value="default"
       />
-      <span class="ml-1">{$translate('app.labels.app_proxy')}</span>
+      <span class="text-center">{$translate('app.labels.app_proxy')}</span>
     </label>
 
     <label
-      class="flex items-center px-4 py-2 rounded cursor-pointer"
+      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
       class:bg-neutral-200={advancedConnectOption === 'customProxy'}
       class:dark:bg-neutral-700={advancedConnectOption === 'customProxy'}
     >
       <input
         type="radio"
-        class="appearance-none"
+        class="appearance-none hidden"
         bind:group={advancedConnectOption}
         value="customProxy"
       />
-      <span class="ml-1">{$translate('app.labels.custom_proxy')}</span>
+      <span class="text-center">{$translate('app.labels.custom_proxy')}</span>
     </label>
 
     <label
-      class="flex items-center px-4 py-2 rounded cursor-pointer"
+      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
       class:bg-neutral-200={advancedConnectOption === 'directConnection'}
       class:dark:bg-neutral-700={advancedConnectOption === 'directConnection'}
     >
       <input
         type="radio"
-        class="appearance-none"
+        class="appearance-none hidden"
         bind:group={advancedConnectOption}
         value="directConnection"
       />
-      <span class="ml-1">{$translate('app.labels.direct_connection')}</span>
+      <span class="text-center">{$translate('app.labels.direct_connection')}</span>
     </label>
   </div>
 
   {#if advancedConnectOption === 'customProxy'}
-    <div in:fade class="mt-2 w-full">
+    <div in:fade class="mt-2">
       <TextInput
         on:input={validateCustomProxy}
         bind:this={customProxyInput}

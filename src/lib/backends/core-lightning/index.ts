@@ -2,13 +2,16 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
-import { invoiceToPayment, payToPayment } from './utils'
+import { formatChannelsAPY, formatIncomeEvents, invoiceToPayment, payToPayment } from './utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
 
 import type {
+  BkprChannelsAPYResponse,
   BkprListIncomeResponse,
+  ChannelAPY,
   GetinfoResponse,
+  IncomeEvent,
   InvoiceRequest,
   InvoiceResponse,
   KeysendResponse,
@@ -78,7 +81,7 @@ class CoreLn {
       direction: 'receive',
       value: amount_msat,
       fee: null,
-      type: 'payment_request',
+      type: 'bolt11',
       startedAt,
       completedAt: null,
       expiresAt: new Date(expires_at * 1000).toISOString(),
@@ -159,7 +162,7 @@ class CoreLn {
       hash: payment_hash,
       preimage: payment_preimage,
       destination,
-      type: 'payment_request',
+      type: 'bolt11',
       direction: 'send',
       value: formatMsat(amount_msat),
       completedAt: new Date().toISOString(),
@@ -205,7 +208,7 @@ class CoreLn {
       hash: payment_hash,
       preimage: payment_preimage,
       destination,
-      type: 'payment_request',
+      type: 'bolt11',
       direction: 'send',
       value: amountMsat,
       completedAt: new Date().toISOString(),
@@ -251,13 +254,26 @@ class CoreLn {
     return result as SignMessageResponse
   }
 
-  async bkprListIncome(): Promise<BkprListIncomeResponse> {
-    const result = await this.connection.commando({
+  async bkprListIncome(): Promise<IncomeEvent[]> {
+    const result = (await this.connection.commando({
       method: 'bkpr-listincome',
       rune: this.rune
-    })
+    })) as BkprListIncomeResponse
 
-    return result as BkprListIncomeResponse
+    const formatted = formatIncomeEvents(result.income_events)
+
+    return formatted
+  }
+
+  async bkprChannelsAPY(): Promise<ChannelAPY[]> {
+    const result = (await this.connection.commando({
+      method: 'bkpr-channelsapy',
+      rune: this.rune
+    })) as BkprChannelsAPYResponse
+
+    const formatted = formatChannelsAPY(result.channels_apy)
+
+    return formatted
   }
 }
 

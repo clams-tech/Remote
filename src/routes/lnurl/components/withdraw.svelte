@@ -218,7 +218,7 @@
 {#if slide === 2}
   <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
     <Summary
-      type="payment_request"
+      type="bolt11"
       direction="receive"
       destination={serviceName}
       description={defaultDescription}

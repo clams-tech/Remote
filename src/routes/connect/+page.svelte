@@ -50,7 +50,7 @@
   let copySuccess = ''
   let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
-  const recipes = ['readonly', 'payments', 'admin'] as const
+  const recipes = ['readonly', 'clams', 'admin'] as const
 
   type Recipe = typeof recipes[number]
 
@@ -70,7 +70,6 @@
 
     if (decodedRune) {
       blurRuneInput()
-      showDecodedRuneModal = true
     }
   }
 
@@ -159,8 +158,8 @@
     switch (type) {
       case 'readonly':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=waitanyinvoice","method=waitinvoice"],["method/listdatastore"], ["rate=60"]]'`
-      case 'payments':
-        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage"],["method/listdatastore"], ["rate=60"]]'`
+      case 'clams':
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage", "method^bkpr-"],["method/listdatastore"], ["rate=60"]]'`
       case 'admin':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["rate=60"]]'`
     }
@@ -231,7 +230,7 @@
 
 {#if step === 'connect'}
   <Slide>
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="w-full p-6 max-w-lg m-auto">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">
@@ -299,7 +298,7 @@
         <div
           in:fade
           class:h-28={!!expandConnectionSettings}
-          class="text-sm mt-2 px-4 flex flex-col items-start overflow-hidden h-0 transition-all"
+          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start overflow-y-hidden h-0 transition-all"
         >
           <ConnectionSettings
             bind:invalid={invalidConnectionOptions}
@@ -327,9 +326,7 @@
       step = 'connect'
     }}
   >
-    <section
-      class="flex flex-col justify-center items-start w-full h-full px-6 pb-4 pt-10 max-w-lg"
-    >
+    <section class="w-full p-6 max-w-lg m-auto">
       <div class="h-8" />
 
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
@@ -360,21 +357,21 @@
         <p class="text-neutral-600 dark:text-neutral-300">
           {$translate('app.inputs.add_rune.recipes')}
         </p>
-        <div class="flex justify-between">
+        <div class="flex gap-1 my-4">
           {#each recipes as recipe}
             <button
               on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
-              class="relative flex items-center w-full my-4"
+              class="relative flex items-center justify-center w-full text-sm border rounded py-1"
             >
               <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
 
               <div class:text-utility-success={copySuccess === recipe}>
                 {#if copySuccess === recipe}
-                  <div in:fade class="w-8">
+                  <div in:fade class="w-6">
                     {@html check}
                   </div>
                 {:else}
-                  <div in:fade class="w-8">
+                  <div in:fade class="w-6">
                     {@html copy}
                   </div>
                 {/if}
@@ -384,13 +381,23 @@
         </div>
       </div>
 
-      <div class="flex items-center mb-6 font-thin text-sm dark:text-purple-200 text-purple-700">
-        <div class="w-5 mr-2 border-2 rounded-full border-current">
-          {@html info}
+      <div
+        class="flex items-center w-full justify-between mb-6 font-thin text-sm dark:text-purple-200 text-purple-700"
+      >
+        <div class="flex items-center">
+          <div class="w-5 mr-2 border-2 rounded-full border-current">
+            {@html info}
+          </div>
+          <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
+            >{$translate('app.hints.help')}</a
+          >
         </div>
-        <a href={DOCS_RUNE_LINK} target="_blank" class="hover:underline" rel="noopener noreferrer"
-          >{$translate('app.hints.help')}</a
-        >
+
+        {#if decodedRune}
+          <div in:fade>
+            <Button text="Decode Rune" on:click={() => (showDecodedRuneModal = true)} small />
+          </div>
+        {/if}
       </div>
 
       <div class="w-full">
