@@ -44,7 +44,6 @@
       <ErrorMsg message={$channelsAPY$.error} closable={false} />
     </div>
   {:else if net}
-    <p>hello</p>
     <div class="mt-6 rounded-lg shadow-lg border overflow-x-scroll">
       <table class="w-full">
         <thead>
