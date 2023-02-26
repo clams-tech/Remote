@@ -3,8 +3,9 @@ import encUtf8 from 'crypto-js/enc-utf8'
 import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
+import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { DecodedBolt11, ListfundsResponse } from './backends'
+import type { ListfundsResponse } from './backends'
 import { customNotifications$, log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
@@ -30,7 +31,6 @@ import type {
   ParsedOnchainString,
   FormattedDecodedBolt11
 } from './types'
-import lightning from './lightning'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
   return payments.length
@@ -421,41 +421,21 @@ export function decodeLightningAddress(val: string): { username: string; domain:
   return { username, domain }
 }
 
-export async function decodeBolt11(
-  bolt11: string
-): Promise<(FormattedDecodedBolt11 & { bolt11: string }) | null> {
-  // try and use decode rpc to see if rune has permisssions
+export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11: string }) | null {
   try {
-    const lnApi = lightning.getLn()
-    const { amount_msat, description, description_hash, expiry, created_at } = (await lnApi.decode(
-      bolt11
-    )) as DecodedBolt11
-    return {
-      bolt11,
-      amount: amount_msat?.toString() as string,
-      description,
-      description_hash,
-      expiry,
-      timestamp: created_at
-    }
+    const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
+
+    const formatted = sections.reduce((acc, { name, value }) => {
+      if (name && value) {
+        acc[name] = value
+      }
+
+      return acc
+    }, {} as FormattedDecodedBolt11)
+
+    return { bolt11, ...formatted }
   } catch (error) {
-    // otherwise dynamically import decoder library
-    try {
-      const { decode } = (await import('light-bolt11-decoder')).default
-      const { sections } = decode(bolt11) as DecodedInvoice
-
-      const formatted = sections.reduce((acc, { name, value }) => {
-        if (name && value) {
-          acc[name] = Buffer.isBuffer(value) ? value.toString('hex') : value
-        }
-
-        return acc
-      }, {} as FormattedDecodedBolt11)
-
-      return { bolt11, ...formatted }
-    } catch (error) {
-      return null
-    }
+    return null
   }
 }
 

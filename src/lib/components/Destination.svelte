@@ -56,7 +56,7 @@
     type = destinationType
 
     if (type === 'bolt11') {
-      const decodedInvoice = await decodeBolt11(value as string)
+      const decodedInvoice = decodeBolt11(value as string)
 
       if (!decodedInvoice) {
         errorMsg = $translate('app.inputs.destination.invalid_bolt11')

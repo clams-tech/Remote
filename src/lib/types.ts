@@ -124,10 +124,10 @@ export type Notification = {
 export type FormattedDecodedBolt11 = {
   expiry: number
   description?: string
-  description_hash?: string
+  description_hash?: Buffer
   amount: string
   timestamp: number
-  [key: string]: string | number | undefined
+  [key: string]: string | number | undefined | Buffer
 }
 
 export type DropdownOption = {

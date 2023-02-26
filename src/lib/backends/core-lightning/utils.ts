@@ -14,7 +14,7 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
   }
 }
 
-export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
+export function invoiceToPayment(invoice: Invoice): Payment {
   const {
     bolt11,
     payment_hash,
@@ -32,7 +32,7 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
   let timestamp: number | null = new Date().getTime() / 1000
 
   if (bolt11) {
-    const decoded = await decodeBolt11(bolt11)
+    const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
       timestamp = decoded.timestamp
@@ -60,7 +60,7 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
   }
 }
 
-export async function payToPayment(pay: Pay): Promise<Payment> {
+export function payToPayment(pay: Pay): Payment {
   const {
     bolt11,
     destination,
@@ -78,7 +78,7 @@ export async function payToPayment(pay: Pay): Promise<Payment> {
   let description: string | undefined
 
   if (bolt11) {
-    const decoded = await decodeBolt11(bolt11)
+    const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
       description = decoded.description

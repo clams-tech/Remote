@@ -198,7 +198,7 @@
       const { pr: paymentRequest, successAction } = result
 
       success = successAction
-      decodedPaymentRequest = await decodeBolt11(paymentRequest)
+      decodedPaymentRequest = decodeBolt11(paymentRequest)
 
       if (!decodedPaymentRequest) {
         throw new Error($translate('app.errors.invalid_bolt11'))
@@ -208,7 +208,7 @@
 
       const hashedMetadata = bytesToHex(sha256(metadata))
 
-      if (hashedMetadata !== description_hash) {
+      if (hashedMetadata !== description_hash?.toString('hex')) {
         throw new Error($translate('app.errors.lnurl_metadata_hash'))
       }
 
