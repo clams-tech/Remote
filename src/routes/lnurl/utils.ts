@@ -12,9 +12,7 @@ export async function getHashingKey() {
   const lnApi = lightning.getLn()
   const { zbase: signedMessage } = await lnApi.signMessage(CANONICAL_PHRASE)
 
-  const hashingKey = bytesToHex(sha256(signedMessage))
-
-  return hashingKey
+  return sha256(signedMessage)
 }
 
 export async function getAuthSigner(host: string) {
