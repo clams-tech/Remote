@@ -42,8 +42,27 @@
   let mime: string | undefined
   let address: string | undefined
 
-  let slide = 0
-  let previousSlide = 0
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['pay', 'amount', 'description', 'summary', 'completed'] as const
+  let slide: SlideStep = 'pay'
+  let previousSlide: SlideStep = 'pay'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
+    previousSlide = slide
+    slide = to
+  }
 
   let amount = ''
   let amountError = ''
@@ -104,14 +123,6 @@
     next()
   }
 
-  function back() {
-    slide -= 1
-  }
-
-  function next(increment = 1) {
-    slide += increment
-  }
-
   function validateAmount() {
     const valueSats =
       amount && amount !== '0'
@@ -132,7 +143,7 @@
       amountError = $translate('app.errors.max_sendable')
     }
 
-    !amountError && next(commentAllowed ? 1 : 2)
+    !amountError && next(commentAllowed ? 'description' : 'summary')
   }
 
   let requesting = false
@@ -155,7 +166,7 @@
         from: BitcoinDenomination.msats,
         to: $settings$.primaryDenomination
       }) as string
-      next(2)
+      next('description')
     } else {
       next()
     }
@@ -254,12 +265,13 @@
   }
 </script>
 
-{#if slide === 0}
+{#if slide === 'pay'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles.home')}
+    direction={slideDirection}
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.pay_request')}</h1>
@@ -279,13 +291,13 @@
         <img
           class="mt-2 max-w-xs"
           src={`data:${mime}, ${image}`}
-          alt={$translate('app.headings.pay_request')}
+          alt={$translate('app.headings.pay')}
         />
       {/if}
 
       <div class="mt-8 w-full">
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.min_sendable')}</span>
+          <span slot="label">{$translate('app.labels.min_sendable')}:</span>
           <span slot="value"
             >{convertValue({
               value: minSendable.toString(),
@@ -297,7 +309,7 @@
         </SummaryRow>
 
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.max_sendable')}</span>
+          <span slot="label">{$translate('app.labels.max_sendable')}:</span>
           <span slot="value"
             >{convertValue({
               value: maxSendable.toString(),
@@ -320,14 +332,14 @@
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Amount
       direction="send"
       bind:value={amount}
       bind:error={amountError}
       next={validateAmount}
-      hint={$translate('app.hints.pay_request', {
+      hint={$translate('app.hints.pay', {
         min: `${convertValue({
           value: minSendable.toString(),
           from: BitcoinDenomination.msats,
@@ -346,14 +358,14 @@
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'description'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Description next={() => next()} bind:description max={commentAllowed} />
   </Slide>
 {/if}
 
-{#if slide === 3}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       type="lnurl"
       direction="send"
@@ -367,8 +379,8 @@
   </Slide>
 {/if}
 
-{#if slide === 4}
-  <Slide direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'completed'}
+  <Slide direction={slideDirection} back={() => goto('/')} backText={$translate('app.titles.home')}>
     {@const { tag } = success}
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <div class="flex items-center mb-4">

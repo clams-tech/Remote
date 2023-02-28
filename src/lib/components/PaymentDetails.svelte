@@ -139,7 +139,7 @@
     <!-- INVOICE -->
     {#if payment.bolt11}
       <SummaryRow on:click={handleCopy(payment.bolt11)}>
-        <span slot="label">{$translate('app.labels.invoice')}</span>
+        <span slot="label">{$translate('app.labels.invoice')}:</span>
         <span class="flex items-center cursor-pointer" slot="value">
           {truncateValue(payment.bolt11)}
           {#if copySuccess === payment.bolt11}
@@ -156,7 +156,7 @@
       <!-- DESTINATION -->
     {:else if payment.destination}
       <SummaryRow on:click={handleCopy(payment.destination)}>
-        <span slot="label">{$translate('app.labels.destination')}</span>
+        <span slot="label">{$translate('app.labels.destination')}:</span>
         <span slot="value" class="flex items-center">
           {payment.destination.length > 30
             ? truncateValue(payment.destination)
@@ -176,7 +176,7 @@
 
     <!-- STATUS -->
     <SummaryRow>
-      <span slot="label">{$translate('app.labels.status')}</span>
+      <span slot="label">{$translate('app.labels.status')}:</span>
       <span class="text-utility-{statusColor} flex items-center" slot="value">
         {payment.status}
         {#if payment.status === 'pending'}
@@ -202,7 +202,7 @@
     <!-- TIMESTAMP -->
     {#if payment.completedAt}
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.completed_at')}</span>
+        <span slot="label">{$translate('app.labels.completed_at')}:</span>
         <span slot="value">
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
             <span in:fade={{ duration: 50 }}>{formatted}</span>
@@ -212,7 +212,7 @@
     {:else}
       <SummaryRow>
         <span slot="label"
-          >{$translate('app.labels.created_started_at', { direction: payment.direction })}</span
+          >{$translate('app.labels.created_started_at', { direction: payment.direction })}:</span
         >
         <span slot="value">
           {#await formatDate( { date: payment.startedAt, language: $settings$.language } ) then formatted}
@@ -225,7 +225,7 @@
     <!-- DESCRIPTION -->
     {#if payment.description}
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.description')}</span>
+        <span slot="label">{$translate('app.labels.description')}:</span>
         <span slot="value">{payment.description}</span>
       </SummaryRow>
     {/if}
@@ -233,7 +233,7 @@
     <!-- PAYMENT HASH -->
     {#if payment.hash}
       <SummaryRow on:click={handleCopy(payment.hash)}>
-        <span slot="label">{$translate('app.labels.payment_id')}</span>
+        <span slot="label">{$translate('app.labels.payment_id')}:</span>
         <span class="flex items-center" slot="value">
           {truncateValue(payment.hash)}
           {#if copySuccess === payment.hash}
@@ -252,7 +252,7 @@
     <!-- FEES -->
     {#if payment.fee}
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.fee', { feeType: 'network' })}</span>
+        <span slot="label">{$translate('app.labels.fee', { feeType: 'network' })}:</span>
         <span class="flex items-center" slot="value">
           {formatValueForDisplay({
             value: convertValue({

@@ -53,7 +53,7 @@
               >{$translate('app.labels.value')} ({$settings$.bitcoinDenomination})</th
             >
             <th class="px-2 py-2"
-              >{$translate('app.labels.fees')} ({$settings$.bitcoinDenomination})</th
+              >{$translate('app.labels.fees')}: ({$settings$.bitcoinDenomination})</th
             >
 
             <th class="px-2 py-2">{$translate('app.labels.apy')} (%)</th>

@@ -18,23 +18,31 @@
     SvelteSubject
   } from '$lib/streams'
 
-  let requesting = false
-
   const { invoiceExpiry } = $settings$
 
-  let previousSlide = 0
-  let slide = 0
-
+  let requesting = false
   let receiveError = ''
 
-  function next() {
-    previousSlide = slide
-    slide = slide + 1
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['amount', 'description', 'summary'] as const
+  let slide: SlideStep = 'amount'
+  let previousSlide: SlideStep = 'amount'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
   }
 
-  function prev() {
+  function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = slide - 1
+    slide = to
   }
 
   const receivePayment$ = new SvelteSubject({
@@ -95,25 +103,26 @@
   <title>{$translate('app.titles.receive')}</title>
 </svelte:head>
 
-{#if slide === 0}
+{#if slide === 'amount'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles.home')}
+    direction={slideDirection}
   >
     <Amount bind:value={$receivePayment$.value} {next} direction="receive" />
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'description'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Description bind:description={$receivePayment$.description} {next} />
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
       type="bolt11"
       value={$receivePayment$.value}

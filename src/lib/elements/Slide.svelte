@@ -4,6 +4,7 @@
 
   export let back: (() => void) | null = null
   export let direction: 'left' | 'right' = 'left'
+  export let backText: string | undefined = undefined
 
   function getValue() {
     const { innerWidth } = window
@@ -15,7 +16,7 @@
 
 <div class="h-full w-full">
   {#if back}
-    <BackButton on:click={back} />
+    <BackButton text={backText} on:click={back} />
   {/if}
 
   <div in:fly={{ x }} class="flex justify-center h-full overflow-auto">

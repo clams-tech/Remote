@@ -8,6 +8,8 @@
   import { LNURL_PROXY } from '$lib/constants'
   import { decodeLightningAddress } from '$lib/utils'
   import type { PageData } from './$types'
+  import { goto } from '$app/navigation'
+  import BackButton from '$lib/elements/BackButton.svelte'
 
   export let data: PageData
 
@@ -95,6 +97,7 @@
 {#if parsingLnurl}
   <Spinner />
 {:else if parseLnurlError}
+  <BackButton on:click={() => goto('/')} />
   <section class="w-full p-6 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
@@ -108,6 +111,7 @@
 {:else if tag === 'withdrawRequest'}
   <Withdraw {url} {callback} {k1} {minWithdrawable} {maxWithdrawable} {defaultDescription} />
 {:else}
+  <BackButton on:click={() => goto('/')} />
   <section class="w-full p-6 max-w-lg">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>

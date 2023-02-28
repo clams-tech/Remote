@@ -7,8 +7,9 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import type { PageData } from './$types'
 
-  export let data: { id: string } // payment id
+  export let data: PageData // payment id
 
   $: payment = $payments$.data && $payments$.data.find((p) => p.id === data.id)
 

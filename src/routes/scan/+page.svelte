@@ -53,7 +53,7 @@
 
     // Bolt 12 Offers
     if (type === 'bolt12') {
-      goto(`/offers?bolt12=${value}`)
+      goto(`/offers/${value}`)
       return
     }
 
@@ -94,11 +94,7 @@
         timestamp
       })
 
-      if (!amount || amount === '0') {
-        next()
-      } else {
-        to(2)
-      }
+      next(!amount || amount === '0' ? 'amount' : 'summary')
 
       return
     }
@@ -169,23 +165,26 @@
     }
   }
 
-  let previousSlide = 0
-  let slide = 0
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
 
-  function next() {
-    if (slide === 2) return
-    previousSlide = slide
-    slide = slide + 1
+  const slides = ['scan', 'amount', 'summary'] as const
+  let slide: SlideStep = 'scan'
+  let previousSlide: SlideStep = 'scan'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
   }
 
-  function prev() {
+  function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = slide - 1
-  }
-
-  function to(i: number) {
-    previousSlide = slide
-    slide = i
+    slide = to
   }
 </script>
 
@@ -193,25 +192,30 @@
   <title>{$translate('app.titles.scan')}</title>
 </svelte:head>
 
-{#if slide === 0}
+{#if slide === 'scan'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles.home')}
+    direction={slideDirection}
   >
     <Scanner onResult={handleScanResult} />
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Amount direction="send" bind:value={$sendPayment$.value} {next} required />
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide
+    back={() => next(previousSlide)}
+    direction={slideDirection}
+    backText={$translate(`app.labels.${previousSlide}`)}
+  >
     <Summary
       destination={$sendPayment$.destination}
       type="bolt11"

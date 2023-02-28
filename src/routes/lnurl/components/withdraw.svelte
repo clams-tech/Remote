@@ -26,19 +26,29 @@
   const serviceName = mainDomain(url.hostname)
   const fixedAmountWithdrawable = minWithdrawable === maxWithdrawable
 
-  let slide = 0
-  let previousSlide = 0
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['withdraw_request', 'amount', 'description', 'summary', 'completed'] as const
+  let slide: SlideStep = 'withdraw_request'
+  let previousSlide: SlideStep = 'withdraw_request'
+
+  $: slideDirection =
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : ('left' as SlideDirection)
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
+    previousSlide = slide
+    slide = to
+  }
 
   let amount = ''
   let amountError = ''
-
-  function back() {
-    slide -= 1
-  }
-
-  function next(increment = 1) {
-    slide += increment
-  }
 
   function validateAmount() {
     const valueSats =
@@ -126,12 +136,13 @@
   }
 </script>
 
-{#if slide === 0}
+{#if slide === 'withdraw_request'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles.home')}
+    direction={slideDirection}
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.withdraw_request')}</h1>
@@ -148,7 +159,7 @@
               fixedAmountWithdrawable
                 ? 'app.labels.fixed_withdrawable'
                 : 'app.labels.min_withdrawable'
-            )}</span
+            )}:</span
           >
           <span slot="value"
             >{convertValue({
@@ -162,7 +173,7 @@
 
         {#if !fixedAmountWithdrawable}
           <SummaryRow>
-            <span slot="label">{$translate('app.labels.max_withdrawable')}</span>
+            <span slot="label">{$translate('app.labels.max_withdrawable')}:</span>
             <span slot="value"
               >{convertValue({
                 value: maxWithdrawable.toString(),
@@ -178,7 +189,7 @@
       <div class="mt-6 w-full">
         <Button
           text={$translate('app.buttons.next')}
-          on:click={() => next(fixedAmountWithdrawable ? 2 : 1)}
+          on:click={() => next(fixedAmountWithdrawable ? 'description' : 'amount')}
         >
           <div slot="iconRight" class="w-6 -rotate-90">
             {@html arrow}
@@ -189,8 +200,8 @@
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Amount
       direction="send"
       bind:value={amount}
@@ -215,8 +226,8 @@
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       type="bolt11"
       direction="receive"

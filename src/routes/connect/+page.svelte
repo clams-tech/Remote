@@ -30,7 +30,6 @@
   } from '$lib/utils'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
-  type Step = 'connect' | 'token'
 
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
@@ -41,7 +40,28 @@
     setTimeout(focusConnectionInput, 500)
   })
 
-  let step: Step = 'connect'
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['connect', 'token'] as const
+  let slide: SlideStep = 'connect'
+  let previousSlide: SlideStep = 'connect'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
+    previousSlide = slide
+    slide = to
+  }
+
   let address = ''
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
@@ -90,7 +110,7 @@
       if (connectStatus === 'success') {
         sessionPublicKey = lnApi.connection.publicKey
         sessionPrivateKey = lnApi.connection.privateKey
-        step = 'token'
+        next()
 
         setTimeout(() => {
           focusRuneInput()
@@ -138,12 +158,12 @@
 
   function handleKeyPress(ev: KeyboardEvent) {
     if (ev.key === 'Enter') {
-      if (step === 'connect' && connectStatus !== 'connecting') {
+      if (slide === 'connect' && connectStatus !== 'connecting') {
         validAddress && connectButton.click()
         return
       }
 
-      if (step === 'token') {
+      if (slide === 'token') {
         decodedRune && saveRuneButton.click()
         return
       }
@@ -228,8 +248,12 @@
 
 <svelte:window on:keydown={handleKeyPress} />
 
-{#if step === 'connect'}
-  <Slide>
+{#if slide === 'connect'}
+  <Slide
+    back={() => goto('/welcome')}
+    backText={$translate('app.titles.welcome')}
+    direction={slideDirection}
+  >
     <section class="w-full p-6 max-w-lg m-auto">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
@@ -320,12 +344,8 @@
   </Slide>
 {/if}
 
-{#if step === 'token'}
-  <Slide
-    back={() => {
-      step = 'connect'
-    }}
-  >
+{#if slide === 'token'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <section class="w-full p-6 max-w-lg m-auto">
       <div class="h-8" />
 
@@ -436,17 +456,17 @@
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.id')}</span>
+        <span slot="label">{$translate('app.labels.id')}:</span>
         <span slot="value">{decodedRune.id}</span>
       </SummaryRow>
 
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.hash')}</span>
+        <span slot="label">{$translate('app.labels.hash')}:</span>
         <span slot="value">{truncateValue(decodedRune.hash)}</span>
       </SummaryRow>
 
       <SummaryRow baseline>
-        <span slot="label">{$translate('app.labels.restrictions')}</span>
+        <span slot="label">{$translate('app.labels.restrictions')}:</span>
         <p slot="value">
           {#if decodedRune.restrictions.length === 0}
             <div class="flex items-center">

@@ -57,6 +57,7 @@
   back={() => {
     goto('/settings/app')
   }}
+  backText={$translate('app.titles.settings_app')}
 >
   <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
     <h1 class="text-lg w-full text-center my-6 font-bold">

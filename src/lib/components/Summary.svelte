@@ -11,6 +11,7 @@
 
   export let type: PaymentType | null
   export let destination: string | null = ''
+  export let issuer: string | null = ''
   export let direction: 'send' | 'receive'
   export let value: string | null
   export let description = ''
@@ -92,7 +93,7 @@
     <!-- DESTINATION -->
     {#if direction === 'send' && destination}
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.destination')}</span>
+        <span slot="label">{$translate('app.labels.destination')}:</span>
         <span slot="value">
           {#if type}
             {formatDestination(destination, type)}
@@ -101,9 +102,21 @@
       </SummaryRow>
     {/if}
 
+    <!-- ISSUER -->
+    {#if direction === 'receive' && issuer}
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.issuer')}:</span>
+        <span slot="value">
+          {#if type}
+            {issuer}
+          {/if}
+        </span>
+      </SummaryRow>
+    {/if}
+
     <!-- AMOUNT -->
     <SummaryRow>
-      <span slot="label">{$translate('app.labels.amount')}</span>
+      <span slot="label">{$translate('app.labels.amount')}:</span>
       <span class="flex items-center" slot="value">
         {#if value}
           {#if direction === 'receive' && value === '0'}
@@ -126,7 +139,7 @@
 
     <!-- DESCRIPTION -->
     <SummaryRow>
-      <span slot="label">{$translate('app.labels.description')}</span>
+      <span slot="label">{$translate('app.labels.description')}:</span>
       <span slot="value">
         {description || 'none'}
       </span>
@@ -135,7 +148,7 @@
     <!-- EXPIRY -->
     {#if type === 'bolt11' && expiry}
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.expiry')}</span>
+        <span slot="label">{$translate('app.labels.expires')}:</span>
         <span class="flex items-center w-full justify-end" slot="value">
           {#if direction === 'receive'}
             <input

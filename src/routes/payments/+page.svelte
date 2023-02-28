@@ -56,6 +56,7 @@
   back={() => {
     goto('/')
   }}
+  backText={$translate('aoo.titles.home')}
   direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
   <section in:fade class="flex flex-col items-center justify-start w-full p-6 max-w-lg">

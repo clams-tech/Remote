@@ -24,25 +24,30 @@
 
   export let data: PageData
 
-  let previousSlide = 0
-  let slide = 0
+  let requesting = false
   let errorMsg = ''
 
-  function next() {
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['destination', 'amount', 'description', 'summary'] as const
+  let slide: SlideStep = 'destination'
+  let previousSlide: SlideStep = 'destination'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = slide + 1
+    slide = to
   }
-
-  function prev() {
-    previousSlide = slide
-    slide = slide - 1
-  }
-
-  function to(i: number) {
-    slide = i
-  }
-
-  let requesting = false
 
   const sendPayment$ = new SvelteSubject<SendPayment>({
     destination: data.destination || '',
@@ -141,7 +146,7 @@
     }
 
     if (type === 'bolt12') {
-      goto(`/offers?bolt12=${value}`)
+      goto(`/offers/${value}`)
       return
     }
 
@@ -149,7 +154,7 @@
       $sendPayment$.destination = value
 
       if (amount && amount !== '0') {
-        to(3)
+        next('summary')
         return
       }
     }
@@ -168,12 +173,13 @@
   <title>{$translate('app.titles.send')}</title>
 </svelte:head>
 
-{#if slide === 0}
+{#if slide === 'destination'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles.home')}
+    direction={slideDirection}
   >
     <Destination
       next={destinationNext}
@@ -188,25 +194,25 @@
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Amount
       direction="send"
       bind:value={$sendPayment$.value}
-      next={() => ($sendPayment$.description ? to(3) : next())}
+      next={() => next($sendPayment$.description ? 'summary' : 'description')}
       required
     />
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'description'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Description {next} bind:description={$sendPayment$.description} />
   </Slide>
 {/if}
 
-{#if slide === 3}
-  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       direction="send"
       type={$sendPayment$.type}
