@@ -98,9 +98,7 @@ class CoreLn {
   async decode(invoice: string): Promise<DecodeResponse> {
     const result = await this.connection.commando({
       method: 'decode',
-      params: {
-        string: invoice
-      },
+      params: [invoice],
       rune: this.rune
     })
 

@@ -24,10 +24,10 @@
   "inputs": {
     "destination": {
       "label": "Pay To",
-      "hint": "{{paymentType; bolt11:Lightning Invoice; keysend:Node Public Key;}}",
+      "hint": "{{paymentType; bolt11:Lightning Invoice; bolt12:Offer keysend:Node Public Key;}}",
       "error": "Not a valid payment destination",
       "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Node Public Key / LNURL / Lightning Address"
+      "placeholder": "Bolt11 Invoice / Bolt12 Offer / Node Public Key / LNURL / Lightning Address"
     },
     "node_connect": {
       "label": "Address",
@@ -148,7 +148,9 @@
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
     "lnurl_parse_error": "Failed to parse LNURL.",
     "lnurl_unsupported_tag": "This LNURL type: {{tag}} is currently unsupported.",
-    "download": "Download Error"
+    "download": "Download Error",
+    "bolt12_decode_error": "Failed to decode Bolt12 offer.",
+    "bolt12_invalid": "Bolt12 offer is not valid"
   },
   "buttons": {
     "create_invoice": "Create Invoice",
@@ -221,7 +223,7 @@
   },
   "modals": {
     "clipboard": {
-      "paragraph_one": "You have a {{paymentType; bolt11:BOLT11 invoice; onchain:Bitcoin address; keysend:keysend node public key; lnurl:LNURL; lightning_address:lightning address}} on your clipboard.",
+      "paragraph_one": "You have a {{paymentType; bolt11:BOLT11 invoice; bolt12:BOLT12 offer; onchain:Bitcoin address; keysend:keysend node public key; lnurl:LNURL; lightning_address:lightning address}} on your clipboard.",
       "paragraph_two": "Would you like to use it to send a transaction?"
     },
     "notifications": {

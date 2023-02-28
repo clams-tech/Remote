@@ -87,9 +87,7 @@ export type SignMessageRequest = {
 
 export type DecodeRequest = {
   method: 'decode'
-  params: {
-    string: string
-  }
+  params: string[]
 }
 
 export type LNRequest =
@@ -669,9 +667,10 @@ export type OfferCommon = {
   warning_unknown_offer_currency?: number
 }
 
-export type DecodedBolt12Offer = OfferCommon & {
-  unknown_offer_tlvs?: TLV[]
-}
+export type DecodedBolt12Offer = DecodedCommon &
+  OfferCommon & {
+    unknown_offer_tlvs?: TLV[]
+  }
 
 export type Bolt12InvoiceCommon = {
   invreq_metadata: string
@@ -689,7 +688,8 @@ export type Bolt12InvoiceCommon = {
   invreq_recurrence_start?: number
 }
 
-export type DecodedBolt12Invoice = OfferCommon &
+export type DecodedBolt12Invoice = DecodedCommon &
+  OfferCommon &
   Bolt12InvoiceCommon & {
     invoice_relative_expiry?: number
     invoice_fallbacks: {
@@ -703,16 +703,13 @@ export type DecodedBolt12Invoice = OfferCommon &
     unknown_invoice_tlvs?: TLV[]
   }
 
-export type DecodedBolt12InvoiceRequest = OfferCommon &
+export type DecodedBolt12InvoiceRequest = DecodedCommon &
+  OfferCommon &
   Bolt12InvoiceCommon & {
     unknown_invoice_request_tlvs: TLV[]
   }
 
-export type DecodeResponse =
-  | DecodedBolt11
-  | DecodedBolt12Offer
-  | DecodedBolt12Invoice
-  | DecodedBolt12InvoiceRequest
+export type DecodeResponse = DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
 
 export type LNResponse =
   | InvoiceResponse
