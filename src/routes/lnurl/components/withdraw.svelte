@@ -115,7 +115,7 @@
       }
 
       url.searchParams.set('k1', k1)
-      url.searchParams.set('pr', payment.bolt11 as string)
+      url.searchParams.set('pr', payment.invoice as string)
 
       const result = await fetch(LNURL_PROXY, {
         headers: {
@@ -141,7 +141,7 @@
     back={() => {
       goto('/')
     }}
-    backText={$translate('app.titles.home')}
+    backText={$translate('app.titles./')}
     direction={slideDirection}
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">

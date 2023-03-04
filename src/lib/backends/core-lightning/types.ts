@@ -47,6 +47,31 @@ export type PayRequest = {
   }
 }
 
+export type FetchInvoiceRequest = {
+  method: 'fetchinvoice'
+  params: {
+    offer: string
+    amount_msat?: string
+    quantity?: number
+    recurrence_counter?: number
+    recurrence_start?: number
+    recurrence_label?: string
+    timeout?: number
+    payer_note?: string
+  }
+}
+
+export type SendInvoiceRequest = {
+  method: 'sendinvoice'
+  params: {
+    offer: string
+    label: string
+    amount_msat?: string
+    quantity?: number
+    timeout?: number
+  }
+}
+
 export type WaitInvoiceRequest = {
   method: 'waitinvoice'
   params: {
@@ -92,6 +117,8 @@ export type DecodeRequest = {
 
 export type LNRequest =
   | PayRequest
+  | FetchInvoiceRequest
+  | SendInvoiceRequest
   | GetinfoRequest
   | ListinvoicesRequest
   | ListpaysRequest
@@ -626,8 +653,14 @@ export type DecodedBolt11 = {
   payment_metadata?: string
 }
 
+export type DecodedType =
+  | 'bolt12 offer'
+  | 'bolt12 invoice'
+  | 'bolt12 invoice_request'
+  | 'bolt11 invoice'
+
 export type DecodedCommon = {
-  type: 'bolt12 offer' | 'bolt12 invoice' | 'bolt12 invoice_request' | 'bolt11 invoice'
+  type: DecodedType
   valid: boolean
 }
 
@@ -711,6 +744,50 @@ export type DecodedBolt12InvoiceRequest = DecodedCommon &
 
 export type DecodeResponse = DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
 
+export type FetchInvoiceResponse = {
+  /**The BOLT12 invoice we fetched */
+  invoice: string
+  changes: {
+    /**extra characters appended to the description field. */
+    description_appended?: string
+    /**a completely replaced description field */
+    description?: string
+    /**The vendor from the offer, which is missing in the invoice */
+    vendor_removed?: string
+    /**a completely replaced vendor field */
+    vendor?: string
+    /**the amount, if different from the offer amount multiplied by any quantity (or the offer had no amount, or was not in BTC). */
+    amount_msat?: string
+  }
+  /**Only for recurring invoices if the next period is under the recurrence_limit: */
+  next_period?: {
+    /**the index of the next period to fetchinvoice */
+    counter: number
+    /**UNIX timestamp that the next period starts */
+    starttime: number
+    /**UNIX timestamp that the next period ends */
+    endtime: number
+    /**UNIX timestamp of the earliest time that the next invoice can be fetched */
+    paywindow_start: number
+    /**UNIX timestamp of the latest time that the next invoice can be fetched */
+    paywindow_end: number
+  }
+}
+
+export type SendInvoiceResponse = {
+  label: string
+  description: string
+  payment_hash: string
+  status: string
+  expires_at: number
+  amount_msat?: string
+  bolt12?: string
+  pay_index?: number
+  amount_received_msat?: string
+  paid_at?: number
+  payment_preimage?: string
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -724,5 +801,7 @@ export type LNResponse =
   | SignMessageResponse
   | BkprListIncomeResponse
   | DecodeResponse
+  | FetchInvoiceResponse
+  | SendInvoiceResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

@@ -49,7 +49,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.payments')}</title>
+  <title>{$translate('app.titles./payments')}</title>
 </svelte:head>
 
 <Slide
@@ -61,7 +61,7 @@
 >
   <section in:fade class="flex flex-col items-center justify-start w-full p-6 max-w-lg">
     <h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
-      {$translate('app.titles.payments')}
+      {$translate('app.titles./payments')}
     </h1>
 
     <div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">

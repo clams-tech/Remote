@@ -41,7 +41,7 @@
 
   const lnAPI = lightning.getLn()
   const { connectionStatus$ } = lnAPI.connection
-  
+
   if (browser && !isPWA()) {
     try {
       logger.info('Attemptin to register protocol handler')
@@ -53,7 +53,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.home')}</title>
+  <title>{$translate('app.titles./')}</title>
 </svelte:head>
 
 <Nav />

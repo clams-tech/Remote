@@ -233,7 +233,8 @@
 
       completedPayment = await lnApi.payInvoice({
         id,
-        bolt11: paymentRequest,
+        type: 'bolt11',
+        invoice: paymentRequest,
         description: meta
       })
 
@@ -270,7 +271,7 @@
     back={() => {
       goto('/')
     }}
-    backText={$translate('app.titles.home')}
+    backText={$translate('app.titles./')}
     direction={slideDirection}
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
@@ -380,7 +381,7 @@
 {/if}
 
 {#if slide === 'completed'}
-  <Slide direction={slideDirection} back={() => goto('/')} backText={$translate('app.titles.home')}>
+  <Slide direction={slideDirection} back={() => goto('/')} backText={$translate('app.titles./')}>
     {@const { tag } = success}
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <div class="flex items-center mb-4">

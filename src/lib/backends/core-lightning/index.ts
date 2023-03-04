@@ -2,7 +2,13 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
-import { formatChannelsAPY, formatIncomeEvents, invoiceToPayment, payToPayment } from './utils'
+import {
+  formatChannelsAPY,
+  formatIncomeEvents,
+  invoiceStatusToPaymentStatus,
+  invoiceToPayment,
+  payToPayment
+} from './utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
 
@@ -11,15 +17,21 @@ import type {
   BkprListIncomeResponse,
   ChannelAPY,
   DecodeResponse,
+  FetchInvoiceRequest,
+  FetchInvoiceResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
   InvoiceResponse,
+  InvoiceStatus,
   KeysendResponse,
   ListfundsResponse,
   ListinvoicesResponse,
   ListpaysResponse,
+  PaymentStatus,
   PayResponse,
+  SendInvoiceRequest,
+  SendInvoiceResponse,
   SignMessageResponse,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
@@ -86,7 +98,7 @@ class CoreLn {
       startedAt,
       completedAt: null,
       expiresAt: new Date(expires_at * 1000).toISOString(),
-      bolt11,
+      invoice: bolt11,
       description,
       hash: payment_hash,
       preimage: payment_secret
@@ -140,18 +152,20 @@ class CoreLn {
   }
 
   async payInvoice(options: {
-    bolt11: string
+    /**Can be bolt11 or bolt12 */
+    invoice: string
+    type: 'bolt11' | 'bolt12'
     id: string
     amount_msat?: string
     description?: unknown
   }): Promise<Payment> {
-    const { bolt11, id, amount_msat: send_msat, description } = options
+    const { invoice, type, id, amount_msat: send_msat, description } = options
 
     const result = await this.connection.commando({
       method: 'pay',
       params: {
         label: id,
-        bolt11,
+        bolt11: invoice,
         amount_msat: send_msat,
         description
       },
@@ -173,7 +187,7 @@ class CoreLn {
       hash: payment_hash,
       preimage: payment_preimage,
       destination,
-      type: 'bolt11',
+      type,
       direction: 'send',
       value: formatMsat(amount_msat),
       completedAt: new Date().toISOString(),
@@ -181,7 +195,57 @@ class CoreLn {
       startedAt: new Date(created_at * 1000).toISOString(),
       fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
-      bolt11
+      invoice: invoice
+    }
+  }
+
+  /**Fetch an invoice for a BOLT12 Offer */
+  async fetchInvoice(params: FetchInvoiceRequest['params']): Promise<FetchInvoiceResponse> {
+    const result = await this.connection.commando({
+      method: 'fetchinvoice',
+      params,
+      rune: this.rune
+    })
+
+    return result as FetchInvoiceResponse
+  }
+
+  /**Create an invoice for a BOLT12 Offer and send it to be paid */
+  async sendInvoice(params: SendInvoiceRequest['params']): Promise<Payment> {
+    const { offer, label, amount_msat, timeout, quantity } = params
+    const createdAt = Date.now() / 1000
+
+    const result = await this.connection.commando({
+      method: 'sendinvoice',
+      params: [offer, label, timeout, quantity],
+      rune: this.rune
+    })
+
+    const {
+      payment_hash,
+      payment_preimage,
+      status,
+      bolt12,
+      expires_at,
+      paid_at,
+      amount_received_msat,
+      pay_index
+    } = result as SendInvoiceResponse
+
+    return {
+      id: label,
+      hash: payment_hash,
+      preimage: payment_preimage,
+      type: 'bolt12',
+      direction: 'receive',
+      value: formatMsat((amount_received_msat || amount_msat) as string),
+      completedAt: new Date(paid_at ? paid_at * 1000 : Date.now()).toISOString(),
+      expiresAt: new Date(expires_at * 1000).toISOString(),
+      startedAt: new Date(createdAt).toISOString(),
+      fee: null,
+      status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
+      invoice: bolt12,
+      payIndex: pay_index
     }
   }
 
@@ -226,8 +290,7 @@ class CoreLn {
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
       fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
-      status,
-      bolt11: null
+      status
     }
   }
 

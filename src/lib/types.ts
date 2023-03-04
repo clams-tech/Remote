@@ -101,7 +101,7 @@ export type Payment = {
   startedAt: string // ISO UTC
   completedAt: string | null // ISO UTC
   expiresAt: string | null // ISO UTC
-  bolt11: string | null
+  invoice?: string
   description?: string
   hash: string
   preimage?: string

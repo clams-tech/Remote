@@ -90,7 +90,7 @@
 
 <svelte:head>
   <title>
-    {$translate('app.titles.lnurl')}
+    {$translate('app.titles./lnurl')}
   </title>
 </svelte:head>
 

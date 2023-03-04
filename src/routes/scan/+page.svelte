@@ -136,7 +136,8 @@
 
       if (type === 'bolt11') {
         payment = await lnApi.payInvoice({
-          bolt11: destination,
+          invoice: destination,
+          type: 'bolt11',
           id,
           amount_msat:
             value && value !== '0'
@@ -189,7 +190,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.scan')}</title>
+  <title>{$translate('app.titles./scan')}</title>
 </svelte:head>
 
 {#if slide === 'scan'}
@@ -197,7 +198,7 @@
     back={() => {
       goto('/')
     }}
-    backText={$translate('app.titles.home')}
+    backText={$translate('app.titles./')}
     direction={slideDirection}
   >
     <Scanner onResult={handleScanResult} />

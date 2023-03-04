@@ -36,7 +36,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.decrypt')}</title>
+  <title>{$translate('app.titles./decrypt')}</title>
 </svelte:head>
 
 <section in:fade class="flex flex-col justify-center items-start w-full h-full p-6 max-w-lg">

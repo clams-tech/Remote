@@ -58,7 +58,7 @@
       return {
         id: hash,
         type,
-        heading: $translate('app.titles.payment'),
+        heading: $translate('app.titles./payment'),
         message
       }
     })
@@ -76,7 +76,18 @@
       if (!supportsNotifications() || !notificationsPermissionsGranted()) {
         // if device does not support notifications, or the permissions have not been granted
         // then add to list of notifications to be rendered by app
-        notificationsToRender = [...notificationsToRender, notification]
+
+        const idIndex = notificationsToRender.findIndex(({ id }) => notification.id)
+
+        // if id already exists, then just replace with update
+        if (idIndex !== -1) {
+          notificationsToRender = notificationsToRender.map((n, i) =>
+            i === idIndex ? notification : n
+          )
+        } else {
+          // otherwise add to end
+          notificationsToRender = [...notificationsToRender, notification]
+        }
       } else {
         // otherwise try and use browser notifications
         try {

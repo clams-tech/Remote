@@ -10,6 +10,7 @@
   export let next: () => void
   export let readonly = false
   export let max = 100
+  export let headingsKey = 'description'
 
   let focusInput: () => void
 
@@ -20,9 +21,9 @@
 
 <section class="flex flex-col justify-center w-full p-6 max-w-lg">
   <div class="mb-6">
-    <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.description')}</h1>
+    <h1 class="text-4xl font-bold mb-4">{$translate(`app.headings.${headingsKey}`)}</h1>
     <p class="text-neutral-600 dark:text-neutral-400 italic">
-      {$translate('app.subheadings.description')}
+      {$translate(`app.subheadings.${headingsKey}`)}
     </p>
   </div>
 
@@ -39,7 +40,7 @@
     />
   </div>
 
-  <Button text={$translate('app.buttons.view_summary')} on:click={next}>
+  <Button text={$translate('app.buttons.view_summary')} on:click={() => next()}>
     <div slot="iconRight" class="w-6 -rotate-90">
       {@html arrow}
     </div>

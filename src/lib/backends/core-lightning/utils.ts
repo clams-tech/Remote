@@ -43,7 +43,7 @@ export function invoiceToPayment(invoice: Invoice): Payment {
 
   return {
     id: label || payment_hash,
-    bolt11: bolt11 || null,
+    invoice: bolt11,
     hash: payment_hash,
     direction: 'receive',
     type: 'bolt11',
@@ -92,7 +92,7 @@ export function payToPayment(pay: Pay): Payment {
   return {
     id: label || payment_hash,
     destination,
-    bolt11: bolt11 || null,
+    invoice: bolt11,
     status,
     startedAt: timestamp,
     hash: payment_hash,

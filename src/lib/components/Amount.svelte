@@ -11,7 +11,7 @@
   import { fade } from 'svelte/transition'
   import Value from './Value.svelte'
 
-  export let value = '0'
+  export let value: string
   export let direction: 'send' | 'receive'
   export let next: () => void
   export let readonly = false
@@ -89,7 +89,7 @@
   </div>
 
   <div class="mt-6 w-full">
-    <Button disabled={invalid(value)} text={$translate('app.buttons.next')} on:click={next}>
+    <Button disabled={invalid(value)} text={$translate('app.buttons.next')} on:click={() => next()}>
       <div slot="iconRight" class="w-6 -rotate-90">
         {@html arrow}
       </div>

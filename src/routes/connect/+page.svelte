@@ -243,7 +243,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.connect')}</title>
+  <title>{$translate('app.titles./connect')}</title>
 </svelte:head>
 
 <svelte:window on:keydown={handleKeyPress} />
@@ -251,7 +251,7 @@
 {#if slide === 'connect'}
   <Slide
     back={() => goto('/welcome')}
-    backText={$translate('app.titles.welcome')}
+    backText={$translate('app.titles./welcome')}
     direction={slideDirection}
   >
     <section class="w-full p-6 max-w-lg m-auto">

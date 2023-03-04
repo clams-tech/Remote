@@ -45,18 +45,18 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.settings_connection')}</title>
+  <title>{$translate('app.titles./settings/connection')}</title>
 </svelte:head>
 
 <Slide
   back={() => {
     goto('/settings/app')
   }}
-  backText={$translate('app.titles.settings_app')}
+  backText={$translate('app.titles./settings/app')}
 >
   <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
     <h1 class="text-lg w-full text-center my-6 font-bold">
-      {$translate('app.titles.settings_connection')}
+      {$translate('app.titles./settings/connection')}
     </h1>
 
     <div>

@@ -100,7 +100,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.receive')}</title>
+  <title>{$translate('app.titles./receive')}</title>
 </svelte:head>
 
 {#if slide === 'amount'}
@@ -108,7 +108,7 @@
     back={() => {
       goto('/')
     }}
-    backText={$translate('app.titles.home')}
+    backText={$translate('app.titles./')}
     direction={slideDirection}
   >
     <Amount bind:value={$receivePayment$.value} {next} direction="receive" />

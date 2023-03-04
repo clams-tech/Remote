@@ -74,7 +74,8 @@
         case 'bolt11': {
           payment = await lnApi.payInvoice({
             id,
-            bolt11: destination,
+            invoice: destination,
+            type: 'bolt11',
             amount_msat:
               value && value !== '0'
                 ? Big(
@@ -170,7 +171,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.send')}</title>
+  <title>{$translate('app.titles./send')}</title>
 </svelte:head>
 
 {#if slide === 'destination'}
@@ -178,7 +179,7 @@
     back={() => {
       goto('/')
     }}
-    backText={$translate('app.titles.home')}
+    backText={$translate('app.titles./')}
     direction={slideDirection}
   >
     <Destination

@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.bkpr')}</title>
+  <title>{$translate('app.titles./bkpr')}</title>
 </svelte:head>
 
 <BackButton on:click={() => goto('/')} />

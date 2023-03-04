@@ -268,7 +268,7 @@ class Lightning {
     logger.info(`Invoice update received with status: ${invoice.status}`)
 
     if (invoice.status !== 'unpaid') {
-      const payment = await invoiceToPayment(invoice)
+      const payment = invoiceToPayment(invoice)
       paymentUpdates$.next(payment)
     }
 

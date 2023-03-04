@@ -13,24 +13,30 @@
 
   $: payment = $payments$.data && $payments$.data.find((p) => p.id === data.id)
 
-  function handleClose() {
-    const path = lastPath$.value
+  const backPath = getBackPath()
 
-    // for recently completed send or receive, we want to go home
-    if (path === '/send' || path === '/receive' || path === '/scan') {
-      goto('/')
-    } else {
-      goto(path)
+  function back() {
+    if (backPath !== '/') {
+      lastPath$.next('/')
     }
+
+    goto(backPath)
+  }
+
+  function getBackPath() {
+    const path = lastPath$.value
+    return path === '/send' || path === '/receive' || path === '/scan' || path.includes('/offers/')
+      ? '/'
+      : path
   }
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.payment')}</title>
+  <title>{$translate('app.titles./payment')}</title>
 </svelte:head>
 
 <section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-lg">
-  <BackButton on:click={handleClose} />
+  <BackButton on:click={back} text={$translate(`app.titles.${backPath}`)} />
 
   {#if $payments$.loading && !$payments$.data}
     <div class="w-full h-full flex items-center justify-center">

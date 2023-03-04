@@ -125,7 +125,7 @@
   <!-- QR AND EXPIRY COUNTDOWN -->
   {#if payment.direction === 'receive' && payment.status === 'pending'}
     <div class="my-4 flex flex-col items-center justify-center">
-      <Qr value={payment.bolt11} />
+      <Qr value={payment.invoice || null} />
       {#if payment.expiresAt}
         <div class="mt-2">
           <ExpiryCountdown on:expired={handlePaymentExpire} expiry={new Date(payment.expiresAt)} />
@@ -137,12 +137,12 @@
   <!--------------- DETAILS ----------------------->
   <div class="mt-8">
     <!-- INVOICE -->
-    {#if payment.bolt11}
-      <SummaryRow on:click={handleCopy(payment.bolt11)}>
+    {#if payment.invoice}
+      <SummaryRow on:click={handleCopy(payment.invoice)}>
         <span slot="label">{$translate('app.labels.invoice')}:</span>
         <span class="flex items-center cursor-pointer" slot="value">
-          {truncateValue(payment.bolt11)}
-          {#if copySuccess === payment.bolt11}
+          {truncateValue(payment.invoice)}
+          {#if copySuccess === payment.invoice}
             <div in:fade class="w-6 text-utility-success">
               {@html check}
             </div>

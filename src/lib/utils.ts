@@ -473,7 +473,9 @@ export function getPaymentDetails(destination: string, protocol = ''): ParsedBit
     // Offer
     destination.startsWith('lno1') ||
     // Invoice
-    destination.startsWith('lni1')
+    destination.startsWith('lni1') ||
+    // Invoice request
+    destination.startsWith('lnr1')
   ) {
     return {
       type: 'bolt12',
