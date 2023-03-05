@@ -3,7 +3,6 @@ import lightningIcon from './icons/lightning'
 import lightningOutlineIcon from './icons/lightning-outline'
 import settingsOutlineIcon from '$lib/icons/settings-outline'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
-import listIcon from './icons/list'
 import graphIcon from './icons/graph'
 import { translate } from './i18n/translations'
 
@@ -76,11 +75,6 @@ export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
 export let NAV_LINKS = [
-  {
-    title: '',
-    icon: listIcon,
-    route: '/payments'
-  },
   {
     title: '',
     icon: lightningOutlineIcon,

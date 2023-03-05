@@ -9,15 +9,15 @@
   import { BitcoinDenomination } from '$lib/types'
   import RecentPayment from '$lib/components/RecentPayment.svelte'
   import arrow from '$lib/icons/arrow'
-  import qr from '$lib/icons/qr'
   import Nav from '$lib/components/Nav.svelte'
   import Refresh from '$lib/components/Refresh.svelte'
   import lightning from '$lib/lightning'
   import { browser } from '$app/environment'
+  import scan from '$lib/icons/scan'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
-    { key: 'scan', icon: qr, styles: '' },
+    { key: 'scan', icon: scan, styles: '' },
     { key: 'receive', icon: arrow, styles: '' }
   ]
 
@@ -85,13 +85,13 @@
       </div>
     {/if}
 
-    <div class="grid grid-cols-3 gap-4 xl:gap-6 2xl:gap-8 w-full p-y mt-4">
+    <div class="grid grid-cols-3 gap-2 xs:gap-6 w-full p-y mt-4">
       {#each buttons as { key, icon, styles } (key)}
         <a
           href={`/${key}`}
           class="aspect-square border rounded flex flex-col justify-center items-center"
         >
-          <div class="w-10 lg:w-12 {styles}">
+          <div class="w-10 xs:w-12 {styles}">
             {@html icon}
           </div>
           <div class="text-base font-semi-bold">{$translate(`app.buttons.${key}`)}</div>

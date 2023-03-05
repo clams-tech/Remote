@@ -27,42 +27,50 @@
 </script>
 
 {#if payment}
-  <a href="/payments" class="absolute bottom-2 flex flex-col items-center justify-center p-4">
-    <div class="w-4 text-neutral-400 mb-1 rotate-180">{@html caret}</div>
-    <div class="flex flex-col items-center">
-      <div class="flex">
-        <span
-          >{$translate('app.payment.status', {
-            status: payment.status,
-            direction: payment.direction
-          })}:
-        </span>
-        <span class="flex items-center ml-1">
+  <a
+    href="/payments"
+    class="absolute bottom-4 flex items-end pl-4 pr-2 py-1 border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-neutral-700 rounded-md"
+  >
+    <div>
+      <span class="mr-1 text-neutral-400 leading-none text-sm"
+        >{$translate('app.titles./payments')}</span
+      >
+      <div class="flex flex-col items-center">
+        <div class="flex">
           <span
-            class="flex justify-center items-center"
-            class:w-4={primarySymbol.startsWith('<')}
-            class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-          >
-          {#if primaryValue}
-            {formatValueForDisplay({
-              value: primaryValue,
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
-          {:else}
-            <div class="ml-1">
-              <Spinner size="1rem" />
-            </div>
-          {/if}
-        </span>
+            >{$translate('app.payment.status', {
+              status: payment.status,
+              direction: payment.direction
+            })}:
+          </span>
+          <span class="flex items-center ml-1">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {#if primaryValue}
+              {formatValueForDisplay({
+                value: primaryValue,
+                denomination: $settings$.primaryDenomination,
+                commas: true
+              })}
+            {:else}
+              <div class="ml-1">
+                <Spinner size="1rem" />
+              </div>
+            {/if}
+          </span>
+        </div>
+        {#if payment.completedAt}
+          <span>
+            {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
+              <span in:fade={{ duration: 50 }}>{formatted}</span>
+            {/await}
+          </span>
+        {/if}
       </div>
-      {#if payment.completedAt}
-        <span>
-          {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-            <span in:fade={{ duration: 50 }}>{formatted}</span>
-          {/await}
-        </span>
-      {/if}
     </div>
+    <div class="w-5 text-neutral-400 ml-2 mb-[2px] -rotate-90">{@html caret}</div>
   </a>
 {/if}

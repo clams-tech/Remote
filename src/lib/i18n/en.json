@@ -191,7 +191,8 @@
     "open": "Open",
     "copy": "Copy",
     "go_to_payment": "Go to payment",
-    "download": "Download"
+    "download": "Download",
+    "offer": "Offer"
   },
   "hints": {
     "unrestricted": "unrestricted!",
