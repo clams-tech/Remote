@@ -219,7 +219,8 @@
     "accounting_exports": "Accounting Exports",
     "routing_performance": "Routing Performance",
     "account_insights": "Channel Insights",
-    "offer": "⚡ Offer",
+    "offer": "Offer",
+    "offers": "Offers",
     "payer_note": "Note"
   },
   "subheadings": {

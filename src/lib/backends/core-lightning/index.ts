@@ -27,6 +27,7 @@ import type {
   KeysendResponse,
   ListfundsResponse,
   ListinvoicesResponse,
+  ListOffersResponse,
   ListpaysResponse,
   PaymentStatus,
   PayResponse,
@@ -352,6 +353,15 @@ class CoreLn {
     const formatted = formatChannelsAPY(result.channels_apy)
 
     return formatted
+  }
+
+  async listOffers(): Promise<ListOffersResponse['offers']> {
+    const result = await this.connection.commando({
+      method: 'listoffers',
+      rune: this.rune
+    })
+
+    return (result as ListOffersResponse).offers
   }
 }
 

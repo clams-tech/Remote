@@ -10,6 +10,7 @@
   import Button from '$lib/elements/Button.svelte'
   import check from '$lib/icons/check'
   import github from '$lib/icons/github'
+  import settingsOutline from '$lib/icons/settings-outline'
 
   function setLanguage(lang: Language) {
     const currentSettings = settings$.value
@@ -31,10 +32,14 @@
   }}
   backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg relative">
-    <h1 class="text-lg w-full text-center my-6 font-bold">
-      {$translate('app.titles./settings/language')}
-    </h1>
+  <section in:fade class="flex flex-col justify-center w-full p-6 max-w-lg relative">
+    <div class="flex items-center mb-6 mt-12">
+      <div class="w-10 mr-2">{@html settingsOutline}</div>
+      <h1 class="text-4xl font-bold">
+        {$translate('app.titles./settings/language')}
+      </h1>
+    </div>
+
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
       {#each Object.entries(Language) as [locale, lang]}
         {@const disabled = !SUPPORTED_LOCALES.includes(locale)}

@@ -197,7 +197,8 @@
       }
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      completionError = message
+      completionError =
+        code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
     } finally {
       completing = false
 
