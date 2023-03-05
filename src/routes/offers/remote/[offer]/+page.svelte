@@ -241,7 +241,7 @@
 {:else if slide === 'offer'}
   <Slide
     back={() => goto($lastPath$ || '/')}
-    backText={$translate(`app.titles.${$lastPath$}`)}
+    backText={$translate(`app.titles.${$lastPath$ || '/'}`)}
     direction={slideDirection}
   >
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">

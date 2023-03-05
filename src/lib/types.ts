@@ -1,4 +1,5 @@
 import type { LnWebSocketOptions } from 'lnmessage/dist/types'
+import type { DecodedBolt12Invoice, DecodedBolt12Offer } from './backends'
 
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
@@ -107,6 +108,13 @@ export type Payment = {
   preimage?: string
   destination?: string
   payIndex?: number
+  offer?: {
+    /**Indicates if this is an offer that was created by our node */
+    local: boolean
+    id: DecodedBolt12Offer['offer_id']
+    issuer: DecodedBolt12Offer['offer_issuer']
+    payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+  }
 }
 
 type PaymentDirection = 'receive' | 'send'

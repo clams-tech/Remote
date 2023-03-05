@@ -147,7 +147,7 @@
     }
 
     if (type === 'bolt12') {
-      goto(`/offers/${value}`)
+      goto(`/offers/remote/${value}`)
       return
     }
 

@@ -302,7 +302,7 @@ class CoreLn {
   async getPayments(): Promise<Payment[]> {
     const { invoices } = await this.listInvoices()
     const { pays } = await this.listPays()
-    const invoicePayments: Payment[] = invoices.map(invoiceToPayment)
+    const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
     const sentPayments: Payment[] = pays.map(payToPayment)
 
     return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))

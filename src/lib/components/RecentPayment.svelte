@@ -35,7 +35,7 @@
       <span class="mr-1 text-neutral-400 leading-none text-sm"
         >{$translate('app.titles./payments')}</span
       >
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col">
         <div class="flex">
           <span
             >{$translate('app.payment.status', {

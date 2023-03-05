@@ -107,7 +107,10 @@
     "scan": "Scan",
     "note": "Note",
     "offer_type_value": "{{offerType; bolt12 offer:Pay; bolt12 invoice:Pay; bolt12 invoice_request:Withdraw;}}",
-    "offer": "Offer"
+    "offer": "Offer",
+    "offer_issuer": "Offer Issuer",
+    "offer_id": "Offer ID",
+    "payer_note": "Payer note"
   },
   "time": {
     "mins": "mins"

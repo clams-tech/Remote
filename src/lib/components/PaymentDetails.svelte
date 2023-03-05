@@ -15,6 +15,8 @@
   import copy from '$lib/icons/copy'
   import warning from '$lib/icons/warning'
   import { currencySymbols } from '$lib/constants'
+  import link from '$lib/icons/link'
+  import { goto } from '$app/navigation'
 
   export let payment: Payment
 
@@ -37,7 +39,7 @@
     to: $settings$.secondaryDenomination
   })
 
-  let copySuccess: string
+  let copySuccess = ''
   let successTimeoutId: NodeJS.Timeout
 
   function handleCopy(value: string) {
@@ -153,6 +155,37 @@
           {/if}
         </span>
       </SummaryRow>
+
+      <!-- OFFER -->
+      {#if payment.offer}
+        {@const { local, id, issuer, payerNote } = payment.offer}
+        <SummaryRow
+          on:click={() => (local ? goto(`/offers/local/${id}`) : handleCopy(issuer || id)())}
+        >
+          <span slot="label"
+            >{$translate(`app.labels.${payment.offer.issuer ? 'offer_issuer' : 'offer_id'}`)}:</span
+          >
+          <span class="flex items-center cursor-pointer" slot="value">
+            {payment.offer.issuer || truncateValue(payment.offer.id)}
+            {#if copySuccess === payment.offer.issuer || copySuccess === payment.offer.id}
+              <div in:fade class="w-6 text-utility-success">
+                {@html check}
+              </div>
+            {:else}
+              <div in:fade class="w-6 cursor-pointer">
+                {@html local ? link : copy}
+              </div>
+            {/if}
+          </span>
+        </SummaryRow>
+
+        {#if payerNote}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.payer_note')}:</span>
+            <span slot="value">{payerNote}</span>
+          </SummaryRow>
+        {/if}
+      {/if}
       <!-- DESTINATION -->
     {:else if payment.destination}
       <SummaryRow on:click={handleCopy(payment.destination)}>
@@ -171,6 +204,14 @@
             </div>
           {/if}
         </span>
+      </SummaryRow>
+    {/if}
+
+    <!-- DESCRIPTION -->
+    {#if payment.description}
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.description')}:</span>
+        <span slot="value">{payment.description}</span>
       </SummaryRow>
     {/if}
 
@@ -219,14 +260,6 @@
             <span in:fade={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
-      </SummaryRow>
-    {/if}
-
-    <!-- DESCRIPTION -->
-    {#if payment.description}
-      <SummaryRow>
-        <span slot="label">{$translate('app.labels.description')}:</span>
-        <span slot="value">{payment.description}</span>
       </SummaryRow>
     {/if}
 

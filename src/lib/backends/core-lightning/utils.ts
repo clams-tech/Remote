@@ -1,7 +1,16 @@
 import Big from 'big.js'
 import type { Payment } from '$lib/types'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
-import type { InvoiceStatus, Invoice, Pay, ChannelAPY, IncomeEvent } from './types'
+import type {
+  InvoiceStatus,
+  Invoice,
+  Pay,
+  ChannelAPY,
+  IncomeEvent,
+  DecodedBolt12Invoice,
+  DecodedBolt12Offer
+} from './types'
+import lightning from '$lib/lightning'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -14,9 +23,12 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
   }
 }
 
-export function invoiceToPayment(invoice: Invoice): Payment {
+export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
+  const lnApi = lightning.getLn()
+
   const {
     bolt11,
+    bolt12,
     payment_hash,
     label,
     amount_received_msat,
@@ -26,10 +38,13 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     payment_preimage,
     description,
     expires_at,
-    pay_index
+    pay_index,
+    local_offer_id
   } = invoice
 
   let timestamp: number | null = new Date().getTime() / 1000
+
+  let offer: Payment['offer']
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -41,12 +56,27 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     }
   }
 
+  if (bolt12) {
+    const decoded = await lnApi.decode(bolt12)
+    const { invoice_created_at, offer_issuer, offer_id, invreq_payer_note } =
+      decoded as DecodedBolt12Invoice
+
+    timestamp = invoice_created_at
+
+    offer = {
+      local: !!local_offer_id,
+      id: offer_id,
+      issuer: offer_issuer,
+      payerNote: invreq_payer_note
+    }
+  }
+
   return {
     id: label || payment_hash,
-    invoice: bolt11,
+    invoice: bolt12 || bolt11,
     hash: payment_hash,
     direction: 'receive',
-    type: 'bolt11',
+    type: bolt12 ? 'bolt12' : 'bolt11',
     preimage: payment_preimage,
     value: formatMsat(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
@@ -56,7 +86,8 @@ export function invoiceToPayment(invoice: Invoice): Payment {
     destination: undefined,
     fee: null,
     startedAt: new Date(timestamp * 1000).toISOString(),
-    payIndex: pay_index
+    payIndex: pay_index,
+    offer
   }
 }
 

@@ -67,7 +67,7 @@
       </div>
 
       {#each offers as { label, offer_id, active, single_use, used, bolt12 }}
-        <div>
+        <div class="w-full border rounded-md p-4">
           {#if label}
             <div>{label}</div>
           {/if}
