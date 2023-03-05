@@ -2,8 +2,10 @@ import bitcoin from './icons/bitcoin'
 import lightningIcon from './icons/lightning'
 import lightningOutlineIcon from './icons/lightning-outline'
 import settingsOutlineIcon from '$lib/icons/settings-outline'
-import feeOutlineIcon from '$lib/icons/fee-outline'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
+import listIcon from './icons/list'
+import graphIcon from './icons/graph'
+import { translate } from './i18n/translations'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -73,23 +75,33 @@ export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
-export const NAV_LINKS = [
+export let NAV_LINKS = [
   {
-    title: 'Payments',
-    icon: lightningOutlineIcon,
+    title: '',
+    icon: listIcon,
     route: '/payments'
   },
   {
-    title: 'Bookkeeper',
-    icon: feeOutlineIcon,
+    title: '',
+    icon: lightningOutlineIcon,
+    route: '/offers',
+    iconWidth: 'w-2'
+  },
+  {
+    title: '',
+    icon: graphIcon,
     route: '/bkpr'
   },
   {
-    title: 'Settings',
+    title: '',
     icon: settingsOutlineIcon,
     route: '/settings'
   }
 ]
+
+translate.subscribe((t) => {
+  NAV_LINKS = NAV_LINKS.map(({ icon, route }) => ({ icon, route, title: t(`app.titles.${route}`) }))
+})
 
 export const currencySymbols = {
   btc: bitcoin,

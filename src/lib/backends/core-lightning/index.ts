@@ -215,9 +215,13 @@ class CoreLn {
     const { offer, label, amount_msat, timeout, quantity } = params
     const createdAt = Date.now() / 1000
 
+    const orderedParams = amount_msat
+      ? [offer, label, amount_msat, timeout, quantity]
+      : [offer, label, timeout, quantity]
+
     const result = await this.connection.commando({
       method: 'sendinvoice',
-      params: [offer, label, timeout, quantity],
+      params: orderedParams,
       rune: this.rune
     })
 

@@ -11,19 +11,19 @@
   </div>
 
   <div
-    class="flex md:tall:flex-col md:tall:px-6 md:tall:py-4 justify-end flex-wrap gap-2 group/sidebar"
+    class="flex md:tall:flex-col md:tall:px-6 md:tall:py-4 justify-end flex-wrap gap-3 group/sidebar"
   >
     {#each NAV_LINKS as link}
       <a
         href={link.route}
-        class="flex items-center justify-center w-8 group/item sm:group-hover/sidebar:w-32 transition-all overflow-hidden"
+        class="flex items-center justify-center w-8 group/item md:tall:group-hover/sidebar:w-28 group-hover/sidebar:w-auto transition-all overflow-hidden"
       >
         <div class="w-8 group-hover/item:text-purple-400 transition-all">
           {@html link.icon}
         </div>
 
         <div
-          class="w-0 overflow-hidden sm:group-hover/sidebar:w-24 sm:group-hover/sidebar:pl-2 transition-all"
+          class="w-0 overflow-hidden md:tall:group-hover/sidebar:w-20 sm:group-hover/sidebar:pl-1 group-hover/sidebar:w-auto transition-all"
         >
           {link.title}
         </div>

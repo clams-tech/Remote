@@ -22,6 +22,7 @@
   import Summary from '$lib/components/Summary.svelte'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   import type {
     DecodedBolt12Invoice,
@@ -195,8 +196,8 @@
         })
       }
     } catch (error) {
-      console.log({ error })
-      // @TODO - handle error
+      const { code, message } = error as { code: number; message: string }
+      completionError = message
     } finally {
       completing = false
 
@@ -362,3 +363,7 @@
     <!-- @TODO - if type === 'bolt12 offer' - Show a quantity incrementer that defaults to one -->
   </Slide>
 {/if}
+
+<div class="absolute bottom-0 p-4">
+  <ErrorMsg bind:message={completionError} />
+</div>
