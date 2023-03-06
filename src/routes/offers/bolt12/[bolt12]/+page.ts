@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types'
 
 export const load: PageLoad = ({ params }) => {
-  return { offer: params.offer }
+  return { bolt12: params.bolt12 }
 }

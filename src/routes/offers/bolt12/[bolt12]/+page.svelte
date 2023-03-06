@@ -8,7 +8,7 @@
   import type { PageData } from './$types'
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
-  import { createRandomHex, formatMsat, truncateValue } from '$lib/utils'
+  import { createRandomHex, truncateValue } from '$lib/utils'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { BitcoinDenomination, type FiatDenomination } from '$lib/types'
   import { lastPath$, paymentUpdates$, settings$ } from '$lib/streams'
@@ -23,14 +23,8 @@
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-
-  import type {
-    DecodedBolt12Invoice,
-    DecodedBolt12InvoiceRequest,
-    DecodedBolt12Offer,
-    DecodedCommon,
-    OfferCommon
-  } from '$lib/backends'
+  import type { DecodedCommon, OfferCommon } from '$lib/backends'
+  import { decodeOffer } from '../../utils'
 
   export let data: PageData
 
@@ -59,52 +53,22 @@
   // optional payer not to include with payment
   let payerNote: string
 
-  decodeBolt12()
+  decode()
 
-  async function decodeBolt12() {
+  async function decode() {
     try {
-      const decoded: DecodedBolt12Offer | DecodedBolt12InvoiceRequest | DecodedBolt12Invoice =
-        await lnApi.decode(data.offer)
-
-      const {
-        valid,
-        type,
-        offer_recurrence,
-        offer_currency,
-        offer_amount,
-        offer_amount_msat,
-        offer_description,
-        offer_node_id,
-        offer_issuer,
-        offer_absolute_expiry,
-        offer_quantity_max
-      } = decoded
-
-      offerInvalid = !valid
-      offerType = type
-      offerExpiry = offer_absolute_expiry
-      recurrence = offer_recurrence || null
-      description = offer_description
-      issuer = offer_issuer
-
-      if (offerType === 'bolt12 invoice_request') {
-        const { invreq_amount_msat, invreq_payer_id } = decoded as DecodedBolt12InvoiceRequest
-        denomination = BitcoinDenomination.msats
-        amountMsat = formatMsat(invreq_amount_msat as string)
-        nodeId = invreq_payer_id
-        quantityMax = offer_quantity_max
-      }
-
-      if (offerType === 'bolt12 offer' || offerType === 'bolt12 invoice') {
-        const { invreq_amount_msat } = decoded as DecodedBolt12Invoice
-
-        denomination =
-          (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.msats
-
-        amountMsat = offer_amount || formatMsat((offer_amount_msat || invreq_amount_msat) as string)
-        nodeId = offer_node_id
-        quantityMax = offer_quantity_max
-      }
+      ;({
+        offerInvalid,
+        offerType,
+        offerExpiry,
+        recurrence,
+        denomination,
+        amountMsat,
+        description,
+        nodeId,
+        issuer,
+        quantityMax
+      } = await decodeOffer(data.bolt12))
     } catch (error) {
       const { message } = error as { message: string }
       decodeError = message
@@ -160,7 +124,7 @@
     try {
       if (offerType === 'bolt12 invoice') {
         payment = await lnApi.payInvoice({
-          invoice: data.offer,
+          invoice: data.bolt12,
           type: 'bolt12',
           id: createRandomHex()
         })
@@ -170,7 +134,7 @@
           invoice
           // next_period
         } = await lnApi.fetchInvoice({
-          offer: data.offer,
+          offer: data.bolt12,
           amount_msat:
             amountMsat === 'any'
               ? (convertValue({
@@ -190,7 +154,7 @@
         }
       } else if (offerType === 'bolt12 invoice_request') {
         payment = await lnApi.sendInvoice({
-          offer: data.offer,
+          offer: data.bolt12,
           label: createRandomHex(),
           amount_msat: amountMsat === 'any' ? value : undefined
         })

@@ -159,11 +159,9 @@
       <!-- OFFER -->
       {#if payment.offer}
         {@const { local, id, issuer, payerNote } = payment.offer}
-        <SummaryRow
-          on:click={() => (local ? goto(`/offers/local/${id}`) : handleCopy(issuer || id)())}
-        >
+        <SummaryRow on:click={() => (local ? goto(`/offers/${id}`) : handleCopy(issuer || id)())}>
           <span slot="label"
-            >{$translate(`app.labels.${payment.offer.issuer ? 'offer_issuer' : 'offer_id'}`)}:</span
+            >{$translate(`app.labels.${payment.offer.issuer ? 'issuer' : 'offer'}`)}:</span
           >
           <span class="flex items-center cursor-pointer" slot="value">
             {payment.offer.issuer || truncateValue(payment.offer.id)}
@@ -186,6 +184,7 @@
           </SummaryRow>
         {/if}
       {/if}
+
       <!-- DESTINATION -->
     {:else if payment.destination}
       <SummaryRow on:click={handleCopy(payment.destination)}>
@@ -266,7 +265,7 @@
     <!-- PAYMENT HASH -->
     {#if payment.hash}
       <SummaryRow on:click={handleCopy(payment.hash)}>
-        <span slot="label">{$translate('app.labels.payment_id')}:</span>
+        <span slot="label">{$translate('app.labels.hash')}:</span>
         <span class="flex items-center" slot="value">
           {truncateValue(payment.hash)}
           {#if copySuccess === payment.hash}

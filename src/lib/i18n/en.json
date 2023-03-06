@@ -56,7 +56,6 @@
     "completed_at": "Completed At",
     "created_started_at": "{{direction; receive:Created; send:Started;}} At",
     "description": "Description",
-    "payment_id": "Payment ID",
     "fee": "{{feeType; receive:Receive; network:Network;}} Fee",
     "id": "ID",
     "hash": "Hash",
@@ -108,8 +107,6 @@
     "note": "Note",
     "offer_type_value": "{{offerType; bolt12 offer:Pay; bolt12 invoice:Pay; bolt12 invoice_request:Withdraw;}}",
     "offer": "Offer",
-    "offer_issuer": "Offer Issuer",
-    "offer_id": "Offer ID",
     "payer_note": "Payer note"
   },
   "time": {
