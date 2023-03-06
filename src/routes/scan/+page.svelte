@@ -53,7 +53,7 @@
 
     // Bolt 12 Offers
     if (type === 'bolt12') {
-      goto(`/offers/remote/${value}`)
+      goto(`/offers/bolt12/${value}`)
       return
     }
 
