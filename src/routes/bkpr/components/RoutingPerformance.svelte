@@ -6,7 +6,6 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import Big from 'big.js'
 
   $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
 
@@ -44,61 +43,23 @@
       <ErrorMsg message={$channelsAPY$.error} closable={false} />
     </div>
   {:else if net}
-    <div class="mt-6 rounded-lg shadow-lg border overflow-x-scroll">
-      <table class="w-full">
-        <thead>
-          <tr class="text-left uppercase">
-            <th class="px-2 py-2" />
-            <th class="px-2 py-2"
-              >{$translate('app.labels.value')} ({$settings$.bitcoinDenomination})</th
-            >
-            <th class="px-2 py-2"
-              >{$translate('app.labels.fees')} ({$settings$.bitcoinDenomination})</th
-            >
-
-            <th class="px-2 py-2">{$translate('app.labels.apy')} (%)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="px-2 py-2 font-semibold uppercase border-t border-b"
-              >{$translate('app.labels.in')}</td
-            >
-            <!-- Value -->
-            <td class="px-2 py-2 border"> {formatValue(net.routed_in_msat)}</td>
-            <!-- Fees -->
-            <td class="px-2 py-2 border"> {formatValue(net.fees_in_msat)}</td>
-            <!-- APY -->
-            <td class="px-2 py-2 border-t">{formatAPY(net.apy_in)}</td>
-          </tr>
-          <tr>
-            <td class="px-2 py-2 font-semibold uppercase border-t border-b"
-              >{$translate('app.labels.out')}</td
-            >
-            <!-- Value -->
-            <td class="px-2 py-2 border"> {formatValue(net.routed_out_msat)}</td>
-            <!-- Fees -->
-            <td class="px-2 py-2 border"> {formatValue(net.fees_out_msat)}</td>
-            <!-- APY -->
-            <td class="px-2 py-2 border-t">{formatAPY(net.apy_out)}</td>
-          </tr>
-          <tr>
-            <td class="px-2 py-2 font-semibold uppercase border-t"
-              >{$translate('app.labels.total')}</td
-            >
-            <!-- Value -->
-            <td class="px-2 py-2 border-l border-r">
-              {formatValue(Big(net.routed_in_msat).plus(net.routed_out_msat).toString())}</td
-            >
-            <!-- Fees -->
-            <td class="px-2 py-2 border-l border-r">
-              {formatValue(Big(net.fees_in_msat).plus(net.fees_out_msat).toString())}</td
-            >
-            <!-- APY -->
-            <td class="px-2 py-2 border-t">{formatAPY(net.apy_total)}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="mt-6 flex justify-between flex-wrap gap-4 uppercase">
+      <div>
+        <p class="text-2xl font-bold">{formatValue(net.routed_in_msat)}</p>
+        <p class="text-neutral-400">
+          {$translate('app.labels.value')} ({$settings$.bitcoinDenomination})
+        </p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">{formatValue(net.fees_in_msat)}</p>
+        <p class="text-neutral-400">
+          {$translate('app.labels.fees')} ({$settings$.bitcoinDenomination})
+        </p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">{formatAPY(net.apy_in)}</p>
+        <p class="text-neutral-400">{$translate('app.labels.apy')} (%)</p>
+      </div>
     </div>
   {/if}
 </section>
