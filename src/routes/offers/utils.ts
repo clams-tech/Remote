@@ -8,11 +8,13 @@ import type {
   DecodedBolt12Invoice,
   DecodedBolt12InvoiceRequest,
   DecodedBolt12Offer,
-  OfferCommon
+  InvoiceRequestSummary,
+  OfferCommon,
+  OfferSummary
 } from '$lib/backends'
 
 export const decodedOffers$ = new SvelteSubject<
-  Record<DecodedBolt12Offer['offer_id'], FormattedDecodedOffer>
+  Record<OfferSummary['offer_id'] | InvoiceRequestSummary['invreq_id'], FormattedDecodedOffer>
 >({})
 
 export async function decodeOffer(offer: string): Promise<FormattedDecodedOffer> {

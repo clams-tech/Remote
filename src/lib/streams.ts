@@ -4,9 +4,12 @@ import { onDestroy, onMount } from 'svelte'
 import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
+  FormattedOfferSummary,
   GetinfoResponse,
+  InvoiceRequestSummary,
   ListfundsResponse,
-  ListOffersResponse
+  ListOffersResponse,
+  OfferSummary
 } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
@@ -132,7 +135,7 @@ export const channelsAPY$ = new BehaviorSubject<{
 }>({ loading: true, data: null })
 
 export const offers$ = new SvelteSubject<{
-  data: ListOffersResponse['offers'] | null
+  data: FormattedOfferSummary[] | null
   loading?: boolean
   error?: string
 }>({ loading: false, data: null })

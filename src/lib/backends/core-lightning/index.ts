@@ -26,6 +26,7 @@ import type {
   InvoiceStatus,
   KeysendResponse,
   ListfundsResponse,
+  ListInvoiceRequestsResponse,
   ListinvoicesResponse,
   ListOffersResponse,
   ListpaysResponse,
@@ -362,6 +363,15 @@ class CoreLn {
     })
 
     return (result as ListOffersResponse).offers
+  }
+
+  async listInvoiceRequests(): Promise<ListInvoiceRequestsResponse['invoicerequests']> {
+    const result = await this.connection.commando({
+      method: 'listinvoicerequests',
+      rune: this.rune
+    })
+
+    return (result as ListInvoiceRequestsResponse).invoicerequests
   }
 }
 

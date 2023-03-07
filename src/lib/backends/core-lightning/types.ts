@@ -119,6 +119,10 @@ export type ListOffersRequest = {
   method: 'listoffers'
 }
 
+export type ListInvoiceRequestsRequest = {
+  method: 'listinvoicerequests'
+}
+
 export type LNRequest =
   | PayRequest
   | FetchInvoiceRequest
@@ -134,6 +138,7 @@ export type LNRequest =
   | SignMessageRequest
   | DecodeRequest
   | ListOffersRequest
+  | ListInvoiceRequestsRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -793,9 +798,7 @@ export type SendInvoiceResponse = {
   payment_preimage?: string
 }
 
-export type OfferSummary = {
-  /**the id of this offer (merkle hash of non-signature fields) */
-  offer_id: string
+export type OfferSummaryCommon = {
   /**whether this can still be used */
   active: boolean
   /**whether this expires as soon as it’s paid */
@@ -808,8 +811,27 @@ export type OfferSummary = {
   label?: string
 }
 
+export type OfferSummary = OfferSummaryCommon & {
+  /**the id of this offer (merkle hash of non-signature fields) */
+  offer_id: string
+}
+
+export type InvoiceRequestSummary = OfferSummaryCommon & {
+  /**the id of this offer (merkle hash of non-signature fields) */
+  invreq_id: string
+}
+
+export type FormattedOfferSummary = OfferSummaryCommon & {
+  id: string
+  type: 'pay' | 'withdraw'
+}
+
 export type ListOffersResponse = {
   offers: OfferSummary[]
+}
+
+export type ListInvoiceRequestsResponse = {
+  invoicerequests: InvoiceRequestSummary[]
 }
 
 export type LNResponse =
@@ -828,5 +850,6 @@ export type LNResponse =
   | FetchInvoiceResponse
   | SendInvoiceResponse
   | ListOffersResponse
+  | ListInvoiceRequestsResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
