@@ -5,7 +5,8 @@ import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
   GetinfoResponse,
-  ListfundsResponse
+  ListfundsResponse,
+  ListOffersResponse
 } from './backends'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
@@ -129,6 +130,12 @@ export const channelsAPY$ = new BehaviorSubject<{
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
+
+export const offers$ = new SvelteSubject<{
+  data: ListOffersResponse['offers'] | null
+  loading?: boolean
+  error?: string
+}>({ loading: false, data: null })
 
 // browsers use different event names and hidden properties
 const pageVisibilityParams =

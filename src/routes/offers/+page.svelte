@@ -1,35 +1,13 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import type { ListOffersResponse } from '$lib/backends'
   import BackButton from '$lib/elements/BackButton.svelte'
   import Slide from '$lib/elements/Slide.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightningOutline from '$lib/icons/lightning-outline'
   import warning from '$lib/icons/warning'
-  import lightning from '$lib/lightning'
+  import { offers$ } from '$lib/streams'
   import { truncateValue } from '$lib/utils'
-
-  const lnApi = lightning.getLn()
-
-  let loading = false
-  let errorMsg = ''
-  let offers: ListOffersResponse['offers'] = []
-
-  getOffers()
-
-  async function getOffers() {
-    loading = true
-
-    try {
-      offers = await lnApi.listOffers()
-    } catch (error) {
-      const { code, message } = error as { code: number; message: string }
-      errorMsg = code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
-    } finally {
-      loading = false
-    }
-  }
 </script>
 
 <svelte:head>
@@ -38,9 +16,9 @@
   </title>
 </svelte:head>
 
-{#if loading}
+{#if $offers$.loading}
   <Spinner />
-{:else if errorMsg}
+{:else if $offers$.error}
   <BackButton on:click={() => goto('/')} text={$translate('app.titles./')} />
   <section class="w-full p-6 max-w-lg flex items-center justify-center">
     <div class="flex items-center mb-6 mt-12">
@@ -56,7 +34,7 @@
       </p>
     </div>
   </section>
-{:else}
+{:else if $offers$.data}
   <Slide back={() => goto('/')} backText={$translate('app.titles./')} direction="left">
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <div class="flex items-center mb-6 mt-12">
@@ -66,18 +44,23 @@
         </h1>
       </div>
 
-      {#each offers as { label, offer_id, active, single_use, used, bolt12 }}
-        <div class="w-full border rounded-md p-4">
-          {#if label}
-            <div>{label}</div>
-          {/if}
-          <div>{truncateValue(offer_id)}</div>
-          <div>Active: {active}</div>
-          <div>Single use: {single_use}</div>
-          <div>Used: {used}</div>
-          <div>Bolt12: {truncateValue(bolt12)}</div>
-        </div>
-      {/each}
+      <div class="grid gap-4 w-full">
+        {#each $offers$.data as { label, offer_id, active, single_use, used, bolt12 }}
+          <button
+            on:click={() => goto(`/offers/${offer_id}`)}
+            class="w-full border rounded-md p-4 cursor-pointer flex flex-col"
+          >
+            {#if label}
+              <div>{label}</div>
+            {/if}
+            <div>{truncateValue(offer_id)}</div>
+            <div>Active: {active}</div>
+            <div>Single use: {single_use}</div>
+            <div>Used: {used}</div>
+            <div>Bolt12: {truncateValue(bolt12)}</div>
+          </button>
+        {/each}
+      </div>
     </section>
   </Slide>
 {/if}
