@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
   import Slide from '$lib/elements/Slide.svelte'
-  import { auth$, funds$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
+  import { auth$, funds$, lastPath$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
   import type { Settings } from '$lib/types'
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -90,6 +90,7 @@
     goto('/')
   }}
   backText={$translate('app.titles./')}
+  direction={$lastPath$ && $lastPath$.includes('settings') ? 'right' : 'left'}
 >
   <section in:fade class="flex flex-col justify-center w-full p-6 max-w-lg">
     <div class="flex items-center mb-6">

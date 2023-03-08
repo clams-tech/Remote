@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
   import { goto } from '$app/navigation'
@@ -16,7 +16,6 @@
   import info from '$lib/icons/info'
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
-  import copy from '$lib/icons/copy'
   import arrow from '$lib/icons/arrow'
   import warning from '$lib/icons/warning'
   import caret from '$lib/icons/caret'
@@ -25,9 +24,9 @@
     formatDate,
     parseNodeAddress,
     truncateValue,
-    validateParsedNodeAddress,
-    writeClipboardValue
+    validateParsedNodeAddress
   } from '$lib/utils'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
 
@@ -67,8 +66,6 @@
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
   let sessionPrivateKey: string
-  let copySuccess = ''
-  let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
   const recipes = ['readonly', 'clams', 'admin'] as const
 
@@ -136,22 +133,6 @@
     lightning.initialiseData()
     goto('/')
   }
-
-  function handleCopy(key: string, value?: string) {
-    return async () => {
-      const success = await writeClipboardValue(value || key)
-
-      if (success) {
-        copySuccess = key
-
-        copyAnimationTimeout = setTimeout(() => (copySuccess = ''), 3000)
-      }
-    }
-  }
-
-  onDestroy(() => {
-    copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
-  })
 
   let connectButton: Button
   let saveRuneButton: Button
@@ -353,50 +334,26 @@
       <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <button
-          on:click={handleCopy(sessionPublicKey)}
-          class="relative flex items-center w-full my-4"
+        <div
+          class="my-4
+      font-semibold"
         >
-          <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
-
-          <div class:text-utility-success={copySuccess === sessionPublicKey}>
-            {#if copySuccess === sessionPublicKey}
-              <div in:fade class="w-8">
-                {@html check}
-              </div>
-            {:else}
-              <div in:fade class="w-8">
-                {@html copy}
-              </div>
-            {/if}
-          </div>
-        </button>
+          <CopyValue value={sessionPublicKey} truncateLength={9} />
+        </div>
       {/if}
 
       <div class="w-full">
         <p class="text-neutral-600 dark:text-neutral-300">
           {$translate('app.inputs.add_rune.recipes')}
         </p>
-        <div class="flex gap-1 my-4">
-          {#each recipes as recipe}
-            <button
-              on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
-              class="relative flex items-center justify-center w-full text-sm border rounded py-1"
-            >
-              <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
-
-              <div class:text-utility-success={copySuccess === recipe}>
-                {#if copySuccess === recipe}
-                  <div in:fade class="w-6">
-                    {@html check}
-                  </div>
-                {:else}
-                  <div in:fade class="w-6">
-                    {@html copy}
-                  </div>
-                {/if}
-              </div>
-            </button>
+        <div class="flex gap-1 my-4 font-semibold">
+          {#each recipes as recipe (recipe)}
+            <div class="flex items-center justify-center w-full text-sm border rounded py-1">
+              <CopyValue
+                value={createRuneRecipe(recipe, sessionPublicKey)}
+                label={$translate(`app.inputs.add_rune.${recipe}`)}
+              />
+            </div>
           {/each}
         </div>
       </div>

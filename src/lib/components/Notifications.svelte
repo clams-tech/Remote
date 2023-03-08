@@ -77,7 +77,7 @@
         // if device does not support notifications, or the permissions have not been granted
         // then add to list of notifications to be rendered by app
 
-        const idIndex = notificationsToRender.findIndex(({ id }) => notification.id)
+        const idIndex = notificationsToRender.findIndex(({ id }) => notification.id === id)
 
         // if id already exists, then just replace with update
         if (idIndex !== -1) {

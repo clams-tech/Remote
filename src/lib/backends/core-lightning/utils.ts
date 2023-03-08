@@ -1,16 +1,16 @@
 import Big from 'big.js'
 import type { Payment } from '$lib/types'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
+import lightning from '$lib/lightning'
+
 import type {
   InvoiceStatus,
   Invoice,
   Pay,
   ChannelAPY,
   IncomeEvent,
-  DecodedBolt12Invoice,
-  DecodedBolt12Offer
+  DecodedBolt12Invoice
 } from './types'
-import lightning from '$lib/lightning'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {

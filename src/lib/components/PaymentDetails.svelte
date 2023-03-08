@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
   import Qr from '$lib/components/QR.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
@@ -10,13 +9,13 @@
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { convertValue } from '$lib/conversion'
-  import { formatDate, formatValueForDisplay, truncateValue, writeClipboardValue } from '$lib/utils'
+  import { formatDate, formatValueForDisplay, truncateValue } from '$lib/utils'
   import check from '$lib/icons/check'
-  import copy from '$lib/icons/copy'
   import warning from '$lib/icons/warning'
   import { currencySymbols } from '$lib/constants'
   import link from '$lib/icons/link'
   import { goto } from '$app/navigation'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
 
   export let payment: Payment
 
@@ -37,29 +36,6 @@
     value: payment.value,
     from: BitcoinDenomination.msats,
     to: $settings$.secondaryDenomination
-  })
-
-  let copySuccess = ''
-  let successTimeoutId: NodeJS.Timeout
-
-  function handleCopy(value: string) {
-    return async () => {
-      const success = await writeClipboardValue(value)
-
-      if (success) {
-        copySuccess = value
-
-        successTimeoutId = setTimeout(() => {
-          if (copySuccess === value) {
-            copySuccess = ''
-          }
-        }, 2000)
-      }
-    }
-  }
-
-  onDestroy(() => {
-    successTimeoutId && clearTimeout(successTimeoutId)
   })
 
   function handlePaymentExpire() {
@@ -140,41 +116,32 @@
   <div class="mt-8">
     <!-- INVOICE -->
     {#if payment.invoice}
-      <SummaryRow on:click={handleCopy(payment.invoice)}>
+      <SummaryRow>
         <span slot="label">{$translate('app.labels.invoice')}:</span>
-        <span class="flex items-center cursor-pointer" slot="value">
-          {truncateValue(payment.invoice)}
-          {#if copySuccess === payment.invoice}
-            <div in:fade class="w-6 text-utility-success">
-              {@html check}
-            </div>
-          {:else}
-            <div in:fade class="w-6 cursor-pointer">
-              {@html copy}
-            </div>
-          {/if}
-        </span>
+        <div slot="value">
+          <CopyValue value={payment.invoice} truncateLength={9} />
+        </div>
       </SummaryRow>
 
       <!-- OFFER -->
       {#if payment.offer}
         {@const { local, id, issuer, payerNote } = payment.offer}
-        <SummaryRow on:click={() => (local ? goto(`/offers/${id}`) : handleCopy(issuer || id)())}>
+        <SummaryRow>
           <span slot="label"
             >{$translate(`app.labels.${payment.offer.issuer ? 'issuer' : 'offer'}`)}:</span
           >
-          <span class="flex items-center cursor-pointer" slot="value">
-            {payment.offer.issuer || truncateValue(payment.offer.id)}
-            {#if copySuccess === payment.offer.issuer || copySuccess === payment.offer.id}
-              <div in:fade class="w-6 text-utility-success">
-                {@html check}
-              </div>
+          <div slot="value">
+            {#if local}
+              <button class="flex items-center" on:click={() => goto(`/offers/${id}`)}>
+                {issuer || truncateValue(id)}
+                <div in:fade class="w-6 cursor-pointer">
+                  {@html link}
+                </div>
+              </button>
             {:else}
-              <div in:fade class="w-6 cursor-pointer">
-                {@html local ? link : copy}
-              </div>
+              <CopyValue value={issuer || id} truncateLength={issuer ? 0 : 9} />
             {/if}
-          </span>
+          </div>
         </SummaryRow>
 
         {#if payerNote}
@@ -187,22 +154,11 @@
 
       <!-- DESTINATION -->
     {:else if payment.destination}
-      <SummaryRow on:click={handleCopy(payment.destination)}>
+      <SummaryRow>
         <span slot="label">{$translate('app.labels.destination')}:</span>
-        <span slot="value" class="flex items-center">
-          {payment.destination.length > 30
-            ? truncateValue(payment.destination)
-            : payment.destination}
-          {#if copySuccess === payment.destination}
-            <div in:fade class="w-6 text-utility-success">
-              {@html check}
-            </div>
-          {:else}
-            <div in:fade class="w-6 cursor-pointer">
-              {@html copy}
-            </div>
-          {/if}
-        </span>
+        <div slot="value">
+          <CopyValue value={payment.destination} truncateLength={9} />
+        </div>
       </SummaryRow>
     {/if}
 
@@ -264,20 +220,11 @@
 
     <!-- PAYMENT HASH -->
     {#if payment.hash}
-      <SummaryRow on:click={handleCopy(payment.hash)}>
+      <SummaryRow>
         <span slot="label">{$translate('app.labels.hash')}:</span>
-        <span class="flex items-center" slot="value">
-          {truncateValue(payment.hash)}
-          {#if copySuccess === payment.hash}
-            <div in:fade class="w-6 text-utility-success">
-              {@html check}
-            </div>
-          {:else}
-            <div in:fade class="w-6 cursor-pointer">
-              {@html copy}
-            </div>
-          {/if}
-        </span>
+        <div slot="value">
+          <CopyValue value={payment.hash} truncateLength={9} />
+        </div>
       </SummaryRow>
     {/if}
 

@@ -29,7 +29,7 @@
 {#if payment}
   <a
     href="/payments"
-    class="absolute bottom-4 flex items-end pl-4 pr-2 py-1 border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-neutral-700 rounded-md"
+    class="absolute bottom-4 flex items-end pl-4 pr-2 py-1 border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
   >
     <div>
       <span class="mr-1 text-neutral-400 leading-none text-sm"

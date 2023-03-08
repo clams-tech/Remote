@@ -35,10 +35,10 @@
   const secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 </script>
 
-<div
+<button
   in:fade
   on:click={() => goto(`/payments/${id}`)}
-  class="flex items-start justify-between py-4 border-t w-full cursor-pointer"
+  class="flex items-start text-start justify-between py-4 border-t w-full cursor-pointer dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
 >
   <div class="flex items-start w-3/5">
     <div
@@ -117,4 +117,4 @@
       {/if}
     </p>
   </div>
-</div>
+</button>

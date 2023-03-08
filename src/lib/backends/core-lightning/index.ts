@@ -2,6 +2,9 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import type { Logger } from 'lnmessage/dist/types'
+import { settings$ } from '$lib/streams'
+
 import {
   formatChannelsAPY,
   formatIncomeEvents,
@@ -9,8 +12,6 @@ import {
   invoiceToPayment,
   payToPayment
 } from './utils'
-import type { Logger } from 'lnmessage/dist/types'
-import { settings$ } from '$lib/streams'
 
 import type {
   BkprChannelsAPYResponse,
@@ -30,7 +31,6 @@ import type {
   ListinvoicesResponse,
   ListOffersResponse,
   ListpaysResponse,
-  PaymentStatus,
   PayResponse,
   SendInvoiceRequest,
   SendInvoiceResponse,

@@ -89,7 +89,7 @@
       {#each buttons as { key, icon, styles } (key)}
         <a
           href={`/${key}`}
-          class="aspect-square border rounded flex flex-col justify-center items-center"
+          class="aspect-square border rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
         >
           <div class="w-10 xs:w-12 {styles}">
             {@html icon}
