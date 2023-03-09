@@ -24,7 +24,7 @@
   import trendingDown from '$lib/icons/trending-down'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import type { DecodedCommon, OfferCommon } from '$lib/backends'
-  import { decodeOffer } from '../../utils'
+  import { formatDecodedOffer } from '$lib/utils'
 
   export let data: PageData
 
@@ -57,6 +57,8 @@
 
   async function decode() {
     try {
+      const decoded = await lnApi.decode(data.bolt12)
+
       ;({
         offerInvalid,
         offerType,
@@ -68,7 +70,7 @@
         nodeId,
         issuer,
         quantityMax
-      } = await decodeOffer(data.bolt12))
+      } = formatDecodedOffer(decoded))
     } catch (error) {
       const { message } = error as { message: string }
       decodeError = message

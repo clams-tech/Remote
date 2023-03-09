@@ -1,5 +1,10 @@
 import type { LnWebSocketOptions } from 'lnmessage/dist/types'
-import type { DecodedBolt12Invoice, DecodedBolt12Offer } from './backends'
+import type {
+  DecodedBolt12Invoice,
+  DecodedBolt12Offer,
+  DecodedCommon,
+  OfferCommon
+} from './backends'
 
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
@@ -196,4 +201,17 @@ export enum GenesisBlockhash {
   regtest = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206',
   mainnet = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
   testnet = '000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943'
+}
+
+export type FormattedDecodedOffer = {
+  offerInvalid: DecodedCommon['valid']
+  offerType: DecodedCommon['type']
+  offerExpiry: OfferCommon['offer_absolute_expiry']
+  recurrence: OfferCommon['offer_recurrence']
+  description: OfferCommon['offer_description']
+  issuer: OfferCommon['offer_issuer']
+  denomination: BitcoinDenomination.msats | FiatDenomination
+  amountMsat: string
+  nodeId: OfferCommon['offer_node_id']
+  quantityMax: OfferCommon['offer_quantity_max']
 }

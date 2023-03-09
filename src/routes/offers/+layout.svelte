@@ -18,7 +18,7 @@
         lnApi.listOffers(),
         lnApi.listInvoiceRequests()
       ])
-      // @TODO - Would be nice to sort these via last used or recently created, but we don't currently have that data
+      // @TODO - Sort by most recently used by looking up offerPayments$[id] and use completedAt date
       $offers$.data = [...offers, ...invoiceRequests].map((offer) => {
         const { offer_id, ...rest } = offer as OfferSummary
         const { invreq_id } = offer as InvoiceRequestSummary

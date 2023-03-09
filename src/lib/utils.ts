@@ -5,7 +5,13 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { ListfundsResponse } from './backends'
+import type {
+  DecodedBolt12Invoice,
+  DecodedBolt12InvoiceRequest,
+  DecodedBolt12Offer,
+  ListfundsResponse,
+  OfferCommon
+} from './backends'
 import { customNotifications$, log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
@@ -18,18 +24,21 @@ import {
   ENCRYPTED_DATA_KEYS
 } from './constants'
 
-import type {
-  Denomination,
-  PaymentType,
-  Payment,
-  BitcoinExchangeRates,
-  ParsedNodeAddress,
-  Auth,
-  DecodedInvoice,
-  ParsedBitcoinString,
-  ParsedBitcoinStringError,
-  ParsedOnchainString,
-  FormattedDecodedBolt11
+import {
+  type Denomination,
+  type PaymentType,
+  type Payment,
+  type BitcoinExchangeRates,
+  type ParsedNodeAddress,
+  type Auth,
+  type DecodedInvoice,
+  type ParsedBitcoinString,
+  type ParsedBitcoinStringError,
+  type ParsedOnchainString,
+  type FormattedDecodedBolt11,
+  type FormattedDecodedOffer,
+  BitcoinDenomination,
+  FiatDenomination
 } from './types'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
@@ -521,5 +530,63 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
     return { type, value, ...lightning }
   } catch (error) {
     return getPaymentDetails(input)
+  }
+}
+
+export function formatDecodedOffer(
+  decoded: DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
+): FormattedDecodedOffer {
+  const {
+    valid,
+    type,
+    offer_recurrence,
+    offer_currency,
+    offer_amount,
+    offer_amount_msat,
+    offer_description,
+    offer_node_id,
+    offer_issuer,
+    offer_absolute_expiry,
+    offer_quantity_max
+  } = decoded
+
+  const offerInvalid = !valid
+  const offerType = type
+  const offerExpiry = offer_absolute_expiry
+  const recurrence = offer_recurrence
+  const description = offer_description
+  const issuer = offer_issuer
+
+  let denomination: BitcoinDenomination.msats | FiatDenomination
+  let amountMsat: string
+  let nodeId: OfferCommon['offer_node_id']
+  let quantityMax: OfferCommon['offer_quantity_max']
+
+  if (offerType === 'bolt12 invoice_request') {
+    const { invreq_amount_msat, invreq_payer_id } = decoded as DecodedBolt12InvoiceRequest
+    denomination = BitcoinDenomination.msats
+    amountMsat = formatMsat(invreq_amount_msat as string)
+    nodeId = invreq_payer_id
+    quantityMax = offer_quantity_max
+  } else {
+    const { invreq_amount_msat } = decoded as DecodedBolt12Invoice
+    denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.msats
+    amountMsat =
+      offer_amount?.toString() || formatMsat((offer_amount_msat || invreq_amount_msat) as string)
+    nodeId = offer_node_id
+    quantityMax = offer_quantity_max
+  }
+
+  return {
+    offerInvalid,
+    offerType,
+    offerExpiry,
+    recurrence,
+    description,
+    issuer,
+    denomination,
+    amountMsat,
+    nodeId,
+    quantityMax
   }
 }

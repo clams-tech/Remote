@@ -8,44 +8,52 @@
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { offers$ } from '$lib/streams'
-  import { decodedOffers$, decodeOffer } from '../utils'
-  import type { FormattedDecodedOffer } from '../types'
-  import lightning from '$lib/icons/lightning'
+  import { offers$, decodedOffers$, offersPayments$ } from '$lib/streams'
+  import type { FormattedDecodedOffer } from '$lib/types'
   import lightningOutline from '$lib/icons/lightning-outline'
-  import { truncateValue } from '$lib/utils'
+  import { truncateValue, formatDecodedOffer } from '$lib/utils'
+  import lightning from '$lib/lightning'
 
   export let data: PageData
 
+  const lnApi = lightning.getLn()
+  const timeSeconds$ = timer(0, 1000).pipe(map(() => Date.now() / 1000))
+
   let decoding = false
   let decodeError = false
+  let decodedOffer: FormattedDecodedOffer
 
   $: offerSummary = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
   $: offerNotFound = !$offers$.loading && !!$offers$.data && !offerSummary
 
-  let decodedOffer: FormattedDecodedOffer
+  $: offerExpired =
+    decodedOffer && decodedOffer.offerExpiry && decodedOffer.offerExpiry <= $timeSeconds$
 
   $: if (offerSummary) {
+    checkForDecoded()
+  }
+
+  $: offerPayments = $offersPayments$[data.id]
+
+  async function checkForDecoded() {
     const alreadyDecoded = $decodedOffers$[data.id]
 
-    if (alreadyDecoded) {
-      decodedOffer = alreadyDecoded
-    } else {
-      decoding = true
-
-      decodeOffer(offerSummary.bolt12)
-        .then((decoded) => {
-          decodedOffer = decoded
-          $decodedOffers$[data.id] = decodedOffer
-        })
-        .catch(() => (decodeError = true))
-        .finally(() => (decoding = false))
+    try {
+      if (alreadyDecoded) {
+        decodedOffer = alreadyDecoded
+      } else {
+        decoding = true
+        const decoded = await lnApi.decode(offerSummary!.bolt12)
+        decodedOffer = formatDecodedOffer(decoded)
+      }
+    } catch (error) {
+      decodeError = true
+    } finally {
+      decoding = false
     }
   }
 
-  const timeSeconds$ = timer(0, 1000).pipe(map(() => Date.now() / 1000))
-  $: offerExpired =
-    decodedOffer && decodedOffer.offerExpiry && decodedOffer.offerExpiry <= $timeSeconds$
+  $: console.log({ offerPayments })
 </script>
 
 <svelte:head>
@@ -70,8 +78,15 @@
       </p>
     </div>
   </section>
-{:else if offerSummary}
+{:else if decoding || !offerSummary}
+  <Spinner />
+{:else}
   {@const { id, label, active, single_use, used, bolt12 } = offerSummary}
+  {@const { amountMsat, denomination, description, nodeId, issuer, quantityMax, recurrence } =
+    decodedOffer}
+  <!-- offerExpired -->
+  <!-- offerPayments -->
+
   <Slide back={() => goto('/offers')} backText={$translate('app.titles./offers')} direction="left">
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
       <div class="flex items-center mb-6 mt-12">

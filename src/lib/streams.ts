@@ -2,7 +2,14 @@ import { BehaviorSubject, defer, fromEvent, Observable, of, ReplaySubject, Subje
 import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
-import type { BitcoinExchangeRates, Notification, Payment, Auth, Settings } from './types'
+import type {
+  BitcoinExchangeRates,
+  Notification,
+  Payment,
+  Auth,
+  Settings,
+  FormattedDecodedOffer
+} from './types'
 import { logger } from './utils'
 
 import type {
@@ -10,8 +17,10 @@ import type {
   BkprListIncomeResponse,
   FormattedOfferSummary,
   GetinfoResponse,
+  InvoiceRequestSummary,
   ListfundsResponse,
-  OfferCommon
+  OfferCommon,
+  OfferSummary
 } from './backends'
 
 // Makes a BehaviourSubject compatible with Svelte stores
@@ -150,6 +159,10 @@ export const offersPayments$ = payments$.pipe(
     }, {} as Record<OfferCommon['offer_id'], Payment[]>)
   )
 )
+
+export const decodedOffers$ = new SvelteSubject<
+  Record<OfferSummary['offer_id'] | InvoiceRequestSummary['invreq_id'], FormattedDecodedOffer>
+>({})
 
 // browsers use different event names and hidden properties
 const pageVisibilityParams =
