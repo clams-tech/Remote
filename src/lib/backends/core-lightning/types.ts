@@ -823,7 +823,7 @@ export type InvoiceRequestSummary = OfferSummaryCommon & {
 
 export type FormattedOfferSummary = OfferSummaryCommon & {
   id: string
-  type: 'pay' | 'withdraw'
+  type: string
 }
 
 export type ListOffersResponse = {
