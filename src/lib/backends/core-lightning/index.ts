@@ -203,6 +203,7 @@ class CoreLn {
 
   /**Fetch an invoice for a BOLT12 Offer */
   async fetchInvoice(params: FetchInvoiceRequest['params']): Promise<FetchInvoiceResponse> {
+    console.log({ params })
     const result = await this.connection.commando({
       method: 'fetchinvoice',
       params,

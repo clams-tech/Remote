@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { timer } from 'rxjs'
+  import { firstValueFrom, Subject, timer } from 'rxjs'
   import { map } from 'rxjs/operators'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -8,7 +8,7 @@
   import type { PageData } from './$types'
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
-  import { createRandomHex, truncateValue } from '$lib/utils'
+  import { createRandomHex, formatValueForDisplay, truncateValue } from '$lib/utils'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { BitcoinDenomination, type FiatDenomination } from '$lib/types'
   import { lastPath$, paymentUpdates$, settings$ } from '$lib/streams'
@@ -23,8 +23,10 @@
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import type { DecodedCommon, OfferCommon } from '$lib/backends'
+  import type { DecodedCommon, FetchInvoiceResponse, OfferCommon } from '$lib/backends'
   import { formatDecodedOffer } from '$lib/utils'
+  import Modal from '$lib/elements/Modal.svelte'
+  import { currencySymbols } from '$lib/constants'
 
   export let data: PageData
 
@@ -91,6 +93,8 @@
   let previousSlide: SlideStep = 'offer'
   let slideDirection: SlideDirection = 'left'
 
+  const changes$ = new Subject<{ showModal: boolean; approved: boolean; amountMsat?: string }>()
+
   function back() {
     slideDirection = 'right'
     previousSlide = slide
@@ -148,11 +152,14 @@
           payer_note: payerNote
         })
 
-        if (changes && Object.keys(changes).length) {
-          // @TODO - show additional UI that displays changes, could be a modal?
-        } else {
-          payment = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
+        if (changes && changes.amount_msat) {
+          changes$.next({ showModal: true, approved: false, amountMsat: changes.amount_msat })
+          const { approved } = await firstValueFrom(changes$)
+
+          if (!approved) return
         }
+
+        payment = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
       } else if (offerType === 'bolt12 invoice_request') {
         payment = await lnApi.sendInvoice({
           offer: data.bolt12,
@@ -333,3 +340,49 @@
 <div class="absolute bottom-0 p-4">
   <ErrorMsg bind:message={completionError} />
 </div>
+
+{#if $changes$ && $changes$.showModal && $changes$.amountMsat}
+  {@const { amountMsat } = $changes$}
+  {@const primarySymbol = currencySymbols[$settings$.primaryDenomination]}
+
+  <Modal on:close={() => changes$.next({ showModal: false, approved: false })}>
+    <div class="w-[25rem] max-w-full">
+      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.headings.changes')}</h4>
+
+      <p>{$translate('app.subheadings.changes')}</p>
+
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.amount')}:</span>
+        <div slot="value" class="flex items-center">
+          <span
+            class="flex justify-center items-center"
+            class:w-4={primarySymbol.startsWith('<')}
+            class:mr-[2px]={!primarySymbol.startsWith('<')}
+          >
+            {@html primarySymbol}
+          </span>
+          <span
+            >{formatValueForDisplay({
+              value: convertValue({
+                value: amountMsat,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}</span
+          >
+        </div>
+      </SummaryRow>
+
+      <div class="mt-6 w-full gap-x-4">
+        <Button on:click={() => changes$.next({ showModal: false, approved: false })}
+          >{$translate('app.buttons.cancel')}</Button
+        >
+        <Button primary on:click={() => changes$.next({ showModal: false, approved: true })}
+          >{$translate('app.buttons.cancel')}</Button
+        >
+      </div>
+    </div>
+  </Modal>
+{/if}

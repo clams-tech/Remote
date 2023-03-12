@@ -7,11 +7,11 @@
   export let small = false
   export let primary = false
 
+  let button: HTMLButtonElement
+
   export const click = () => {
     button && button.click()
   }
-
-  let button: HTMLButtonElement
 </script>
 
 <button
