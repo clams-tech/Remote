@@ -16,8 +16,8 @@
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
-<div class="flex flex-col">
-  <button class="block" on:click={() => (open = !open)}>
+<div class="flex flex-col w-full">
+  <button class="block w-full" on:click={() => (open = !open)}>
     <div class="flex items-center justify-end w-full">
       <div class="w-6 h-6 flex justify-center items-center rounded-full border border-current mr-2">
         {payments.length}

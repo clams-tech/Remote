@@ -109,7 +109,7 @@
     "offer": "Offer",
     "payer_note": "Payer note",
     "active": "Active",
-    "inactive": "Inactive",
+    "disabled": "Disabled",
     "single_use": "Single use",
     "reusable": "Reusable",
     "used": "Used",

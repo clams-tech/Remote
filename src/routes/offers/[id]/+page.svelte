@@ -80,8 +80,24 @@
 
   $: abs = decodedOffer?.offerType === 'bolt12 invoice_request' ? '-' : '+'
 
-  $: isActive =
-    offerSummary?.active && !(offerSummary?.single_use && offerSummary?.used) && !expired
+  let status: 'completed' | 'disabled' | 'active' | 'expired'
+
+  $: if (offerSummary) {
+    const { active, single_use, used } = offerSummary
+
+    if (expired) {
+      status === 'expired'
+    } else if (!active) {
+      if (single_use && used) {
+        console.log('completed')
+        status = 'completed'
+      } else {
+        status = 'disabled'
+      }
+    } else {
+      status = 'active'
+    }
+  }
 </script>
 
 <svelte:head>
@@ -119,7 +135,7 @@
         <!-- AMOUNT -->
         <div class="flex flex-col items-center justify-center">
           <span
-            >{$translate(`app.labels.${isActive ? 'active' : 'inactive'}`)}
+            >{$translate(`app.labels.${status}`)}
             {$translate(`app.labels.offer`)}</span
           >
           <div in:fade class="flex flex-col items-end">
@@ -167,7 +183,7 @@
         </div>
 
         <!-- QR AND EXPIRY COUNTDOWN -->
-        {#if isActive}
+        {#if status === 'active'}
           <div class="my-4 flex flex-col items-center justify-center">
             <Qr value={bolt12} />
             {#if offerExpiry}
@@ -188,13 +204,13 @@
             <span slot="label">{$translate('app.labels.status')}:</span>
             <span
               class="flex items-center"
-              class:text-utility-success={isActive}
-              class:text-utility-error={!isActive}
+              class:text-utility-success={status === 'active' || status === 'completed'}
+              class:text-utility-error={status === 'disabled' || status === 'expired'}
               slot="value"
             >
-              {$translate(`app.labels.${isActive ? 'active' : 'inactive'}`)}
+              {$translate(`app.labels.${status}`)}
 
-              {#if isActive}
+              {#if status === 'active' || status === 'completed'}
                 <div in:fade class="w-4 ml-1 border border-utility-success rounded-full">
                   {@html check}
                 </div>
@@ -287,7 +303,7 @@
                   `app.labels.${offerSummary.type === 'pay' ? 'payments' : 'withdrawals'}`
                 )}:</span
               >
-              <div slot="value">
+              <div class="w-full" slot="value">
                 <PaymentsList payments={offerPayments} />
               </div>
             </SummaryRow>
