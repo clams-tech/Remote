@@ -187,8 +187,6 @@
     previousSlide = slide
     slide = to
   }
-
-  $: console.log({ slide })
 </script>
 
 <svelte:head>

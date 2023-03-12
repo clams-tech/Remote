@@ -3,7 +3,6 @@
   import caret from '$lib/icons/caret'
 
   export let text = $translate('app.buttons.back')
-  console.log({ text })
 </script>
 
 <button
