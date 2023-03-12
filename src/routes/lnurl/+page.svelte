@@ -98,7 +98,7 @@
   <Spinner />
 {:else if parseLnurlError}
   <BackButton on:click={() => goto('/')} />
-  <section class="w-full p-6 max-w-lg flex items-center justify-center">
+  <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>{$translate('app.errors.lnurl_parse_error')}</p>
@@ -112,7 +112,7 @@
   <Withdraw {url} {callback} {k1} {minWithdrawable} {maxWithdrawable} {defaultDescription} />
 {:else}
   <BackButton on:click={() => goto('/')} />
-  <section class="w-full p-6 max-w-lg">
+  <section class="w-full p-4 max-w-lg">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>{$translate('app.errors.lnurl_unsupported_tag', { tag })}</p>

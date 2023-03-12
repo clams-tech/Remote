@@ -27,21 +27,21 @@
   </button>
 
   <div
-    style="height: {open ? payments.length * 20 + 8 + (payments.length - 1) * 4 : 0}px;"
+    style="height: {open ? payments.length * 22 + 8 + (payments.length - 1) * 4 : 0}px;"
     class="transition-all overflow-hidden"
   >
     <div class="mt-2 flex flex-col items-end gap-y-1">
       {#each payments as { completedAt, value, status, direction, id }}
         <button
           on:click={() => goto(`/payments/${id}`)}
-          class="text-sm block px-1 hover:brightness-200  transition-all  rounded {direction ===
+          class="text-sm block px-1 border border-transparent transition-all rounded {direction ===
             'receive' && status === 'complete'
-            ? 'bg-utility-success/20'
+            ? 'bg-utility-success/20 hover:border-utility-success/40'
             : status === 'expired'
-            ? 'bg-utility-error/20'
-            : 'bg-utility-pending/20'}"
+            ? 'bg-utility-error/20 hover:border-utility-error/40'
+            : 'bg-utility-pending/20 hover:border-utility-pending/40'}"
         >
-          <div class="flex justify-end">
+          <div class="flex justify-end whitespace-nowrap">
             <span
               >{$translate('app.payment.status', {
                 status: status,

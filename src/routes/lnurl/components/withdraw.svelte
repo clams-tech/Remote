@@ -144,7 +144,7 @@
     backText={$translate('app.titles./')}
     direction={slideDirection}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.withdraw_request')}</h1>
       <h2 class="text-2xl font-semibold mb-2">{serviceName}</h2>
 

@@ -191,7 +191,7 @@
   <Spinner />
 {:else if decodeError || offerInvalid || !!recurrence}
   <BackButton on:click={() => goto('/')} text={$translate('app.titles./')} />
-  <section class="w-full p-6 max-w-lg flex items-center justify-center">
+  <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>
@@ -209,7 +209,7 @@
     backText={$translate(`app.titles.${$lastPath$ || '/'}`)}
     direction={slideDirection}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <h1 class="text-4xl font-bold">{$translate('app.headings.offer')}</h1>
 
       <div class="mt-6 w-full">

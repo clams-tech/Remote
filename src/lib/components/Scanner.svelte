@@ -159,8 +159,6 @@
 <div
   class="container relative items-center flex-col flex justify-center w-full h-full pt-16 pb-4 px-4"
 >
-  <BackButton on:click={() => goto('/')} />
-
   <div class="flex items-center justify-center w-full h-full">
     <!-- svelte-ignore a11y-media-has-caption -->
     <video

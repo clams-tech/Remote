@@ -9,7 +9,7 @@
   <title>{$translate('app.titles./welcome')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-center items-start w-full p-6 max-w-lg h-full">
+<section in:fade class="flex flex-col justify-center items-start w-full p-4 max-w-lg h-full">
   <div class="w-full flex justify-center mb-8">
     <div class="w-1/2 max-w-4xl">
       <ClamsLogo disableAnimation />

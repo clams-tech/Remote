@@ -32,7 +32,7 @@
   }}
   backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col justify-center w-full p-6 max-w-lg relative">
+  <section in:fade class="flex flex-col justify-center w-full p-4 max-w-lg relative">
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html settingsOutline}</div>
       <h1 class="text-4xl font-bold">
@@ -63,7 +63,7 @@
       {/each}
     </div>
 
-    <div class="absolute flex w-full justify-center bottom-0 p-6">
+    <div class="absolute flex w-full justify-center bottom-0 p-4">
       <div class="flex flex-col items-center backdrop-blur-md">
         <span class="mb-2">{$translate('app.hints.translate')}</span>
         <a

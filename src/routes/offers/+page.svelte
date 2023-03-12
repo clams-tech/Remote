@@ -27,7 +27,7 @@
   <Spinner />
 {:else if $offers$.error}
   <BackButton on:click={() => goto('/')} text={$translate('app.titles./')} />
-  <section class="w-full p-6 max-w-lg flex items-center justify-center">
+  <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html lightningOutline}</div>
       <h1 class="text-4xl font-bold">
@@ -47,7 +47,7 @@
     backText={$translate('app.titles./')}
     direction={!$lastPath$ || $lastPath$ === '/' ? 'left' : 'right'}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="flex items-center justify-between mb-6 mt-12 w-full">
         <div class="flex items-center">
           <div class="w-10 mr-2">{@html lightningOutline}</div>

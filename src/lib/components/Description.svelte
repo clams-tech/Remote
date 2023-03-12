@@ -19,7 +19,7 @@
   })
 </script>
 
-<section class="flex flex-col justify-center w-full p-6 max-w-lg">
+<section class="flex flex-col justify-center w-full p-4 max-w-lg">
   <div class="mb-6">
     <h1 class="text-4xl font-bold mb-4">{$translate(`app.headings.${headingsKey}`)}</h1>
     <p class="text-neutral-600 dark:text-neutral-400 italic">

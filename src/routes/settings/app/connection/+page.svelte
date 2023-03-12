@@ -55,7 +55,7 @@
   }}
   backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col justify-center w-full p-6 max-w-lg">
+  <section in:fade class="flex flex-col justify-center w-full p-4 max-w-lg">
     <div class="flex items-center mb-6">
       <div class="w-10 mr-2">{@html settingsOutline}</div>
       <h1 class="text-4xl font-bold">

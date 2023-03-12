@@ -274,7 +274,7 @@
     backText={$translate('app.titles./')}
     direction={slideDirection}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.pay_request')}</h1>
       <h2 class="text-2xl font-semibold mb-2">{address || serviceName}</h2>
 
@@ -383,7 +383,7 @@
 {#if slide === 'completed'}
   <Slide direction={slideDirection} back={() => goto('/')} backText={$translate('app.titles./')}>
     {@const { tag } = success}
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="flex items-center mb-4">
         <h1 class="text-4xl font-bold">{serviceName}</h1>
         <div class="w-8 border-2 border-utility-success rounded-full text-utility-success ml-2">

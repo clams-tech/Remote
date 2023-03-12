@@ -107,7 +107,7 @@
 
 {#if offerNotFound}
   <BackButton on:click={() => goto('/offers')} text={$translate('app.titles./offers')} />
-  <section class="w-full p-6 max-w-lg flex items-center justify-center">
+  <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html lightningOutline}</div>
       <h1 class="text-4xl font-bold">
@@ -128,7 +128,7 @@
   {@const { description, nodeId, issuer, quantityMax, recurrence, offerExpiry } = decodedOffer}
 
   <Slide back={() => goto('/offers')} backText={$translate('app.titles./offers')} direction="left">
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="w-full h-12 bg-white dark:bg-neutral-900" />
       <div class="w-full flex flex-col max-h-screen overflow-auto">
         <!-- AMOUNT -->

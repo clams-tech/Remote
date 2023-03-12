@@ -235,7 +235,7 @@
     backText={$translate('app.titles./welcome')}
     direction={slideDirection}
   >
-    <section class="w-full p-6 max-w-lg m-auto">
+    <section class="w-full p-4 max-w-lg m-auto">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">
@@ -327,7 +327,7 @@
 
 {#if slide === 'token'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
-    <section class="w-full p-6 max-w-lg m-auto">
+    <section class="w-full p-4 max-w-lg m-auto">
       <div class="h-8" />
 
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>

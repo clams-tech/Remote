@@ -81,7 +81,7 @@
   const primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
-<section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+<section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
   <div class="w-full">
     <div class="mb-6">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.summary', { direction })}</h1>

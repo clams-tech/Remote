@@ -59,7 +59,7 @@
 <Nav />
 
 <div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
-  <div class="w-full max-w-lg p-6">
+  <div class="w-full max-w-lg p-4">
     {#if $nodeInfo$.data}
       <div in:fade class="flex items-center w-full justify-center text-xl p-4">
         <Refresh />
@@ -76,7 +76,7 @@
     {/if}
 
     {#if $funds$.loading && !$funds$.data}
-      <div in:fade class="p-6">
+      <div in:fade class="p-4">
         <Spinner />
       </div>
     {:else}
@@ -85,7 +85,7 @@
       </div>
     {/if}
 
-    <div class="grid grid-cols-3 gap-2 xs:gap-6 w-full p-y mt-4">
+    <div class="grid grid-cols-3 gap-2 xs:gap-4 w-full p-y mt-4">
       {#each buttons as { key, icon, styles } (key)}
         <a
           href={`/${key}`}

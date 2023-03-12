@@ -22,7 +22,7 @@
 
 <BackButton on:click={() => goto('/')} />
 
-<div class="w-full h-full flex overflow-hidden flex-col items-center justify-center p-6 pt-16">
+<div class="w-full h-full flex overflow-hidden flex-col items-center justify-center p-4 pt-16">
   <div>
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html graph}</div>
