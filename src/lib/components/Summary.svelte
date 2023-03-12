@@ -18,6 +18,7 @@
   export let expiry: number | null = 600
   export let timestamp: number | null = null
   export let requesting: boolean
+  export let quantity = 0
 
   if (!value) {
     value = '0'
@@ -136,6 +137,16 @@
         {/if}
       </span>
     </SummaryRow>
+
+    <!-- QUANTITY -->
+    {#if quantity}
+      <SummaryRow>
+        <span slot="label">{$translate('app.labels.quantity')}:</span>
+        <span class="flex items-center" slot="value">
+          {quantity}
+        </span>
+      </SummaryRow>
+    {/if}
 
     <!-- DESCRIPTION -->
     <SummaryRow>

@@ -27,6 +27,7 @@
   import { formatDecodedOffer } from '$lib/utils'
   import Modal from '$lib/elements/Modal.svelte'
   import { currencySymbols } from '$lib/constants'
+  import Quantity from '$lib/components/Quantity.svelte'
 
   export let data: PageData
 
@@ -48,6 +49,7 @@
   let nodeId: OfferCommon['offer_node_id']
   let issuer: OfferCommon['offer_issuer']
   let quantityMax: OfferCommon['offer_quantity_max']
+  let quantity = 1
 
   // manual input value if amount === 'any'
   let value: string
@@ -88,7 +90,7 @@
   type SlideStep = Slides[number]
   type SlideDirection = 'right' | 'left'
 
-  const slides = ['offer', 'amount', 'note', 'summary'] as const
+  const slides = ['offer', 'amount', 'quantity', 'note', 'summary'] as const
   let slide: SlideStep = 'offer'
   let previousSlide: SlideStep = 'offer'
   let slideDirection: SlideDirection = 'left'
@@ -117,6 +119,8 @@
 
     if (amount === 'any') {
       next('amount')
+    } else if (quantityMax) {
+      next('quantity')
     } else {
       next('note')
     }
@@ -149,7 +153,8 @@
                   to: BitcoinDenomination.msats
                 }) as string)
               : undefined,
-          payer_note: payerNote
+          payer_note: payerNote,
+          quantity: quantityMax && quantity
         })
 
         // @TODO - TEST CHANGES MODAL
@@ -305,8 +310,15 @@
   </Slide>
 {:else if slide === 'amount'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
-    <Amount bind:value {next} direction="send" required />
+    <Amount
+      bind:value
+      next={() => (quantityMax ? next('quantity') : next())}
+      direction="send"
+      required
+    />
   </Slide>
+{:else if slide === 'quantity'}
+  <Quantity {next} bind:quantity max={quantityMax} />
 {:else if slide === 'note'}
   <Slide
     back={() => (amount === 'any' ? back() : next('offer'))}
@@ -330,11 +342,11 @@
             to: $settings$.primaryDenomination
           })}
       {description}
+      {quantity}
       expiry={offerExpiry || null}
       requesting={completing}
       on:complete={complete}
     />
-    <!-- @TODO - if type === 'bolt12 offer' - Show a quantity incrementer that defaults to one -->
   </Slide>
 {/if}
 

@@ -117,7 +117,8 @@
     "withdrawals": "Withdrawals",
     "label": "Label",
     "max_quantity": "Max Quantity",
-    "bolt12": "BOLT12"
+    "bolt12": "BOLT12",
+    "quantity": "Quantity"
   },
   "time": {
     "mins": "mins"
@@ -236,7 +237,8 @@
     "offer": "Offer",
     "offers": "Offers",
     "payer_note": "Note",
-    "changes": "Offer Changes"
+    "changes": "Offer Changes",
+    "quantity": "Quantity"
   },
   "subheadings": {
     "summary": "Confirm payment details.",
@@ -252,7 +254,8 @@
     "routing_performance": "Fees earned by your node for routing value (inbound vs outbound):",
     "account_insights": "Fees earned and APY per channel (SATS):",
     "payer_note": "Attach a note to this payment.",
-    "changes": "This offer has been updated, please approve changes before paying invoice."
+    "changes": "This offer has been updated, please approve changes before paying invoice.",
+    "quantity": "{{direction; receive:What is the max quantity that can be requested with this offer?; send:Input a quantity up to a maximum of {{max}}}}"
   },
   "payment": {
     "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
