@@ -70,7 +70,7 @@
           href={TRANSLATE_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          class="bg-white dark:bg-black"
+          class="bg-white dark:bg-neutral-900"
         >
           <Button text={$translate('app.buttons.github')}>
             <div slot="iconLeft" class="w-8 mr-2">

@@ -41,13 +41,13 @@
   let offerExpiry: OfferCommon['offer_absolute_expiry']
   let recurrence: OfferCommon['offer_recurrence'] | null = null
   let denomination: BitcoinDenomination.msats | FiatDenomination
-  let amountMsat: string | number
+  let amount: string
   let description: OfferCommon['offer_description']
   let nodeId: OfferCommon['offer_node_id']
   let issuer: OfferCommon['offer_issuer']
   let quantityMax: OfferCommon['offer_quantity_max']
 
-  // manual input value if amountMsat === 'any'
+  // manual input value if amount === 'any'
   let value: string
 
   // optional payer not to include with payment
@@ -65,7 +65,7 @@
         offerExpiry,
         recurrence,
         denomination,
-        amountMsat,
+        amount,
         description,
         nodeId,
         issuer,
@@ -111,7 +111,7 @@
       return
     }
 
-    if (amountMsat === 'any') {
+    if (amount === 'any') {
       next('amount')
     } else {
       next('note')
@@ -138,7 +138,7 @@
         } = await lnApi.fetchInvoice({
           offer: data.bolt12,
           amount_msat:
-            amountMsat === 'any'
+            amount === 'any'
               ? (convertValue({
                   value,
                   from: $settings$.primaryDenomination,
@@ -150,7 +150,6 @@
 
         if (changes && Object.keys(changes).length) {
           // @TODO - show additional UI that displays changes, could be a modal?
-          console.log({ changes })
         } else {
           payment = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
         }
@@ -158,7 +157,7 @@
         payment = await lnApi.sendInvoice({
           offer: data.bolt12,
           label: createRandomHex(),
-          amount_msat: amountMsat === 'any' ? value : undefined
+          amount_msat: amount === 'any' ? value : undefined
         })
       }
     } catch (error) {
@@ -241,11 +240,11 @@
         <SummaryRow>
           <span slot="label">{$translate('app.labels.amount')}:</span>
           <span slot="value">
-            {#if amountMsat === 'any'}
+            {#if amount === 'any'}
               {$translate('app.labels.any')}
             {:else}
               {convertValue({
-                value: amountMsat.toString(),
+                value: amount.toString(),
                 from: denomination,
                 to: $settings$.primaryDenomination
               })}
@@ -302,8 +301,8 @@
   </Slide>
 {:else if slide === 'note'}
   <Slide
-    back={() => (amountMsat === 'any' ? back() : next('offer'))}
-    backText={$translate(`app.labels.${amountMsat === 'any' ? previousSlide : 'offer'}`)}
+    back={() => (amount === 'any' ? back() : next('offer'))}
+    backText={$translate(`app.labels.${amount === 'any' ? previousSlide : 'offer'}`)}
     direction={slideDirection}
   >
     <Description bind:description={payerNote} {next} headingsKey="payer_note" />
@@ -315,10 +314,10 @@
       destination={truncateValue(nodeId)}
       {issuer}
       direction={offerType === 'bolt12 invoice_request' ? 'receive' : 'send'}
-      value={amountMsat === 'any'
+      value={amount === 'any'
         ? value
         : convertValue({
-            value: amountMsat.toString(),
+            value: amount.toString(),
             from: BitcoinDenomination.msats,
             to: $settings$.primaryDenomination
           })}

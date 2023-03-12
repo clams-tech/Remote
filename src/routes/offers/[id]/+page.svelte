@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { timer } from 'rxjs'
-  import { map } from 'rxjs/operators'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { translate } from '$lib/i18n/translations'
   import warning from '$lib/icons/warning'
@@ -8,26 +6,34 @@
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { offers$, decodedOffers$, offersPayments$ } from '$lib/streams'
+  import { offers$, decodedOffers$, offersPayments$, settings$ } from '$lib/streams'
   import type { FormattedDecodedOffer } from '$lib/types'
   import lightningOutline from '$lib/icons/lightning-outline'
-  import { truncateValue, formatDecodedOffer } from '$lib/utils'
+  import { formatDecodedOffer, formatValueForDisplay } from '$lib/utils'
   import lightning from '$lib/lightning'
+  import { fade } from 'svelte/transition'
+  import { currencySymbols } from '$lib/constants'
+  import { convertValue } from '$lib/conversion'
+  import Qr from '$lib/components/QR.svelte'
+  import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
+  import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
+  import PaymentsList from '$lib/elements/PaymentsList.svelte'
+  import check from '$lib/icons/check'
+  import trendingUp from '$lib/icons/trending-up'
+  import trendingDown from '$lib/icons/trending-down'
 
   export let data: PageData
 
   const lnApi = lightning.getLn()
-  const timeSeconds$ = timer(0, 1000).pipe(map(() => Date.now() / 1000))
 
+  let expired = false
   let decoding = false
   let decodeError = false
   let decodedOffer: FormattedDecodedOffer
 
   $: offerSummary = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
   $: offerNotFound = !$offers$.loading && !!$offers$.data && !offerSummary
-
-  $: offerExpired =
-    decodedOffer && decodedOffer.offerExpiry && decodedOffer.offerExpiry <= $timeSeconds$
 
   $: if (offerSummary) {
     checkForDecoded()
@@ -53,7 +59,29 @@
     }
   }
 
-  $: console.log({ offerPayments })
+  $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+  $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
+
+  $: primaryValue =
+    decodedOffer &&
+    convertValue({
+      value: decodedOffer.amount,
+      from: decodedOffer.denomination,
+      to: $settings$.primaryDenomination
+    })
+
+  $: secondaryValue =
+    decodedOffer &&
+    convertValue({
+      value: decodedOffer.amount,
+      from: decodedOffer.denomination,
+      to: $settings$.secondaryDenomination
+    })
+
+  $: abs = decodedOffer?.offerType === 'bolt12 invoice_request' ? '-' : '+'
+
+  $: isActive =
+    offerSummary?.active && !(offerSummary?.single_use && offerSummary?.used) && !expired
 </script>
 
 <svelte:head>
@@ -81,33 +109,199 @@
 {:else if decoding || !offerSummary}
   <Spinner />
 {:else}
-  {@const { id, label, active, single_use, used, bolt12 } = offerSummary}
-  {@const { amountMsat, denomination, description, nodeId, issuer, quantityMax, recurrence } =
-    decodedOffer}
-  <!-- offerExpired -->
-  <!-- offerPayments -->
+  {@const { id, label, bolt12, single_use } = offerSummary}
+  {@const { description, nodeId, issuer, quantityMax, recurrence, offerExpiry } = decodedOffer}
 
   <Slide back={() => goto('/offers')} backText={$translate('app.titles./offers')} direction="left">
     <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
-      <div class="flex items-center mb-6 mt-12">
-        <div class="w-10 mr-2">{@html lightningOutline}</div>
-        <h1 class="text-4xl font-bold">
-          {$translate('app.titles./offer')}
-          {#if label}
-            {' - ' + label}
+      <div class="w-full h-12 bg-white dark:bg-neutral-900" />
+      <div class="w-full flex flex-col max-h-screen overflow-auto">
+        <!-- AMOUNT -->
+        <div class="flex flex-col items-center justify-center">
+          <span
+            >{$translate(`app.labels.${isActive ? 'active' : 'inactive'}`)}
+            {$translate(`app.labels.offer`)}</span
+          >
+          <div in:fade class="flex flex-col items-end">
+            <span class="text-4xl flex items-center tracking-wider"
+              >{abs}<span
+                class="flex justify-center items-center"
+                class:w-9={primarySymbol.startsWith('<')}
+                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+              >
+              {#if primaryValue !== null}
+                {primaryValue === '0'
+                  ? $translate('app.labels.any')
+                  : formatValueForDisplay({
+                      value: primaryValue,
+                      denomination: $settings$.primaryDenomination,
+                      commas: true
+                    })}
+              {:else}
+                <div class="ml-1">
+                  <Spinner size="2rem" />
+                </div>
+              {/if}
+            </span>
+            <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
+              >{abs}<span
+                class="flex justify-center items-center"
+                class:w-4={secondarySymbol.startsWith('<')}
+                class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
+              >
+              {#if secondaryValue !== null}
+                {secondaryValue === '0'
+                  ? $translate('app.labels.any')
+                  : formatValueForDisplay({
+                      value: secondaryValue || '0',
+                      denomination: $settings$.secondaryDenomination,
+                      commas: true
+                    })}
+              {:else}
+                <div class="ml-1">
+                  <Spinner size="1rem" />
+                </div>
+              {/if}
+            </span>
+          </div>
+        </div>
+
+        <!-- QR AND EXPIRY COUNTDOWN -->
+        {#if isActive}
+          <div class="my-4 flex flex-col items-center justify-center">
+            <Qr value={bolt12} />
+            {#if offerExpiry}
+              <div class="mt-2">
+                <ExpiryCountdown
+                  on:expired={() => (expired = true)}
+                  expiry={new Date(offerExpiry)}
+                />
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        <!--------------- DETAILS ----------------------->
+        <div class="mt-8">
+          <!-- STATUS -->
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.status')}:</span>
+            <span
+              class="flex items-center"
+              class:text-utility-success={isActive}
+              class:text-utility-error={!isActive}
+              slot="value"
+            >
+              {$translate(`app.labels.${isActive ? 'active' : 'inactive'}`)}
+
+              {#if isActive}
+                <div in:fade class="w-4 ml-1 border border-utility-success rounded-full">
+                  {@html check}
+                </div>
+              {:else}
+                <div in:fade class="w-4 ml-1">
+                  {@html warning}
+                </div>
+              {/if}
+            </span>
+          </SummaryRow>
+
+          <!-- BOLT12 -->
+          {#if bolt12}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.bolt12')}:</span>
+              <div slot="value">
+                <CopyValue value={bolt12} truncateLength={9} />
+              </div>
+            </SummaryRow>
           {/if}
-        </h1>
-      </div>
 
-      <!-- @TODO - COULD USE SOMETHING LIKE <PaymentDetails {payment} /> for summary? -->
+          <!-- OFFER TYPE -->
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.offer_type')}:</span>
+            <span class="flex items-center" slot="value">
+              {$translate(`app.labels.${offerSummary.type === 'pay' ? 'pay' : 'withdraw'}`)}
 
-      <div class="grid gap-4 w-full">
-        <div class="w-full border rounded-md p-4">
-          <div>{truncateValue(id)}</div>
-          <div>Active: {active}</div>
-          <div>Single use: {single_use}</div>
-          <div>Used: {used}</div>
-          <div>Bolt12: {truncateValue(bolt12)}</div>
+              <div
+                class="w-6 ml-1"
+                class:text-utility-success={offerSummary.type === 'pay'}
+                class:text-purple-400={offerSummary.type === 'withdraw'}
+              >
+                {@html offerSummary.type === 'pay' ? trendingUp : trendingDown}
+              </div>
+            </span>
+          </SummaryRow>
+
+          <!-- ISSUER -->
+          {#if issuer}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.issuer')}:</span>
+              <div slot="value">
+                <CopyValue value={issuer} />
+              </div>
+            </SummaryRow>
+          {/if}
+
+          <!-- DESCRIPTION -->
+          {#if description}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.description')}:</span>
+              <span slot="value">{description}</span>
+            </SummaryRow>
+          {/if}
+
+          <!-- SINGLE USE -->
+          {#if single_use}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.single_use')}:</span>
+              <div
+                slot="value"
+                class="w-5 p-[1px] text-utility-success border border-current rounded-full"
+              >
+                {@html check}
+              </div>
+            </SummaryRow>
+          {/if}
+
+          <!-- LABEL -->
+          {#if label}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.label')}:</span>
+              <span slot="value">{label}</span>
+            </SummaryRow>
+          {/if}
+
+          <!-- OFFER HASH/ID -->
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.hash')}:</span>
+            <div slot="value">
+              <CopyValue value={id} truncateLength={9} />
+            </div>
+          </SummaryRow>
+
+          <!-- PAYMENTS -->
+          {#if offerPayments.length}
+            <SummaryRow baseline>
+              <span slot="label"
+                >{$translate(
+                  `app.labels.${offerSummary.type === 'pay' ? 'payments' : 'withdrawals'}`
+                )}:</span
+              >
+              <div slot="value">
+                <PaymentsList payments={offerPayments} />
+              </div>
+            </SummaryRow>
+          {/if}
+
+          <!-- MAX QUANTITY -->
+          {#if quantityMax}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.max_quantity')}:</span>
+              <div slot="value">
+                {quantityMax}
+              </div>
+            </SummaryRow>
+          {/if}
         </div>
       </div>
     </section>

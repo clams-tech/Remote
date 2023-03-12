@@ -68,11 +68,13 @@
           class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
         >
         {#if primaryValue !== null}
-          {formatValueForDisplay({
-            value: primaryValue,
-            denomination: $settings$.primaryDenomination,
-            commas: true
-          })}
+          {primaryValue === '0'
+            ? $translate('app.labels.any')
+            : formatValueForDisplay({
+                value: primaryValue,
+                denomination: $settings$.primaryDenomination,
+                commas: true
+              })}
         {:else}
           <div class="ml-1">
             <Spinner size="2rem" />
@@ -86,11 +88,13 @@
           class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
         >
         {#if secondaryValue !== null}
-          {formatValueForDisplay({
-            value: secondaryValue || '0',
-            denomination: $settings$.secondaryDenomination,
-            commas: true
-          })}
+          {secondaryValue === '0'
+            ? $translate('app.labels.any')
+            : formatValueForDisplay({
+                value: secondaryValue || '0',
+                denomination: $settings$.secondaryDenomination,
+                commas: true
+              })}
         {:else}
           <div class="ml-1">
             <Spinner size="1rem" />

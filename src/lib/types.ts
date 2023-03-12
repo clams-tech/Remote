@@ -211,7 +211,7 @@ export type FormattedDecodedOffer = {
   description: OfferCommon['offer_description']
   issuer: OfferCommon['offer_issuer']
   denomination: BitcoinDenomination.msats | FiatDenomination
-  amountMsat: string
+  amount: string
   nodeId: OfferCommon['offer_node_id']
   quantityMax: OfferCommon['offer_quantity_max']
 }

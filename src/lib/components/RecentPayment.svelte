@@ -43,7 +43,7 @@
               direction: payment.direction
             })}:
           </span>
-          <span class="flex items-center ml-1">
+          <span class="flex items-center">
             <span
               class="flex justify-center items-center"
               class:w-4={primarySymbol.startsWith('<')}
@@ -61,14 +61,15 @@
               </div>
             {/if}
           </span>
+
+          {#if payment.completedAt}
+            <span class="ml-1">
+              {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
+                <span in:fade={{ duration: 50 }}>{formatted}</span>
+              {/await}
+            </span>
+          {/if}
         </div>
-        {#if payment.completedAt}
-          <span>
-            {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-              <span in:fade={{ duration: 50 }}>{formatted}</span>
-            {/await}
-          </span>
-        {/if}
       </div>
     </div>
     <div class="w-5 text-neutral-400 ml-2 mb-[2px] -rotate-90">{@html caret}</div>

@@ -3,7 +3,7 @@
   import QRCodeStyling from 'qr-code-styling'
 
   export let value: string | null
-  export let size = Math.min(window.innerWidth - 64, 400)
+  export let size = Math.min(window.innerWidth - 48, 400)
 
   export function getQrImage() {
     return canvas?.toDataURL()
@@ -41,6 +41,9 @@
   }
 </script>
 
-<div in:fade class="border-2 border-neutral-400 rounded-lg shadow-md">
-  <div class="m-4 rounded overflow-hidden" bind:this={node} />
+<div
+  in:fade
+  class="border-2 border-neutral-400 rounded-lg shadow-md sm:p-4 max-w-full flex justify-center items-center"
+>
+  <div class="rounded overflow-hidden" bind:this={node} />
 </div>

@@ -52,7 +52,7 @@
     "destination": "Destination",
     "status": "Status",
     "issuer": "Issuer",
-    "offer_type": "Offer Type",
+    "offer_type": "Offer type",
     "completed_at": "Completed At",
     "created_started_at": "{{direction; receive:Created; send:Started;}} At",
     "description": "Description",
@@ -109,10 +109,15 @@
     "offer": "Offer",
     "payer_note": "Payer note",
     "active": "Active",
+    "inactive": "Inactive",
     "single_use": "Single use",
     "reusable": "Reusable",
     "used": "Used",
-    "payments": "Payments"
+    "payments": "Payments",
+    "withdrawals": "Withdrawals",
+    "label": "Label",
+    "max_quantity": "Max Quantity",
+    "bolt12": "BOLT12"
   },
   "time": {
     "mins": "mins"
