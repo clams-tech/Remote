@@ -152,6 +152,7 @@
           payer_note: payerNote
         })
 
+        // @TODO - TEST CHANGES MODAL
         if (changes && changes.amount_msat) {
           changes$.next({ showModal: true, approved: false, amountMsat: changes.amount_msat })
           const { approved } = await firstValueFrom(changes$)
