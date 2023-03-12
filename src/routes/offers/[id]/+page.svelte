@@ -89,7 +89,6 @@
       status === 'expired'
     } else if (!active) {
       if (single_use && used) {
-        console.log('completed')
         status = 'completed'
       } else {
         status = 'disabled'
