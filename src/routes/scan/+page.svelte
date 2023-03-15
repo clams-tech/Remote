@@ -5,15 +5,7 @@
   import Scanner from '$lib/components/Scanner.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import {
-    BitcoinDenomination,
-    type ParsedBitcoinStringError,
-    type ParsedOffChainString,
-    type ParsedOnchainString,
-    type Payment,
-    type SendPayment
-  } from '$lib/types'
-  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ErrorResponse } from '$lib/backends'
   import { convertValue } from '$lib/conversion'
@@ -21,18 +13,24 @@
   import Amount from '$lib/components/Amount.svelte'
   import { createRandomHex, decodeBolt11, parseBitcoinUrl } from '$lib/utils'
 
+  import {
+    BitcoinDenomination,
+    type ParsedBitcoinStringError,
+    type ParsedOffChainString,
+    type ParsedOnchainString,
+    type Payment
+  } from '$lib/types'
+
   let requesting = false
   let errorMsg = ''
 
-  const sendPayment$ = new SvelteSubject<SendPayment>({
-    destination: '',
-    type: null,
-    description: '',
-    expiry: null,
-    timestamp: null,
-    amount: '',
-    value: ''
-  })
+  let destination = ''
+  let type = ''
+  let description = ''
+  let expiry: number | null = null
+  let timestamp: number | null = null
+  let amount = ''
+  let value = ''
 
   async function handleScanResult(scanResult: string) {
     const parsed = parseBitcoinUrl(scanResult)
@@ -43,56 +41,44 @@
       return
     }
 
-    const { type, value } = parsed as ParsedOffChainString | ParsedOnchainString
+    const { type: parsedType, value: parsedValue } = parsed as
+      | ParsedOffChainString
+      | ParsedOnchainString
+
+    type = parsedType
+    destination = parsedValue as string
 
     // lnurl
     if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${value}`)
+      goto(`/lnurl?lnurl=${parsedValue}`)
       return
     }
 
     // Bolt 12 Offers
     if (type === 'bolt12') {
-      goto(`/offers/bolt12/${value}`)
+      goto(`/offers/bolt12/${parsedValue}`)
       return
     }
 
     // keysend
     if (type === 'keysend') {
-      sendPayment$.next({
-        type: 'keysend',
-        destination: value as string,
-        description: '',
-        expiry: null,
-        value: '',
-        amount: '',
-        timestamp: null
-      })
-
       next()
-
       return
     }
 
     if (type === 'bolt11') {
-      const decoded = decodeBolt11(value as string)
+      const decoded = decodeBolt11(destination)
 
       if (!decoded) {
         errorMsg = $translate('app.errors.invalid_bolt11')
         return
       }
 
-      const { description, expiry, amount, timestamp } = decoded
-
-      sendPayment$.next({
-        type: 'bolt11',
-        destination: value as string,
-        description: description || '',
-        expiry: expiry || 3600,
-        value: '0',
-        amount,
-        timestamp
-      })
+      description = decoded.description || ''
+      value = '0'
+      expiry = decoded.expiry || 3600
+      amount = decoded.amount
+      timestamp = decoded.timestamp
 
       next(!amount || amount === '0' ? 'amount' : 'summary')
 
@@ -105,7 +91,6 @@
   }
 
   async function sendPayment() {
-    const { destination, description, value, type } = sendPayment$.getValue()
     const { primaryDenomination } = $settings$
 
     errorMsg = ''
@@ -207,7 +192,7 @@
 
 {#if slide === 'amount'}
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
-    <Amount direction="send" bind:value={$sendPayment$.value} {next} required />
+    <Amount direction="send" bind:value {next} required />
   </Slide>
 {/if}
 
@@ -218,19 +203,19 @@
     backText={$translate(`app.labels.${previousSlide}`)}
   >
     <Summary
-      destination={$sendPayment$.destination}
+      {destination}
       type="bolt11"
-      value={$sendPayment$.value && $sendPayment$.value !== '0'
-        ? $sendPayment$.value
+      value={value && value !== '0'
+        ? value
         : convertValue({
-            value: $sendPayment$.amount,
+            value: amount,
             from: BitcoinDenomination.msats,
             to: $settings$.primaryDenomination
           })}
-      description={$sendPayment$.description}
-      timestamp={$sendPayment$.timestamp}
+      {description}
+      {timestamp}
       direction="send"
-      expiry={$sendPayment$.expiry}
+      expiry={expiry || 600}
       on:complete={sendPayment}
       {requesting}
     />

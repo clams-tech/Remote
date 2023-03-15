@@ -1,6 +1,6 @@
 <script lang="ts">
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import { convertValue } from '$lib/conversion'
   import { goto } from '$app/navigation'
@@ -10,13 +10,7 @@
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { createRandomHex } from '$lib/utils'
-
-  import {
-    listeningForAllInvoiceUpdates$,
-    paymentUpdates$,
-    settings$,
-    SvelteSubject
-  } from '$lib/streams'
+  import { listeningForAllInvoiceUpdates$, paymentUpdates$, settings$ } from '$lib/streams'
 
   const { invoiceExpiry } = $settings$
 
@@ -45,15 +39,12 @@
     slide = to
   }
 
-  const receivePayment$ = new SvelteSubject({
-    value: '',
-    description: '',
-    expiry: invoiceExpiry
-  })
+  let value = ''
+  let description = ''
+  let expiry = invoiceExpiry
 
   async function submit() {
     receiveError = ''
-    const { value, description, expiry } = $receivePayment$
 
     const amount_msat = convertValue({
       value: value || 'any',
@@ -111,13 +102,18 @@
     backText={$translate('app.titles./')}
     direction={slideDirection}
   >
-    <Amount bind:value={$receivePayment$.value} {next} direction="receive" />
+    <Amount bind:value {next} direction="receive" hint={$translate('app.hints.any_amount')} />
   </Slide>
 {/if}
 
 {#if slide === 'description'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
-    <Description bind:description={$receivePayment$.description} {next} />
+    <TextScreen
+      bind:value={description}
+      label="description"
+      {next}
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 
@@ -125,9 +121,9 @@
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
       type="bolt11"
-      value={$receivePayment$.value}
-      description={$receivePayment$.description}
-      bind:expiry={$receivePayment$.expiry}
+      {value}
+      {description}
+      bind:expiry
       direction="receive"
       {requesting}
       on:complete={submit}

@@ -39,7 +39,7 @@
     checkForDecoded()
   }
 
-  $: offerPayments = $offersPayments$[data.id]
+  $: offerPayments = $offersPayments$[data.id] || []
 
   async function checkForDecoded() {
     const alreadyDecoded = $decodedOffers$[data.id]

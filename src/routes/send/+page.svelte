@@ -4,23 +4,23 @@
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import Slide from '$lib/elements/Slide.svelte'
-  import {
-    BitcoinDenomination,
-    type ParsedBitcoinStringError,
-    type ParsedOffChainString,
-    type ParsedOnchainString,
-    type Payment,
-    type SendPayment
-  } from '$lib/types'
   import { convertValue } from '$lib/conversion'
-  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { createRandomHex, parseBitcoinUrl } from '$lib/utils'
   import type { PageData } from './$types'
+
+  import {
+    BitcoinDenomination,
+    type ParsedBitcoinStringError,
+    type ParsedOffChainString,
+    type ParsedOnchainString,
+    type Payment
+  } from '$lib/types'
 
   export let data: PageData
 
@@ -49,19 +49,17 @@
     slide = to
   }
 
-  const sendPayment$ = new SvelteSubject<SendPayment>({
-    destination: data.destination || '',
-    type: data.type || null,
-    description: '',
-    expiry: null,
-    timestamp: null,
-    amount: '',
-    value: ''
-  })
+  let destination = data.destination || ''
+  let type = data.type || null
+  let description = ''
+  let expiry: number | null = null
+  let timestamp: number | null = null
+  let amount = ''
+  let value = ''
 
   async function sendPayment() {
     requesting = true
-    const { destination, value, type, description } = sendPayment$.getValue()
+
     const { primaryDenomination } = $settings$
 
     let payment: Payment | null = null
@@ -128,7 +126,6 @@
   }
 
   function destinationNext() {
-    const { destination, amount } = $sendPayment$
     const parsed = parseBitcoinUrl(destination)
     const { error } = parsed as ParsedBitcoinStringError
 
@@ -137,9 +134,9 @@
       return
     }
 
-    const { type, value } = parsed as ParsedOffChainString | ParsedOnchainString
+    const { type: parsedType, value } = parsed as ParsedOffChainString | ParsedOnchainString
 
-    $sendPayment$.type = type
+    type = parsedType
 
     if (type === 'lnurl') {
       goto(`/lnurl?lnurl=${value}`)
@@ -152,7 +149,7 @@
     }
 
     if (type === 'bolt11') {
-      $sendPayment$.destination = value
+      destination = value as string
 
       if (amount && amount !== '0') {
         next('summary')
@@ -184,12 +181,12 @@
   >
     <Destination
       next={destinationNext}
-      bind:destination={$sendPayment$.destination}
-      bind:type={$sendPayment$.type}
-      bind:description={$sendPayment$.description}
-      bind:expiry={$sendPayment$.expiry}
-      bind:timestamp={$sendPayment$.timestamp}
-      bind:amount={$sendPayment$.amount}
+      bind:destination
+      bind:type
+      bind:description
+      bind:expiry
+      bind:timestamp
+      bind:amount
       on:clipboardError={({ detail }) => (errorMsg = detail)}
     />
   </Slide>
@@ -199,8 +196,8 @@
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Amount
       direction="send"
-      bind:value={$sendPayment$.value}
-      next={() => next($sendPayment$.description ? 'summary' : 'description')}
+      bind:value
+      next={() => next(description ? 'summary' : 'description')}
       required
     />
   </Slide>
@@ -208,7 +205,12 @@
 
 {#if slide === 'description'}
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
-    <Description {next} bind:description={$sendPayment$.description} />
+    <TextScreen
+      {next}
+      bind:value={description}
+      label="description"
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 
@@ -216,15 +218,15 @@
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       direction="send"
-      type={$sendPayment$.type}
-      destination={$sendPayment$.destination}
-      description={$sendPayment$.description}
-      expiry={$sendPayment$.expiry}
-      timestamp={$sendPayment$.timestamp}
-      value={$sendPayment$.value && $sendPayment$.value !== '0'
-        ? $sendPayment$.value
+      {type}
+      {destination}
+      {description}
+      expiry={expiry || 600}
+      {timestamp}
+      value={value && value !== '0'
+        ? value
         : convertValue({
-            value: $sendPayment$.amount,
+            value: amount,
             from: BitcoinDenomination.msats,
             to: $settings$.primaryDenomination
           })}

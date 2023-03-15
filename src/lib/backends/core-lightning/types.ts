@@ -123,6 +123,35 @@ export type ListInvoiceRequestsRequest = {
   method: 'listinvoicerequests'
 }
 
+export type CreatePayOfferRequest = {
+  method: 'offer'
+  params: {
+    amount: string
+    description: string
+    issuer?: string
+    label?: string
+    quantity_max?: number
+    absolute_expiry?: number
+    recurrence?: string
+    recurrence_base?: string
+    recurrence_paywindow?: string
+    recurrence_limit?: string
+    single_use?: boolean
+  }
+}
+
+export type CreateWithdrawOfferRequest = {
+  method: 'offer'
+  params: {
+    amount: string
+    description: string
+    issuer?: string
+    label?: string
+    absolute_expiry?: number
+    single_use?: boolean
+  }
+}
+
 export type LNRequest =
   | PayRequest
   | FetchInvoiceRequest
@@ -139,6 +168,8 @@ export type LNRequest =
   | DecodeRequest
   | ListOffersRequest
   | ListInvoiceRequestsRequest
+  | CreatePayOfferRequest
+  | CreateWithdrawOfferRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -834,6 +865,9 @@ export type ListInvoiceRequestsResponse = {
   invoicerequests: InvoiceRequestSummary[]
 }
 
+export type CreatePayOfferResponse = OfferSummary & { created: boolean }
+export type CreateWithdrawOfferResponse = InvoiceRequestSummary
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -851,5 +885,7 @@ export type LNResponse =
   | SendInvoiceResponse
   | ListOffersResponse
   | ListInvoiceRequestsResponse
+  | CreatePayOfferResponse
+  | CreateWithdrawOfferResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

@@ -45,7 +45,7 @@
   <Slide
     back={() => goto('/')}
     backText={$translate('app.titles./')}
-    direction={!$lastPath$ || $lastPath$ === '/' ? 'left' : 'right'}
+    direction={(!$lastPath$ || $lastPath$) === '/' ? 'left' : 'right'}
   >
     <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="flex items-center justify-between mb-6 mt-12 w-full">

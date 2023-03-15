@@ -17,6 +17,10 @@ import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
   ChannelAPY,
+  CreatePayOfferRequest,
+  CreatePayOfferResponse,
+  CreateWithdrawOfferRequest,
+  CreateWithdrawOfferResponse,
   DecodeResponse,
   FetchInvoiceRequest,
   FetchInvoiceResponse,
@@ -107,6 +111,28 @@ class CoreLn {
     }
 
     return payment
+  }
+
+  async createPayOffer(params: CreatePayOfferRequest['params']): Promise<CreatePayOfferResponse> {
+    const result = await this.connection.commando({
+      method: 'offer',
+      params,
+      rune: this.rune
+    })
+
+    return result as CreatePayOfferResponse
+  }
+
+  async createWithdrawOffer(
+    params: CreateWithdrawOfferRequest['params']
+  ): Promise<CreateWithdrawOfferResponse> {
+    const result = await this.connection.commando({
+      method: 'invoicerequest',
+      params,
+      rune: this.rune
+    })
+
+    return result as CreateWithdrawOfferResponse
   }
 
   async decode(invoice: string): Promise<DecodeResponse> {

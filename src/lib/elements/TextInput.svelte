@@ -34,15 +34,17 @@
 </script>
 
 <div style="width: {width};" class="flex flex-col relative">
-  {#if label || hint}
-    <div class="flex items-center mb-2 font-medium">
-      <label class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit" for={name}
-        >{label || ''}</label
-      >
-      <span class="flex justify-end text-neutral-400 text-xs w-1/2 cursor-default"
-        >{@html hint}</span
-      >
-    </div>
+  {#if label}
+    <label class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit font-medium mb-2" for={name}
+      >{label}</label
+    >
+  {/if}
+
+  {#if hint}
+    <span
+      class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-xs w-1/2 cursor-default font-medium"
+      >{@html hint}</span
+    >
   {/if}
 
   <div class="relative flex items-center">

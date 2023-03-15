@@ -41,8 +41,7 @@
         })
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      $offers$.error =
-        code === -32602 ? message : $translate(`app.errors.${code}`, { default: message })
+      $offers$.error = $translate(`app.errors.${code}`, { default: message })
     } finally {
       $offers$.loading = false
     }

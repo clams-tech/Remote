@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import { LNURL_PROXY } from '$lib/constants'
   import { convertValue } from '$lib/conversion'
@@ -66,7 +66,6 @@
 
   let amount = ''
   let amountError = ''
-
   let description = ''
 
   type FormattedMetadata = {
@@ -361,7 +360,13 @@
 
 {#if slide === 'description'}
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
-    <Description next={() => next()} bind:description max={commentAllowed} />
+    <TextScreen
+      next={() => next()}
+      bind:value={description}
+      label="description"
+      max={commentAllowed}
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 

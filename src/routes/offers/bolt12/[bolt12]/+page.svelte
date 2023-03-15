@@ -18,12 +18,12 @@
   import { convertValue } from '$lib/conversion'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
   import Summary from '$lib/components/Summary.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import type { DecodedCommon, FetchInvoiceResponse, OfferCommon } from '$lib/backends'
+  import type { DecodedCommon, OfferCommon } from '$lib/backends'
   import { formatDecodedOffer } from '$lib/utils'
   import Modal from '$lib/elements/Modal.svelte'
   import { currencySymbols } from '$lib/constants'
@@ -117,9 +117,9 @@
       return
     }
 
-    if (amount === 'any') {
+    if ((amount === 'any' || amount === '0') && !value) {
       next('amount')
-    } else if (quantityMax) {
+    } else if (typeof quantityMax === 'number') {
       next('quantity')
     } else {
       next('note')
@@ -237,7 +237,7 @@
             >{$translate('app.labels.offer_type_value', { offerType })}
             <div
               class:text-utility-success={offerType === 'bolt12 invoice_request'}
-              class:text-utility-pending={offerType !== 'bolt12 invoice_request'}
+              class:text-utility-error={offerType !== 'bolt12 invoice_request'}
               class="w-6 ml-2"
             >
               {@html offerType === 'bolt12 invoice_request' ? trendingUp : trendingDown}
@@ -253,7 +253,7 @@
         <SummaryRow>
           <span slot="label">{$translate('app.labels.amount')}:</span>
           <span slot="value">
-            {#if amount === 'any'}
+            {#if amount === 'any' || amount === '0'}
               {$translate('app.labels.any')}
             {:else}
               {convertValue({
@@ -310,22 +310,24 @@
   </Slide>
 {:else if slide === 'amount'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
-    <Amount
-      bind:value
-      next={() => (quantityMax ? next('quantity') : next())}
-      direction="send"
-      required
-    />
+    <Amount bind:value next={handleNext} direction="send" required />
   </Slide>
 {:else if slide === 'quantity'}
-  <Quantity {next} bind:quantity max={quantityMax} />
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
+    <Quantity {next} bind:quantity max={quantityMax} />
+  </Slide>
 {:else if slide === 'note'}
   <Slide
     back={() => (amount === 'any' ? back() : next('offer'))}
     backText={$translate(`app.labels.${amount === 'any' ? previousSlide : 'offer'}`)}
     direction={slideDirection}
   >
-    <Description bind:description={payerNote} {next} headingsKey="payer_note" />
+    <TextScreen
+      bind:value={payerNote}
+      {next}
+      label="payer_note"
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {:else if slide === 'summary'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
@@ -334,7 +336,7 @@
       destination={truncateValue(nodeId)}
       {issuer}
       direction={offerType === 'bolt12 invoice_request' ? 'receive' : 'send'}
-      value={amount === 'any'
+      value={amount === 'any' || amount === '0'
         ? value
         : convertValue({
             value: amount.toString(),
@@ -343,6 +345,7 @@
           })}
       {description}
       {quantity}
+      {payerNote}
       expiry={offerExpiry || null}
       requesting={completing}
       on:complete={complete}
