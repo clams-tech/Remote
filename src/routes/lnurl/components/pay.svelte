@@ -373,7 +373,7 @@
 {#if slide === 'summary'}
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
-      type="lnurl"
+      paymentType="lnurl"
       direction="send"
       destination={address || serviceName}
       {description}

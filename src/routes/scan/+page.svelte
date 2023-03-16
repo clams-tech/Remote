@@ -204,7 +204,7 @@
   >
     <Summary
       {destination}
-      type="bolt11"
+      paymentType="bolt11"
       value={value && value !== '0'
         ? value
         : convertValue({

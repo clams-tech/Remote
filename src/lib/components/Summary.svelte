@@ -11,7 +11,8 @@
   import Big from 'big.js'
   import Toggle from '$lib/elements/Toggle.svelte'
 
-  export let type: PaymentType | null
+  export let paymentType: PaymentType
+  export let offerDirection: 'pay' | 'withdraw' | undefined = undefined
   export let destination: string | null = ''
   export let issuer: string | null = ''
   export let direction: 'send' | 'receive'
@@ -59,7 +60,7 @@
 
   function secondsToStep(seconds: number | null) {
     // bolt 12 offers allow for no expiry
-    if (!seconds && type === 'bolt12') return 0
+    if (!seconds && paymentType === 'bolt12') return 0
 
     if (!seconds || seconds <= 10 * MIN_IN_SECS) {
       return 1
@@ -97,10 +98,10 @@
   <div class="w-full">
     <div class="mb-6">
       <h1 class="text-4xl font-bold mb-4">
-        {$translate('app.headings.summary', { direction, paymentType: type })}
+        {$translate('app.headings.summary', { direction, paymentType, offerDirection })}
       </h1>
       <p class="text-neutral-600 dark:text-neutral-400 italic">
-        {$translate('app.subheadings.summary', { direction, paymentType: type })}
+        {$translate('app.subheadings.summary', { direction, paymentType, offerDirection })}
       </p>
     </div>
 
@@ -109,9 +110,7 @@
       <SummaryRow>
         <span slot="label">{$translate('app.labels.destination')}:</span>
         <span slot="value">
-          {#if type}
-            {formatDestination(destination, type)}
-          {/if}
+          {formatDestination(destination, paymentType)}
         </span>
       </SummaryRow>
     {/if}
@@ -121,9 +120,7 @@
       <SummaryRow>
         <span slot="label">{$translate('app.labels.issuer')}:</span>
         <span slot="value">
-          {#if type}
-            {issuer}
-          {/if}
+          {issuer}
         </span>
       </SummaryRow>
     {/if}
@@ -220,7 +217,7 @@
             <input
               class="h-2 bg-purple-50 appearance-none mr-4 accent-purple-500 dark:accent-purple-300"
               type="range"
-              min={type === 'bolt12' ? 0 : 1}
+              min={paymentType === 'bolt12' ? 0 : 1}
               max="4"
               step="1"
               bind:value={expiryStep}
@@ -260,7 +257,7 @@
       {requesting}
       primary
       disabled={!!(expiresAt && Date.now() >= expiresAt)}
-      text={$translate('app.buttons.summary_complete', { paymentType: type, direction })}
+      text={$translate('app.buttons.summary_complete', { paymentType, direction })}
       on:click={() => dispatch('complete')}
     />
   </div>

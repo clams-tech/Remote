@@ -40,14 +40,14 @@
     >
   {/if}
 
-  {#if hint}
-    <span
-      class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-xs w-1/2 cursor-default font-medium"
-      >{@html hint}</span
-    >
-  {/if}
-
   <div class="relative flex items-center">
+    {#if hint}
+      <span
+        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-xs w-1/2 cursor-default font-medium"
+        >{@html hint}</span
+      >
+    {/if}
+
     {#if type === 'text'}
       <input
         bind:this={input}

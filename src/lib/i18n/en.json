@@ -225,7 +225,7 @@
     "any_quantity": "To allow any quantity, press the Next button."
   },
   "headings": {
-    "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; bolt12:Offer - {{direction; receive:Pay; send:Withdraw;}};}}",
+    "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; bolt12:Offer - {{offerDirection; withdraw:Withdraw; pay:Pay;}};}}",
     "amount": "Amount",
     "description": "Description",
     "note": "Note",
@@ -250,7 +250,7 @@
     "label": "Label"
   },
   "subheadings": {
-    "summary": "Confirm {{paymentType; bolt11:payment; bolt12:offer;}} details.",
+    "summary": "Confirm {{paymentType; bolt11:payment; bolt12:offer {{offerDirection; pay:payment; withdraw:withdrawal;}};}} details.",
     "amount": "How much would you like to {{direction; receive:receive; send:send;}}?",
     "description": "What is this payment for?",
     "note": "Add a note for the receiver of this payment.",

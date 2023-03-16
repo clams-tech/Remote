@@ -19,7 +19,8 @@
     type ParsedBitcoinStringError,
     type ParsedOffChainString,
     type ParsedOnchainString,
-    type Payment
+    type Payment,
+    type PaymentType
   } from '$lib/types'
 
   export let data: PageData
@@ -50,7 +51,7 @@
   }
 
   let destination = data.destination || ''
-  let type = data.type || null
+  let type: PaymentType | '' = data.type || ''
   let description = ''
   let expiry: number | null = null
   let timestamp: number | null = null
@@ -218,7 +219,7 @@
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       direction="send"
-      {type}
+      paymentType={type || 'bolt11'}
       {destination}
       {description}
       expiry={expiry || 600}

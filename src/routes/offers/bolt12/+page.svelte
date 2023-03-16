@@ -235,7 +235,8 @@
 {#if slide === 'summary'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
-      type="bolt12"
+      paymentType="bolt12"
+      offerDirection={offerType}
       {value}
       {description}
       {issuer}

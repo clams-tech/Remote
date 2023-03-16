@@ -117,7 +117,7 @@
       return
     }
 
-    if ((amount === 'any' || amount === '0') && !value) {
+    if (amount === 'any' || (amount === '0' && slide !== 'amount')) {
       next('amount')
     } else if (typeof quantityMax === 'number') {
       next('quantity')
@@ -139,6 +139,7 @@
           id: createRandomHex()
         })
       } else if (offerType === 'bolt12 offer') {
+        console.error('FETCHING INVOICE', { amount })
         const {
           changes,
           invoice
@@ -146,7 +147,7 @@
         } = await lnApi.fetchInvoice({
           offer: data.bolt12,
           amount_msat:
-            amount === 'any'
+            amount === 'any' || amount === '0'
               ? (convertValue({
                   value,
                   from: $settings$.primaryDenomination,
@@ -156,6 +157,8 @@
           payer_note: payerNote,
           quantity: quantityMax && quantity
         })
+
+        console.error({ invoice, changes })
 
         // @TODO - TEST CHANGES MODAL
         if (changes && changes.amount_msat) {
@@ -313,13 +316,24 @@
     <Amount bind:value next={handleNext} direction="send" required />
   </Slide>
 {:else if slide === 'quantity'}
-  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
+  <Slide
+    back={() => (amount === 'any' || amount === '0' ? back() : next('offer'))}
+    backText={$translate(
+      `app.labels.${amount === 'any' || amount === '0' ? previousSlide : 'offer'}`
+    )}
+    direction={slideDirection}
+  >
     <Quantity {next} bind:quantity max={quantityMax} />
   </Slide>
 {:else if slide === 'note'}
   <Slide
-    back={() => (amount === 'any' ? back() : next('offer'))}
-    backText={$translate(`app.labels.${amount === 'any' ? previousSlide : 'offer'}`)}
+    back={() =>
+      quantityMax ? back() : amount === 'any' || amount === '0' ? next('amount') : next('offer')}
+    backText={$translate(
+      `app.labels.${
+        quantityMax ? previousSlide : amount === 'any' || amount === '0' ? 'amount' : 'offer'
+      }`
+    )}
     direction={slideDirection}
   >
     <TextScreen
@@ -332,7 +346,8 @@
 {:else if slide === 'summary'}
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
-      type="bolt12"
+      paymentType="bolt12"
+      offerDirection={offerType === 'bolt12 invoice_request' ? 'withdraw' : 'pay'}
       destination={truncateValue(nodeId)}
       {issuer}
       direction={offerType === 'bolt12 invoice_request' ? 'receive' : 'send'}
@@ -344,7 +359,7 @@
             to: $settings$.primaryDenomination
           })}
       {description}
-      {quantity}
+      quantity={quantityMax ? quantity : undefined}
       {payerNote}
       expiry={offerExpiry || null}
       requesting={completing}

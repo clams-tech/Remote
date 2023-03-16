@@ -138,7 +138,7 @@
             {#if local}
               <button class="flex items-center" on:click={() => goto(`/offers/${id}`)}>
                 {issuer || truncateValue(id)}
-                <div in:fade class="w-6 cursor-pointer">
+                <div in:fade class="w-6 cursor-pointer ml-1">
                   {@html link}
                 </div>
               </button>

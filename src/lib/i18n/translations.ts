@@ -4,8 +4,9 @@ import type { Config, Parser } from '@sveltekit-i18n/parser-default'
 import type { DecodedType } from '$lib/backends'
 
 export interface Payload extends Parser.PayloadDefault {
-  paymentType?: string | null
+  paymentType?: string
   offerType?: DecodedType
+  offerDirection?: 'pay' | 'withdraw'
   direction?: string
   status?: string
   feeType?: string

@@ -1,18 +1,19 @@
 <script lang="ts">
   import lodashDebounce from 'lodash.debounce'
   import { onMount, createEventDispatcher, onDestroy } from 'svelte'
-  import type {
-    ParsedBitcoinStringError,
-    ParsedOffChainString,
-    ParsedOnchainString,
-    PaymentType
-  } from '$lib/types'
   import TextInput from '$lib/elements/TextInput.svelte'
   import Button from '$lib/elements/Button.svelte'
   import Modal from '../elements/Modal.svelte'
   import { translate } from '$lib/i18n/translations'
   import pasteIcon from '$lib/icons/paste'
   import arrow from '$lib/icons/arrow'
+
+  import type {
+    ParsedBitcoinStringError,
+    ParsedOffChainString,
+    ParsedOnchainString,
+    PaymentType
+  } from '$lib/types'
 
   import {
     getClipboardPermissions,
@@ -22,7 +23,7 @@
   } from '$lib/utils'
 
   export let destination: string
-  export let type: PaymentType | null
+  export let type: PaymentType | ''
   export let description = ''
   export let expiry: number | null = null
   export let timestamp: number | null = null
@@ -104,7 +105,7 @@
   const debouncedValidate = lodashDebounce(validate, 500)
 
   type Clipboard = {
-    type: PaymentType | null
+    type: PaymentType
     value: string
   }
 
