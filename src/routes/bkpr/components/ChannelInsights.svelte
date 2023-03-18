@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$, log$ } from '$lib/streams'
+  import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
@@ -61,11 +61,9 @@
     let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, fees_in_msat, fees_out_msat }) => {
-      const totalRoutingFees = Big(fees_in_msat).add(fees_out_msat)
-
+    channels.forEach(({ account, fees_in_msat }) => {
       const value = convertValue({
-        value: totalRoutingFees.toString(),
+        value: fees_in_msat.toString(),
         from: BitcoinDenomination.msats,
         to: BitcoinDenomination.sats
       })
@@ -106,12 +104,12 @@
     let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, apy_total }) => {
-      const total = parseFloat(apy_total.slice(0, -1))
+    channels.forEach(({ account, apy_in }) => {
+      const apy = parseFloat(apy_in.slice(0, -1))
 
-      if (total) {
+      if (apy) {
         labels.push(truncateValue(account, 5))
-        data.push(total)
+        data.push(apy)
       }
     })
 
