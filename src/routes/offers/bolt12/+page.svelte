@@ -12,7 +12,7 @@
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import Quantity from '$lib/components/Quantity.svelte'
-  import { offers$, settings$ } from '$lib/streams'
+  import { nodeInfo$, offers$, settings$ } from '$lib/streams'
 
   let requesting = false
   let errorMsg = ''
@@ -93,7 +93,16 @@
         })
 
         if (created) {
-          $offers$.data?.push({ id: offer_id, type: 'pay', ...offer })
+          $offers$.data?.push({
+            id: offer_id,
+            type: 'pay',
+            ...offer,
+            offerType: 'bolt12 offer',
+            denomination: BitcoinDenomination.msats,
+            amount: formattedValue as string,
+            description,
+            nodeId: $nodeInfo$.data?.id as string
+          })
         }
 
         createdOfferId = offer_id
@@ -109,7 +118,16 @@
           label: formattedLabel
         })
 
-        $offers$.data?.push({ id: invreq_id, type: 'withdraw', ...offer })
+        $offers$.data?.push({
+          id: invreq_id,
+          type: 'withdraw',
+          ...offer,
+          offerType: 'bolt12 invoice_request',
+          denomination: BitcoinDenomination.msats,
+          amount: formattedValue as string,
+          description,
+          nodeId: $nodeInfo$.data?.id as string
+        })
         createdOfferId = invreq_id
       }
     } catch (error) {

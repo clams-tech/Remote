@@ -39,7 +39,6 @@
   let completing = false
   let completionError = ''
 
-  let offerInvalid = false
   let offerType: DecodedCommon['type']
   let offerExpiry: OfferCommon['offer_absolute_expiry']
   let recurrence: OfferCommon['offer_recurrence'] | null = null
@@ -64,7 +63,6 @@
       const decoded = await lnApi.decode(data.bolt12)
 
       ;({
-        offerInvalid,
         offerType,
         offerExpiry,
         recurrence,
@@ -205,17 +203,13 @@
 
 {#if loading}
   <Spinner />
-{:else if decodeError || offerInvalid || !!recurrence}
+{:else if decodeError || !!recurrence}
   <BackButton on:click={() => goto('/')} text={$translate('app.titles./')} />
   <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>
-        {$translate(
-          `app.errors.bolt12_${
-            decodeError ? 'decode_error' : offerInvalid ? 'invalid' : 'recurrence_unsupported'
-          }`
-        )}
+        {$translate(`app.errors.bolt12_${decodeError ? 'decode_error' : 'recurrence_unsupported'}`)}
       </p>
     </div>
   </section>

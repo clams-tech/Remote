@@ -1,7 +1,6 @@
 import Big from 'big.js'
 import type { Payment } from '$lib/types'
-import { decodeBolt11, formatDecodedOffer, formatMsat, logger } from '$lib/utils'
-import lightning from '$lib/lightning'
+import { decodeBolt11, formatMsat, logger } from '$lib/utils'
 
 import type {
   InvoiceStatus,
@@ -11,7 +10,6 @@ import type {
   IncomeEvent,
   DecodedBolt12Invoice
 } from './types'
-import { decodedOffers$ } from '$lib/streams'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -25,8 +23,6 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
 }
 
 export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
-  const lnApi = lightning.getLn()
-
   const {
     bolt11,
     bolt12,
@@ -58,9 +54,10 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
   }
 
   if (bolt12) {
-    const decoded = await lnApi.decode(bolt12)
+    const { default: decodeBolt12 } = await import('bolt12-decoder')
+    const decoded = decodeBolt12(bolt12)
 
-    const { invoice_created_at, offer_issuer, offer_id, invreq_payer_note } =
+    const { invoice_created_at, offer_issuer, offer_id, offer_description, invreq_payer_note } =
       decoded as DecodedBolt12Invoice
 
     timestamp = invoice_created_at
@@ -69,11 +66,9 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
       local: !!local_offer_id,
       id: offer_id,
       issuer: offer_issuer,
-      payerNote: invreq_payer_note
+      payerNote: invreq_payer_note,
+      description: offer_description
     }
-
-    const formatted = formatDecodedOffer(decoded)
-    decodedOffers$.next({ ...decodedOffers$.value, [offer_id]: formatted })
   }
 
   return {

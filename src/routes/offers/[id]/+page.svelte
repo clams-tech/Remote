@@ -6,11 +6,10 @@
   import { goto } from '$app/navigation'
   import Slide from '$lib/elements/Slide.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { offers$, decodedOffers$, offersPayments$, settings$ } from '$lib/streams'
+  import { offers$, offersPayments$, settings$ } from '$lib/streams'
   import type { FormattedDecodedOffer } from '$lib/types'
   import lightningOutline from '$lib/icons/lightning-outline'
-  import { formatDecodedOffer, formatValueForDisplay } from '$lib/utils'
-  import lightning from '$lib/lightning'
+  import { formatValueForDisplay } from '$lib/utils'
   import { fade } from 'svelte/transition'
   import { currencySymbols } from '$lib/constants'
   import { convertValue } from '$lib/conversion'
@@ -25,65 +24,35 @@
 
   export let data: PageData
 
-  const lnApi = lightning.getLn()
-
   let expired = false
-  let decoding = false
-  let decodeError = false
   let decodedOffer: FormattedDecodedOffer
 
-  $: offerSummary = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
-  $: offerNotFound = !$offers$.loading && !!$offers$.data && !offerSummary
-
-  $: if (offerSummary) {
-    checkForDecoded()
-  }
-
+  $: offer = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
+  $: offerNotFound = !$offers$.loading && !!$offers$.data && !offer
   $: offerPayments = $offersPayments$[data.id] || []
-
-  async function checkForDecoded() {
-    const alreadyDecoded = $decodedOffers$[data.id]
-
-    try {
-      if (alreadyDecoded) {
-        decodedOffer = alreadyDecoded
-      } else {
-        decoding = true
-        const decoded = await lnApi.decode(offerSummary!.bolt12)
-        decodedOffer = formatDecodedOffer(decoded)
-      }
-    } catch (error) {
-      decodeError = true
-    } finally {
-      decoding = false
-    }
-  }
-
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
-  $: primaryValue =
-    decodedOffer &&
+  $: primaryValue = (offer &&
     convertValue({
-      value: decodedOffer.amount,
+      value: offer.amount,
       from: decodedOffer.denomination,
       to: $settings$.primaryDenomination
-    })
+    })) as string
 
-  $: secondaryValue =
-    decodedOffer &&
+  $: secondaryValue = (decodedOffer &&
     convertValue({
       value: decodedOffer.amount,
       from: decodedOffer.denomination,
       to: $settings$.secondaryDenomination
-    })
+    })) as string
 
   $: abs = decodedOffer?.offerType === 'bolt12 invoice_request' ? '-' : '+'
 
   let status: 'completed' | 'disabled' | 'active' | 'expired'
 
-  $: if (offerSummary) {
-    const { active, single_use, used } = offerSummary
+  $: if (offer) {
+    const { active, single_use, used } = offer
 
     if (expired) {
       status === 'expired'
@@ -121,11 +90,21 @@
       </p>
     </div>
   </section>
-{:else if decoding || !offerSummary}
+{:else if !offer}
   <Spinner />
 {:else}
-  {@const { id, label, bolt12, single_use } = offerSummary}
-  {@const { description, nodeId, issuer, quantityMax, recurrence, offerExpiry } = decodedOffer}
+  {@const {
+    id,
+    label,
+    bolt12,
+    single_use,
+    description,
+    nodeId,
+    issuer,
+    quantityMax,
+    recurrence,
+    offerExpiry
+  } = offer}
 
   <Slide back={() => goto('/offers')} backText={$translate('app.titles./offers')} direction="left">
     <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
@@ -235,14 +214,14 @@
           <SummaryRow>
             <span slot="label">{$translate('app.labels.offer_type')}:</span>
             <span class="flex items-center" slot="value">
-              {$translate(`app.labels.${offerSummary.type === 'pay' ? 'pay' : 'withdraw'}`)}
+              {$translate(`app.labels.${offer.type === 'pay' ? 'pay' : 'withdraw'}`)}
 
               <div
                 class="w-6 ml-1"
-                class:text-utility-success={offerSummary.type === 'pay'}
-                class:text-purple-400={offerSummary.type === 'withdraw'}
+                class:text-utility-success={offer.type === 'pay'}
+                class:text-purple-400={offer.type === 'withdraw'}
               >
-                {@html offerSummary.type === 'pay' ? trendingUp : trendingDown}
+                {@html offer.type === 'pay' ? trendingUp : trendingDown}
               </div>
             </span>
           </SummaryRow>
@@ -299,7 +278,7 @@
             <SummaryRow baseline>
               <span slot="label"
                 >{$translate(
-                  `app.labels.${offerSummary.type === 'pay' ? 'payments' : 'withdrawals'}`
+                  `app.labels.${offer.type === 'pay' ? 'payments' : 'withdrawals'}`
                 )}:</span
               >
               <div class="w-full" slot="value">

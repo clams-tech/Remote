@@ -537,7 +537,6 @@ export function formatDecodedOffer(
   decoded: DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
 ): FormattedDecodedOffer {
   const {
-    valid,
     type,
     offer_recurrence,
     offer_currency,
@@ -550,7 +549,6 @@ export function formatDecodedOffer(
     offer_quantity_max
   } = decoded
 
-  const offerInvalid = !valid
   const offerType = type
   const offerExpiry = offer_absolute_expiry
   const recurrence = offer_recurrence
@@ -578,7 +576,6 @@ export function formatDecodedOffer(
   }
 
   return {
-    offerInvalid,
     offerType,
     offerExpiry,
     recurrence,

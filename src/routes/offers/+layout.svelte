@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { InvoiceRequestSummary, OfferSummary } from '$lib/backends'
+  import type { DecodedType, InvoiceRequestSummary, OfferSummary } from '$lib/backends'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { offers$, offersPayments$ } from '$lib/streams'
-  import { sortPaymentsMostRecent } from '$lib/utils'
+  import { formatDecodedOffer, sortPaymentsMostRecent } from '$lib/utils'
 
   const lnApi = lightning.getLn()
 
@@ -20,13 +20,24 @@
         lnApi.listInvoiceRequests()
       ])
 
+      const { default: decoder } = await import('bolt12-decoder')
+
       const offersPayments = $offersPayments$
 
       $offers$.data = [...offers, ...invoiceRequests]
         .map((offer) => {
-          const { offer_id, ...rest } = offer as OfferSummary
+          const { offer_id, bolt12, ...rest } = offer as OfferSummary
           const { invreq_id } = offer as InvoiceRequestSummary
-          return { ...rest, id: offer_id || invreq_id, type: offer_id ? 'pay' : 'withdraw' }
+          const decoded = decoder(bolt12)
+          const formatted = formatDecodedOffer({ ...decoded, valid: true, offer_id })
+
+          return {
+            ...rest,
+            ...formatted,
+            bolt12,
+            id: offer_id || invreq_id,
+            type: (offer_id ? 'pay' : 'withdraw') as DecodedType
+          }
         })
         .sort((a, b) => {
           const aPayments = offersPayments[a.id]

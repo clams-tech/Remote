@@ -119,6 +119,7 @@ export type Payment = {
     id: DecodedBolt12Offer['offer_id']
     issuer: DecodedBolt12Offer['offer_issuer']
     payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+    description?: DecodedBolt12Offer['offer_description']
   }
 }
 
@@ -204,14 +205,13 @@ export enum GenesisBlockhash {
 }
 
 export type FormattedDecodedOffer = {
-  offerInvalid: DecodedCommon['valid']
   offerType: DecodedCommon['type']
-  offerExpiry: OfferCommon['offer_absolute_expiry']
-  recurrence: OfferCommon['offer_recurrence']
-  description: OfferCommon['offer_description']
-  issuer: OfferCommon['offer_issuer']
   denomination: BitcoinDenomination.msats | FiatDenomination
   amount: string
+  description: OfferCommon['offer_description']
   nodeId: OfferCommon['offer_node_id']
-  quantityMax: OfferCommon['offer_quantity_max']
+  offerExpiry?: OfferCommon['offer_absolute_expiry']
+  recurrence?: OfferCommon['offer_recurrence']
+  issuer?: OfferCommon['offer_issuer']
+  quantityMax?: OfferCommon['offer_quantity_max']
 }
