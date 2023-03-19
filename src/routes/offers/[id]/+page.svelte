@@ -7,7 +7,6 @@
   import Slide from '$lib/elements/Slide.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { offers$, offersPayments$, settings$ } from '$lib/streams'
-  import type { FormattedDecodedOffer } from '$lib/types'
   import lightningOutline from '$lib/icons/lightning-outline'
   import { formatValueForDisplay } from '$lib/utils'
   import { fade } from 'svelte/transition'
@@ -25,7 +24,6 @@
   export let data: PageData
 
   let expired = false
-  let decodedOffer: FormattedDecodedOffer
 
   $: offer = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
   $: offerNotFound = !$offers$.loading && !!$offers$.data && !offer
@@ -36,18 +34,18 @@
   $: primaryValue = (offer &&
     convertValue({
       value: offer.amount,
-      from: decodedOffer.denomination,
+      from: offer.denomination,
       to: $settings$.primaryDenomination
     })) as string
 
-  $: secondaryValue = (decodedOffer &&
+  $: secondaryValue = (offer &&
     convertValue({
-      value: decodedOffer.amount,
-      from: decodedOffer.denomination,
+      value: offer.amount,
+      from: offer.denomination,
       to: $settings$.secondaryDenomination
     })) as string
 
-  $: abs = decodedOffer?.offerType === 'bolt12 invoice_request' ? '-' : '+'
+  $: abs = offer && offer.offerType === 'bolt12 invoice_request' ? '-' : '+'
 
   let status: 'completed' | 'disabled' | 'active' | 'expired'
 
