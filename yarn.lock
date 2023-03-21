@@ -215,7 +215,7 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
   integrity sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==
 
-"@scure/base@1.1.1":
+"@scure/base@1.1.1", "@scure/base@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
   integrity sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==
@@ -618,6 +618,15 @@ bn.js@^4.11.9:
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
+
+bolt12-decoder@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.2.tgz#7c3649644d710ba276105aa77f2f26b19ab421b6"
+  integrity sha512-zv9t6mmDvQYZvY/n4bb9Z6qmphkIW3LpsFXGbs0ExDQ7DeeGDZ1TpEid2SC9QOAQrbzX5i9VSkhVCjSWSnJvQQ==
+  dependencies:
+    "@noble/hashes" "^1.2.0"
+    "@scure/base" "^1.1.1"
+    buffer "^6.0.3"
 
 brace-expansion@^1.1.7:
   version "1.1.11"

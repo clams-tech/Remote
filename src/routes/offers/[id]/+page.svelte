@@ -35,6 +35,8 @@
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
+  $: console.log({ id: data.id, offers: $offers$.data })
+
   $: primaryValue = (offer &&
     convertValue({
       value: offer.amount,

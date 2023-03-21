@@ -26,14 +26,16 @@
 
       $offers$.data = [...offers, ...invoiceRequests]
         .map((offer) => {
-          const { offer_id, bolt12, ...rest } = offer as OfferSummary
+          const { offer_id, bolt12, active, single_use, used } = offer as OfferSummary
           const { invreq_id } = offer as InvoiceRequestSummary
           const decoded = decoder(bolt12)
           const formatted = formatDecodedOffer({ ...decoded, valid: true, offer_id })
 
           return {
-            ...rest,
             ...formatted,
+            active,
+            single_use,
+            used,
             bolt12,
             id: offer_id || invreq_id,
             type: (offer_id ? 'pay' : 'withdraw') as DecodedType
