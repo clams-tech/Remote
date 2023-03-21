@@ -130,20 +130,27 @@
       <!-- OFFER -->
       {#if payment.offer}
         {@const { local, id, issuer, payerNote } = payment.offer}
+        {#if issuer}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.issuer')}:</span>
+            <div slot="value">
+              {issuer}
+            </div>
+          </SummaryRow>
+        {/if}
+
         <SummaryRow>
-          <span slot="label"
-            >{$translate(`app.labels.${payment.offer.issuer ? 'issuer' : 'offer'}`)}:</span
-          >
+          <span slot="label">{$translate('app.labels.offer')}:</span>
           <div slot="value">
             {#if local}
               <button class="flex items-center" on:click={() => goto(`/offers/${id}`)}>
-                {issuer || truncateValue(id)}
+                {truncateValue(id)}
                 <div in:fade class="w-6 cursor-pointer ml-1">
                   {@html link}
                 </div>
               </button>
             {:else}
-              <CopyValue value={issuer || id} truncateLength={issuer ? 0 : 9} />
+              <CopyValue value={id} truncateLength={9} />
             {/if}
           </div>
         </SummaryRow>
@@ -233,7 +240,7 @@
     {/if}
 
     <!-- FEES -->
-    {#if payment.fee}
+    {#if payment.direction === 'send' && payment.fee}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.fee', { feeType: 'network' })}:</span>
         <span class="flex items-center" slot="value">

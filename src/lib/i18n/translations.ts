@@ -5,8 +5,8 @@ import type { DecodedType } from '$lib/backends'
 
 export interface Payload extends Parser.PayloadDefault {
   paymentType?: string
+  paymentAction?: 'create' | 'fulfill'
   offerType?: DecodedType
-  offerDirection?: 'pay' | 'withdraw'
   direction?: string
   status?: string
   feeType?: string

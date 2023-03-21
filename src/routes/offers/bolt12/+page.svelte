@@ -31,6 +31,16 @@
   type SlideStep = Slides[number]
   type SlideDirection = 'right' | 'left'
 
+  $: nodeVersion = extractVersion($nodeInfo$.data?.version)
+
+  function extractVersion(inputString: string | undefined): number {
+    if (!inputString) return 0
+    const regex = /v(\d+\.\d+)/ // matches the 'v' character followed by one or more digits, a period, and one or more digits
+    const match = inputString.match(regex) // extracts the matched substring
+    const version = match && match[1].replace('.', '') // removes the period from the extracted version string
+    return version ? parseInt(version) : 0
+  }
+
   const slides = [
     'offer_type',
     'amount',
@@ -55,7 +65,13 @@
 
   function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = to
+
+    if (to === 'label' && offerType === 'withdraw' && nodeVersion < 2303) {
+      // skip label for withdraw && version due to bug in CoreLN
+      slide = slides[slides.indexOf(to) + 1]
+    } else {
+      slide = to
+    }
   }
 
   async function submit() {
@@ -75,7 +91,7 @@
 
     const formattedLabel = label || undefined
     const formattedIssuer = issuer || undefined
-    const formattedExpiry = expiry || undefined
+    const formattedExpiry = expiry ? Date.now() / 1000 + expiry : undefined
 
     let createdOfferId = ''
 
@@ -200,7 +216,7 @@
       bind:value
       required={offerType === 'withdraw'}
       {next}
-      direction="receive"
+      direction={offerType === 'withdraw' ? 'send' : 'receive'}
       hint={offerType === 'pay' ? $translate('app.hints.any_amount') : ''}
     />
   </Slide>
@@ -254,7 +270,7 @@
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
       paymentType="bolt12"
-      offerDirection={offerType}
+      paymentAction="create"
       {value}
       {description}
       {issuer}

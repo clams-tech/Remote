@@ -121,6 +121,7 @@
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
       paymentType="bolt11"
+      paymentAction="create"
       {value}
       {description}
       bind:expiry

@@ -10,6 +10,7 @@ import type {
   IncomeEvent,
   DecodedBolt12Invoice
 } from './types'
+import { nodeInfo$ } from '$lib/streams'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -91,9 +92,10 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
   }
 }
 
-export function payToPayment(pay: Pay): Payment {
+export async function payToPayment(pay: Pay): Promise<Payment> {
   const {
     bolt11,
+    bolt12,
     destination,
     label,
     payment_hash,
@@ -107,6 +109,7 @@ export function payToPayment(pay: Pay): Payment {
   const timestamp = new Date(created_at * 1000).toISOString()
 
   let description: string | undefined
+  let offer: Payment['offer']
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -118,12 +121,29 @@ export function payToPayment(pay: Pay): Payment {
     }
   }
 
+  if (bolt12) {
+    const { default: decodeBolt12 } = await import('bolt12-decoder')
+    const decoded = decodeBolt12(bolt12)
+
+    const { offer_issuer, offer_id, offer_description, invreq_payer_note, invreq_payer_id } =
+      decoded as DecodedBolt12Invoice
+
+    offer = {
+      local: invreq_payer_id === nodeInfo$.value.data?.id,
+      id: offer_id,
+      issuer: offer_issuer,
+      payerNote: invreq_payer_note,
+      payerId: invreq_payer_id,
+      description: offer_description
+    }
+  }
+
   const amountMsat = formatMsat(amount_msat)
 
   return {
     id: label || payment_hash,
     destination,
-    invoice: bolt11,
+    invoice: bolt12 || bolt11,
     status,
     startedAt: timestamp,
     hash: payment_hash,
@@ -134,7 +154,8 @@ export function payToPayment(pay: Pay): Payment {
     type: bolt11 ? 'bolt11' : 'keysend',
     expiresAt: null,
     completedAt: timestamp,
-    description
+    description,
+    offer
   }
 }
 

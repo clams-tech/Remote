@@ -21,12 +21,14 @@ import type {
   CreatePayOfferResponse,
   CreateWithdrawOfferRequest,
   CreateWithdrawOfferResponse,
-  DecodeResponse,
+  DisableInvoiceRequestRequest,
+  DisableOfferRequest,
   FetchInvoiceRequest,
   FetchInvoiceResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
+  InvoiceRequestSummary,
   InvoiceResponse,
   InvoiceStatus,
   KeysendResponse,
@@ -35,6 +37,7 @@ import type {
   ListinvoicesResponse,
   ListOffersResponse,
   ListpaysResponse,
+  OfferSummary,
   PayResponse,
   SendInvoiceRequest,
   SendInvoiceResponse,
@@ -135,14 +138,26 @@ class CoreLn {
     return result as CreateWithdrawOfferResponse
   }
 
-  async decode(invoice: string): Promise<DecodeResponse> {
+  async disableOffer(params: DisableOfferRequest['params']): Promise<OfferSummary> {
     const result = await this.connection.commando({
-      method: 'decode',
-      params: [invoice],
+      method: 'disableoffer',
+      params,
       rune: this.rune
     })
 
-    return result as DecodeResponse
+    return result as OfferSummary
+  }
+
+  async disableInvoiceRequest(
+    params: DisableInvoiceRequestRequest['params']
+  ): Promise<InvoiceRequestSummary> {
+    const result = await this.connection.commando({
+      method: 'disableinvoicerequest',
+      params,
+      rune: this.rune
+    })
+
+    return result as InvoiceRequestSummary
   }
 
   async waitForInvoicePayment(payment: Payment): Promise<Payment> {
@@ -330,7 +345,7 @@ class CoreLn {
     const { invoices } = await this.listInvoices()
     const { pays } = await this.listPays()
     const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
-    const sentPayments: Payment[] = pays.map(payToPayment)
+    const sentPayments: Payment[] = await Promise.all(pays.map(payToPayment))
 
     return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))
   }

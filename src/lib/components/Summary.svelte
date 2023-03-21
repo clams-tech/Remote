@@ -12,7 +12,7 @@
   import Toggle from '$lib/elements/Toggle.svelte'
 
   export let paymentType: PaymentType
-  export let offerDirection: 'pay' | 'withdraw' | undefined = undefined
+  export let paymentAction: 'create' | 'fulfill'
   export let destination: string | null = ''
   export let issuer: string | null = ''
   export let direction: 'send' | 'receive'
@@ -98,10 +98,10 @@
   <div class="w-full">
     <div class="mb-6">
       <h1 class="text-4xl font-bold mb-4">
-        {$translate('app.headings.summary', { direction, paymentType, offerDirection })}
+        {$translate('app.headings.summary', { direction, paymentType, paymentAction })}
       </h1>
       <p class="text-neutral-600 dark:text-neutral-400 italic">
-        {$translate('app.subheadings.summary', { direction, paymentType, offerDirection })}
+        {$translate('app.subheadings.summary', { direction, paymentType, paymentAction })}
       </p>
     </div>
 
@@ -213,7 +213,7 @@
       <SummaryRow>
         <span slot="label">{$translate('app.labels.expires')}:</span>
         <span class="flex items-center w-full justify-end" slot="value">
-          {#if direction === 'receive'}
+          {#if direction === 'receive' || paymentAction === 'create'}
             <input
               class="h-2 bg-purple-50 appearance-none mr-4 accent-purple-500 dark:accent-purple-300"
               type="range"
@@ -257,7 +257,7 @@
       {requesting}
       primary
       disabled={!!(expiresAt && Date.now() >= expiresAt)}
-      text={$translate('app.buttons.summary_complete', { paymentType, direction })}
+      text={$translate('app.buttons.summary_complete', { paymentType, direction, paymentAction })}
       on:click={() => dispatch('complete')}
     />
   </div>

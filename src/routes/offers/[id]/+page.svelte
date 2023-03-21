@@ -20,10 +20,14 @@
   import check from '$lib/icons/check'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
+  import Button from '$lib/elements/Button.svelte'
+  import Modal from '$lib/elements/Modal.svelte'
+  import lightning from '$lib/lightning'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   export let data: PageData
 
-  let expired = false
+  const lnApi = lightning.getLn()
 
   $: offer = $offers$.data && $offers$.data.find(({ id }) => id === data.id)
   $: offerNotFound = !$offers$.loading && !!$offers$.data && !offer
@@ -48,6 +52,7 @@
   $: abs = offer && offer.offerType === 'bolt12 invoice_request' ? '-' : '+'
 
   let status: 'completed' | 'disabled' | 'active' | 'expired'
+  let expired = false
 
   $: if (offer) {
     const { active, single_use, used } = offer
@@ -62,6 +67,34 @@
       }
     } else {
       status = 'active'
+    }
+  }
+
+  let showDisableModal = false
+  let disablingOffer = false
+  let disableOfferError = ''
+
+  function toggleDisableModal() {
+    showDisableModal = !showDisableModal
+  }
+
+  async function disableOffer() {
+    disablingOffer = true
+    disableOfferError = ''
+
+    try {
+      if (offer?.offerType === 'bolt12 offer') {
+        await lnApi.disableOffer({ offer_id: offer.id })
+      }
+
+      if (offer?.offerType === 'bolt12 invoice_request') {
+        await lnApi.disableInvoiceRequest({ invreq_id: offer.id })
+      }
+    } catch (error) {
+      const { code, message } = error as { code: number; message: string }
+      disableOfferError = $translate(`app.errors.${code}`, { default: message })
+    } finally {
+      disablingOffer = false
     }
   }
 </script>
@@ -166,7 +199,7 @@
               <div class="mt-2">
                 <ExpiryCountdown
                   on:expired={() => (expired = true)}
-                  expiry={new Date(offerExpiry)}
+                  expiry={new Date(offerExpiry * 1000)}
                 />
               </div>
             {/if}
@@ -296,6 +329,52 @@
           {/if}
         </div>
       </div>
+
+      {#if status === 'active'}
+        <div class="mt-4 w-full flex justify-end">
+          <div>
+            <Button on:click={toggleDisableModal} warning text={$translate('app.buttons.disable')}>
+              <div class="w-4 mr-2 text-utility-error" slot="iconLeft">{@html warning}</div>
+            </Button>
+          </div>
+        </div>
+      {/if}
     </section>
   </Slide>
+{/if}
+
+{#if showDisableModal}
+  <Modal on:close={toggleDisableModal}>
+    <div in:fade class="w-[25rem] max-w-full">
+      <h4 class="font-semibold mb-2 w-full text-2xl">
+        {$translate('app.modals.disable_offer.heading')}
+      </h4>
+      <p>{$translate('app.modals.disable_offer.description')}</p>
+
+      <div class="w-full flex items-center gap-x-4 mt-6">
+        <div class="w-1/2">
+          <Button on:click={toggleDisableModal} text={$translate('app.buttons.cancel')} />
+        </div>
+
+        <div class="w-1/2">
+          <Button
+            on:click={disableOffer}
+            warning
+            requesting={disablingOffer}
+            text={$translate('app.buttons.disable')}
+          >
+            <div class="w-6 mr-2 text-utility-error" slot="iconLeft">
+              {@html warning}
+            </div>
+          </Button>
+        </div>
+      </div>
+
+      {#if disableOfferError}
+        <div class="mt-4">
+          <ErrorMsg bind:message={disableOfferError} />
+        </div>
+      {/if}
+    </div>
+  </Modal>
 {/if}

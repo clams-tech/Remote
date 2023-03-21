@@ -6,6 +6,7 @@
   export let requesting = false
   export let small = false
   export let primary = false
+  export let warning = false
 
   let button: HTMLButtonElement
 
@@ -20,10 +21,12 @@
   class="text-current no-underline dark:text-neutral-200 text-neutral-800 hover:text-black dark:hover:text-white transition-all text-base active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center relative rounded-md px-4 border-2 border-solid border-current font-semibold dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50"
   class:opacity-40={disabled}
   class:border-purple-500={primary}
+  class:border-utility-error={warning}
   class:px-2={small}
   class:text-xs={small}
   class:hover:shadow-purple-500={primary}
-  class:hover:hover:shadow-current={!primary}
+  class:hover:shadow-utility-error={warning}
+  class:hover:hover:shadow-current={!primary && !warning}
   disabled={disabled || requesting}
 >
   <div class:text-transparent={requesting}>

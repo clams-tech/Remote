@@ -152,6 +152,20 @@ export type CreateWithdrawOfferRequest = {
   }
 }
 
+export type DisableOfferRequest = {
+  method: 'disableoffer'
+  params: {
+    offer_id: string
+  }
+}
+
+export type DisableInvoiceRequestRequest = {
+  method: 'disableinvoicerequest'
+  params: {
+    invreq_id: string
+  }
+}
+
 export type LNRequest =
   | PayRequest
   | FetchInvoiceRequest
@@ -170,6 +184,8 @@ export type LNRequest =
   | ListInvoiceRequestsRequest
   | CreatePayOfferRequest
   | CreateWithdrawOfferRequest
+  | DisableOfferRequest
+  | DisableInvoiceRequestRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {

@@ -119,6 +119,7 @@ export type Payment = {
     id: DecodedBolt12Offer['offer_id']
     issuer: DecodedBolt12Offer['offer_issuer']
     payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+    payerId?: DecodedBolt12Invoice['invreq_payer_id']
     description?: DecodedBolt12Offer['offer_description']
   }
 }

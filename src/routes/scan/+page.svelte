@@ -205,6 +205,7 @@
     <Summary
       {destination}
       paymentType="bolt11"
+      paymentAction="create"
       value={value && value !== '0'
         ? value
         : convertValue({

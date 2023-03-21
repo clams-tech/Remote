@@ -120,7 +120,8 @@
     "bolt12": "BOLT12",
     "quantity": "Quantity",
     "optional": "Optional",
-    "never": "Never"
+    "never": "Never",
+    "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}"
   },
   "time": {
     "mins": "mins"
@@ -210,7 +211,8 @@
     "offer": "Offer",
     "create_offer": "Create offer",
     "confirm": "Confirm",
-    "summary_complete": "{{direction; send:Send Payment; receive: {{paymentType; bolt11:Create Invoice; bolt12:Create Offer;}}}}"
+    "summary_complete": "{{paymentType; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
+    "disable": "Disable"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -222,10 +224,11 @@
     "no_routing_fees": "Your channel(s) have not generated routing fees (yet!)",
     "any_amount": "To allow any amount, press the Next button.",
     "quantity_max_allow": "Would you like to enable created invoices to specify a quantity of more than one item?",
-    "any_quantity": "To allow any quantity, press the Next button."
+    "any_quantity": "To allow any quantity, press the Next button.",
+    "no_offers": "You don't have any offers yet, go ahead and create one ☝️"
   },
   "headings": {
-    "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; bolt12:Offer - {{offerDirection; withdraw:Withdraw; pay:Pay;}};}}",
+    "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",
     "amount": "Amount",
     "description": "Description",
     "note": "Note",
@@ -280,6 +283,10 @@
     "notifications": {
       "heading": "Notifications",
       "description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
+    },
+    "disable_offer": {
+      "heading": "Disable Offer",
+      "description": "Are you sure you want to disable this offer? It will become unusable and cannot be reactivated."
     }
   }
 }

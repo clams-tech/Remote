@@ -60,7 +60,8 @@
 
   async function decode() {
     try {
-      const decoded = await lnApi.decode(data.bolt12)
+      const { default: decoder } = await import('bolt12-decoder')
+      const decoded = decoder(data.bolt12)
 
       ;({
         offerType,
@@ -341,7 +342,7 @@
   <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
       paymentType="bolt12"
-      offerDirection={offerType === 'bolt12 invoice_request' ? 'withdraw' : 'pay'}
+      paymentAction="fulfill"
       destination={truncateValue(nodeId)}
       {issuer}
       direction={offerType === 'bolt12 invoice_request' ? 'receive' : 'send'}

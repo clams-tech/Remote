@@ -219,6 +219,7 @@
   <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       direction="send"
+      paymentAction="fulfill"
       paymentType={type || 'bolt11'}
       {destination}
       {description}

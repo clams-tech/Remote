@@ -15,6 +15,7 @@
   import cross from '$lib/icons/cross'
   import caret from '$lib/icons/caret'
   import CopyValue from '$lib/elements/CopyValue.svelte'
+  import info from '$lib/icons/info'
 </script>
 
 <svelte:head>
@@ -70,7 +71,12 @@
       </div>
 
       {#if !$offers$.data.length}
-        <!-- @TODO - Render a message indicating that user needs to create some offers -->
+        <div class="flex items-center text-neutral-400 mt-2">
+          <div class="w-4 mr-2 border rounded-full border-current">
+            {@html info}
+          </div>
+          <div>{$translate('app.hints.no_offers')}</div>
+        </div>
       {:else}
         <div class="grid gap-4 w-full max-h-full overflow-auto">
           {#each $offers$.data as { label, id, type, active, single_use, used, bolt12 } (id)}
