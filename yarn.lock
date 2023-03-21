@@ -1550,7 +1550,7 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-lnmessage@^0.1.0:
+lnmessage@^0.1.0-0.3.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.1.0.tgz#b5250744aff960a6ec7cdadf61612e81a74f5f2a"
   integrity sha512-WyX/cTjLYX0gTBLatcAVMFPsBXwM//SqDx7qwa4KtL0RTiWkwLQ+Z/H8XFUAcd2/d9v1ou+pDUG05LiuRn4P9A==

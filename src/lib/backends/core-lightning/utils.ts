@@ -10,7 +10,7 @@ import type {
   IncomeEvent,
   DecodedBolt12Invoice
 } from './types'
-import { nodeInfo$ } from '$lib/streams'
+import { nodeInfo$, offers$ } from '$lib/streams'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -58,14 +58,13 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
     const { default: decodeBolt12 } = await import('bolt12-decoder')
     const decoded = decodeBolt12(bolt12)
 
-    const { invoice_created_at, offer_issuer, offer_id, offer_description, invreq_payer_note } =
+    const { invoice_created_at, offer_issuer, offer_description, invreq_payer_note } =
       decoded as DecodedBolt12Invoice
 
     timestamp = invoice_created_at
 
     offer = {
-      local: !!local_offer_id,
-      id: offer_id,
+      id: local_offer_id,
       issuer: offer_issuer,
       payerNote: invreq_payer_note,
       description: offer_description
@@ -125,12 +124,10 @@ export async function payToPayment(pay: Pay): Promise<Payment> {
     const { default: decodeBolt12 } = await import('bolt12-decoder')
     const decoded = decodeBolt12(bolt12)
 
-    const { offer_issuer, offer_id, offer_description, invreq_payer_note, invreq_payer_id } =
+    const { offer_issuer, offer_description, invreq_payer_note, invreq_payer_id } =
       decoded as DecodedBolt12Invoice
 
     offer = {
-      local: invreq_payer_id === nodeInfo$.value.data?.id,
-      id: offer_id,
       issuer: offer_issuer,
       payerNote: invreq_payer_note,
       payerId: invreq_payer_id,

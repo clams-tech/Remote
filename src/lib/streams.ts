@@ -1,5 +1,14 @@
-import { BehaviorSubject, defer, fromEvent, Observable, of, ReplaySubject, Subject } from 'rxjs'
-import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
+import {
+  BehaviorSubject,
+  combineLatest,
+  defer,
+  fromEvent,
+  Observable,
+  of,
+  ReplaySubject,
+  Subject
+} from 'rxjs'
+import { map, scan, shareReplay, startWith, take, withLatestFrom } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 
@@ -147,11 +156,28 @@ export const offers$ = new SvelteSubject<{
   error?: string
 }>({ loading: false, data: null })
 
-export const offersPayments$ = payments$.pipe(
-  map(({ data }) =>
-    (data || []).reduce((acc, payment) => {
-      if (payment.offer && payment.offer.local) {
-        acc[payment.offer.id] = [...(acc[payment.offer.id] || []), payment]
+export const offersPayments$ = combineLatest([payments$, offers$]).pipe(
+  map(([{ data: payments }, { data: offers }]) =>
+    (payments || []).reduce((acc, payment) => {
+      const { offer } = payment
+
+      if (offer) {
+        if (offer.id) {
+          acc[offer.id] = [...(acc[offer.id] || []), payment]
+        } else if (payment.direction === 'send') {
+          // try and match a payment with an withdrawal offer
+          const matchedOffer = (offers || []).find(({ offerType, description, issuer }) => {
+            return (
+              offerType === 'bolt12 invoice_request' &&
+              description === offer.description &&
+              issuer === offer.issuer
+            )
+          })
+
+          if (matchedOffer) {
+            acc[matchedOffer.id] = [...(acc[matchedOffer.id] || []), payment]
+          }
+        }
       }
 
       return acc

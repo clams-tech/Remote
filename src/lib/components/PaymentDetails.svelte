@@ -2,9 +2,9 @@
   import { fade } from 'svelte/transition'
   import Qr from '$lib/components/QR.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
-  import type { Payment } from '$lib/types'
+  import type { FormattedDecodedOffer, Payment } from '$lib/types'
   import { BitcoinDenomination } from '$lib/types'
-  import { paymentUpdates$, settings$ } from '$lib/streams'
+  import { offers$, paymentUpdates$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -16,6 +16,7 @@
   import link from '$lib/icons/link'
   import { goto } from '$app/navigation'
   import CopyValue from '$lib/elements/CopyValue.svelte'
+  import type { FormattedOfferSummary } from '$lib/backends'
 
   export let payment: Payment
 
@@ -45,6 +46,24 @@
   $: abs = payment.direction === 'receive' ? (payment.status === 'expired' ? '' : '+') : '-'
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
+
+  $: withdrawalOfferId = tryFindOffer($offers$.data)
+
+  // try and find withdrawal offer id since we can't decode it from the bolt12
+  function tryFindOffer(offers: (FormattedDecodedOffer & FormattedOfferSummary)[] | null): string {
+    if (!offers || payment.direction === 'receive' || !payment.offer || payment.offer.id) return ''
+    const { offer: paymentOffer } = payment
+
+    const offer = offers.find(({ offerType, description, issuer }) => {
+      return (
+        offerType === 'bolt12 invoice_request' &&
+        description === paymentOffer.description &&
+        issuer === paymentOffer.issuer
+      )
+    })
+
+    return offer ? offer.id : ''
+  }
 </script>
 
 <div class="w-full flex flex-col px-4 pb-4 max-h-screen overflow-auto">
@@ -129,7 +148,7 @@
 
       <!-- OFFER -->
       {#if payment.offer}
-        {@const { local, id, issuer, payerNote } = payment.offer}
+        {@const { id, issuer, payerNote } = payment.offer}
         {#if issuer}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.issuer')}:</span>
@@ -139,21 +158,22 @@
           </SummaryRow>
         {/if}
 
-        <SummaryRow>
-          <span slot="label">{$translate('app.labels.offer')}:</span>
-          <div slot="value">
-            {#if local}
-              <button class="flex items-center" on:click={() => goto(`/offers/${id}`)}>
-                {truncateValue(id)}
+        {#if id || withdrawalOfferId}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.offer')}:</span>
+            <div slot="value">
+              <button
+                class="flex items-center"
+                on:click={() => goto(`/offers/${id || withdrawalOfferId}`)}
+              >
+                {truncateValue(id || withdrawalOfferId)}
                 <div in:fade class="w-6 cursor-pointer ml-1">
                   {@html link}
                 </div>
               </button>
-            {:else}
-              <CopyValue value={id} truncateLength={9} />
-            {/if}
-          </div>
-        </SummaryRow>
+            </div>
+          </SummaryRow>
+        {/if}
 
         {#if payerNote}
           <SummaryRow>

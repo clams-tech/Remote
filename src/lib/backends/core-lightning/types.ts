@@ -771,6 +771,7 @@ export type Bolt12InvoiceCommon = {
   signature: string
   invreq_chain?: string
   invreq_amount_msat?: string | number
+  invreq_amount?: string | number
   invreq_features?: string
   invreq_quantity?: number
   invreq_payer_note?: string
@@ -779,7 +780,7 @@ export type Bolt12InvoiceCommon = {
 }
 
 export type DecodedBolt12Invoice = DecodedCommon &
-  OfferCommon &
+  Omit<OfferCommon, 'offer_id'> &
   Bolt12InvoiceCommon & {
     invoice_relative_expiry?: number
     invoice_fallbacks: {

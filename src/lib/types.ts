@@ -114,9 +114,7 @@ export type Payment = {
   destination?: string
   payIndex?: number
   offer?: {
-    /**Indicates if this is an offer that was created by our node */
-    local: boolean
-    id: DecodedBolt12Offer['offer_id']
+    id?: DecodedBolt12Offer['offer_id']
     issuer: DecodedBolt12Offer['offer_issuer']
     payerNote?: DecodedBolt12Invoice['invreq_payer_note']
     payerId?: DecodedBolt12Invoice['invreq_payer_id']

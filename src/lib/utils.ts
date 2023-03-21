@@ -561,16 +561,18 @@ export function formatDecodedOffer(
   let amount: OfferCommon['offer_amount']
 
   if (offerType === 'bolt12 invoice_request') {
-    const { invreq_amount_msat, invreq_payer_id } = decoded as DecodedBolt12InvoiceRequest
+    const { invreq_amount_msat, invreq_amount, invreq_payer_id } =
+      decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.msats
-    amount = formatMsat(invreq_amount_msat as string)
+    amount = formatMsat((invreq_amount_msat || invreq_amount) as string)
     nodeId = invreq_payer_id
     quantityMax = offer_quantity_max
   } else {
-    const { invreq_amount_msat } = decoded as DecodedBolt12Invoice
+    const { invreq_amount_msat, invreq_amount } = decoded as DecodedBolt12Invoice
     denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.msats
     amount =
-      offer_amount?.toString() || formatMsat((offer_amount_msat || invreq_amount_msat) as string)
+      offer_amount?.toString() ||
+      formatMsat((offer_amount_msat || invreq_amount_msat || invreq_amount) as string)
     nodeId = offer_node_id
     quantityMax = offer_quantity_max
   }

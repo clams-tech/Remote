@@ -35,8 +35,6 @@
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
   $: secondarySymbol = currencySymbols[$settings$.secondaryDenomination]
 
-  $: console.log({ id: data.id, offers: $offers$.data })
-
   $: primaryValue = (offer &&
     convertValue({
       value: offer.amount,
@@ -54,13 +52,18 @@
   $: abs = offer && offer.offerType === 'bolt12 invoice_request' ? '-' : '+'
 
   let status: 'completed' | 'disabled' | 'active' | 'expired'
+
   let expired = false
 
   $: if (offer) {
-    const { active, single_use, used } = offer
+    const { active, single_use, used, offerExpiry } = offer
+
+    if (offerExpiry && new Date(offerExpiry * 1000).getTime() < Date.now()) {
+      expired = true
+    }
 
     if (expired) {
-      status === 'expired'
+      status = 'expired'
     } else if (!active) {
       if (single_use && used) {
         status = 'completed'
@@ -109,7 +112,7 @@
 
 {#if offerNotFound}
   <BackButton on:click={() => goto('/offers')} text={$translate('app.titles./offers')} />
-  <section class="w-full p-4 max-w-lg flex items-center justify-center">
+  <section class="w-full p-4 max-w-lg flex items-center justify-center flex-col">
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html lightningOutline}</div>
       <h1 class="text-4xl font-bold">
