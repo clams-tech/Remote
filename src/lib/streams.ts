@@ -159,7 +159,8 @@ export const offers$ = new SvelteSubject<{
 export const offersPayments$ = combineLatest([payments$, offers$]).pipe(
   map(([{ data: payments }, { data: offers }]) =>
     (payments || []).reduce((acc, payment) => {
-      const { offer } = payment
+      const { offer, status } = payment
+      if (status === 'expired' || status === 'failed') return acc
 
       if (offer) {
         if (offer.id) {
