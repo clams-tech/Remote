@@ -264,6 +264,9 @@
       <SummaryRow>
         <span slot="label">{$translate('app.labels.fee', { feeType: 'network' })}:</span>
         <span class="flex items-center" slot="value">
+          <span class="flex items-center justify-center" class:w-4={primarySymbol.startsWith('<')}
+            >{@html primarySymbol}</span
+          >
           {formatValueForDisplay({
             value: convertValue({
               value: payment.fee,

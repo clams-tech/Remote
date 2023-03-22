@@ -95,6 +95,13 @@
       if (offer?.offerType === 'bolt12 invoice_request') {
         await lnApi.disableInvoiceRequest({ invreq_id: offer.id })
       }
+
+      $offers$.data =
+        $offers$.data?.map((offer) =>
+          offer.id === data.id ? { ...offer, active: false } : offer
+        ) || []
+
+      toggleDisableModal()
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
       disableOfferError = $translate(`app.errors.${code}`, { default: message })
@@ -160,7 +167,7 @@
                 class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
               >
               {#if primaryValue !== null}
-                {primaryValue === '0'
+                {primaryValue === '0' || primaryValue === 'any'
                   ? $translate('app.labels.any')
                   : formatValueForDisplay({
                       value: primaryValue,
@@ -180,7 +187,7 @@
                 class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
               >
               {#if secondaryValue !== null}
-                {secondaryValue === '0'
+                {secondaryValue === '0' || secondaryValue === 'any'
                   ? $translate('app.labels.any')
                   : formatValueForDisplay({
                       value: secondaryValue || '0',

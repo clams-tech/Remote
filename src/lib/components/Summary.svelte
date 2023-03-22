@@ -94,7 +94,7 @@
   const total = quantity && quantity > 1 && Big(value!).mul(quantity).toString()
 </script>
 
-<section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
+<section class="flex flex-col justify-center items-start w-full p-4 max-w-lg pt-20">
   <div class="w-full">
     <div class="mb-6">
       <h1 class="text-4xl font-bold mb-4">

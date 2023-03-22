@@ -5,7 +5,7 @@
   import photo from '$lib/icons/photo'
   import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
-  import { truncateValue } from '$lib/utils'
+  import { logger, truncateValue } from '$lib/utils'
 
   export let value: string | null
   export let size = Math.min(window.innerWidth - 50, 400)
@@ -64,7 +64,7 @@
 
       copyTimeout = setTimeout(() => (copySuccess = false), 3000)
     } catch (error) {
-      console.error(error)
+      logger.error(JSON.stringify(error))
     }
   }
 

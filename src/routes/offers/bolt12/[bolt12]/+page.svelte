@@ -138,7 +138,6 @@
           id: createRandomHex()
         })
       } else if (offerType === 'bolt12 offer') {
-        console.error('FETCHING INVOICE', { amount })
         const {
           changes,
           invoice
@@ -156,8 +155,6 @@
           payer_note: payerNote,
           quantity: quantityMax && quantity
         })
-
-        console.error({ invoice, changes })
 
         // @TODO - TEST CHANGES MODAL
         if (changes && changes.amount_msat) {

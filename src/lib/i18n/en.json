@@ -53,7 +53,7 @@
     "status": "Status",
     "issuer": "Issuer",
     "offer_type": "Offer type",
-    "completed_at": "Completed At",
+    "completed_at": "Completed",
     "created_started_at": "{{direction; receive:Created; send:Started;}} At",
     "description": "Description",
     "fee": "{{feeType; receive:Receive; network:Network;}} Fee",
@@ -147,7 +147,7 @@
     "onchain_unsupported": "Onchain payments are not yet supported",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
     "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
-    "-1": "Oops something went wrong.",
+    "oops": "Oops something went wrong.",
     "201": "Already paid with this hash using a different amount or destination.",
     "203": "There was a permanent failure at the destination.",
     "205": "Unable to find a route.",
@@ -226,7 +226,7 @@
     "any_amount": "To allow any amount, press the Next button.",
     "quantity_max_allow": "Would you like to enable created invoices to specify a quantity of more than one item?",
     "any_quantity": "To allow any quantity, press the Next button.",
-    "no_offers": "You don't have any offers yet, go ahead and create one ☝️"
+    "no_offers": "You have not created an offer yet, go ahead and get started ☝️"
   },
   "headings": {
     "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",
@@ -259,7 +259,7 @@
     "description": "What is this payment for?",
     "note": "Add a note for the receiver of this payment.",
     "destination": "Where would you like to send a payment?",
-    "connect": "Enter your node connection details so that an encrypted connection to your node can be established over the Lightning network.",
+    "connect": "Enter your node connection details.",
     "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
     "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
     "decrypt": "Enter your 4 digit pin number to decrypt your local data.",

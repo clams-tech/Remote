@@ -7,7 +7,7 @@
 
 <button
   on:click
-  class="fixed top-1 z-10 left-1 flex items-center py-4 pl-2 pr-2 cursor-pointer font-bold text-inherit"
+  class="fixed top-0 z-10 left-1 flex items-center pt-5 pb-4 px-2 cursor-pointer font-bold text-inherit w-full bg-white dark:bg-neutral-900"
 >
   <div class="w-6 cursor-pointer rotate-90">
     {@html caret}
