@@ -108,6 +108,7 @@
     "offer_type_value": "{{offerType; bolt12 offer:Pay; bolt12 invoice:Pay; bolt12 invoice_request:Withdraw;}}",
     "offer": "Offer",
     "payer_note": "Payer note",
+    "offer_description": "Offer description",
     "active": "Active",
     "disabled": "Disabled",
     "single_use": "Single use",

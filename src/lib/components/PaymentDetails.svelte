@@ -148,7 +148,7 @@
 
       <!-- OFFER -->
       {#if payment.offer}
-        {@const { id, issuer, payerNote } = payment.offer}
+        {@const { id, issuer, payerNote, description } = payment.offer}
         {#if issuer}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.issuer')}:</span>
@@ -179,6 +179,13 @@
           <SummaryRow>
             <span slot="label">{$translate('app.labels.payer_note')}:</span>
             <span slot="value">{payerNote}</span>
+          </SummaryRow>
+        {/if}
+
+        {#if description}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.offer_description')}:</span>
+            <span slot="value">{description}</span>
           </SummaryRow>
         {/if}
       {/if}
