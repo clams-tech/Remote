@@ -339,7 +339,7 @@
       bind:value={amount}
       bind:error={amountError}
       next={validateAmount}
-      hint={$translate('app.hints.pay', {
+      hint={$translate('app.hints.pay_request', {
         min: `${convertValue({
           value: minSendable.toString(),
           from: BitcoinDenomination.msats,

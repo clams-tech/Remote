@@ -152,7 +152,7 @@
   <Slide back={() => goto('/offers')} backText={$translate('app.titles./offers')} direction="left">
     <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="w-full h-12 bg-white dark:bg-neutral-900" />
-      <div class="w-full flex flex-col max-h-screen overflow-auto">
+      <div class="w-full flex flex-col max-h-screen overflow-auto pt-2">
         <!-- AMOUNT -->
         <div class="flex flex-col items-center justify-center">
           <span
