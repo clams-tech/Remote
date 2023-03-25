@@ -53,7 +53,6 @@
 
   async function copyImage() {
     try {
-      qrCode.update({ type: 'canvas' })
       await navigator.clipboard.write([
         new ClipboardItem({
           'image/png': qrCode.getRawData('png') as Promise<Blob>
@@ -65,8 +64,6 @@
       copyTimeout = setTimeout(() => (copySuccess = false), 3000)
     } catch (error) {
       logger.error(JSON.stringify(error))
-    } finally {
-      qrCode.update({ type: 'svg' })
     }
   }
 

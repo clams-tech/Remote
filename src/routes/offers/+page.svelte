@@ -118,13 +118,17 @@
                 </h2>
 
                 <div class="flex justify-start mt-1">
+                  {#if value !== '0'}
+                    <span
+                      class="flex items-center justify-center"
+                      class:w-4={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+                    >
+                  {/if}
                   <span
-                    class="flex items-center justify-center"
-                    class:w-4={primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+                    >{value === '0'
+                      ? `${$translate('app.labels.any')} ${$translate('app.labels.amount')}`
+                      : value}</span
                   >
-                  {value === '0'
-                    ? `${$translate('app.labels.any')} ${$translate('app.labels.amount')}`
-                    : value}
                 </div>
               </div>
 
