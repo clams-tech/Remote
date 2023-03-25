@@ -44,8 +44,7 @@
       cornersDotOptions: { type: 'dot', color: '#000000' }
     })
 
-    qrCode.update({ image: '/icons/android-chrome-256x256.png' })
-
+    qrCode.update({ image: '/icons/512x512.png' })
     qrCode.append(node)
   }
 
@@ -54,6 +53,7 @@
 
   async function copyImage() {
     try {
+      qrCode.update({ type: 'canvas' })
       await navigator.clipboard.write([
         new ClipboardItem({
           'image/png': qrCode.getRawData('png') as Promise<Blob>
@@ -65,6 +65,8 @@
       copyTimeout = setTimeout(() => (copySuccess = false), 3000)
     } catch (error) {
       logger.error(JSON.stringify(error))
+    } finally {
+      qrCode.update({ type: 'svg' })
     }
   }
 
@@ -77,7 +79,7 @@
   in:fade
   class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
 >
-  <div class="rounded overflow-hidden" bind:this={node} />
+  <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
   <div class="absolute -bottom-9 right-0 mt-2 flex items-center gap-x-2">
     <button on:click={copyImage} class="flex items-center">
       {#if copySuccess}

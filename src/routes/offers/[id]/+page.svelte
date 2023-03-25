@@ -160,12 +160,15 @@
             {$translate(`app.labels.offer`)}</span
           >
           <div in:fade class="flex flex-col items-end">
-            <span class="text-4xl flex items-center tracking-wider"
-              >{abs}<span
-                class="flex justify-center items-center"
-                class:w-9={primarySymbol.startsWith('<')}
-                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-              >
+            <span class="text-4xl flex items-center tracking-wider">
+              <span class="mr-1">{abs}</span>
+              {#if primaryValue !== '0' && primaryValue !== 'any'}
+                <span
+                  class="flex justify-center items-center"
+                  class:w-9={primarySymbol.startsWith('<')}
+                  class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+                >
+              {/if}
               {#if primaryValue !== null}
                 {primaryValue === '0' || primaryValue === 'any'
                   ? $translate('app.labels.any')
@@ -180,26 +183,30 @@
                 </div>
               {/if}
             </span>
-            <span class="text-neutral-600 dark:text-neutral-400 flex items-center"
-              >{abs}<span
-                class="flex justify-center items-center"
-                class:w-4={secondarySymbol.startsWith('<')}
-                class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
-              >
-              {#if secondaryValue !== null}
-                {secondaryValue === '0' || secondaryValue === 'any'
-                  ? $translate('app.labels.any')
-                  : formatValueForDisplay({
-                      value: secondaryValue || '0',
-                      denomination: $settings$.secondaryDenomination,
-                      commas: true
-                    })}
-              {:else}
-                <div class="ml-1">
-                  <Spinner size="1rem" />
-                </div>
-              {/if}
-            </span>
+
+            {#if primaryValue !== '0' && primaryValue !== 'any'}
+              <span class="text-neutral-600 dark:text-neutral-400 flex items-center">
+                <span class="mr-1">{abs}</span>
+                <span
+                  class="flex justify-center items-center"
+                  class:w-4={secondarySymbol.startsWith('<')}
+                  class:mr-[2px]={!secondarySymbol.startsWith('<')}>{@html secondarySymbol}</span
+                >
+                {#if secondaryValue !== null}
+                  {secondaryValue === '0' || secondaryValue === 'any'
+                    ? $translate('app.labels.any')
+                    : formatValueForDisplay({
+                        value: secondaryValue || '0',
+                        denomination: $settings$.secondaryDenomination,
+                        commas: true
+                      })}
+                {:else}
+                  <div class="ml-1">
+                    <Spinner size="1rem" />
+                  </div>
+                {/if}
+              </span>
+            {/if}
           </div>
         </div>
 
