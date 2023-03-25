@@ -67,7 +67,7 @@
           {#if payment.completedAt}
             <span class="ml-1">
               {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-                <span in:fade={{ duration: 50 }}>{formatted}</span>
+                <span in:fade={{ duration: 50 }}>- {formatted}</span>
               {/await}
             </span>
           {/if}
