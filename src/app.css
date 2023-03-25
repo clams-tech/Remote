@@ -10,12 +10,14 @@ html {
   font-family: Helvetica;
   box-sizing: border-box;
   height: -webkit-fill-available;
+  @apply dark:bg-neutral-900;
 }
 
 body {
   min-height: 100vh;
   /* mobile viewport bug fix */
   min-height: -webkit-fill-available;
+  @apply dark:bg-neutral-900;
 }
 
 @layer utilities {
