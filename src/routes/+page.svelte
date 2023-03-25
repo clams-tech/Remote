@@ -14,6 +14,7 @@
   import { browser } from '$app/environment'
   import scan from '$lib/icons/scan'
   import CopyValue from '$lib/elements/CopyValue.svelte'
+  import key from '$lib/icons/key.js'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -61,9 +62,9 @@
       <div in:fade class="flex items-center w-full justify-center text-xl p-4">
         <Refresh />
         <div class="ml-2 mt-[2px] flex items-center">
-          <b>{$nodeInfo$.data.alias}</b><span class="ml-1">-</span>
-          <div class="ml-1 mono">
-            <CopyValue value={$nodeInfo$.data.id} truncateLength={6} />
+          <b>{$nodeInfo$.data.alias}</b>
+          <div class="ml-1 mb-1">
+            <CopyValue value={$nodeInfo$.data.id} hideValue truncateLength={6} icon={key} />
           </div>
         </div>
       </div>
