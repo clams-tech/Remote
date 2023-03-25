@@ -141,7 +141,7 @@ export type CreatePayOfferRequest = {
 }
 
 export type CreateWithdrawOfferRequest = {
-  method: 'offer'
+  method: 'invoicerequest'
   params: {
     amount: string
     description: string
