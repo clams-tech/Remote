@@ -340,17 +340,21 @@
             </SummaryRow>
           {/if}
         </div>
-      </div>
 
-      {#if status === 'active'}
-        <div class="mt-4 w-full flex justify-end">
-          <div>
-            <Button on:click={toggleDisableModal} warning text={$translate('app.buttons.disable')}>
-              <div class="w-4 mr-2 text-utility-error" slot="iconLeft">{@html warning}</div>
-            </Button>
+        {#if status === 'active'}
+          <div class="mt-4 w-full flex justify-end">
+            <div>
+              <Button
+                on:click={toggleDisableModal}
+                warning
+                text={$translate('app.buttons.disable')}
+              >
+                <div class="w-4 mr-2 text-utility-error" slot="iconLeft">{@html warning}</div>
+              </Button>
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
     </section>
   </Slide>
 {/if}

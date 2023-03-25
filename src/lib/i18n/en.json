@@ -213,7 +213,7 @@
     "offer": "Offer",
     "create_offer": "Create offer",
     "confirm": "Confirm",
-    "summary_complete": "{{paymentType; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
+    "summary_complete": "{{paymentType; keysend:Send Payment; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
     "disable": "Disable"
   },
   "hints": {
@@ -230,7 +230,7 @@
     "no_offers": "You have not created an offer yet, go ahead and get started ☝️"
   },
   "headings": {
-    "summary": "{{paymentType; bolt11:{{direction; receive:Receive; send:Send;}} Payment; lnurl: LNURL {{direction; receive:Withdraw; send:Pay;}}; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",
+    "summary": "{{paymentType; keysend: Send Payment; bolt11:{{direction; receive:Receive; send:Send;}} Payment; lnurl: LNURL {{direction; receive:Withdraw; send:Pay;}}; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",
     "amount": "Amount",
     "description": "Description",
     "note": "Note",
@@ -255,7 +255,7 @@
     "label": "Label"
   },
   "subheadings": {
-    "summary": "Confirm {{paymentType; bolt11:payment; lnurl: {{direction; send:payment; receive:withdrawal;}}; bolt12:offer {{offerDirection; pay:payment; withdraw:withdrawal;}};}} details.",
+    "summary": "Confirm {{paymentType; keysend:keysend payment; bolt11:payment; lnurl: {{direction; send:payment; receive:withdrawal;}}; bolt12:offer {{offerDirection; pay:payment; withdraw:withdrawal;}};}} details.",
     "amount": "How much would you like to {{direction; receive:receive; send:send;}}?",
     "description": "What is this payment for?",
     "note": "Add a note for the receiver of this payment.",

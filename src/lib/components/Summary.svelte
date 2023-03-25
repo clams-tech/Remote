@@ -209,7 +209,8 @@
     {/if}
 
     <!-- EXPIRY -->
-    {#if expiry !== null}
+    {#if expiry}
+      {console.log({ expiry })}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.expires')}:</span>
         <span class="flex items-center w-full justify-end" slot="value">

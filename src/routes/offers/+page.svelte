@@ -128,7 +128,7 @@
                 </div>
               </div>
 
-              <div class="flex flex-wrap justify-end gap-2 text-sm w-1/2">
+              <div class="flex flex-wrap justify-end items-center gap-2 text-sm w-1/2">
                 <div class="flex items-center rounded-full border pl-3 pr-2 py-1">
                   <div class="text-sm mr-1">{$translate(`app.labels.${type}`)}</div>
                   <div

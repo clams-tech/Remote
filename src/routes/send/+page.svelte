@@ -223,7 +223,7 @@
       paymentType={type || 'bolt11'}
       {destination}
       {description}
-      expiry={expiry || 600}
+      {expiry}
       {timestamp}
       value={value && value !== '0'
         ? value
