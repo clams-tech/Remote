@@ -1,6 +1,6 @@
 <script lang="ts">
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import { convertValue } from '$lib/conversion'
   import { goto } from '$app/navigation'
@@ -10,42 +10,41 @@
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { createRandomHex } from '$lib/utils'
-
-  import {
-    listeningForAllInvoiceUpdates$,
-    paymentUpdates$,
-    settings$,
-    SvelteSubject
-  } from '$lib/streams'
-
-  let requesting = false
+  import { listeningForAllInvoiceUpdates$, paymentUpdates$, settings$ } from '$lib/streams'
 
   const { invoiceExpiry } = $settings$
 
-  let previousSlide = 0
-  let slide = 0
-
+  let requesting = false
   let receiveError = ''
 
-  function next() {
-    previousSlide = slide
-    slide = slide + 1
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['amount', 'description', 'summary'] as const
+  let slide: SlideStep = 'amount'
+  let previousSlide: SlideStep = 'amount'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
   }
 
-  function prev() {
+  function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = slide - 1
+    slide = to
   }
 
-  const receivePayment$ = new SvelteSubject({
-    value: '',
-    description: '',
-    expiry: invoiceExpiry
-  })
+  let value = ''
+  let description = ''
+  let expiry = invoiceExpiry
 
   async function submit() {
     receiveError = ''
-    const { value, description, expiry } = $receivePayment$
 
     const amount_msat = convertValue({
       value: value || 'any',
@@ -92,33 +91,40 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.receive')}</title>
+  <title>{$translate('app.titles./receive')}</title>
 </svelte:head>
 
-{#if slide === 0}
+{#if slide === 'amount'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles./')}
+    direction={slideDirection}
   >
-    <Amount bind:value={$receivePayment$.value} {next} direction="receive" />
+    <Amount bind:value {next} direction="receive" hint={$translate('app.hints.any_amount')} />
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
-    <Description bind:description={$receivePayment$.description} {next} />
+{#if slide === 'description'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
+    <TextScreen
+      bind:value={description}
+      label="description"
+      {next}
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Summary
-      type="bolt11"
-      value={$receivePayment$.value}
-      description={$receivePayment$.description}
-      bind:expiry={$receivePayment$.expiry}
+      paymentType="bolt11"
+      paymentAction="create"
+      {value}
+      {description}
+      bind:expiry
       direction="receive"
       {requesting}
       on:complete={submit}

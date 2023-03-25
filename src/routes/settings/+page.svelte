@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'
   import { fade } from 'svelte/transition'
   import Slide from '$lib/elements/Slide.svelte'
-  import { auth$, funds$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
+  import { auth$, funds$, lastPath$, nodeInfo$, payments$, pin$, settings$ } from '$lib/streams'
   import type { Settings } from '$lib/types'
   import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -12,6 +12,7 @@
   import caret from '$lib/icons/caret'
   import Modal from '$lib/elements/Modal.svelte'
   import PinEntry from '$lib/components/PinEntry.svelte'
+  import settingsOutline from '$lib/icons/settings-outline'
 
   let version = __APP_VERSION__
 
@@ -81,18 +82,22 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.settings')}</title>
+  <title>{$translate('app.titles./settings')}</title>
 </svelte:head>
 
 <Slide
   back={() => {
     goto('/')
   }}
+  backText={$translate('app.titles./')}
+  direction={$lastPath$ && $lastPath$.includes('settings') ? 'right' : 'left'}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
-    <h1 class="text-lg w-full text-center mt-2 mb-6 font-bold">
-      {$translate('app.titles.settings')}
-    </h1>
+  <section in:fade class="flex flex-col justify-center w-full p-4 max-w-lg">
+    <div class="flex items-center mb-6">
+      <div class="w-10 mr-2">{@html settingsOutline}</div>
+      <h1 class="text-4xl font-bold">{$translate('app.titles./settings')}</h1>
+    </div>
+
     <div class="w-full">
       {#each settings as { label, route, toggle, toggled }}
         {#if toggle}

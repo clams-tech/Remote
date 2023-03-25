@@ -1,9 +1,12 @@
 import i18n from 'sveltekit-i18n'
 import parser from '@sveltekit-i18n/parser-default'
 import type { Config, Parser } from '@sveltekit-i18n/parser-default'
+import type { DecodedType } from '$lib/backends'
 
 export interface Payload extends Parser.PayloadDefault {
-  paymentType?: string | null
+  paymentType?: string
+  paymentAction?: 'create' | 'fulfill'
+  offerType?: DecodedType
   direction?: string
   status?: string
   feeType?: string

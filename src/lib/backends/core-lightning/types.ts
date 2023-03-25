@@ -1,3 +1,4 @@
+import type { GenesisBlockhash } from '$lib/types'
 import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 // ==== REQUESTS ==== //
@@ -46,6 +47,31 @@ export type PayRequest = {
   }
 }
 
+export type FetchInvoiceRequest = {
+  method: 'fetchinvoice'
+  params: {
+    offer: string
+    amount_msat?: string
+    quantity?: number
+    recurrence_counter?: number
+    recurrence_start?: number
+    recurrence_label?: string
+    timeout?: number
+    payer_note?: string
+  }
+}
+
+export type SendInvoiceRequest = {
+  method: 'sendinvoice'
+  params: {
+    offer: string
+    label: string
+    amount_msat?: string
+    quantity?: number
+    timeout?: number
+  }
+}
+
 export type WaitInvoiceRequest = {
   method: 'waitinvoice'
   params: {
@@ -84,8 +110,66 @@ export type SignMessageRequest = {
   }
 }
 
+export type DecodeRequest = {
+  method: 'decode'
+  params: string[]
+}
+
+export type ListOffersRequest = {
+  method: 'listoffers'
+}
+
+export type ListInvoiceRequestsRequest = {
+  method: 'listinvoicerequests'
+}
+
+export type CreatePayOfferRequest = {
+  method: 'offer'
+  params: {
+    amount: string
+    description: string
+    issuer?: string
+    label?: string
+    quantity_max?: number
+    absolute_expiry?: number
+    recurrence?: string
+    recurrence_base?: string
+    recurrence_paywindow?: string
+    recurrence_limit?: string
+    single_use?: boolean
+  }
+}
+
+export type CreateWithdrawOfferRequest = {
+  method: 'offer'
+  params: {
+    amount: string
+    description: string
+    issuer?: string
+    label?: string
+    absolute_expiry?: number
+    single_use?: boolean
+  }
+}
+
+export type DisableOfferRequest = {
+  method: 'disableoffer'
+  params: {
+    offer_id: string
+  }
+}
+
+export type DisableInvoiceRequestRequest = {
+  method: 'disableinvoicerequest'
+  params: {
+    invreq_id: string
+  }
+}
+
 export type LNRequest =
   | PayRequest
+  | FetchInvoiceRequest
+  | SendInvoiceRequest
   | GetinfoRequest
   | ListinvoicesRequest
   | ListpaysRequest
@@ -95,6 +179,13 @@ export type LNRequest =
   | KeysendRequest
   | ListfundsRequest
   | SignMessageRequest
+  | DecodeRequest
+  | ListOffersRequest
+  | ListInvoiceRequestsRequest
+  | CreatePayOfferRequest
+  | CreateWithdrawOfferRequest
+  | DisableOfferRequest
+  | DisableInvoiceRequestRequest
 
 // ==== RESPONSES ==== //
 export interface GetinfoResponse {
@@ -603,6 +694,197 @@ export type BkprChannelsAPYResponse = {
   channels_apy: ChannelAPY[]
 }
 
+export type DecodedBolt11 = {
+  currency: string
+  created_at: number
+  expiry: number
+  payee: string
+  payment_hash: string
+  signature: string
+  min_final_cltv_expiry: number
+  amount_msat?: number | string
+  description?: string
+  description_hash?: string
+  payment_secret?: string
+  features?: string
+  payment_metadata?: string
+}
+
+export type DecodedType =
+  | 'bolt12 offer'
+  | 'bolt12 invoice'
+  | 'bolt12 invoice_request'
+  | 'bolt11 invoice'
+
+export type DecodedCommon = {
+  type: DecodedType
+  valid: boolean
+}
+
+export type TLV = {
+  type: number
+  length: number
+  value: string
+}
+
+export type OfferCommon = {
+  offer_id: string
+  offer_description: string
+  offer_node_id: string
+  offer_chains?: GenesisBlockhash[]
+  offer_metadata?: string
+  offer_currency?: string
+  currency_minor_unit?: number
+  offer_amount?: string | number
+  offer_amount_msat?: string | number
+  offer_issuer?: string
+  offer_features?: string
+  offer_absolute_expiry?: number
+  offer_quantity_max?: number
+  offer_recurrence?: {
+    time_unit: number
+    period: number
+    time_unit_name?: string
+    basetime?: number
+    start_any_period?: number
+    limit?: number
+    paywindow?: {
+      seconds_before: number
+      seconds_after: number
+      proportional_amount?: boolean
+    }
+  }
+  warning_unknown_offer_currency?: number
+}
+
+export type DecodedBolt12Offer = DecodedCommon &
+  OfferCommon & {
+    unknown_offer_tlvs?: TLV[]
+  }
+
+export type Bolt12InvoiceCommon = {
+  invreq_metadata: string
+  invreq_payer_id: string
+  invoice_created_at: number
+  invoice_payment_hash: string
+  invoice_amount_msat: string | number
+  signature: string
+  invreq_chain?: string
+  invreq_amount_msat?: string | number
+  invreq_amount?: string | number
+  invreq_features?: string
+  invreq_quantity?: number
+  invreq_payer_note?: string
+  invreq_recurrence_counter?: number
+  invreq_recurrence_start?: number
+}
+
+export type DecodedBolt12Invoice = DecodedCommon &
+  Omit<OfferCommon, 'offer_id'> &
+  Bolt12InvoiceCommon & {
+    invoice_relative_expiry?: number
+    invoice_fallbacks: {
+      version: number
+      hex: string
+      address?: string
+    }[]
+    invoice_features?: string
+    invoice_node_id?: string
+    invoice_recurrence_basetime?: number
+    unknown_invoice_tlvs?: TLV[]
+  }
+
+export type DecodedBolt12InvoiceRequest = DecodedCommon &
+  OfferCommon &
+  Bolt12InvoiceCommon & {
+    unknown_invoice_request_tlvs: TLV[]
+  }
+
+export type DecodeResponse = DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
+
+export type FetchInvoiceResponse = {
+  /**The BOLT12 invoice we fetched */
+  invoice: string
+  changes: {
+    /**extra characters appended to the description field. */
+    description_appended?: string
+    /**a completely replaced description field */
+    description?: string
+    /**The vendor from the offer, which is missing in the invoice */
+    vendor_removed?: string
+    /**a completely replaced vendor field */
+    vendor?: string
+    /**the amount, if different from the offer amount multiplied by any quantity (or the offer had no amount, or was not in BTC). */
+    amount_msat?: string
+  }
+  /**Only for recurring invoices if the next period is under the recurrence_limit: */
+  next_period?: {
+    /**the index of the next period to fetchinvoice */
+    counter: number
+    /**UNIX timestamp that the next period starts */
+    starttime: number
+    /**UNIX timestamp that the next period ends */
+    endtime: number
+    /**UNIX timestamp of the earliest time that the next invoice can be fetched */
+    paywindow_start: number
+    /**UNIX timestamp of the latest time that the next invoice can be fetched */
+    paywindow_end: number
+  }
+}
+
+export type SendInvoiceResponse = {
+  label: string
+  description: string
+  payment_hash: string
+  status: string
+  expires_at: number
+  amount_msat?: string
+  bolt12?: string
+  pay_index?: number
+  amount_received_msat?: string
+  paid_at?: number
+  payment_preimage?: string
+}
+
+export type OfferSummaryCommon = {
+  /**whether this can still be used */
+  active: boolean
+  /**whether this expires as soon as it’s paid */
+  single_use: boolean
+  /**the bolt12 encoding of the offer */
+  bolt12: string
+  /**True if an associated invoice has been paid */
+  used: boolean
+  /**the (optional) user-specified label */
+  label?: string
+}
+
+export type OfferSummary = OfferSummaryCommon & {
+  /**the id of this offer (merkle hash of non-signature fields) */
+  offer_id: string
+}
+
+export type InvoiceRequestSummary = OfferSummaryCommon & {
+  /**the id of this offer (merkle hash of non-signature fields) */
+  invreq_id: string
+}
+
+export type FormattedOfferSummary = OfferSummaryCommon & {
+  id: string
+  type: string
+}
+
+export type ListOffersResponse = {
+  offers: OfferSummary[]
+}
+
+export type ListInvoiceRequestsResponse = {
+  invoicerequests: InvoiceRequestSummary[]
+}
+
+export type CreatePayOfferResponse = OfferSummary & { created: boolean }
+export type CreateWithdrawOfferResponse = InvoiceRequestSummary
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -615,5 +897,12 @@ export type LNResponse =
   | WaitAnyInvoiceResponse
   | SignMessageResponse
   | BkprListIncomeResponse
+  | DecodeResponse
+  | FetchInvoiceResponse
+  | SendInvoiceResponse
+  | ListOffersResponse
+  | ListInvoiceRequestsResponse
+  | CreatePayOfferResponse
+  | CreateWithdrawOfferResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

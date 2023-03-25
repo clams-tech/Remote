@@ -1,4 +1,10 @@
 import type { LnWebSocketOptions } from 'lnmessage/dist/types'
+import type {
+  DecodedBolt12Invoice,
+  DecodedBolt12Offer,
+  DecodedCommon,
+  OfferCommon
+} from './backends'
 
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
@@ -83,7 +89,13 @@ export type Denomination = BitcoinDenomination | FiatDenomination
 
 export type BitcoinExchangeRates = Record<FiatDenomination, number>
 
-export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'onchain'
+export type PaymentType =
+  | 'keysend'
+  | 'bolt11'
+  | 'lightning_address'
+  | 'lnurl'
+  | 'onchain'
+  | 'bolt12'
 
 export type Payment = {
   id: string
@@ -95,12 +107,19 @@ export type Payment = {
   startedAt: string // ISO UTC
   completedAt: string | null // ISO UTC
   expiresAt: string | null // ISO UTC
-  bolt11: string | null
+  invoice?: string
   description?: string
   hash: string
   preimage?: string
   destination?: string
   payIndex?: number
+  offer?: {
+    id?: DecodedBolt12Offer['offer_id']
+    issuer: DecodedBolt12Offer['offer_issuer']
+    payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+    payerId?: DecodedBolt12Invoice['invreq_payer_id']
+    description?: DecodedBolt12Offer['offer_description']
+  }
 }
 
 type PaymentDirection = 'receive' | 'send'
@@ -115,7 +134,7 @@ export type Notification = {
 }
 
 /** Formatted decoded sections of invoice */
-export type FormattedSections = {
+export type FormattedDecodedBolt11 = {
   expiry: number
   description?: string
   description_hash?: Buffer
@@ -144,30 +163,29 @@ export type DecodedInvoice = {
   sections: { name: string; value?: string | number }[]
 }
 
-type ParsedBitcoinString = {
-  type: PaymentType | null
-  onchain?: {
+export type ParsedOnchainString = {
+  type: 'onchain'
+  value: {
     address: string
     amount?: string | null
     label?: string | null
     message?: string | null
   }
-  bolt11?: string // bolt11
-  lnurl?: string // lnurl
-  keysend?: string // node public key
-  error?: string
 }
 
-export type ParsedBitcoinUrl = RequireAtLeastOne<
-  ParsedBitcoinString,
-  keyof Omit<ParsedBitcoinString, 'type'>
->
+export type ParsedOffChainString = {
+  type: PaymentType
+  value: string
+}
 
-// https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist/49725198#49725198
-type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-  }[Keys]
+export type ParsedBitcoinStringError = {
+  error: string
+}
+
+export type ParsedBitcoinString =
+  | ParsedOnchainString
+  | ParsedOffChainString
+  | ParsedBitcoinStringError
 
 export type SendPayment = {
   destination: string
@@ -177,4 +195,22 @@ export type SendPayment = {
   timestamp: number | null
   amount: string // invoice amount
   value: string // user input amount
+}
+
+export enum GenesisBlockhash {
+  regtest = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206',
+  mainnet = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+  testnet = '000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943'
+}
+
+export type FormattedDecodedOffer = {
+  offerType: DecodedCommon['type']
+  denomination: BitcoinDenomination.msats | FiatDenomination
+  amount: string
+  description: OfferCommon['offer_description']
+  nodeId: OfferCommon['offer_node_id']
+  offerExpiry?: OfferCommon['offer_absolute_expiry']
+  recurrence?: OfferCommon['offer_recurrence']
+  issuer?: OfferCommon['offer_issuer']
+  quantityMax?: OfferCommon['offer_quantity_max']
 }

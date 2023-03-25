@@ -31,7 +31,8 @@ module.exports = {
         transparent: 'transparent'
       },
       screens: {
-        tall: { raw: '(min-height: 750px) and (min-width: 1000px)' }
+        tall: { raw: '(min-height: 750px) and (min-width: 1000px)' },
+        xs: '420px'
       }
     }
   },

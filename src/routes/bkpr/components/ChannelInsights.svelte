@@ -147,7 +147,7 @@
 <section
   class="p-4 border border-current rounded-md md:row-span-2 w-full shadow-sm shadow-purple-400"
 >
-  <h1 class="text-4xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
+  <h1 class="text-2xl mb-6 font-bold">{$translate('app.headings.account_insights')}</h1>
   <p>
     {$translate('app.subheadings.account_insights')}
   </p>

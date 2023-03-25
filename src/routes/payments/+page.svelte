@@ -10,6 +10,7 @@
   import type { Payment } from '$lib/types'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import search from '$lib/icons/search'
+  import list from '$lib/icons/list'
 
   let searchTerm = ''
   let filteredPayments: Payment[] = []
@@ -49,19 +50,23 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.payments')}</title>
+  <title>{$translate('app.titles./payments')}</title>
 </svelte:head>
 
 <Slide
   back={() => {
     goto('/')
   }}
+  backText={$translate('app.titles./')}
   direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-  <section in:fade class="flex flex-col items-center justify-start w-full p-6 max-w-lg">
-    <h1 class="text-lg w-full text-center mt-2 pb-2 font-bold">
-      {$translate('app.titles.payments')}
-    </h1>
+  <section in:fade class="flex flex-col justify-start w-full p-4 max-w-lg">
+    <div class="flex items-center mb-6 mt-12">
+      <div class="w-10 mr-2">{@html list}</div>
+      <h1 class="text-4xl font-bold">
+        {$translate('app.titles./payments')}
+      </h1>
+    </div>
 
     <div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">
       <TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
