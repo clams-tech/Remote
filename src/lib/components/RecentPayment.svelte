@@ -37,7 +37,7 @@
       >
       <div class="flex flex-col">
         <div class="flex">
-          <span
+          <span class:mr-1={!primarySymbol.startsWith('<')}
             >{$translate('app.payment.status', {
               status: payment.status,
               direction: payment.direction
