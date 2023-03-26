@@ -6,6 +6,7 @@
   import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
   import { logger, truncateValue } from '$lib/utils'
+  import clamsIcon from '$lib/icons/clamsIcon.js'
 
   export let value: string | null
   export let size = Math.min(window.innerWidth - 50, 400)
@@ -27,7 +28,7 @@
       height: size,
       type: 'svg',
       data: `lightning:${value}`.toUpperCase(),
-      imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 0 },
+      imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
         color: '#6a1a4c',
@@ -45,12 +46,14 @@
       cornersDotOptions: { type: 'dot', color: '#000000' }
     })
 
-    qrCode.update({ image: '/icons/512x512.png' })
     qrCode.append(node)
   }
 
   $: if (qrCode) {
-    qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+    fetch('/icons/512x512.png').then(() => {
+      qrCode.update({ image: '/icons/512x512.png' })
+      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+    })
   }
 
   let copySuccess = false
