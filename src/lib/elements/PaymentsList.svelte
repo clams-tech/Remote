@@ -34,10 +34,10 @@
       {#each payments as { completedAt, value, status, direction, id }}
         <button
           on:click={() => goto(`/payments/${id}`)}
-          class="text-sm block px-1 border border-transparent transition-all rounded {direction ===
-            'receive' && status === 'complete'
+          class="text-sm block px-1 border border-transparent transition-all rounded {status ===
+          'complete'
             ? 'bg-utility-success/20 hover:border-utility-success/40'
-            : status === 'expired'
+            : status === 'expired' || status === 'failed'
             ? 'bg-utility-error/20 hover:border-utility-error/40'
             : 'bg-utility-pending/20 hover:border-utility-pending/40'}"
         >
@@ -46,9 +46,9 @@
               >{$translate('app.payment.status', {
                 status: status,
                 direction: direction
-              })}:
+              })}
             </span>
-            <span class="flex items-center">
+            <span class="flex items-center ml-1">
               <span
                 class="flex justify-center items-center"
                 class:w-4={primarySymbol.startsWith('<')}
@@ -66,6 +66,7 @@
             </span>
             {#if completedAt}
               <span class="ml-1">
+                -
                 {#await formatDate( { date: completedAt, language: $settings$.language } ) then formatted}
                   <span in:fade={{ duration: 50 }}>{formatted}</span>
                 {/await}

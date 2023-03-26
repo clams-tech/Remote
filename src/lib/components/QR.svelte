@@ -6,7 +6,6 @@
   import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
   import { logger, truncateValue } from '$lib/utils'
-  import clamsIcon from '$lib/icons/clamsIcon.js'
 
   export let value: string | null
   export let size = Math.min(window.innerWidth - 50, 400)
