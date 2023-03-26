@@ -68,8 +68,8 @@
       </h1>
     </div>
 
-    <div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">
-      <TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
+    <div class="w-full mb-4 relative flex items-center shadow-sm">
+      <TextInput micro bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
       <div class="absolute right-1 w-8 text-neutral-400">{@html search}</div>
     </div>
 
