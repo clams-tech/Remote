@@ -1,6 +1,7 @@
 <script>
   import BackButton from '$lib/elements/BackButton.svelte'
   import RoutingPerformance from './components/RoutingPerformance.svelte'
+  import RoutingFeesHistory from './components/RoutingFeesHistory.svelte'
   import ChannelInsights from './components/ChannelInsights.svelte'
   import AccountingExports from './components/AccountingExports.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -30,12 +31,12 @@
         {$translate('app.titles./bkpr')}
       </h1>
     </div>
-    <div
-      class="grid gap-4 overflow-auto auto-cols-min auto-rows-min md:grid-cols-2 grid-cols-1 md:grid-flow-col-dense p-1 w-full max-w-3xl"
-    >
-      <RoutingPerformance />
-      <ChannelInsights />
-      <AccountingExports />
+
+    <div class="grid gap-4 overflow-auto p-1 w-full max-w-3xl">
+      <!-- <RoutingPerformance /> -->
+      <RoutingFeesHistory />
+      <!-- <ChannelInsights />
+      <AccountingExports /> -->
     </div>
   </div>
 </div>
