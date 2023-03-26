@@ -19,6 +19,7 @@
   let canvas: HTMLCanvasElement | null = null
   let node: HTMLDivElement
   let qrCode: QRCodeStyling
+  let rawData: Blob
 
   $: if (value && node) {
     qrCode = new QRCodeStyling({
@@ -48,15 +49,18 @@
     qrCode.append(node)
   }
 
+  $: if (qrCode) {
+    qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+  }
+
   let copySuccess = false
   let copyTimeout: NodeJS.Timeout
 
   async function copyImage() {
     try {
-      qrCode.update({ image: '/icons/512x512.png' })
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': qrCode.getRawData('png') as Promise<Blob>
+          'image/png': rawData
         })
       ])
 
