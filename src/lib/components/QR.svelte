@@ -53,6 +53,7 @@
 
   async function copyImage() {
     try {
+      qrCode.update({ image: '/icons/512x512.png' })
       await navigator.clipboard.write([
         new ClipboardItem({
           'image/png': qrCode.getRawData('png') as Promise<Blob>
