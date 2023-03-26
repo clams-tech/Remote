@@ -624,10 +624,10 @@ bn.js@^4.11.9:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
 
-bolt12-decoder@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.4.tgz#55f5bc93e4e9f2f8ea90a9fe38add34fdb386a4f"
-  integrity sha512-8DdfQIuJFwT9v+olL//+ZvT2VYRafI6SNk5twLK4p+V48xzne1MPl8Y/dQ0wUMaeT5pQQ3Hd7YhAQLJgB3lwLQ==
+bolt12-decoder@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.5.tgz#c38e25b37c0ec79dae3394e632359f94db1f2625"
+  integrity sha512-59fryLDMYA/Av4UrS6xoIF4qjHSNzWFDdN37aeLu9gI9kRBLlZ8wnpS4gnjvu3WAFa1wdi7vwSzCvAmJF/G7pw==
   dependencies:
     "@noble/hashes" "^1.2.0"
     buffer "^6.0.3"

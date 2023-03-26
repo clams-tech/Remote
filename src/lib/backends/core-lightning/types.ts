@@ -795,8 +795,9 @@ export type DecodedBolt12Invoice = DecodedCommon &
   }
 
 export type DecodedBolt12InvoiceRequest = DecodedCommon &
-  OfferCommon &
+  Omit<OfferCommon, 'offer_id'> &
   Bolt12InvoiceCommon & {
+    invreq_id: string
     unknown_invoice_request_tlvs: TLV[]
   }
 
