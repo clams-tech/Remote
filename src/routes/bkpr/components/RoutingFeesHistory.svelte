@@ -11,32 +11,44 @@
   import info from '$lib/icons/info'
 
   let noRoutingFees = false
+  // @TODO - ts this as enums as it is used in multiple places
   const timeFrames = ['all', 'year', '6months', 'quarter', 'month', 'week']
-  let timeFrame = 'week'
+  const colorCache: { [key: string]: string } = {}
   const chartId = 'feesHistory'
   let chart: Chart<'line', number[], string>
+  let timeFrame = 'week'
 
-  function getChannelColor(id: string, darkmode = $settings$.darkmode) {
+  function getChannelColor(id: string, darkmode = false) {
+    if (colorCache[id]) {
+      return colorCache[id]
+    }
+
     const letters = '0123456789ABCDEF'
     let hash = 0
+    // Calculate a hash value based on the channel ID
     for (let i = 0; i < id.length; i++) {
       hash = id.charCodeAt(i) + ((hash << 5) - hash)
     }
     let color = '#'
+    // Generate a color based on the hash value
     for (let i = 0; i < 3; i++) {
       let value = (hash >> (i * 8)) & 0xff
       if (darkmode) {
-        value = Math.min(value + 30, 255) // make dark mode colors lighter
+        value = Math.min(value + 30, 255) // Make dark mode colors lighter
       }
       let hex = letters[value % 16]
       hex += letters[Math.floor(value / 16)]
       color += hex
     }
-    // add alpha channel for readability
-    return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(
-      color.slice(5, 7),
+    // Add an alpha channel for readability
+    const rgb = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
+      color.slice(3, 5),
       16
-    )}, ${darkmode ? 0.5 : 1})`
+    )}, ${parseInt(color.slice(5, 7), 16)}, ${darkmode ? 0.5 : 1})`
+
+    colorCache[id] = rgb
+
+    return rgb
   }
 
   function sumArrays(arrays: number[][]): number[] {
@@ -51,10 +63,20 @@
     return result
   }
 
+  function* generateDates(startDate: Date, endDate: Date) {
+    const current = new Date(startDate)
+    while (current <= endDate) {
+      yield current.toDateString()
+      current.setDate(current.getDate() + 1)
+    }
+  }
+
+  // Returns array of date strings representing the X-axis labels for the chart for given timeframe
   function xAxisDates(timeframe: string) {
     const today = new Date()
     let startDate
 
+    // Calculate the start date based on the specified timeframe
     switch (timeframe) {
       case 'week':
         startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
@@ -71,18 +93,12 @@
       case 'year':
         startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
         break
-      // @TODO add all time option which should start when first event occurs
+      // @TODO // When timeframe is 'all', use the firstEventDate parameter as the start date
       default:
         startDate = new Date()
     }
-
-    const dates = []
-
-    while (startDate <= today) {
-      dates.push(startDate.toDateString())
-      startDate.setDate(startDate.getDate() + 1)
-    }
-
+    // Yields each date between a given start and today
+    const dates = Array.from(generateDates(startDate, today))
     return dates
   }
 
