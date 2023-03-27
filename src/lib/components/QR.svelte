@@ -80,16 +80,16 @@
 </script>
 
 <div
-  in:fade
+  in:fade|local
   class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
 >
   <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
   <div class="absolute -bottom-9 right-0 mt-2 flex items-center gap-x-2">
     <button on:click={copyImage} class="flex items-center">
       {#if copySuccess}
-        <div in:fade class="w-8 text-utility-success">{@html check}</div>
+        <div in:fade|local class="w-8 text-utility-success">{@html check}</div>
       {:else}
-        <div in:fade class="w-8">{@html copy}</div>
+        <div in:fade|local class="w-8">{@html copy}</div>
       {/if}
     </button>
     <button

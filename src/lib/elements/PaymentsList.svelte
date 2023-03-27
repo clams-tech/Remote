@@ -68,7 +68,7 @@
               <span class="ml-1">
                 -
                 {#await formatDate( { date: completedAt, language: $settings$.language } ) then formatted}
-                  <span in:fade={{ duration: 50 }}>{formatted}</span>
+                  <span in:fade|local={{ duration: 50 }}>{formatted}</span>
                 {/await}
               </span>
             {/if}

@@ -60,7 +60,7 @@
   }}
   backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col justify-center w-full p-4 max-w-lg">
+  <section in:fade|local class="flex flex-col justify-center w-full p-4 max-w-lg">
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html settingsOutline}</div>
       <h1 class="text-4xl font-bold">
@@ -80,7 +80,7 @@
               <span slot="label" class="ml-4">{labels[key] || key}</span>
               <div slot="value">
                 {#if $settings$.fiatDenomination === val}
-                  <div in:fade={{ duration: 250 }} class="w-6">
+                  <div in:fade|local={{ duration: 250 }} class="w-6">
                     {@html check}
                   </div>
                 {/if}
@@ -100,7 +100,7 @@
             <span slot="label" class="ml-4">{labels[key] || key}</span>
             <div slot="value">
               {#if $settings$.fiatDenomination === val}
-                <div in:fade={{ duration: 250 }} class="w-6">
+                <div in:fade|local={{ duration: 250 }} class="w-6">
                   {@html check}
                 </div>
               {/if}

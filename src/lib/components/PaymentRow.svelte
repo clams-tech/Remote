@@ -36,7 +36,7 @@
 </script>
 
 <button
-  in:fade
+  in:fade|local
   on:click={() => goto(`/payments/${id}`)}
   class="flex items-start text-start justify-between py-4 border-t w-full cursor-pointer dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
 >
@@ -67,7 +67,7 @@
 
       <span class="text-sm text-neutral-400 mt-1">
         {#await formatDate( { date: completedAt || startedAt, language: $settings$.language } ) then formatted}
-          <span in:fade={{ duration: 50 }}>{formatted}</span>
+          <span in:fade|local={{ duration: 50 }}>{formatted}</span>
         {/await}
       </span>
     </div>
