@@ -11,6 +11,6 @@
   }
 </script>
 
-<button in:fade on:click={refresh} class:animate-spin={refreshing} class="w-6 cursor-pointer">
+<button in:fade|local on:click={refresh} class:animate-spin={refreshing} class="w-6 cursor-pointer">
   {@html refreshIcon}
 </button>

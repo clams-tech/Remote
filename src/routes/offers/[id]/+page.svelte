@@ -159,7 +159,7 @@
             >{$translate(`app.labels.${status}`)}
             {$translate(`app.labels.offer`)}</span
           >
-          <div in:fade class="flex flex-col items-end">
+          <div in:fade|local class="flex flex-col items-end">
             <span class="text-4xl flex items-center tracking-wider">
               <span class="mr-1">{abs}</span>
               {#if primaryValue !== '0' && primaryValue !== 'any'}
@@ -239,11 +239,11 @@
               {$translate(`app.labels.${status}`)}
 
               {#if status === 'active' || status === 'completed'}
-                <div in:fade class="w-4 ml-1 border border-utility-success rounded-full">
+                <div in:fade|local class="w-4 ml-1 border border-utility-success rounded-full">
                   {@html check}
                 </div>
               {:else}
-                <div in:fade class="w-4 ml-1">
+                <div in:fade|local class="w-4 ml-1">
                   {@html warning}
                 </div>
               {/if}
@@ -368,7 +368,7 @@
 
 {#if showDisableModal}
   <Modal on:close={toggleDisableModal}>
-    <div in:fade class="w-[25rem] max-w-full">
+    <div in:fade|local class="w-[25rem] max-w-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">
         {$translate('app.modals.disable_offer.heading')}
       </h4>
