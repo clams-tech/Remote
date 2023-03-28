@@ -306,7 +306,7 @@
 <section
   class="p-4 border border-current flex flex-col w-full rounded-md shadow-sm shadow-purple-400 md:row-span-1 md:col-span-1"
 >
-  <h1 class="text-4xl w-full mb-6 font-bold">
+  <h1 class="text-2xl w-full mb-6 font-bold">
     {$translate('app.headings.accounting_exports')}
   </h1>
   <p>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
   import { decode, type DecodedRune } from 'rune-decoder'
   import { goto } from '$app/navigation'
@@ -16,7 +16,6 @@
   import info from '$lib/icons/info'
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
-  import copy from '$lib/icons/copy'
   import arrow from '$lib/icons/arrow'
   import warning from '$lib/icons/warning'
   import caret from '$lib/icons/caret'
@@ -25,12 +24,11 @@
     formatDate,
     parseNodeAddress,
     truncateValue,
-    validateParsedNodeAddress,
-    writeClipboardValue
+    validateParsedNodeAddress
   } from '$lib/utils'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
-  type Step = 'connect' | 'token'
 
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
@@ -41,14 +39,33 @@
     setTimeout(focusConnectionInput, 500)
   })
 
-  let step: Step = 'connect'
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['connect', 'token'] as const
+  let slide: SlideStep = 'connect'
+  let previousSlide: SlideStep = 'connect'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
+    previousSlide = slide
+    slide = to
+  }
+
   let address = ''
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
   let sessionPrivateKey: string
-  let copySuccess = ''
-  let copyAnimationTimeout: NodeJS.Timeout
   let showDecodedRuneModal = false
   const recipes = ['readonly', 'clams', 'admin'] as const
 
@@ -90,7 +107,7 @@
       if (connectStatus === 'success') {
         sessionPublicKey = lnApi.connection.publicKey
         sessionPrivateKey = lnApi.connection.privateKey
-        step = 'token'
+        next()
 
         setTimeout(() => {
           focusRuneInput()
@@ -117,33 +134,17 @@
     goto('/')
   }
 
-  function handleCopy(key: string, value?: string) {
-    return async () => {
-      const success = await writeClipboardValue(value || key)
-
-      if (success) {
-        copySuccess = key
-
-        copyAnimationTimeout = setTimeout(() => (copySuccess = ''), 3000)
-      }
-    }
-  }
-
-  onDestroy(() => {
-    copyAnimationTimeout && clearTimeout(copyAnimationTimeout)
-  })
-
   let connectButton: Button
   let saveRuneButton: Button
 
   function handleKeyPress(ev: KeyboardEvent) {
     if (ev.key === 'Enter') {
-      if (step === 'connect' && connectStatus !== 'connecting') {
+      if (slide === 'connect' && connectStatus !== 'connecting') {
         validAddress && connectButton.click()
         return
       }
 
-      if (step === 'token') {
+      if (slide === 'token') {
         decodedRune && saveRuneButton.click()
         return
       }
@@ -159,7 +160,7 @@
       case 'readonly':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=waitanyinvoice","method=waitinvoice"],["method/listdatastore"], ["rate=60"]]'`
       case 'clams':
-        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage", "method^bkpr-"],["method/listdatastore"], ["rate=60"]]'`
+        return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["method^list","method^get","method=summary","method=pay","method=keysend","method=invoice","method=waitanyinvoice","method=waitinvoice", "method=signmessage", "method^bkpr-", "method=offer", "method=fetchinvoice", "method=sendinvoice", "method=listoffers", "method=listinvoicerequests", "method=invoicerequest", "method=disableoffer", "method=disableinvoicerequest"],["method/listdatastore"], ["rate=60"]]'`
       case 'admin':
         return `lightning-cli commando-rune restrictions='[["id=${pubkey}"], ["rate=60"]]'`
     }
@@ -223,14 +224,18 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.connect')}</title>
+  <title>{$translate('app.titles./connect')}</title>
 </svelte:head>
 
 <svelte:window on:keydown={handleKeyPress} />
 
-{#if step === 'connect'}
-  <Slide>
-    <section class="w-full p-6 max-w-lg m-auto">
+{#if slide === 'connect'}
+  <Slide
+    back={() => goto('/welcome')}
+    backText={$translate('app.titles./welcome')}
+    direction={slideDirection}
+  >
+    <section class="w-full p-4 max-w-lg m-auto pt-16">
       <div class="mb-6">
         <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.connect')}</h1>
         <p class="text-neutral-600 dark:text-neutral-300">
@@ -264,7 +269,10 @@
             on:focus={resetConnectStatus}
           />
 
-          <div in:fade class="flex items-center text-sm absolute bottom-1 right-1">
+          <div
+            in:fade|local={{ duration: 250 }}
+            class="flex items-center text-sm absolute bottom-1 right-1"
+          >
             {#if connectStatus === 'success'}
               <div class="flex items-center">
                 <span class="text-utility-success">{$translate('app.inputs.add_rune.success')}</span
@@ -296,7 +304,7 @@
 
         <!-- ADVANCED SETTINGS -->
         <div
-          in:fade
+          in:fade|local={{ duration: 250 }}
           class:h-28={!!expandConnectionSettings}
           class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start overflow-y-hidden h-0 transition-all"
         >
@@ -320,63 +328,33 @@
   </Slide>
 {/if}
 
-{#if step === 'token'}
-  <Slide
-    back={() => {
-      step = 'connect'
-    }}
-  >
-    <section class="w-full p-6 max-w-lg m-auto">
-      <div class="h-8" />
-
+{#if slide === 'token'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
+    <section class="w-full p-4 max-w-lg m-auto pt-16">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.rune')}</h1>
       <p class="text-neutral-600 dark:text-neutral-300">{$translate('app.subheadings.rune')}</p>
 
       {#if sessionPublicKey}
-        <button
-          on:click={handleCopy(sessionPublicKey)}
-          class="relative flex items-center w-full my-4"
+        <div
+          class="my-4
+      font-semibold"
         >
-          <span class="font-semibold">{truncateValue(sessionPublicKey)}</span>
-
-          <div class:text-utility-success={copySuccess === sessionPublicKey}>
-            {#if copySuccess === sessionPublicKey}
-              <div in:fade class="w-8">
-                {@html check}
-              </div>
-            {:else}
-              <div in:fade class="w-8">
-                {@html copy}
-              </div>
-            {/if}
-          </div>
-        </button>
+          <CopyValue value={sessionPublicKey} truncateLength={9} />
+        </div>
       {/if}
 
       <div class="w-full">
         <p class="text-neutral-600 dark:text-neutral-300">
           {$translate('app.inputs.add_rune.recipes')}
         </p>
-        <div class="flex gap-1 my-4">
-          {#each recipes as recipe}
-            <button
-              on:click={handleCopy(recipe, createRuneRecipe(recipe, sessionPublicKey))}
-              class="relative flex items-center justify-center w-full text-sm border rounded py-1"
-            >
-              <span class="font-semibold">{$translate(`app.inputs.add_rune.${recipe}`)}</span>
-
-              <div class:text-utility-success={copySuccess === recipe}>
-                {#if copySuccess === recipe}
-                  <div in:fade class="w-6">
-                    {@html check}
-                  </div>
-                {:else}
-                  <div in:fade class="w-6">
-                    {@html copy}
-                  </div>
-                {/if}
-              </div>
-            </button>
+        <div class="flex gap-1 my-4 font-semibold">
+          {#each recipes as recipe (recipe)}
+            <div class="flex items-center justify-center w-full text-sm border rounded py-1">
+              <CopyValue
+                value={createRuneRecipe(recipe, sessionPublicKey)}
+                label={$translate(`app.inputs.add_rune.${recipe}`)}
+              />
+            </div>
           {/each}
         </div>
       </div>
@@ -394,7 +372,7 @@
         </div>
 
         {#if decodedRune}
-          <div in:fade>
+          <div in:fade|local={{ duration: 250 }}>
             <Button text="Decode Rune" on:click={() => (showDecodedRuneModal = true)} small />
           </div>
         {/if}
@@ -432,21 +410,21 @@
 
 {#if showDecodedRuneModal && decodedRune}
   <Modal on:close={() => (showDecodedRuneModal = false)}>
-    <div in:fade class="w-[25rem] max-w-full">
+    <div in:fade|local={{ duration: 250 }} class="w-[25rem] max-w-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.id')}</span>
+        <span slot="label">{$translate('app.labels.id')}:</span>
         <span slot="value">{decodedRune.id}</span>
       </SummaryRow>
 
       <SummaryRow>
-        <span slot="label">{$translate('app.labels.hash')}</span>
+        <span slot="label">{$translate('app.labels.hash')}:</span>
         <span slot="value">{truncateValue(decodedRune.hash)}</span>
       </SummaryRow>
 
       <SummaryRow baseline>
-        <span slot="label">{$translate('app.labels.restrictions')}</span>
+        <span slot="label">{$translate('app.labels.restrictions')}:</span>
         <p slot="value">
           {#if decodedRune.restrictions.length === 0}
             <div class="flex items-center">

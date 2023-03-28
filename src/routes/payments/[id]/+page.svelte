@@ -7,29 +7,40 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import type { PageData } from './$types'
 
-  export let data: { id: string } // payment id
+  export let data: PageData // payment id
 
   $: payment = $payments$.data && $payments$.data.find((p) => p.id === data.id)
 
-  function handleClose() {
-    const path = lastPath$.value
+  const backPath = getBackPath()
 
-    // for recently completed send or receive, we want to go home
-    if (path === '/send' || path === '/receive' || path === '/scan') {
-      goto('/')
-    } else {
-      goto(path)
+  function back() {
+    if (backPath !== '/') {
+      lastPath$.next('/')
     }
+
+    goto(backPath)
+  }
+
+  function getBackPath() {
+    const path = lastPath$.value
+    return path === '/send' || path === '/receive' || path === '/scan' || path.includes('/offers/')
+      ? '/'
+      : path
   }
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.payment')}</title>
+  <title>{$translate('app.titles./payment')}</title>
 </svelte:head>
 
-<section in:fade class="flex flex-col justify-center items-center h-full w-full max-w-lg">
-  <BackButton on:click={handleClose} />
+<section
+  in:fade|local={{ duration: 250 }}
+  class="flex flex-col justify-center items-center h-full w-full max-w-lg"
+>
+  <BackButton on:click={back} text={$translate(`app.titles.${backPath}`)} />
+  <div class="w-full h-16 bg-white dark:bg-neutral-900" />
 
   {#if $payments$.loading && !$payments$.data}
     <div class="w-full h-full flex items-center justify-center">

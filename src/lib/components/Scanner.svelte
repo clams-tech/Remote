@@ -2,8 +2,6 @@
   import { onDestroy, onMount } from 'svelte'
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations'
-  import BackButton from '$lib/elements/BackButton.svelte'
-  import { goto } from '$app/navigation'
   import { createRandomHex, userAgent } from '$lib/utils'
   import { customNotifications$ } from '$lib/streams'
 
@@ -159,8 +157,6 @@
 <div
   class="container relative items-center flex-col flex justify-center w-full h-full pt-16 pb-4 px-4"
 >
-  <BackButton on:click={() => goto('/')} />
-
   <div class="flex items-center justify-center w-full h-full">
     <!-- svelte-ignore a11y-media-has-caption -->
     <video

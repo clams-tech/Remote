@@ -4,52 +4,63 @@
   import Destination from '$lib/components/Destination.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import Slide from '$lib/elements/Slide.svelte'
-  import { BitcoinDenomination, type Payment, type SendPayment } from '$lib/types'
   import { convertValue } from '$lib/conversion'
-  import { paymentUpdates$, settings$, SvelteSubject } from '$lib/streams'
+  import { paymentUpdates$, settings$ } from '$lib/streams'
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { createRandomHex, parseBitcoinUrl } from '$lib/utils'
   import type { PageData } from './$types'
 
+  import {
+    BitcoinDenomination,
+    type ParsedBitcoinStringError,
+    type ParsedOffChainString,
+    type ParsedOnchainString,
+    type Payment,
+    type PaymentType
+  } from '$lib/types'
+
   export let data: PageData
 
-  let previousSlide = 0
-  let slide = 0
+  let requesting = false
   let errorMsg = ''
 
-  function next() {
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['destination', 'amount', 'description', 'summary'] as const
+  let slide: SlideStep = 'destination'
+  let previousSlide: SlideStep = 'destination'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
     previousSlide = slide
-    slide = slide + 1
+    slide = to
   }
 
-  function prev() {
-    previousSlide = slide
-    slide = slide - 1
-  }
-
-  function to(i: number) {
-    slide = i
-  }
-
-  let requesting = false
-
-  const sendPayment$ = new SvelteSubject<SendPayment>({
-    destination: data.destination || '',
-    type: data.type || null,
-    description: '',
-    expiry: null,
-    timestamp: null,
-    amount: '',
-    value: ''
-  })
+  let destination = data.destination || ''
+  let type: PaymentType | '' = data.type || ''
+  let description = ''
+  let expiry: number | null = null
+  let timestamp: number | null = null
+  let amount = ''
+  let value = ''
 
   async function sendPayment() {
     requesting = true
-    const { destination, value, type, description } = sendPayment$.getValue()
+
     const { primaryDenomination } = $settings$
 
     let payment: Payment | null = null
@@ -62,7 +73,8 @@
         case 'bolt11': {
           payment = await lnApi.payInvoice({
             id,
-            bolt11: destination,
+            invoice: destination,
+            type: 'bolt11',
             amount_msat:
               value && value !== '0'
                 ? Big(
@@ -115,32 +127,39 @@
   }
 
   function destinationNext() {
-    const { destination, amount } = $sendPayment$
-    const { lnurl, bolt11, onchain, error, type } = parseBitcoinUrl(destination)
+    const parsed = parseBitcoinUrl(destination)
+    const { error } = parsed as ParsedBitcoinStringError
 
     if (error) {
       errorMsg = error
       return
     }
 
-    $sendPayment$.type = type
+    const { type: parsedType, value } = parsed as ParsedOffChainString | ParsedOnchainString
 
-    if (lnurl) {
-      goto(`/lnurl?lnurl=${lnurl}`)
+    type = parsedType
+
+    if (type === 'lnurl') {
+      goto(`/lnurl?lnurl=${value}`)
       return
     }
 
-    if (bolt11) {
-      $sendPayment$.destination = bolt11
+    if (type === 'bolt12') {
+      goto(`/offers/bolt12/${value}`)
+      return
+    }
+
+    if (type === 'bolt11') {
+      destination = value as string
 
       if (amount && amount !== '0') {
-        to(3)
+        next('summary')
         return
       }
     }
 
     // onchain not currently supported
-    if (onchain && !bolt11) {
+    if (type === 'onchain') {
       errorMsg = $translate('app.errors.onchain_unsupported')
       return
     }
@@ -150,59 +169,66 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.send')}</title>
+  <title>{$translate('app.titles./send')}</title>
 </svelte:head>
 
-{#if slide === 0}
+{#if slide === 'destination'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles./')}
+    direction={slideDirection}
   >
     <Destination
       next={destinationNext}
-      bind:destination={$sendPayment$.destination}
-      bind:type={$sendPayment$.type}
-      bind:description={$sendPayment$.description}
-      bind:expiry={$sendPayment$.expiry}
-      bind:timestamp={$sendPayment$.timestamp}
-      bind:amount={$sendPayment$.amount}
+      bind:destination
+      bind:type
+      bind:description
+      bind:expiry
+      bind:timestamp
+      bind:amount
       on:clipboardError={({ detail }) => (errorMsg = detail)}
     />
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Amount
       direction="send"
-      bind:value={$sendPayment$.value}
-      next={() => ($sendPayment$.description ? to(3) : next())}
+      bind:value
+      next={() => next(description ? 'summary' : 'description')}
       required
     />
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide back={prev} direction={previousSlide > slide ? 'right' : 'left'}>
-    <Description {next} bind:description={$sendPayment$.description} />
+{#if slide === 'description'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
+    <TextScreen
+      {next}
+      bind:value={description}
+      label="description"
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 
-{#if slide === 3}
-  <Slide back={() => to(previousSlide)} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
       direction="send"
-      type={$sendPayment$.type}
-      destination={$sendPayment$.destination}
-      description={$sendPayment$.description}
-      expiry={$sendPayment$.expiry}
-      timestamp={$sendPayment$.timestamp}
-      value={$sendPayment$.value && $sendPayment$.value !== '0'
-        ? $sendPayment$.value
+      paymentAction="fulfill"
+      paymentType={type || 'bolt11'}
+      {destination}
+      {description}
+      {expiry}
+      {timestamp}
+      value={value && value !== '0'
+        ? value
         : convertValue({
-            value: $sendPayment$.amount,
+            value: amount,
             from: BitcoinDenomination.msats,
             to: $settings$.primaryDenomination
           })}

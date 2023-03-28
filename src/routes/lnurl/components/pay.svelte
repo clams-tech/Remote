@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import Amount from '$lib/components/Amount.svelte'
-  import Description from '$lib/components/Description.svelte'
+  import TextScreen from '$lib/components/TextScreen.svelte'
   import Summary from '$lib/components/Summary.svelte'
   import { LNURL_PROXY } from '$lib/constants'
   import { convertValue } from '$lib/conversion'
@@ -12,7 +12,7 @@
   import { translate } from '$lib/i18n/translations'
   import arrow from '$lib/icons/arrow'
   import { paymentUpdates$, settings$ } from '$lib/streams'
-  import { BitcoinDenomination, type FormattedSections, type Payment } from '$lib/types'
+  import { BitcoinDenomination, type FormattedDecodedBolt11, type Payment } from '$lib/types'
   import { createRandomHex, decodeBolt11, mainDomain } from '$lib/utils'
   import Big from 'big.js'
   import lightning from '$lib/lightning'
@@ -42,12 +42,30 @@
   let mime: string | undefined
   let address: string | undefined
 
-  let slide = 0
-  let previousSlide = 0
+  type Slides = typeof slides
+  type SlideStep = Slides[number]
+  type SlideDirection = 'right' | 'left'
+
+  const slides = ['pay', 'amount', 'description', 'summary', 'completed'] as const
+  let slide: SlideStep = 'pay'
+  let previousSlide: SlideStep = 'pay'
+
+  $: slideDirection = (
+    slides.indexOf(previousSlide) > slides.indexOf(slide) ? 'right' : 'left'
+  ) as SlideDirection
+
+  function back() {
+    previousSlide = slides[slides.indexOf(slide) - 2]
+    slide = slides[slides.indexOf(slide) - 1]
+  }
+
+  function next(to = slides[slides.indexOf(slide) + 1]) {
+    previousSlide = slide
+    slide = to
+  }
 
   let amount = ''
   let amountError = ''
-
   let description = ''
 
   type FormattedMetadata = {
@@ -104,14 +122,6 @@
     next()
   }
 
-  function back() {
-    slide -= 1
-  }
-
-  function next(increment = 1) {
-    slide += increment
-  }
-
   function validateAmount() {
     const valueSats =
       amount && amount !== '0'
@@ -132,7 +142,7 @@
       amountError = $translate('app.errors.max_sendable')
     }
 
-    !amountError && next(commentAllowed ? 1 : 2)
+    !amountError && next(commentAllowed ? 'description' : 'summary')
   }
 
   let requesting = false
@@ -143,7 +153,7 @@
   type SuccessAES = { tag: 'aes'; description: string; ciphertext: string; iv: string }
   type SuccessAction = SuccessMessage | SuccessUrl | SuccessAES
 
-  let decodedPaymentRequest: (FormattedSections & { bolt11: string }) | null
+  let decodedPaymentRequest: (FormattedDecodedBolt11 & { bolt11: string }) | null
   let completedPayment: Payment
   let success: SuccessAction
   let decryptedAes: string
@@ -155,7 +165,7 @@
         from: BitcoinDenomination.msats,
         to: $settings$.primaryDenomination
       }) as string
-      next(2)
+      next('description')
     } else {
       next()
     }
@@ -222,7 +232,8 @@
 
       completedPayment = await lnApi.payInvoice({
         id,
-        bolt11: paymentRequest,
+        type: 'bolt11',
+        invoice: paymentRequest,
         description: meta
       })
 
@@ -254,14 +265,15 @@
   }
 </script>
 
-{#if slide === 0}
+{#if slide === 'pay'}
   <Slide
     back={() => {
       goto('/')
     }}
-    direction={previousSlide > slide ? 'right' : 'left'}
+    backText={$translate('app.titles./')}
+    direction={slideDirection}
   >
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.pay_request')}</h1>
       <h2 class="text-2xl font-semibold mb-2">{address || serviceName}</h2>
 
@@ -279,13 +291,13 @@
         <img
           class="mt-2 max-w-xs"
           src={`data:${mime}, ${image}`}
-          alt={$translate('app.headings.pay_request')}
+          alt={$translate('app.headings.pay')}
         />
       {/if}
 
       <div class="mt-8 w-full">
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.min_sendable')}</span>
+          <span slot="label">{$translate('app.labels.min_sendable')}:</span>
           <span slot="value"
             >{convertValue({
               value: minSendable.toString(),
@@ -297,7 +309,7 @@
         </SummaryRow>
 
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.max_sendable')}</span>
+          <span slot="label">{$translate('app.labels.max_sendable')}:</span>
           <span slot="value"
             >{convertValue({
               value: maxSendable.toString(),
@@ -320,8 +332,8 @@
   </Slide>
 {/if}
 
-{#if slide === 1}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'amount'}
+  <Slide {back} backText={$translate(`app.labels.${previousSlide}`)} direction={slideDirection}>
     <Amount
       direction="send"
       bind:value={amount}
@@ -346,16 +358,23 @@
   </Slide>
 {/if}
 
-{#if slide === 2}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
-    <Description next={() => next()} bind:description max={commentAllowed} />
+{#if slide === 'description'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
+    <TextScreen
+      next={() => next()}
+      bind:value={description}
+      label="description"
+      max={commentAllowed}
+      hint={$translate('app.labels.optional')}
+    />
   </Slide>
 {/if}
 
-{#if slide === 3}
-  <Slide {back} direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'summary'}
+  <Slide {back} direction={slideDirection} backText={$translate(`app.labels.${previousSlide}`)}>
     <Summary
-      type="lnurl"
+      paymentType="lnurl"
+      paymentAction="fulfill"
       direction="send"
       destination={address || serviceName}
       {description}
@@ -367,10 +386,10 @@
   </Slide>
 {/if}
 
-{#if slide === 4}
-  <Slide direction={previousSlide > slide ? 'right' : 'left'}>
+{#if slide === 'completed'}
+  <Slide direction={slideDirection} back={() => goto('/')} backText={$translate('app.titles./')}>
     {@const { tag } = success}
-    <section class="flex flex-col justify-center items-start w-full p-6 max-w-lg">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <div class="flex items-center mb-4">
         <h1 class="text-4xl font-bold">{serviceName}</h1>
         <div class="w-8 border-2 border-utility-success rounded-full text-utility-success ml-2">

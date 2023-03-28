@@ -58,7 +58,7 @@
       return {
         id: hash,
         type,
-        heading: $translate('app.titles.payment'),
+        heading: $translate('app.titles./payment'),
         message
       }
     })
@@ -76,7 +76,18 @@
       if (!supportsNotifications() || !notificationsPermissionsGranted()) {
         // if device does not support notifications, or the permissions have not been granted
         // then add to list of notifications to be rendered by app
-        notificationsToRender = [...notificationsToRender, notification]
+
+        const idIndex = notificationsToRender.findIndex(({ id }) => notification.id === id)
+
+        // if id already exists, then just replace with update
+        if (idIndex !== -1) {
+          notificationsToRender = notificationsToRender.map((n, i) =>
+            i === idIndex ? notification : n
+          )
+        } else {
+          // otherwise add to end
+          notificationsToRender = [...notificationsToRender, notification]
+        }
       } else {
         // otherwise try and use browser notifications
         try {
@@ -113,8 +124,8 @@
         on:swipe={() => removeNotification(id)}
         use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
         animate:flip={{ duration: 700 }}
-        in:fly={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
-        out:fade={{ duration: 500, easing: quintOut }}
+        in:fly|local={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
+        out:fade|local={{ duration: 500, easing: quintOut }}
         class="w-full cursor-grab bg-white dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 border border-neutral-100 dark:border-neutral-400 z-20 p-4 relative rounded-lg mb-2"
       >
         <div

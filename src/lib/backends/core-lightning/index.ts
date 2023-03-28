@@ -2,23 +2,45 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
-import { formatChannelsAPY, formatIncomeEvents, invoiceToPayment, payToPayment } from './utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
+
+import {
+  formatChannelsAPY,
+  formatIncomeEvents,
+  invoiceStatusToPaymentStatus,
+  invoiceToPayment,
+  payToPayment
+} from './utils'
 
 import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
   ChannelAPY,
+  CreatePayOfferRequest,
+  CreatePayOfferResponse,
+  CreateWithdrawOfferRequest,
+  CreateWithdrawOfferResponse,
+  DisableInvoiceRequestRequest,
+  DisableOfferRequest,
+  FetchInvoiceRequest,
+  FetchInvoiceResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
+  InvoiceRequestSummary,
   InvoiceResponse,
+  InvoiceStatus,
   KeysendResponse,
   ListfundsResponse,
+  ListInvoiceRequestsResponse,
   ListinvoicesResponse,
+  ListOffersResponse,
   ListpaysResponse,
+  OfferSummary,
   PayResponse,
+  SendInvoiceRequest,
+  SendInvoiceResponse,
   SignMessageResponse,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
@@ -85,13 +107,57 @@ class CoreLn {
       startedAt,
       completedAt: null,
       expiresAt: new Date(expires_at * 1000).toISOString(),
-      bolt11,
+      invoice: bolt11,
       description,
       hash: payment_hash,
       preimage: payment_secret
     }
 
     return payment
+  }
+
+  async createPayOffer(params: CreatePayOfferRequest['params']): Promise<CreatePayOfferResponse> {
+    const result = await this.connection.commando({
+      method: 'offer',
+      params,
+      rune: this.rune
+    })
+
+    return result as CreatePayOfferResponse
+  }
+
+  async createWithdrawOffer(
+    params: CreateWithdrawOfferRequest['params']
+  ): Promise<CreateWithdrawOfferResponse> {
+    const result = await this.connection.commando({
+      method: 'invoicerequest',
+      params,
+      rune: this.rune
+    })
+
+    return result as CreateWithdrawOfferResponse
+  }
+
+  async disableOffer(params: DisableOfferRequest['params']): Promise<OfferSummary> {
+    const result = await this.connection.commando({
+      method: 'disableoffer',
+      params,
+      rune: this.rune
+    })
+
+    return result as OfferSummary
+  }
+
+  async disableInvoiceRequest(
+    params: DisableInvoiceRequestRequest['params']
+  ): Promise<InvoiceRequestSummary> {
+    const result = await this.connection.commando({
+      method: 'disableinvoicerequest',
+      params,
+      rune: this.rune
+    })
+
+    return result as InvoiceRequestSummary
   }
 
   async waitForInvoicePayment(payment: Payment): Promise<Payment> {
@@ -129,18 +195,20 @@ class CoreLn {
   }
 
   async payInvoice(options: {
-    bolt11: string
+    /**Can be bolt11 or bolt12 */
+    invoice: string
+    type: 'bolt11' | 'bolt12'
     id: string
     amount_msat?: string
     description?: unknown
   }): Promise<Payment> {
-    const { bolt11, id, amount_msat: send_msat, description } = options
+    const { invoice, type, id, amount_msat: send_msat, description } = options
 
     const result = await this.connection.commando({
       method: 'pay',
       params: {
         label: id,
-        bolt11,
+        bolt11: invoice,
         amount_msat: send_msat,
         description
       },
@@ -162,7 +230,7 @@ class CoreLn {
       hash: payment_hash,
       preimage: payment_preimage,
       destination,
-      type: 'bolt11',
+      type,
       direction: 'send',
       value: formatMsat(amount_msat),
       completedAt: new Date().toISOString(),
@@ -170,7 +238,61 @@ class CoreLn {
       startedAt: new Date(created_at * 1000).toISOString(),
       fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
-      bolt11
+      invoice: invoice
+    }
+  }
+
+  /**Fetch an invoice for a BOLT12 Offer */
+  async fetchInvoice(params: FetchInvoiceRequest['params']): Promise<FetchInvoiceResponse> {
+    const result = await this.connection.commando({
+      method: 'fetchinvoice',
+      params,
+      rune: this.rune
+    })
+
+    return result as FetchInvoiceResponse
+  }
+
+  /**Create an invoice for a BOLT12 Offer and send it to be paid */
+  async sendInvoice(params: SendInvoiceRequest['params']): Promise<Payment> {
+    const { offer, label, amount_msat, timeout, quantity } = params
+    const createdAt = Date.now() / 1000
+
+    const orderedParams = amount_msat
+      ? [offer, label, amount_msat, timeout, quantity]
+      : [offer, label, timeout, quantity]
+
+    const result = await this.connection.commando({
+      method: 'sendinvoice',
+      params: orderedParams,
+      rune: this.rune
+    })
+
+    const {
+      payment_hash,
+      payment_preimage,
+      status,
+      bolt12,
+      expires_at,
+      paid_at,
+      amount_received_msat,
+      pay_index
+    } = result as SendInvoiceResponse
+
+    return {
+      id: label,
+      hash: payment_hash,
+      preimage: payment_preimage,
+      type: 'bolt12',
+      direction: 'receive',
+      value: formatMsat((amount_received_msat || amount_msat) as string),
+      completedAt: new Date(paid_at ? paid_at * 1000 : Date.now()).toISOString(),
+      expiresAt: new Date(expires_at * 1000).toISOString(),
+      startedAt: new Date(createdAt).toISOString(),
+      fee: null,
+      status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
+      invoice: bolt12,
+      payIndex: pay_index
     }
   }
 
@@ -215,16 +337,15 @@ class CoreLn {
       expiresAt: null,
       startedAt: new Date(created_at * 1000).toISOString(),
       fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
-      status,
-      bolt11: null
+      status
     }
   }
 
   async getPayments(): Promise<Payment[]> {
     const { invoices } = await this.listInvoices()
     const { pays } = await this.listPays()
-    const invoicePayments: Payment[] = invoices.map(invoiceToPayment)
-    const sentPayments: Payment[] = pays.map(payToPayment)
+    const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
+    const sentPayments: Payment[] = await Promise.all(pays.map(payToPayment))
 
     return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))
   }
@@ -274,6 +395,24 @@ class CoreLn {
     const formatted = formatChannelsAPY(result.channels_apy)
 
     return formatted
+  }
+
+  async listOffers(): Promise<ListOffersResponse['offers']> {
+    const result = await this.connection.commando({
+      method: 'listoffers',
+      rune: this.rune
+    })
+
+    return (result as ListOffersResponse).offers
+  }
+
+  async listInvoiceRequests(): Promise<ListInvoiceRequestsResponse['invoicerequests']> {
+    const result = await this.connection.commando({
+      method: 'listinvoicerequests',
+      rune: this.rune
+    })
+
+    return (result as ListInvoiceRequestsResponse).invoicerequests
   }
 }
 

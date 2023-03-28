@@ -9,6 +9,7 @@
   import check from '$lib/icons/check'
   import bitcoin from '$lib/icons/bitcoin'
   import lightning from '$lib/icons/lightning'
+  import settingsOutline from '$lib/icons/settings-outline'
 
   const bitcoinDenominations = [
     { value: BitcoinDenomination.btc, label: 'Bitcoin (BTC)', icon: bitcoin },
@@ -35,18 +36,26 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.settings_unit')}</title>
+  <title>{$translate('app.titles./settings/unit')}</title>
 </svelte:head>
 
 <Slide
   back={() => {
     goto('/settings/app')
   }}
+  backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
-    <h1 class="text-lg w-full text-center my-6 font-bold">
-      {$translate('app.titles.settings_unit')}
-    </h1>
+  <section
+    in:fade|local={{ duration: 250 }}
+    class="flex flex-col justify-center w-full p-4 max-w-lg"
+  >
+    <div class="flex items-center mb-6 mt-12">
+      <div class="w-10 mr-2">{@html settingsOutline}</div>
+      <h1 class="text-4xl font-bold">
+        {$translate('app.titles./settings/unit')}
+      </h1>
+    </div>
+
     <div class="w-full">
       {#each bitcoinDenominations as { value, label, icon }}
         <div on:click={() => setBitcoinUnit(value)} class="cursor-pointer">
@@ -57,7 +66,7 @@
             >
             <div slot="value">
               {#if $settings$.bitcoinDenomination === value}
-                <div in:fade={{ duration: 250 }} class="w-6">
+                <div in:fade|local={{ duration: 250 }} class="w-6">
                   {@html check}
                 </div>
               {/if}

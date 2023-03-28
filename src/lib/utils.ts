@@ -5,7 +5,13 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type { ListfundsResponse } from './backends'
+import type {
+  DecodedBolt12Invoice,
+  DecodedBolt12InvoiceRequest,
+  DecodedBolt12Offer,
+  ListfundsResponse,
+  OfferCommon
+} from './backends'
 import { customNotifications$, log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
@@ -18,16 +24,21 @@ import {
   ENCRYPTED_DATA_KEYS
 } from './constants'
 
-import type {
-  Denomination,
-  PaymentType,
-  Payment,
-  BitcoinExchangeRates,
-  FormattedSections,
-  ParsedNodeAddress,
-  Auth,
-  DecodedInvoice,
-  ParsedBitcoinUrl
+import {
+  type Denomination,
+  type PaymentType,
+  type Payment,
+  type BitcoinExchangeRates,
+  type ParsedNodeAddress,
+  type Auth,
+  type DecodedInvoice,
+  type ParsedBitcoinString,
+  type ParsedBitcoinStringError,
+  type ParsedOnchainString,
+  type FormattedDecodedBolt11,
+  type FormattedDecodedOffer,
+  BitcoinDenomination,
+  FiatDenomination
 } from './types'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
@@ -38,8 +49,8 @@ export function deriveLastPayIndex(payments: Payment[]): number {
     : 0
 }
 
-export function truncateValue(request: string, length = 9): string {
-  return `${request.slice(0, length)}...${request.slice(-length)}`
+export function truncateValue(val: string, length = 9): string {
+  return val.length <= length ? val : `${val.slice(0, length)}...${val.slice(-length)}`
 }
 
 export function supportsNotifications(): boolean {
@@ -390,6 +401,7 @@ export async function loadVConsole() {
   new VConsole()
 }
 
+/**Will strip the msat suffix from msat values if there */
 export function formatMsat(val: string | number): string {
   if (!val) return '0'
   return typeof val === 'string' ? val.replace('msat', '') : val.toString()
@@ -419,19 +431,19 @@ export function decodeLightningAddress(val: string): { username: string; domain:
   return { username, domain }
 }
 
-export function decodeBolt11(bolt11: string) {
+export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11: string }) | null {
   try {
     const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
 
-    const formattedSections = sections.reduce((acc, { name, value }) => {
+    const formatted = sections.reduce((acc, { name, value }) => {
       if (name && value) {
         acc[name] = value
       }
 
       return acc
-    }, {} as FormattedSections)
+    }, {} as FormattedDecodedBolt11)
 
-    return { bolt11, ...formattedSections }
+    return { bolt11, ...formatted }
   } catch (error) {
     return null
   }
@@ -441,57 +453,139 @@ export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
-export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinUrl {
+export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinString {
   destination = destination.toLowerCase()
   protocol = protocol.toLowerCase()
 
+  // LNURL
   if (
     destination.startsWith('lnurl') ||
     protocol.startsWith('lnurl') ||
     protocol.startsWith('keyauth') ||
     decodeLightningAddress(destination)
   ) {
-    return { lnurl: destination, type: 'lnurl' }
+    return { value: destination, type: 'lnurl' }
   }
 
+  // Keysend
   if (nodePublicKeyRegex.test(destination)) {
-    return { keysend: destination, type: 'keysend' }
+    return { value: destination, type: 'keysend' }
   }
 
+  // Bolt11
   if (bolt11Regex.test(destination)) {
-    return { bolt11: destination, type: 'bolt11' }
+    return { value: destination, type: 'bolt11' }
   }
 
+  // Bolt 12
+  if (
+    // Offer
+    destination.startsWith('lno1') ||
+    // Invoice
+    destination.startsWith('lni1') ||
+    // Invoice request
+    destination.startsWith('lnr1')
+  ) {
+    return {
+      type: 'bolt12',
+      value: destination
+    }
+  }
+
+  // Onchain
   if (isValidBitcoinAddress(destination)) {
     return {
       type: 'onchain',
-      onchain: {
+      value: {
         address: destination
       }
     }
   }
 
-  return { error: get(translate)('app.errors.unrecognized_payment_type'), type: null }
+  return { error: get(translate)('app.errors.unrecognized_payment_type') }
 }
 
-export function parseBitcoinUrl(input: string): ParsedBitcoinUrl {
+export function parseBitcoinUrl(input: string): ParsedBitcoinString {
   // try parsing as URL first
   try {
-    const { pathname: value, searchParams: params } = new URL(input)
-    const lightningParam = params.get('lightning')
+    const { pathname, searchParams } = new URL(input)
+    const lightningParam = searchParams.get('lightning')
 
-    const main = getPaymentDetails(value.toLowerCase())
+    const details = getPaymentDetails(pathname.toLowerCase())
 
-    if (main.onchain) {
-      main.onchain.amount = params.get('amount')
-      main.onchain.label = params.get('label')
-      main.onchain.message = params.get('message')
+    if ((details as ParsedBitcoinStringError).error) {
+      return details
+    }
+
+    const { type, value } = details as ParsedOnchainString
+
+    if (type === 'onchain') {
+      value.amount = searchParams.get('amount')
+      value.label = searchParams.get('label')
+      value.message = searchParams.get('message')
     }
 
     const lightning = lightningParam ? getPaymentDetails(lightningParam.toLowerCase()) : {}
 
-    return { ...main, ...lightning }
+    return { type, value, ...lightning }
   } catch (error) {
     return getPaymentDetails(input)
+  }
+}
+
+export function formatDecodedOffer(
+  decoded: DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
+): FormattedDecodedOffer {
+  const {
+    type,
+    offer_recurrence,
+    offer_currency,
+    offer_amount,
+    offer_amount_msat,
+    offer_description,
+    offer_node_id,
+    offer_issuer,
+    offer_absolute_expiry,
+    offer_quantity_max
+  } = decoded
+
+  const offerType = type
+  const offerExpiry = offer_absolute_expiry
+  const recurrence = offer_recurrence
+  const description = offer_description
+  const issuer = offer_issuer
+
+  let denomination: BitcoinDenomination.msats | FiatDenomination
+  let nodeId: OfferCommon['offer_node_id']
+  let quantityMax: OfferCommon['offer_quantity_max']
+  let amount: OfferCommon['offer_amount']
+
+  if (offerType === 'bolt12 invoice_request') {
+    const { invreq_amount_msat, invreq_amount, invreq_payer_id } =
+      decoded as DecodedBolt12InvoiceRequest
+    denomination = BitcoinDenomination.msats
+    amount = formatMsat((invreq_amount_msat || invreq_amount) as string)
+    nodeId = invreq_payer_id
+    quantityMax = offer_quantity_max
+  } else {
+    const { invreq_amount_msat, invreq_amount } = decoded as DecodedBolt12Invoice
+    denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.msats
+    amount =
+      offer_amount?.toString() ||
+      formatMsat((offer_amount_msat || invreq_amount_msat || invreq_amount) as string)
+    nodeId = offer_node_id
+    quantityMax = offer_quantity_max
+  }
+
+  return {
+    offerType,
+    offerExpiry,
+    recurrence,
+    description,
+    issuer,
+    denomination,
+    amount,
+    nodeId,
+    quantityMax
   }
 }

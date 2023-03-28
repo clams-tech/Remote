@@ -7,6 +7,7 @@
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import check from '$lib/icons/check'
+  import settingsOutline from '$lib/icons/settings-outline'
 
   const labels: Record<string, string> = {
     usd: 'US Dollar (USD, $)',
@@ -50,18 +51,26 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles.settings_currency')}</title>
+  <title>{$translate('app.titles./settings/currency')}</title>
 </svelte:head>
 
 <Slide
   back={() => {
     goto('/settings/app')
   }}
+  backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col items-center justify-center w-full p-6 max-w-lg">
-    <h1 class="text-lg w-full text-center my-6 font-bold">
-      {$translate('app.titles.settings_currency')}
-    </h1>
+  <section
+    in:fade|local={{ duration: 250 }}
+    class="flex flex-col justify-center w-full p-4 max-w-lg"
+  >
+    <div class="flex items-center mb-6 mt-12">
+      <div class="w-10 mr-2">{@html settingsOutline}</div>
+      <h1 class="text-4xl font-bold">
+        {$translate('app.titles./settings/currency')}
+      </h1>
+    </div>
+
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
       <SummaryRow>
         <span slot="label" class="font-bold">{$translate('app.labels.commonly_used')}</span>
@@ -74,7 +83,7 @@
               <span slot="label" class="ml-4">{labels[key] || key}</span>
               <div slot="value">
                 {#if $settings$.fiatDenomination === val}
-                  <div in:fade={{ duration: 250 }} class="w-6">
+                  <div in:fade|local={{ duration: 250 }} class="w-6">
                     {@html check}
                   </div>
                 {/if}
@@ -94,7 +103,7 @@
             <span slot="label" class="ml-4">{labels[key] || key}</span>
             <div slot="value">
               {#if $settings$.fiatDenomination === val}
-                <div in:fade={{ duration: 250 }} class="w-6">
+                <div in:fade|local={{ duration: 250 }} class="w-6">
                   {@html check}
                 </div>
               {/if}

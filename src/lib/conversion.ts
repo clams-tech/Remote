@@ -14,6 +14,7 @@ export function msatsToBtc(msats: string): string {
 export function msatsToSats(msats: string): string {
   return Big(msats === 'any' ? '0' : msats)
     .div(1000)
+    .round()
     .toString()
 }
 

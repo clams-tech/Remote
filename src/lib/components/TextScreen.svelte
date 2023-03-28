@@ -5,11 +5,14 @@
   import arrow from '$lib/icons/arrow'
   import { onMount } from 'svelte'
 
-  export let description = ''
+  export let value = ''
+  export let label: string
   export let error = ''
   export let next: () => void
   export let readonly = false
   export let max = 100
+  export let hint = ''
+  export let buttonTextKey = 'next'
 
   let focusInput: () => void
 
@@ -18,19 +21,20 @@
   })
 </script>
 
-<section class="flex flex-col justify-center w-full p-6 max-w-lg">
+<section class="flex flex-col justify-center w-full p-4 max-w-lg">
   <div class="mb-6">
-    <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.description')}</h1>
+    <h1 class="text-4xl font-bold mb-4">{$translate(`app.headings.${label}`)}</h1>
     <p class="text-neutral-600 dark:text-neutral-400 italic">
-      {$translate('app.subheadings.description')}
+      {$translate(`app.subheadings.${label}`)}
     </p>
   </div>
 
   <div class="mb-6">
     <TextInput
       type="textarea"
-      bind:value={description}
+      bind:value
       {readonly}
+      {hint}
       name="description"
       invalid={error}
       maxlength={max}
@@ -39,7 +43,7 @@
     />
   </div>
 
-  <Button text={$translate('app.buttons.view_summary')} on:click={next}>
+  <Button text={$translate(`app.buttons.${buttonTextKey}`)} on:click={() => next()}>
     <div slot="iconRight" class="w-6 -rotate-90">
       {@html arrow}
     </div>
