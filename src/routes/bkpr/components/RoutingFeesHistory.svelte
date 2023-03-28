@@ -13,7 +13,7 @@
 
   let noRoutingFees = false
   // @TODO - ts this as enums as it is used in multiple places
-  const timeFrames = ['all', 'year', '6months', 'quarter', 'month', 'week']
+  const timeFrames = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
   const colorCache: { [key: string]: string } = {}
   const chartId = 'feesHistory'
   let chart: Chart<'line', number[], string>
@@ -88,13 +88,15 @@
       case 'quarter':
         startDate = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate())
         break
-      case '6months':
+      case 'biannual':
         startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate())
         break
       case 'year':
         startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
         break
-      // @TODO // When timeframe is 'all', use the firstEventDate parameter as the start date
+      case 'all':
+        startDate = new Date(routingEvents[0].timestamp * 1000) // First routing event
+        break
       default:
         startDate = new Date()
     }
@@ -139,7 +141,6 @@
     )
   }
 
-  // @TODO - style the chart better
   function updateChartData(channelID?: string) {
     chart.data.datasets = []
 
