@@ -9,7 +9,7 @@
 {#if message}
   <div class="bg-white dark:bg-neutral-900">
     <div
-      in:fade|local
+      in:fade|local={{ duration: 250 }}
       class="pl-6 pr-8 w-full max-w-md py-4 rounded-lg border flex justify-center items-start border-utility-error/50 relative bg-utility-error/5 text-utility-error mt-6 overflow-hidden transition-all"
     >
       {#if closable}

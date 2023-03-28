@@ -66,14 +66,14 @@
         <div class="w-4 border border-neutral-400 dark:border-neutral-600 rounded-full">
           {@html info}
         </div>
-        <div in:fade|local class="text-sm ml-2 max-w-xs">{hint}</div>
+        <div in:fade|local={{ duration: 250 }} class="text-sm ml-2 max-w-xs">{hint}</div>
       </div>
     {/if}
 
     {#if error}
       <div class="flex items-center text-utility-error mt-4">
         <div class="w-4">{@html warning}</div>
-        <div in:fade|local class="text-sm ml-2">{error}</div>
+        <div in:fade|local={{ duration: 250 }} class="text-sm ml-2">{error}</div>
       </div>
     {/if}
   </div>

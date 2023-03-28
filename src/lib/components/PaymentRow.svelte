@@ -36,7 +36,7 @@
 </script>
 
 <button
-  in:fade|local
+  in:fade|local={{ duration: 250 }}
   on:click={() => goto(`/payments/${id}`)}
   class="flex items-start text-start justify-between py-4 border-t w-full cursor-pointer dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
 >
