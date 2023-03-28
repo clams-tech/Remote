@@ -8,7 +8,8 @@ import {
   ReplaySubject,
   Subject
 } from 'rxjs'
-import { map, scan, shareReplay, startWith, take, withLatestFrom } from 'rxjs/operators'
+
+import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
 

@@ -35,7 +35,10 @@
   <title>{$translate('app.titles./payment')}</title>
 </svelte:head>
 
-<section in:fade|local class="flex flex-col justify-center items-center h-full w-full max-w-lg">
+<section
+  in:fade|local={{ duration: 250 }}
+  class="flex flex-col justify-center items-center h-full w-full max-w-lg"
+>
   <BackButton on:click={back} text={$translate(`app.titles.${backPath}`)} />
   <div class="w-full h-16 bg-white dark:bg-neutral-900" />
 

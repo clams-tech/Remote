@@ -60,7 +60,10 @@
   backText={$translate('app.titles./')}
   direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-  <section in:fade|local class="flex flex-col justify-start w-full p-4 max-w-lg">
+  <section
+    in:fade|local={{ duration: 250 }}
+    class="flex flex-col justify-start w-full p-4 max-w-lg"
+  >
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html list}</div>
       <h1 class="text-4xl font-bold">
