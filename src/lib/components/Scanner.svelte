@@ -2,8 +2,6 @@
   import { onDestroy, onMount } from 'svelte'
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations'
-  import BackButton from '$lib/elements/BackButton.svelte'
-  import { goto } from '$app/navigation'
   import { createRandomHex, userAgent } from '$lib/utils'
   import { customNotifications$ } from '$lib/streams'
 

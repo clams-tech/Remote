@@ -86,7 +86,7 @@
         </div>
       {:else}
         <div class="grid gap-4 w-full max-h-full overflow-auto">
-          {#each $offers$.data as { label, id, type, active, single_use, used, amount, offerExpiry } (id)}
+          {#each $offers$.data as { label, id, type, active, single_use, amount, offerExpiry } (id)}
             {@const payments = $offersPayments$[id]}
 
             {@const status =
