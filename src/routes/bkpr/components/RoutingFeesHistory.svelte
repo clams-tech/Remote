@@ -9,6 +9,7 @@
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import info from '$lib/icons/info'
+  import Button from '$lib/elements/Button.svelte'
 
   let noRoutingFees = false
   // @TODO - ts this as enums as it is used in multiple places
@@ -71,7 +72,7 @@
     }
   }
 
-  // Returns array of date strings representing the X-axis labels for the chart for given timeframe
+  // X-axis labels for chart for given timeframe
   function xAxisDates(timeframe: string) {
     const today = new Date()
     let startDate
@@ -97,7 +98,7 @@
       default:
         startDate = new Date()
     }
-    // Yields each date between a given start and today
+    // Each date between a given starting date and today
     const dates = Array.from(generateDates(startDate, today))
     return dates
   }
@@ -116,7 +117,7 @@
 
   $: dates = xAxisDates(timeFrame)
 
-  function getchannelData(channelID: string, dayData: { x: string; y: number }[] = []) {
+  function getChannelData(channelID: string, dayData: { x: string; y: number }[] = []) {
     let accountRoutingEvents = routingEvents.filter((event) => event.account === channelID)
 
     for (const event of accountRoutingEvents) {
@@ -138,39 +139,33 @@
     )
   }
 
-  // TODO - style the chart better
+  // @TODO - style the chart better
   function updateChartData(channelID?: string) {
     chart.data.datasets = []
 
-    // Add single channel data
-    if (channelID) {
-      let dayData = dates.map((date) => ({
-        x: date,
-        y: 0
-      }))
+    let dayData = dates.map((date) => ({
+      x: date,
+      y: 0
+    }))
 
-      const data = getchannelData(channelID, dayData)
+    // Add fee data for single channel
+    if (channelID) {
+      const data = getChannelData(channelID, dayData)
 
       chart.data.datasets.push({
         label: truncateValue(channelID, 3),
         data,
-        // TOTDO - add color the pie charts the same colors
         borderColor: getChannelColor(channelID),
         fill: false
       })
 
       chart.update()
-      // Add total data for all channels
+      // Add fee data for all channels
     } else {
       const totalData: number[][] = []
 
       for (const channelID of channelIDs) {
-        let dayData = dates.map((date) => ({
-          x: date,
-          y: 0
-        }))
-
-        const channelData = getchannelData(channelID, dayData)
+        const channelData = getChannelData(channelID, dayData)
 
         totalData.push(channelData)
       }
@@ -205,17 +200,25 @@
         scales: {
           x: {
             display: true,
+            ticks: {
+              color: $settings$.darkmode ? 'white' : 'black'
+            },
             title: {
+              color: $settings$.darkmode ? 'white' : 'black',
               display: true,
-              text: 'Date'
+              text: 'DATE'
             }
           },
           y: {
-            beginAtZero: true,
             display: true,
+            beginAtZero: true,
+            ticks: {
+              color: $settings$.darkmode ? 'white' : 'black'
+            },
             title: {
+              color: $settings$.darkmode ? 'white' : 'black',
               display: true,
-              text: $settings$.bitcoinDenomination
+              text: $settings$.bitcoinDenomination.toLocaleUpperCase()
             }
           }
         }
@@ -260,30 +263,25 @@
           </div>
         </div>
       {:else}
-        <div class="flex">
-          <button
-            class="m-2 px-2 py-1 rounded-md border border-current"
-            on:click={() => updateChartData()}>Total</button
-          >
-          <!-- TODO - add label to each button to show if its active or not -->
+        <div class="mb-6 flex gap-4">
+          <Button small={true} on:click={() => updateChartData()} text="Total" />
+          <!-- @TODO - add label to each button to show if its active or not -->
           {#each [...channelIDs] as channelID}
-            <!-- TODO - style buttons -->
-            <button
-              class="m-2 px-2 py-1 rounded-md border border-current"
-              on:click={() => updateChartData(channelID)}>{truncateValue(channelID, 3)}</button
-            >
+            <Button
+              small={true}
+              on:click={() => updateChartData(channelID)}
+              text={truncateValue(channelID, 3)}
+            />
           {/each}
         </div>
+
         <canvas id={chartId} />
 
-        <div class="flex justify-around w-full">
+        <div class="mt-6 flex w-full justify-between">
           {#each timeFrames as tf}
-            <button
-              class="mr-2 px-2 py-1 rounded-md border border-current"
-              on:click={() => (timeFrame = tf)}
-            >
-              {tf}
-            </button>
+            <div>
+              <Button small={true} on:click={() => (timeFrame = tf)} text={tf} />
+            </div>
           {/each}
         </div>
       {/if}
