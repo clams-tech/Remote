@@ -65,12 +65,18 @@
               })}
             </span>
             {#if completedAt}
-              <span class="ml-1">
+              <div class="ml-1 overflow-hidden flex items-center whitespace-nowrap">
                 -
                 {#await formatDate( { date: completedAt, language: $settings$.language } ) then formatted}
-                  <span in:fade|local={{ duration: 50 }}>{formatted}</span>
+                  <div
+                    style="max-width: {Math.floor(window.innerWidth * 0.35)}px"
+                    class="overflow-hidden ml-1 whitespace-nowrap text-ellipsis"
+                    in:fade|local={{ duration: 50 }}
+                  >
+                    {formatted}
+                  </div>
                 {/await}
-              </span>
+              </div>
             {/if}
           </div>
         </button>
