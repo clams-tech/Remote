@@ -410,7 +410,7 @@
 
 {#if showDecodedRuneModal && decodedRune}
   <Modal on:close={() => (showDecodedRuneModal = false)}>
-    <div in:fade|local={{ duration: 250 }} class="w-[25rem] max-w-full">
+    <div in:fade|local={{ duration: 250 }} class="w-[25rem] max-w-full h-full overflow-auto">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>
