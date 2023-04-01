@@ -32,7 +32,10 @@
   }}
   backText={$translate('app.titles./settings/app')}
 >
-  <section in:fade class="flex flex-col justify-center w-full p-4 max-w-lg relative">
+  <section
+    in:fade|local={{ duration: 250 }}
+    class="flex flex-col justify-center w-full p-4 max-w-lg relative"
+  >
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html settingsOutline}</div>
       <h1 class="text-4xl font-bold">
@@ -53,7 +56,7 @@
 
             <div slot="value">
               {#if $settings$.language === lang}
-                <div in:fade={{ duration: 250 }} class="w-6">
+                <div in:fade|local={{ duration: 250 }} class="w-6">
                   {@html check}
                 </div>
               {/if}

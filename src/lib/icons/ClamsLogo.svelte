@@ -25,7 +25,7 @@
   {#if visible}
     <svg width="100%" viewBox="0 0 151 147" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M83.4 77.2L92 63L83.4 77.2Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -33,7 +33,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M68.9 77.2L60.3 63L68.9 77.2Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -41,7 +41,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M52.6 62.0001L35.4 42.3C33.9 44.5 32.5 46.7 31.4 49.1C30.8 50.4 31.1 52.0001 32.2 52.9001L62.4 77.3H65.8L52.6 62.0001Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -49,7 +49,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M68.9001 77.1999L60.3001 62.9999L40 29.3999C37.6 31.5999 35.5001 33.9999 33.6001 36.4999C32.7001 37.6999 32.8001 39.2999 33.8001 40.3999L52.7001 61.9999L66 77.1999H68.9001Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -57,7 +57,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M65.9001 77.2L52.6001 62L65.9001 77.2Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -65,7 +65,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M60.3002 63.0001L68.9001 77.2001H71.6001L48.2001 16.6001C44.9001 18.6001 41.9002 20.9001 39.3002 23.4001C38.3002 24.4001 38.1002 26.0001 38.8002 27.2001L40.1001 29.4001L60.3002 63.0001Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -73,7 +73,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M40 29.3999L60.3 62.9999L40 29.3999Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -81,7 +81,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M73.9002 77.2001L64.6002 18.8001L62.7002 6.6001C61.5002 7.0001 60.2001 7.40012 59.0001 7.90012C55.5001 9.20012 52.3002 11.0001 49.3002 12.9001C48.1002 13.7001 47.6002 15.2001 48.1002 16.6001L71.5001 77.2001H73.9002V77.2001Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -89,7 +89,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M89.8 77.2L120 52.8C121.1 51.9 121.5 50.3 120.8 49C119.7 46.7 118.3 44.4 116.8 42.2L99.6 61.9L86.4 77.2H89.8Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -97,7 +97,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M83.4 77.1999H86.4L99.7 61.9999L118.6 40.3999C119.6 39.2999 119.6 37.6999 118.8 36.4999C116.9 33.9999 114.8 31.5999 112.4 29.3999L92.1 62.9999L83.4 77.1999Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -105,7 +105,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M86.4 77.2L99.6 62L86.4 77.2Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -113,7 +113,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M83.4 77.2001L92 63.0001L112.3 29.4001L113.6 27.2001C114.3 26.0001 114.1 24.4001 113.1 23.4001C110.4 20.9001 107.5 18.6001 104.2 16.6001L80.8 77.2001H83.4Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -121,7 +121,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M92 62.9999L112.3 29.3999L92 62.9999Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -129,7 +129,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M104.2 16.6001C104.7 15.3001 104.2 13.7001 103 12.9001C100 10.9001 96.8 9.20012 93.3 7.90012C92.1 7.40012 90.8 7.0001 89.6 6.6001L87.7 18.8001L78.4 77.2001H80.8L104.2 16.6001Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -137,7 +137,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M89.6 6.29999C89.8 4.79999 88.9 3.29999 87.4 2.89999C86.8 2.69999 86.6 2.39999 80.8 1.39999C79.8 1.19999 78.5 1 76.8 1C76.4 1 75.8 1 75.2 1C73.5 1.1 72.2 1.29999 71.2 1.39999C65.5 2.39999 65.3 2.69999 64.6 2.89999C63.1 3.29999 62.2 4.79999 62.4 6.29999C66.4 31.5 69.8 52.8 73.7 77.2H78.1C82.2 52.8 85.6 31.6 89.6 6.29999Z"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -145,7 +145,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M1 77.2H150.5"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -153,7 +153,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M150.5 119.9H1"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -161,7 +161,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M134.5 128.7H17.1001"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -169,7 +169,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M118.4 137.6H33.1001"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -177,7 +177,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:draw={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
+        in:draw|local={{ duration: disableAnimation ? 0 : getRandom(), easing: quintOut }}
         d="M102.4 146.4H49.2002"
         stroke="currentColor"
         stroke-miterlimit="10"
@@ -185,7 +185,7 @@
         stroke-linejoin="round"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -194,7 +194,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -203,7 +203,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -212,7 +212,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -221,7 +221,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -230,7 +230,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -239,7 +239,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -248,7 +248,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -257,7 +257,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -266,7 +266,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -275,7 +275,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
@@ -284,7 +284,7 @@
         fill="currentColor"
       />
       <path
-        in:fade={{
+        in:fade|local={{
           delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut

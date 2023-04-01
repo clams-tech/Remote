@@ -19,6 +19,7 @@
   let canvas: HTMLCanvasElement | null = null
   let node: HTMLDivElement
   let qrCode: QRCodeStyling
+  let rawData: Blob
 
   $: if (value && node) {
     qrCode = new QRCodeStyling({
@@ -26,7 +27,7 @@
       height: size,
       type: 'svg',
       data: `lightning:${value}`.toUpperCase(),
-      imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 0 },
+      imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
         color: '#6a1a4c',
@@ -44,8 +45,14 @@
       cornersDotOptions: { type: 'dot', color: '#000000' }
     })
 
-    qrCode.update({ image: '/icons/512x512.png' })
     qrCode.append(node)
+  }
+
+  $: if (qrCode) {
+    fetch('/icons/512x512.png').then(() => {
+      qrCode.update({ image: '/icons/512x512.png' })
+      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+    })
   }
 
   let copySuccess = false
@@ -55,7 +62,7 @@
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': qrCode.getRawData('png') as Promise<Blob>
+          'image/png': rawData
         })
       ])
 
@@ -73,16 +80,16 @@
 </script>
 
 <div
-  in:fade
+  in:fade|local={{ duration: 250 }}
   class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
 >
   <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
   <div class="absolute -bottom-9 right-0 mt-2 flex items-center gap-x-2">
     <button on:click={copyImage} class="flex items-center">
       {#if copySuccess}
-        <div in:fade class="w-8 text-utility-success">{@html check}</div>
+        <div in:fade|local={{ duration: 250 }} class="w-8 text-utility-success">{@html check}</div>
       {:else}
-        <div in:fade class="w-8">{@html copy}</div>
+        <div in:fade|local={{ duration: 250 }} class="w-8">{@html copy}</div>
       {/if}
     </button>
     <button

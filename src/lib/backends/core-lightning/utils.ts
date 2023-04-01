@@ -10,7 +10,6 @@ import type {
   IncomeEvent,
   DecodedBolt12Invoice
 } from './types'
-import { nodeInfo$, offers$ } from '$lib/streams'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {

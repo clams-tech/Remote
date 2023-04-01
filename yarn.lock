@@ -624,10 +624,10 @@ bn.js@^4.11.9:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
 
-bolt12-decoder@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.4.tgz#55f5bc93e4e9f2f8ea90a9fe38add34fdb386a4f"
-  integrity sha512-8DdfQIuJFwT9v+olL//+ZvT2VYRafI6SNk5twLK4p+V48xzne1MPl8Y/dQ0wUMaeT5pQQ3Hd7YhAQLJgB3lwLQ==
+bolt12-decoder@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.5.tgz#c38e25b37c0ec79dae3394e632359f94db1f2625"
+  integrity sha512-59fryLDMYA/Av4UrS6xoIF4qjHSNzWFDdN37aeLu9gI9kRBLlZ8wnpS4gnjvu3WAFa1wdi7vwSzCvAmJF/G7pw==
   dependencies:
     "@noble/hashes" "^1.2.0"
     buffer "^6.0.3"
@@ -1554,10 +1554,10 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-lnmessage@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.0.tgz#3f24f2f6aef31f8c7dbcd48903087d02ee050ca6"
-  integrity sha512-zyNLn3BPz+lQq0B7Vu3Y93qjBeLxyZAHEMRzhUAHdEVlRhg4wKViJjjiKSqxs8pMHfHCizMu73U2lt38OSvpjw==
+lnmessage@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.1.tgz#ff8daaa52632c12b4f90559f04922e3e5f6ecb80"
+  integrity sha512-TZQNZP4EYyaHE4bRuoGb81NbSGkyAwzZkSbrYHKLpKpe2yLlBp7vgru9n9d8iEMQNlkyGLIwvi2eRbRJPkqi1Q==
   dependencies:
     "@noble/hashes" "^1.2.0"
     "@noble/secp256k1" "^1.7.1"

@@ -31,7 +31,7 @@
     </div>
 
     <div
-      in:fade
+      in:fade|local={{ duration: 250 }}
       class:w-0={!showConnectionStatus}
       class:w-28={showConnectionStatus}
       class="ml-2 overflow-hidden transition-all text-sm flex items-center dark:text-neutral-50/60 text-neutral-900/60"

@@ -269,7 +269,10 @@
             on:focus={resetConnectStatus}
           />
 
-          <div in:fade class="flex items-center text-sm absolute bottom-1 right-1">
+          <div
+            in:fade|local={{ duration: 250 }}
+            class="flex items-center text-sm absolute bottom-1 right-1"
+          >
             {#if connectStatus === 'success'}
               <div class="flex items-center">
                 <span class="text-utility-success">{$translate('app.inputs.add_rune.success')}</span
@@ -301,7 +304,7 @@
 
         <!-- ADVANCED SETTINGS -->
         <div
-          in:fade
+          in:fade|local={{ duration: 250 }}
           class:h-28={!!expandConnectionSettings}
           class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start overflow-y-hidden h-0 transition-all"
         >
@@ -369,7 +372,7 @@
         </div>
 
         {#if decodedRune}
-          <div in:fade>
+          <div in:fade|local={{ duration: 250 }}>
             <Button text="Decode Rune" on:click={() => (showDecodedRuneModal = true)} small />
           </div>
         {/if}
@@ -407,7 +410,7 @@
 
 {#if showDecodedRuneModal && decodedRune}
   <Modal on:close={() => (showDecodedRuneModal = false)}>
-    <div in:fade class="w-[25rem] max-w-full">
+    <div in:fade|local={{ duration: 250 }} class="w-[25rem] max-w-full h-full overflow-auto">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.rune_summary')}</h4>
 
       <SummaryRow>

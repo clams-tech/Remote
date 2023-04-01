@@ -9,7 +9,7 @@
 
 {#if path !== '/' && path !== '/decrypt' && isProtectedRoute(path)}
   <a href="/" class="absolute right-0 top-0 p-4 z-20">
-    <div in:fade class="w-8">
+    <div in:fade|local={{ duration: 250 }} class="w-8">
       {@html home}
     </div>
   </a>

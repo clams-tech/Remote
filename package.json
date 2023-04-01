@@ -49,7 +49,7 @@
   "dependencies": {
     "@noble/hashes": "^1.2.0",
     "big.js": "^6.2.1",
-    "bolt12-decoder": "^0.0.4",
+    "bolt12-decoder": "^0.0.5",
     "chart.js": "^4.2.1",
     "bitcoin-address-validation": "^2.2.1",
     "crypto-js": "^4.1.1",
@@ -59,7 +59,7 @@
     "js-lnurl": "^0.5.1",
     "jsqr": "^1.4.0",
     "light-bolt11-decoder": "^3.0.0",
-    "lnmessage": "^0.2.0",
+    "lnmessage": "^0.2.1",
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",
     "qr-code-styling": "^1.6.0-rc.1",

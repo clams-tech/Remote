@@ -2,7 +2,7 @@
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
   import { funds$, nodeInfo$, settings$ } from '$lib/streams'
-  import { calculateBalance, isPWA, logger, truncateValue } from '$lib/utils'
+  import { calculateBalance, isPWA, logger } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
   import { convertValue } from '$lib/conversion'
@@ -56,10 +56,16 @@
 
 <Nav />
 
-<div in:fade class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28">
+<div
+  in:fade|local={{ duration: 250 }}
+  class="h-full w-full flex flex-col items-center justify-center relative md:tall:pl-28"
+>
   <div class="w-full max-w-lg p-4">
     {#if $nodeInfo$.data}
-      <div in:fade class="flex items-center w-full justify-center text-xl p-4">
+      <div
+        in:fade|local={{ duration: 250 }}
+        class="flex items-center w-full justify-center text-xl p-4"
+      >
         <Refresh />
         <div class="ml-2 mt-[2px] flex items-center">
           <b>{$nodeInfo$.data.alias}</b>
@@ -71,11 +77,11 @@
     {/if}
 
     {#if $funds$.loading && !$funds$.data}
-      <div in:fade class="p-4">
+      <div in:fade|local={{ duration: 250 }} class="p-4">
         <Spinner />
       </div>
     {:else}
-      <div in:fade>
+      <div in:fade|local={{ duration: 250 }}>
         <Value primary={balancePrimaryDenom} secondary={balanceSecondaryDenom} readonly />
       </div>
     {/if}

@@ -35,11 +35,11 @@
   {/if}
 
   {#if copySuccess}
-    <div in:fade class="ml-1 w-6 text-utility-success">
+    <div in:fade|local={{ duration: 250 }} class="ml-1 w-6 text-utility-success">
       {@html check}
     </div>
   {:else}
-    <div in:fade class="ml-1 w-6">
+    <div in:fade|local={{ duration: 250 }} class="ml-1 w-6">
       {@html icon}
     </div>
   {/if}

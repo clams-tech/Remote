@@ -75,7 +75,7 @@
         direction: payment.direction
       })}</span
     >
-    <div in:fade class="flex flex-col items-end">
+    <div in:fade|local={{ duration: 250 }} class="flex flex-col items-end">
       <span
         class="text-4xl flex items-center tracking-wider {payment.direction === 'receive' &&
         payment.status === 'complete'
@@ -176,7 +176,7 @@
                 on:click={() => goto(`/offers/${id || withdrawalOfferId}`)}
               >
                 {truncateValue(id || withdrawalOfferId)}
-                <div in:fade class="w-6 cursor-pointer ml-1">
+                <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
                   {@html link}
                 </div>
               </button>
@@ -248,7 +248,7 @@
         <span slot="label">{$translate('app.labels.completed_at')}:</span>
         <span slot="value">
           {#await formatDate( { date: payment.completedAt, language: $settings$.language } ) then formatted}
-            <span in:fade={{ duration: 50 }}>{formatted}</span>
+            <span in:fade|local={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>
@@ -259,7 +259,7 @@
         >
         <span slot="value">
           {#await formatDate( { date: payment.startedAt, language: $settings$.language } ) then formatted}
-            <span in:fade={{ duration: 50 }}>{formatted}</span>
+            <span in:fade|local={{ duration: 50 }}>{formatted}</span>
           {/await}
         </span>
       </SummaryRow>

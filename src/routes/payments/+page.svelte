@@ -60,7 +60,10 @@
   backText={$translate('app.titles./')}
   direction={$lastPath$ && $lastPath$.includes('payments') ? 'right' : 'left'}
 >
-  <section in:fade class="flex flex-col justify-start w-full p-4 max-w-lg">
+  <section
+    in:fade|local={{ duration: 250 }}
+    class="flex flex-col justify-start w-full p-4 max-w-lg"
+  >
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html list}</div>
       <h1 class="text-4xl font-bold">
@@ -68,8 +71,8 @@
       </h1>
     </div>
 
-    <div class="w-full mt-2 mb-6 relative flex items-center shadow-sm">
-      <TextInput bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
+    <div class="w-full mb-4 relative flex items-center shadow-sm">
+      <TextInput micro bind:value={searchTerm} placeholder="Search" type="text" name="filter" />
       <div class="absolute right-1 w-8 text-neutral-400">{@html search}</div>
     </div>
 

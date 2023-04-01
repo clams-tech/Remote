@@ -10,7 +10,7 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { createRandomHex, formatValueForDisplay, truncateValue } from '$lib/utils'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { BitcoinDenomination, type FiatDenomination } from '$lib/types'
+  import { BitcoinDenomination, type FiatDenomination, type Payment } from '$lib/types'
   import { lastPath$, paymentUpdates$, settings$ } from '$lib/streams'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Button from '$lib/elements/Button.svelte'
@@ -128,15 +128,23 @@
   async function complete() {
     completing = true
 
-    let payment
+    let payment: Payment
+
+    const offer: Payment['offer'] = {
+      issuer,
+      payerNote,
+      description
+    }
 
     try {
       if (offerType === 'bolt12 invoice') {
-        payment = await lnApi.payInvoice({
+        const result = await lnApi.payInvoice({
           invoice: data.bolt12,
           type: 'bolt12',
           id: createRandomHex()
         })
+
+        payment = { ...result, offer }
       } else if (offerType === 'bolt12 offer') {
         const {
           changes,
@@ -156,7 +164,6 @@
           quantity: quantityMax && quantity
         })
 
-        // @TODO - TEST CHANGES MODAL
         if (changes && changes.amount_msat) {
           changes$.next({ showModal: true, approved: false, amountMsat: changes.amount_msat })
           const { approved } = await firstValueFrom(changes$)
@@ -164,13 +171,16 @@
           if (!approved) return
         }
 
-        payment = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
+        const result = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
+        payment = { ...result, offer }
       } else if (offerType === 'bolt12 invoice_request') {
-        payment = await lnApi.sendInvoice({
+        const result = await lnApi.sendInvoice({
           offer: data.bolt12,
           label: createRandomHex(),
           amount_msat: amount === 'any' ? value : undefined
         })
+
+        payment = { ...result, offer }
       }
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
@@ -179,7 +189,7 @@
     } finally {
       completing = false
 
-      if (payment) {
+      if (payment!) {
         paymentUpdates$.next(payment)
 
         // delay to allow time for node to update
@@ -398,13 +408,16 @@
         </div>
       </SummaryRow>
 
-      <div class="mt-6 w-full gap-x-4">
-        <Button on:click={() => changes$.next({ showModal: false, approved: false })}
-          >{$translate('app.buttons.cancel')}</Button
-        >
-        <Button primary on:click={() => changes$.next({ showModal: false, approved: true })}
-          >{$translate('app.buttons.cancel')}</Button
-        >
+      <div class="mt-6 w-full flex items-center gap-x-4">
+        <Button
+          on:click={() => changes$.next({ showModal: false, approved: false })}
+          text={$translate('app.buttons.cancel')}
+        />
+        <Button
+          primary
+          on:click={() => changes$.next({ showModal: false, approved: true })}
+          text={$translate('app.buttons.confirm')}
+        />
       </div>
     </div>
   </Modal>
