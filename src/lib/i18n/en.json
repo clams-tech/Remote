@@ -214,7 +214,8 @@
     "create_offer": "Create offer",
     "confirm": "Confirm",
     "summary_complete": "{{paymentType; keysend:Send Payment; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
-    "disable": "Disable"
+    "disable": "Disable",
+    "total": "Total"
   },
   "hints": {
     "unrestricted": "unrestricted!",

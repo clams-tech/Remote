@@ -32,11 +32,11 @@
       </h1>
     </div>
 
-    <div class="grid gap-4 overflow-auto p-1 w-full max-w-3xl">
-      <!-- <RoutingPerformance /> -->
+    <div class="grid gap-4 p-1 w-full max-w-3xl">
+      <RoutingPerformance />
       <RoutingFeesHistory />
-      <!-- <ChannelInsights />
-      <AccountingExports /> -->
+      <ChannelInsights />
+      <AccountingExports />
     </div>
   </div>
 </div>

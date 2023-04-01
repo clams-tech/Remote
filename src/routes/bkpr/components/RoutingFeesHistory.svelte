@@ -1,7 +1,7 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import { truncateValue } from '$lib/utils'
+  import { generateColor, truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { incomeEvents$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -11,13 +11,15 @@
   import info from '$lib/icons/info'
   import Button from '$lib/elements/Button.svelte'
 
-  let noRoutingFees = false
-  type TimeFrame = 'all' | 'year' | 'biannual' | 'quarter' | 'month' | 'week'
-  const timeFrames: TimeFrame[] = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
-  let activeChannelID = ''
-  let activeTimeFrame: TimeFrame = 'week'
   const colorCache: { [key: string]: string } = {}
   const chartId = 'feesHistory'
+  type TimeFrame = 'all' | 'year' | 'biannual' | 'quarter' | 'month' | 'week'
+  const timeFrames: TimeFrame[] = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
+  let noRoutingFees = false
+  let firstRoutingEventTimestamp: number
+  let activeChannelID: string | null = null
+  let activeTimeFrame: TimeFrame = 'week'
+
   let chart: Chart<'line', number[], string>
 
   function getChannelColor(id: string, darkmode = false) {
@@ -25,36 +27,14 @@
       return colorCache[id]
     }
 
-    const letters = '0123456789ABCDEF'
-    let hash = 0
-    // Calculate a hash value based on the channel ID
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash)
-    }
-    let color = '#'
-    // Generate a color based on the hash value
-    for (let i = 0; i < 3; i++) {
-      let value = (hash >> (i * 8)) & 0xff
-      if (darkmode) {
-        value = Math.min(value + 30, 255) // Make dark mode colors lighter
-      }
-      let hex = letters[value % 16]
-      hex += letters[Math.floor(value / 16)]
-      color += hex
-    }
-    // Add an alpha channel for readability
-    const rgb = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
-      color.slice(3, 5),
-      16
-    )}, ${parseInt(color.slice(5, 7), 16)}, ${darkmode ? 0.5 : 1})`
+    const color = generateColor(id, darkmode)
+    colorCache[id] = color
 
-    colorCache[id] = rgb
-
-    return rgb
+    return color
   }
 
   function sumArrays(arrays: number[][]): number[] {
-    const length = arrays[0].length
+    const length = arrays[0]?.length
 
     const result = new Array(length).fill(0) // create an array with the same length, initialized with zeros
     for (let i = 0; i < length; i++) {
@@ -114,9 +94,11 @@
 
   $: dates = xAxisDates(activeTimeFrame)
 
-  // Render chart if routing events exist or different time frame is selected
+  // Update chart if routing events exist or time frame is switched
   $: if (routingEvents.length || activeTimeFrame) {
+    firstRoutingEventTimestamp = routingEvents[0]?.timestamp * 1000
     updateChart()
+    // Hide chart & show no fees message
   } else {
     noRoutingFees = true
   }
@@ -180,7 +162,7 @@
       const data = sumArrays(totalData)
 
       chart.data.datasets.push({
-        label: 'Total',
+        label: $translate('app.buttons.total'),
         data
       })
 
@@ -273,7 +255,7 @@
             primary={!activeChannelID}
             small={true}
             on:click={() => updateChartData()}
-            text="Total"
+            text={$translate('app.buttons.total')}
           />
           {#each [...channelIDs] as channelID}
             <Button
@@ -287,7 +269,7 @@
 
         <canvas id={chartId} />
 
-        <div class="mt-6 flex w-full justify-between">
+        <div class="mt-6 flex gap-4 flex-wrap w-full justify-between">
           {#each timeFrames as tf}
             <div>
               <Button

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import { truncateValue } from '$lib/utils'
+  import { generateColor, truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -68,8 +68,8 @@
         to: BitcoinDenomination.sats
       })
 
-      if (value) {
-        labels.push(truncateValue(account, 5))
+      if (value && value !== '0') {
+        labels.push(account)
         data.push(parseFloat(value))
       }
     })
@@ -86,9 +86,10 @@
         feesChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels,
+            labels: labels.map((label) => truncateValue(label, 3)),
             datasets: [
               {
+                backgroundColor: labels.map((label) => generateColor(label)),
                 data
               }
             ]
@@ -108,7 +109,7 @@
       const apy = parseFloat(apy_in.slice(0, -1))
 
       if (apy) {
-        labels.push(truncateValue(account, 5))
+        labels.push(account)
         data.push(apy)
       }
     })
@@ -126,9 +127,10 @@
         apyChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels,
+            labels: labels.map((label) => truncateValue(label, 3)),
             datasets: [
               {
+                backgroundColor: labels.map((label) => generateColor(label)),
                 data
               }
             ]
