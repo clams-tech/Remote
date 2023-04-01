@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { incomeEvents$, channelsAPY$, settings$ } from '$lib/streams'
+  import { incomeEvents$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { Chart, ChartItem } from 'chart.js'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -12,12 +12,13 @@
   import Button from '$lib/elements/Button.svelte'
 
   let noRoutingFees = false
-  // @TODO - ts this as enums as it is used in multiple places
-  const timeFrames = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
+  type TimeFrame = 'all' | 'year' | 'biannual' | 'quarter' | 'month' | 'week'
+  const timeFrames: TimeFrame[] = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
+  let activeChannelID = ''
+  let activeTimeFrame: TimeFrame = 'week'
   const colorCache: { [key: string]: string } = {}
   const chartId = 'feesHistory'
   let chart: Chart<'line', number[], string>
-  let timeFrame = 'week'
 
   function getChannelColor(id: string, darkmode = false) {
     if (colorCache[id]) {
@@ -73,7 +74,7 @@
   }
 
   // X-axis labels for chart for given timeframe
-  function xAxisDates(timeframe: string) {
+  function xAxisDates(timeframe: TimeFrame) {
     const today = new Date()
     let startDate
 
@@ -109,15 +110,16 @@
     (event) => event.tag === 'routed' && event.credit_msat > 0
   )
 
-  $: channelIDs = new Set(routingEvents.map((event) => event.account))
+  $: channelIDs = new Set(routingEvents?.map((event) => event.account))
 
-  $: if (routingEvents.length || timeFrame) {
+  $: dates = xAxisDates(activeTimeFrame)
+
+  // Render chart if routing events exist or different time frame is selected
+  $: if (routingEvents.length || activeTimeFrame) {
     updateChart()
   } else {
     noRoutingFees = true
   }
-
-  $: dates = xAxisDates(timeFrame)
 
   function getChannelData(channelID: string, dayData: { x: string; y: number }[] = []) {
     let accountRoutingEvents = routingEvents.filter((event) => event.account === channelID)
@@ -151,6 +153,8 @@
 
     // Add fee data for single channel
     if (channelID) {
+      activeChannelID = channelID
+
       const data = getChannelData(channelID, dayData)
 
       chart.data.datasets.push({
@@ -163,6 +167,8 @@
       chart.update()
       // Add fee data for all channels
     } else {
+      activeChannelID = ''
+
       const totalData: number[][] = []
 
       for (const channelID of channelIDs) {
@@ -190,6 +196,7 @@
     }
     // Create new chart
     const el = document.getElementById(chartId) as ChartItem
+    const ticksColor = $settings$.darkmode ? 'white' : 'black'
 
     chart = new Chart(el, {
       type: 'line',
@@ -202,10 +209,10 @@
           x: {
             display: true,
             ticks: {
-              color: $settings$.darkmode ? 'white' : 'black'
+              color: ticksColor
             },
             title: {
-              color: $settings$.darkmode ? 'white' : 'black',
+              color: ticksColor,
               display: true,
               text: 'DATE'
             }
@@ -214,10 +221,10 @@
             display: true,
             beginAtZero: true,
             ticks: {
-              color: $settings$.darkmode ? 'white' : 'black'
+              color: ticksColor
             },
             title: {
-              color: $settings$.darkmode ? 'white' : 'black',
+              color: ticksColor,
               display: true,
               text: $settings$.bitcoinDenomination.toLocaleUpperCase()
             }
@@ -237,13 +244,10 @@
   class="p-4 border border-current rounded-md md:row-span-2 w-full shadow-sm shadow-purple-400"
 >
   <h1 class="text-2xl mb-6 font-bold">
-    <!-- TODO - translations -->
-    <!-- {$translate('app.headings.account_insights')} -->
-    Routing Fees History
+    {$translate('app.headings.routing_fees_history')}
   </h1>
   <p>
-    <!-- {$translate('app.subheadings.account_insights')} -->
-    Total vs per channel over time:
+    {$translate('app.subheadings.routing_fees_history')}
   </p>
 
   {#if $incomeEvents$.loading}
@@ -265,10 +269,15 @@
         </div>
       {:else}
         <div class="mb-6 flex gap-4">
-          <Button small={true} on:click={() => updateChartData()} text="Total" />
-          <!-- @TODO - add label to each button to show if its active or not -->
+          <Button
+            primary={!activeChannelID}
+            small={true}
+            on:click={() => updateChartData()}
+            text="Total"
+          />
           {#each [...channelIDs] as channelID}
             <Button
+              primary={activeChannelID === channelID}
               small={true}
               on:click={() => updateChartData(channelID)}
               text={truncateValue(channelID, 3)}
@@ -281,7 +290,12 @@
         <div class="mt-6 flex w-full justify-between">
           {#each timeFrames as tf}
             <div>
-              <Button small={true} on:click={() => (timeFrame = tf)} text={tf} />
+              <Button
+                primary={activeTimeFrame === tf}
+                small={true}
+                on:click={() => (activeTimeFrame = tf)}
+                text={tf}
+              />
             </div>
           {/each}
         </div>
