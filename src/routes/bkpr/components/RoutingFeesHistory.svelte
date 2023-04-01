@@ -125,7 +125,7 @@
     )
   }
 
-  function updateChartData(channelID?: string) {
+  function updateChartData() {
     chart.data.datasets = []
 
     let dayData = dates.map((date) => ({
@@ -134,23 +134,19 @@
     }))
 
     // Add fee data for single channel
-    if (channelID) {
-      activeChannelID = channelID
-
-      const data = getChannelData(channelID, dayData)
+    if (activeChannelID) {
+      const data = getChannelData(activeChannelID, dayData)
 
       chart.data.datasets.push({
-        label: truncateValue(channelID, 3),
+        label: truncateValue(activeChannelID, 3),
         data,
-        borderColor: getChannelColor(channelID),
+        borderColor: getChannelColor(activeChannelID),
         fill: false
       })
 
       chart.update()
       // Add fee data for all channels
     } else {
-      activeChannelID = ''
-
       const totalData: number[][] = []
 
       for (const channelID of channelIDs) {
@@ -261,7 +257,10 @@
             <Button
               primary={activeChannelID === channelID}
               small={true}
-              on:click={() => updateChartData(channelID)}
+              on:click={() => {
+                activeChannelID = channelID
+                updateChartData()
+              }}
               text={truncateValue(channelID, 3)}
             />
           {/each}
