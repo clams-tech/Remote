@@ -1,7 +1,7 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import { generateColor, truncateValue } from '$lib/utils'
+  import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { incomeEvents$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -10,40 +10,13 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import info from '$lib/icons/info'
   import Button from '$lib/elements/Button.svelte'
+  import type { IncomeEvent } from '$lib/backends'
 
-  const colorCache: { [key: string]: string } = {}
   const chartId = 'feesHistory'
-  type TimeFrame = 'all' | 'year' | 'biannual' | 'quarter' | 'month' | 'week'
-  const timeFrames: TimeFrame[] = ['all', 'year', 'biannual', 'quarter', 'month', 'week']
   let noRoutingFees = false
-  let firstRoutingEventTimestamp: number
-  let activeChannelID: string | null = null
-  let activeTimeFrame: TimeFrame = 'week'
+  let activeChannelIDs: string[] = []
 
   let chart: Chart<'line', number[], string>
-
-  function getChannelColor(id: string, darkmode = false) {
-    if (colorCache[id]) {
-      return colorCache[id]
-    }
-
-    const color = generateColor(id, darkmode)
-    colorCache[id] = color
-
-    return color
-  }
-
-  function sumArrays(arrays: number[][]): number[] {
-    const length = arrays[0]?.length
-
-    const result = new Array(length).fill(0) // create an array with the same length, initialized with zeros
-    for (let i = 0; i < length; i++) {
-      for (let j = 0; j < arrays.length; j++) {
-        result[i] += arrays[j][i]
-      }
-    }
-    return result
-  }
 
   function* generateDates(startDate: Date, endDate: Date) {
     const current = new Date(startDate)
@@ -52,126 +25,58 @@
       current.setDate(current.getDate() + 1)
     }
   }
-
   // X-axis labels for chart for given timeframe
-  function xAxisDates(timeframe: TimeFrame) {
-    const today = new Date()
-    let startDate
-
-    // Calculate the start date based on the specified timeframe
-    switch (timeframe) {
-      case 'week':
-        startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
-        break
-      case 'month':
-        startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
-        break
-      case 'quarter':
-        startDate = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate())
-        break
-      case 'biannual':
-        startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate())
-        break
-      case 'year':
-        startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-        break
-      case 'all':
-        startDate = new Date(routingEvents[0].timestamp * 1000) // First routing event
-        break
-      default:
-        startDate = new Date()
-    }
-    // Each date between a given starting date and today
-    const dates = Array.from(generateDates(startDate, today))
+  function xAxisDates(startDate: Date, endDate: Date) {
+    // Each date between a given start & end date
+    const dates = Array.from(generateDates(startDate, endDate))
     return dates
+  }
+  // Mapping of date -> (account -> total routed on that date)
+  type DateData = Record<string, Record<string, string>>
+  // List of account routing fees sorted by date
+  type SortedDateData = Record<string, string>[]
+
+  function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
+    const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
+      const dateString = new Date(timestamp * 1000).toDateString()
+      const currentVal = acc[dateString] || {}
+      const currentAccountTotal = currentVal[account] || '0'
+      const updatedAccountTotal = BigInt(currentAccountTotal) + BigInt(credit_msat)
+
+      acc[dateString] = { ...currentVal, [account]: updatedAccountTotal.toString() }
+
+      return acc
+    }, {} as DateData)
+
+    return (
+      Object.keys(dateMap)
+        // sort the date keys
+        .sort((a, b) => new Date(b).getMilliseconds() - new Date(a).getMilliseconds())
+        .map((date) => ({ date, ...dateMap[date] }))
+    )
   }
 
   $: routingEvents = ($incomeEvents$.data || []).filter(
     (event) => event.tag === 'routed' && event.credit_msat > 0
   )
 
+  $: routingDates = formatRoutesByDate(routingEvents)
+
+  $: startDate = new Date(routingEvents[0]?.timestamp * 1000)
+  let endDate = new Date()
+  $: dates = xAxisDates(startDate, endDate)
+
   $: channelIDs = new Set(routingEvents?.map((event) => event.account))
 
-  $: dates = xAxisDates(activeTimeFrame)
+  $: noRoutingFees = !routingEvents.length
 
-  // Update chart if routing events exist or time frame is switched
-  $: if (routingEvents.length || activeTimeFrame) {
-    firstRoutingEventTimestamp = routingEvents[0]?.timestamp * 1000
-    updateChart()
-    // Hide chart & show no fees message
-  } else {
-    noRoutingFees = true
+  $: if (!noRoutingFees && dates.length) {
+    renderChart()
   }
 
-  function getChannelData(channelID: string, dayData: { x: string; y: number }[] = []) {
-    let accountRoutingEvents = routingEvents.filter((event) => event.account === channelID)
-
-    for (const event of accountRoutingEvents) {
-      for (const day of dayData) {
-        if (new Date(event.timestamp * 1000).toDateString() === day.x) {
-          day.y += parseInt(event.credit_msat as string)
-        }
-      }
-    }
-
-    return dayData.map((day) =>
-      parseInt(
-        convertValue({
-          value: day.y.toString(),
-          from: BitcoinDenomination.msats,
-          to: $settings$.bitcoinDenomination
-        }) as string
-      )
-    )
-  }
-
-  function updateChartData() {
-    chart.data.datasets = []
-
-    let dayData = dates.map((date) => ({
-      x: date,
-      y: 0
-    }))
-
-    // Add fee data for single channel
-    if (activeChannelID) {
-      const data = getChannelData(activeChannelID, dayData)
-
-      chart.data.datasets.push({
-        label: truncateValue(activeChannelID, 3),
-        data,
-        borderColor: getChannelColor(activeChannelID),
-        fill: false
-      })
-
-      chart.update()
-      // Add fee data for all channels
-    } else {
-      const totalData: number[][] = []
-
-      for (const channelID of channelIDs) {
-        const channelData = getChannelData(channelID, dayData)
-
-        totalData.push(channelData)
-      }
-
-      const data = sumArrays(totalData)
-
-      chart.data.datasets.push({
-        label: $translate('app.buttons.total'),
-        data
-      })
-
-      chart.update()
-    }
-  }
-
-  async function updateChart() {
+  async function renderChart() {
     const { Chart } = await import('chart.js/auto')
 
-    if (chart) {
-      chart.destroy()
-    }
     // Create new chart
     const el = document.getElementById(chartId) as ChartItem
     const ticksColor = $settings$.darkmode ? 'white' : 'black'
@@ -210,11 +115,57 @@
         }
       }
     })
-    updateChartData()
+  }
+
+  function getChannelData(channelID: string) {
+    const dayData = Array.from(dates, (date) => ({ x: date, y: 0 }))
+
+    for (const routingDate of routingDates) {
+      for (const day of dayData) {
+        if (routingDate.date === day.x && routingDate[channelID]) {
+          day.y = parseInt(
+            convertValue({
+              value: routingDate[channelID],
+              from: BitcoinDenomination.msats,
+              to: $settings$.bitcoinDenomination
+            }) as string
+          )
+        }
+      }
+    }
+
+    return dayData.map((day) => day.y)
+  }
+
+  function toggleChannelData(channelID: string) {
+    // Remove channel data
+    if (chart.data.datasets.some((dataset) => dataset.label === truncateValue(channelID, 3))) {
+      activeChannelIDs = activeChannelIDs.filter((activeChannelID) => activeChannelID !== channelID)
+
+      chart.data.datasets = chart.data.datasets.filter(
+        (dataset) => dataset.label !== truncateValue(channelID, 3)
+      )
+
+      chart.update()
+      return
+      // Add channel data
+    } else {
+      activeChannelIDs = [...activeChannelIDs, channelID]
+
+      const data = getChannelData(channelID)
+
+      chart.data.datasets.push({
+        label: truncateValue(channelID, 3),
+        data,
+        fill: false
+      })
+
+      chart.update()
+    }
   }
 
   onDestroy(() => {
-    chart.destroy()
+    chart && chart.destroy()
   })
 </script>
 
@@ -247,19 +198,17 @@
         </div>
       {:else}
         <div class="mb-6 flex gap-4">
-          <Button
-            primary={!activeChannelID}
+          <!-- <Button
             small={true}
             on:click={() => updateChartData()}
             text={$translate('app.buttons.total')}
-          />
+          /> -->
           {#each [...channelIDs] as channelID}
             <Button
-              primary={activeChannelID === channelID}
               small={true}
+              primary={activeChannelIDs.includes(channelID)}
               on:click={() => {
-                activeChannelID = channelID
-                updateChartData()
+                toggleChannelData(channelID)
               }}
               text={truncateValue(channelID, 3)}
             />
@@ -268,18 +217,7 @@
 
         <canvas id={chartId} />
 
-        <div class="mt-6 flex gap-4 flex-wrap w-full justify-between">
-          {#each timeFrames as tf}
-            <div>
-              <Button
-                primary={activeTimeFrame === tf}
-                small={true}
-                on:click={() => (activeTimeFrame = tf)}
-                text={tf}
-              />
-            </div>
-          {/each}
-        </div>
+        <div class="mt-6 flex gap-4 flex-wrap w-full justify-between">slider here</div>
       {/if}
     </section>
   {/if}

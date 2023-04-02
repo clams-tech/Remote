@@ -1,7 +1,7 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import { generateColor, truncateValue } from '$lib/utils'
+  import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { channelsAPY$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -89,7 +89,6 @@
             labels: labels.map((label) => truncateValue(label, 3)),
             datasets: [
               {
-                backgroundColor: labels.map((label) => generateColor(label)),
                 data
               }
             ]
@@ -130,7 +129,6 @@
             labels: labels.map((label) => truncateValue(label, 3)),
             datasets: [
               {
-                backgroundColor: labels.map((label) => generateColor(label)),
                 data
               }
             ]
