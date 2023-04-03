@@ -12,17 +12,11 @@ import type {
   ListfundsResponse,
   OfferCommon
 } from './backends'
-import { customNotifications$, log$ } from './streams'
+import { customNotifications$, log$, settings$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
-
-import {
-  ALL_DATA_KEYS,
-  COINBASE_PRICE_ENDPOINT,
-  COIN_GECKO_PRICE_ENDPOINT,
-  ENCRYPTED_DATA_KEYS
-} from './constants'
+import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
 
 import {
   type Denomination,
@@ -279,22 +273,16 @@ export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
 export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
-  try {
-    const coinGecko = await fetch(COIN_GECKO_PRICE_ENDPOINT).then((res) => res.json())
-    return coinGecko.bitcoin
-  } catch (error) {
-    try {
-      const coinbase: { data: { rates: BitcoinExchangeRates } } = await fetch(
-        COINBASE_PRICE_ENDPOINT
-      ).then((res) => res.json())
+  const currency = settings$.value.fiatDenomination
 
-      return Object.entries(coinbase.data.rates).reduce((acc, [key, value]) => {
-        acc[key.toLowerCase() as keyof BitcoinExchangeRates] = value
-        return acc
-      }, {} as BitcoinExchangeRates)
-    } catch (error) {
-      return null
-    }
+  try {
+    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then((res) =>
+      res.json()
+    )
+    return result
+  } catch (error) {
+    logger.warn(`Could not get exchange rate for currency: ${currency} `)
+    return null
   }
 }
 
