@@ -9,13 +9,9 @@ import { translate } from './i18n/translations'
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
 
-// export const API_HOST = 'api.clams.tech'
-// export const API_URL = `https://${API_HOST}`
-// export const WS_PROXY = `wss://${API_HOST}/ws-proxy`
-
-export const API_HOST = 'localhost:3000'
-export const API_URL = `http://${API_HOST}`
-export const WS_PROXY = `ws://${API_HOST}/ws-proxy`
+export const API_HOST = 'api.clams.tech'
+export const API_URL = `https://${API_HOST}`
+export const WS_PROXY = `wss://${API_HOST}/ws-proxy`
 
 export const SEC_IN_MS = 1000
 export const MIN_IN_MS = 60 * 1000
