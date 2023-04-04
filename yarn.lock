@@ -1759,6 +1759,11 @@ normalize-range@^0.1.2:
   resolved "https://registry.yarnpkg.com/normalize-range/-/normalize-range-0.1.2.tgz#2d10c06bdfd312ea9777695a4d28439456b75942"
   integrity sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==
 
+nouislider@^15.7.0:
+  version "15.7.0"
+  resolved "https://registry.yarnpkg.com/nouislider/-/nouislider-15.7.0.tgz#3d8ec43c6f767ceb7f17afc555016ef907cedc3d"
+  integrity sha512-aJVEULBPOUwq32/s7xnLNyLvo4kuzYJJsNp2PNGW932AQ0uuDAbLShAqswtxRzJc5n/dLJXNlYSLOZ57bcUg1w==
+
 npm-run-path@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-5.1.0.tgz#bc62f7f3f6952d9894bd08944ba011a6ee7b7e00"
