@@ -117,11 +117,11 @@
     return dayData.map((day) => day.y)
   }
 
-  function toggleChannelData(channelID: string) {
-    if (activeChannelIDs.includes(channelID)) {
-      activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
-    } else {
+  function toggleActiveChannel(channelID: string) {
+    if (activeChannelIDs.indexOf(channelID) === -1) {
       activeChannelIDs = [...activeChannelIDs, channelID]
+    } else {
+      activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
     }
   }
 
@@ -227,6 +227,8 @@
     sliderInstance && sliderInstance.destroy()
   })
 
+  let dropdownOpen = false
+
   // @TODO
   // chartjs determine how to render lines on top of eachother in a clear way
   // add dropdown component with checkboxes to handle toggle of large number of channels
@@ -234,6 +236,9 @@
   // change background color of slider
   // choose 10 colors for lines that work on light & dark mode
   // fix bug in counting where feb 9th has 14 + 14 values for 2 channels - but total is 28
+  // Fix loop of chart colors to ensure that it can support more than 10 channels
+  // Add fade effect to open/close of dropdown
+  // Add toggle element to dropdown
 </script>
 
 <section
@@ -273,16 +278,71 @@
             }}
             text={$translate('app.buttons.total')}
           />
-          {#each [...channelIDs] as channelID}
-            <Button
-              small={true}
-              primary={activeChannelIDs.includes(channelID)}
-              on:click={() => {
-                toggleChannelData(channelID)
-              }}
-              text={truncateValue(channelID, 3)}
-            />
-          {/each}
+
+          <!-- @TODO move to "Dropdown Element" -->
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <div
+            class="relative inline-block text-left"
+            on:click={() => {
+              dropdownOpen = !dropdownOpen
+            }}
+          >
+            <div>
+              <button
+                type="button"
+                class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                id="menu-button"
+                aria-expanded="true"
+                aria-haspopup="true"
+              >
+                Channels
+                <svg
+                  class="-mr-1 h-5 w-5 text-gray-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+            <!--
+              Dropdown menu, show/hide based on menu state.
+          
+              Entering: "transition ease-out duration-100"
+                From: "transform opacity-0 scale-95"
+                To: "transform opacity-100 scale-100"
+              Leaving: "transition ease-in duration-75"
+                From: "transform opacity-100 scale-100"
+                To: "transform opacity-0 scale-95"
+            -->
+            {#if dropdownOpen}
+              <div
+                class="absolute left-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                tabindex="-1"
+              >
+                <div class="py-1" role="none">
+                  {#each [...channelIDs] as channelID}
+                    <Button
+                      small={true}
+                      primary={activeChannelIDs.includes(channelID)}
+                      on:click={() => {
+                        toggleActiveChannel(channelID)
+                      }}
+                      text={truncateValue(channelID, 3)}
+                    />
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
         </div>
 
         <canvas bind:this={chartEl} />
@@ -295,3 +355,40 @@
     </section>
   {/if}
 </section>
+
+<style>
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown-header {
+    padding: 0.5rem;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  .dropdown-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    display: none;
+    min-width: 10rem;
+    padding: 0.5rem;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 0.25rem 0.25rem;
+  }
+
+  .dropdown:hover .dropdown-options {
+    display: block;
+  }
+
+  input[type='checkbox'] {
+    margin-right: 0.5rem;
+  }
+</style>
