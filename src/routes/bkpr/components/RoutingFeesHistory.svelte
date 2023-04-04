@@ -14,7 +14,18 @@
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
 
-  const colors = ['red', 'green', 'blue', 'orange', 'purple']
+  const colors = [
+    '#FF4136', // Red
+    '#2ECC40', // Green
+    '#0074D9', // Blue
+    '#FF851B', // Orange
+    '#B10DC9', // Purple
+    '#FFDC00', // Yellow
+    '#7FDBFF', // Light blue
+    '#F012BE', // Magenta
+    '#01FF70', // Lime green
+    '#E6DB74' // Light yellow
+  ]
   let slider: target | HTMLDivElement
   let sliderInstance: API
   let noRoutingFees = false
@@ -29,7 +40,6 @@
   // List of account routing fees sorted by date
   type SortedDateData = Record<string, string>[]
 
-  // @TODO - fix bug in counting where feb 9th has 14 + 14 values for 2 channels - but total is 28
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
       const dateString = new Date(timestamp * 1000).toDateString()
@@ -83,8 +93,8 @@
     chartDatesFiltered = chartDates
   }
 
-  // Update chart data on first load & when activeChannelIDs changes
-  $: if (chart && activeChannelIDs) {
+  // Update chart data on initial redner & when activeChannelIDs or chartDatesFiltered changes
+  $: if (chart && activeChannelIDs && chartDatesFiltered) {
     updateChartData()
   }
 
@@ -196,11 +206,10 @@
           max: chartDates.length
         }
       })
-      // Update date range on chart when slider is updated
+      // Update date range on chart (and data) when slider is updated
       sliderInstance.on('change', (event) => {
         chartDatesFiltered = chartDates.slice(Number(event[0]), Number(event[1]))
         chart.data.labels = chartDatesFiltered
-        updateChartData()
       })
     }
   }
@@ -217,6 +226,14 @@
     chart && chart.destroy()
     sliderInstance && sliderInstance.destroy()
   })
+
+  // @TODO
+  // chartjs determine how to render lines on top of eachother in a clear way
+  // add dropdown component with checkboxes to handle toggle of large number of channels
+  // improve mobile styles
+  // change background color of slider
+  // choose 10 colors for lines that work on light & dark mode
+  // fix bug in counting where feb 9th has 14 + 14 values for 2 channels - but total is 28
 </script>
 
 <section
@@ -268,12 +285,10 @@
           {/each}
         </div>
 
-        <!-- @TODO - fix mobile view height -->
         <canvas bind:this={chartEl} />
 
+        <p class="mb-4">{$translate('app.labels.date_range')}</p>
         <div class="mr-4 mb-4 ml-4 w-full">
-          <p class="mb-4">Date range:</p>
-          <!-- @TODO change background color -->
           <div bind:this={slider} />
         </div>
       {/if}
