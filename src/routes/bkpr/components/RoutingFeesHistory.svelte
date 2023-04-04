@@ -14,14 +14,14 @@
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
 
+  const colors = ['red', 'green', 'blue', 'orange', 'purple']
   let slider: target | HTMLDivElement
   let sliderInstance: API
   let noRoutingFees = false
   let activeChannelIDs: string[] = []
   let chartEl: string | HTMLCanvasElement
   let chart: Chart<'line', number[], string>
-
-  let endDate = new Date()
+  let endDate = new Date() // Slider defaults to today
   let chartDatesFiltered: string[]
 
   // Mapping of date -> (account -> total routed on that date)
@@ -83,8 +83,8 @@
     chartDatesFiltered = chartDates
   }
 
-  // Add total fees to chart when 0 channels selected
-  $: if (chart && !activeChannelIDs.length) {
+  // Update chart data on first load & when activeChannelIDs changes
+  $: if (chart && activeChannelIDs) {
     updateChartData()
   }
 
@@ -108,49 +108,29 @@
   }
 
   function toggleChannelData(channelID: string) {
-    if (!activeChannelIDs.length) {
-      chart.data.datasets = []
+    if (activeChannelIDs.includes(channelID)) {
+      activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
+    } else {
+      activeChannelIDs = [...activeChannelIDs, channelID]
     }
-    // Remove channel data
-    if (chart.data.datasets.some((dataset) => dataset.label === truncateValue(channelID, 3))) {
-      activeChannelIDs = activeChannelIDs.filter((activeChannelID) => activeChannelID !== channelID)
-
-      chart.data.datasets = chart.data.datasets.filter(
-        (dataset) => dataset.label !== truncateValue(channelID, 3)
-      )
-
-      chart.update()
-      return
-    }
-    // Add channel data
-    activeChannelIDs = [...activeChannelIDs, channelID]
-
-    const dayData = Array.from(chartDatesFiltered, (date) => ({ x: date, y: 0 }))
-    const data = getChannelData(dayData, channelID)
-
-    chart.data.datasets.push({
-      label: truncateValue(channelID, 3),
-      data,
-      fill: false
-    })
-
-    chart.update()
   }
 
   function updateChartData() {
     chart.data.datasets = []
     const dayData = Array.from(chartDatesFiltered, (date) => ({ x: date, y: 0 }))
-
+    // A line for each selected channel on the chart
     if (activeChannelIDs.length) {
-      activeChannelIDs.forEach((channelID) => {
+      activeChannelIDs.forEach((channelID, i) => {
         const data = getChannelData(dayData, channelID)
 
         chart.data.datasets.push({
           label: truncateValue(channelID, 3),
           data,
-          fill: false
+          fill: false,
+          borderColor: colors[i]
         })
       })
+      // A single line for total fees
     } else {
       const data = getChannelData(dayData)
 
