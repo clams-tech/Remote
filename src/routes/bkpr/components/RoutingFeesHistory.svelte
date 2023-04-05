@@ -14,6 +14,11 @@
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
 
+  // Mapping of date -> (account -> total routed on that date)
+  type DateData = Record<string, Record<string, string>>
+  // List of account routing fees sorted by date
+  type SortedDateData = Record<string, string>[]
+
   const colors = [
     '#FF4136', // Red
     '#2ECC40', // Green
@@ -32,13 +37,12 @@
   let activeChannelIDs: string[] = []
   let chartEl: string | HTMLCanvasElement
   let chart: Chart<'line', number[], string>
-  let endDate = new Date() // Slider defaults to today
-  let chartDatesFiltered: string[]
-
-  // Mapping of date -> (account -> total routed on that date)
-  type DateData = Record<string, Record<string, string>>
-  // List of account routing fees sorted by date
-  type SortedDateData = Record<string, string>[]
+  let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
+  let chartDates: string[] = []
+  let chartDatesSliced: string[] = []
+  // @TODO use these for chart datasets
+  let chartDatasets = []
+  let chartDatasetsSliced: []
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
@@ -79,26 +83,8 @@
     return dates
   }
 
-  $: routingEvents = ($incomeEvents$.data || []).filter(
-    (event) => event.tag === 'routed' && event.credit_msat > 0
-  )
-  $: noRoutingFees = !routingEvents.length
-  $: routingDates = formatRoutesByDate(routingEvents)
-  $: channelIDs = new Set(routingEvents?.map((event) => event.account))
-  $: startDate = new Date(routingEvents[0]?.timestamp * 1000)
-  $: chartDates = xAxisDates(startDate, endDate)
-
-  // Initialize filtered dates
-  $: if (chartDates) {
-    chartDatesFiltered = chartDates
-  }
-
-  // Update chart data on initial redner & when activeChannelIDs or chartDatesFiltered changes
-  $: if (chart && activeChannelIDs && chartDatesFiltered) {
-    updateChartData()
-  }
-
-  function getChannelData(dayData: { x: string; y: number }[], channelID?: string) {
+  // Returns chart data for a given channel or "total"
+  function getChartData(dayData: { x: string; y: number }[], channelID?: string) {
     for (const routingDate of routingDates) {
       for (const day of dayData) {
         if (routingDate.date === day.x && (!channelID || routingDate[channelID])) {
@@ -125,13 +111,13 @@
     }
   }
 
-  function updateChartData() {
-    chart.data.datasets = []
-    const dayData = Array.from(chartDatesFiltered, (date) => ({ x: date, y: 0 }))
+  function updateChartDatasets() {
+    chart.data.datasets = [] // @TODO do i need to do this everytime?
+    const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
     if (activeChannelIDs.length) {
       activeChannelIDs.forEach((channelID, i) => {
-        const data = getChannelData(dayData, channelID)
+        const data = getChartData(dayData, channelID)
 
         chart.data.datasets.push({
           label: truncateValue(channelID, 3),
@@ -142,7 +128,7 @@
       })
       // A single line for total fees
     } else {
-      const data = getChannelData(dayData)
+      const data = getChartData(dayData)
 
       chart.data.datasets.push({
         label: 'Total',
@@ -152,6 +138,34 @@
     }
 
     chart.update()
+  }
+
+  $: routingEvents = ($incomeEvents$.data || []).filter(
+    (event) => event.tag === 'routed' && event.credit_msat > 0
+  )
+  $: noRoutingFees = !routingEvents.length
+  $: routingDates = formatRoutesByDate(routingEvents)
+  $: channelIDs = new Set(routingEvents?.map((event) => event.account))
+  $: startDate = new Date(routingEvents[0]?.timestamp * 1000) // Date of first routing event
+  // @TODO use for end-date of all data
+  $: endDate = new Date(routingEvents[routingEvents.length]?.timestamp * 1000) // Date of last routing event
+
+  // Generate chartDates & initlize chart range
+  $: if (startDate) {
+    chartDates = xAxisDates(startDate, new Date())
+    chartRange = { start: 0, end: chartDates.length }
+  }
+
+  // Initialize chart data & update when channel is toggled in dropdown
+  $: if (chart && activeChannelIDs) {
+    updateChartDatasets()
+  }
+
+  // Update chart dates & data when chartRange is updated via slider
+  $: if (chart && chartRange) {
+    chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
+    chart.data.labels = chartDatesSliced
+    updateChartDatasets()
   }
 
   async function renderChart() {
@@ -206,15 +220,14 @@
           max: chartDates.length
         }
       })
-      // Update date range on chart (and data) when slider is updated
+      // Update range for x-axis dates & data on chart when slider is moved
       sliderInstance.on('change', (event) => {
-        chartDatesFiltered = chartDates.slice(Number(event[0]), Number(event[1]))
-        chart.data.labels = chartDatesFiltered
+        chartRange = { start: Number(event[0]), end: Number(event[1]) }
       })
     }
   }
 
-  $: if (chartEl && !noRoutingFees && chartDatesFiltered.length) {
+  $: if (!noRoutingFees && chartEl && chartDates) {
     renderChart()
   }
 
@@ -231,11 +244,9 @@
 
   // @TODO
   // chartjs determine how to render lines on top of eachother in a clear way
-  // add dropdown component with checkboxes to handle toggle of large number of channels
   // improve mobile styles
   // change background color of slider
   // choose 10 colors for lines that work on light & dark mode
-  // fix bug in counting where feb 9th has 14 + 14 values for 2 channels - but total is 28
   // Fix loop of chart colors to ensure that it can support more than 10 channels
   // Add fade effect to open/close of dropdown
   // Add toggle element to dropdown
@@ -355,40 +366,3 @@
     </section>
   {/if}
 </section>
-
-<style>
-  .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-
-  .dropdown-header {
-    padding: 0.5rem;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 0.25rem;
-    cursor: pointer;
-  }
-
-  .dropdown-options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 10;
-    display: none;
-    min-width: 10rem;
-    padding: 0.5rem;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-top: none;
-    border-radius: 0 0 0.25rem 0.25rem;
-  }
-
-  .dropdown:hover .dropdown-options {
-    display: block;
-  }
-
-  input[type='checkbox'] {
-    margin-right: 0.5rem;
-  }
-</style>
