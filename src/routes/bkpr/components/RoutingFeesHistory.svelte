@@ -10,9 +10,11 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import info from '$lib/icons/info'
   import Button from '$lib/elements/Button.svelte'
+  import Toggle from '$lib/elements/Toggle.svelte'
   import type { IncomeEvent } from '$lib/backends'
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
+  import Dropdown from '$lib/elements/Dropdown.svelte'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
   type DateData = Record<string, Record<string, string>>
@@ -139,34 +141,6 @@
     chart.update()
   }
 
-  $: routingEvents = ($incomeEvents$.data || []).filter(
-    (event) => event.tag === 'routed' && Number(event.credit_msat) > 0
-  )
-  $: noRoutingFees = !routingEvents.length
-  $: routingDates = formatRoutesByDate(routingEvents)
-  $: channelIDs = new Set(routingEvents?.map((event) => event.account))
-
-  // Generate chartDates & initalize chart range
-  $: if (routingEvents.length) {
-    chartDates = xAxisDates(
-      new Date(routingEvents[0]?.timestamp * 1000), // First event date
-      new Date(routingEvents[routingEvents.length - 1]?.timestamp * 1000) // Last event date
-    )
-    chartRange = { start: 0, end: chartDates.length }
-  }
-
-  // Initialize chart data & update chart data when channel is toggled in dropdown
-  $: if (chart && activeChannelIDs) {
-    updateChartDatasets()
-  }
-
-  // Update chart dates & data when chartRange is updated via slider
-  $: if (chart && chartRange) {
-    chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
-    chart.data.labels = chartDatesSliced
-    updateChartDatasets()
-  }
-
   async function renderChart() {
     const { Chart } = await import('chart.js/auto')
 
@@ -226,7 +200,35 @@
     }
   }
 
-  $: if (!noRoutingFees && chartEl && chartDates) {
+  $: routingEvents = ($incomeEvents$.data || []).filter(
+    (event) => event.tag === 'routed' && Number(event.credit_msat) > 0
+  )
+  $: noRoutingFees = !routingEvents.length
+  $: routingDates = formatRoutesByDate(routingEvents)
+  $: channelIDs = new Set(routingEvents?.map((event) => event.account))
+
+  // Generate chartDates & initalize chart range
+  $: if (routingEvents.length) {
+    chartDates = xAxisDates(
+      new Date(routingEvents[0]?.timestamp * 1000), // First event date
+      new Date(routingEvents[routingEvents.length - 1]?.timestamp * 1000) // Last event date
+    )
+    chartRange = { start: 0, end: chartDates.length }
+  }
+
+  // Initialize chart data & update chart data when channel is toggled in dropdown
+  $: if (chart && activeChannelIDs) {
+    updateChartDatasets()
+  }
+
+  // Update chart dates & data when chartRange is updated via slider
+  $: if (chart && chartRange) {
+    chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
+    chart.data.labels = chartDatesSliced
+    updateChartDatasets()
+  }
+
+  $: if (!noRoutingFees && chartEl && chartDates.length) {
     renderChart()
   }
 
@@ -245,10 +247,9 @@
   // chartjs determine how to render lines on top of eachother in a clear way
   // improve mobile styles
   // change background color of slider
-  // choose 10 colors for lines that work on light & dark mode
   // Fix loop of chart colors to ensure that it can support more than 10 channels
   // Add fade effect to open/close of dropdown
-  // Add toggle element to dropdown
+  // Update arrow direction on dropdown button to be reactive
 </script>
 
 <section
@@ -288,71 +289,17 @@
             }}
             text={$translate('app.buttons.total')}
           />
-
-          <!-- @TODO move to "Dropdown Element" -->
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <div
-            class="relative inline-block text-left"
-            on:click={() => {
-              dropdownOpen = !dropdownOpen
-            }}
-          >
-            <div>
-              <button
-                type="button"
-                class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                id="menu-button"
-                aria-expanded="true"
-                aria-haspopup="true"
-              >
-                Channels
-                <svg
-                  class="-mr-1 h-5 w-5 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-            <!--
-              Dropdown menu, show/hide based on menu state.
-          
-              Entering: "transition ease-out duration-100"
-                From: "transform opacity-0 scale-95"
-                To: "transform opacity-100 scale-100"
-              Leaving: "transition ease-in duration-75"
-                From: "transform opacity-100 scale-100"
-                To: "transform opacity-0 scale-95"
-            -->
-            {#if dropdownOpen}
-              <div
-                class="absolute left-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="menu-button"
-                tabindex="-1"
-              >
-                <div class="py-1" role="none">
-                  {#each [...channelIDs] as channelID}
-                    <Button
-                      small={true}
-                      primary={activeChannelIDs.includes(channelID)}
-                      on:click={() => {
-                        toggleActiveChannel(channelID)
-                      }}
-                      text={truncateValue(channelID, 3)}
-                    />
-                  {/each}
-                </div>
-              </div>
-            {/if}
-          </div>
+          <Dropdown label="Channels">
+            {#each [...channelIDs] as channelID}
+              <Toggle
+                handleChange={() => {
+                  toggleActiveChannel(channelID)
+                }}
+                toggled={activeChannelIDs.includes(channelID)}
+                label={truncateValue(channelID, 3)}
+              />
+            {/each}
+          </Dropdown>
         </div>
 
         <canvas bind:this={chartEl} />
