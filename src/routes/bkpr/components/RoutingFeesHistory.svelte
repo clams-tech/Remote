@@ -14,7 +14,7 @@
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
 
-  // Mapping of date -> (account -> total routed on that date)
+  // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
   type DateData = Record<string, Record<string, string>>
   // List of account routing fees sorted by date
   type SortedDateData = Record<string, string>[]
@@ -40,9 +40,6 @@
   let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
   let chartDates: string[] = []
   let chartDatesSliced: string[] = []
-  // @TODO use these for chart datasets
-  let chartDatasets = []
-  let chartDatasetsSliced: []
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
@@ -83,7 +80,16 @@
     return dates
   }
 
-  // Returns chart data for a given channel or "total"
+  // Channel dropdown toggle
+  function toggleActiveChannel(channelID: string) {
+    if (activeChannelIDs.indexOf(channelID) === -1) {
+      activeChannelIDs = [...activeChannelIDs, channelID]
+    } else {
+      activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
+    }
+  }
+
+  // Returns chart data for a given channel or data for total channels
   function getChartData(dayData: { x: string; y: number }[], channelID?: string) {
     for (const routingDate of routingDates) {
       for (const day of dayData) {
@@ -103,16 +109,9 @@
     return dayData.map((day) => day.y)
   }
 
-  function toggleActiveChannel(channelID: string) {
-    if (activeChannelIDs.indexOf(channelID) === -1) {
-      activeChannelIDs = [...activeChannelIDs, channelID]
-    } else {
-      activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
-    }
-  }
-
+  // Generate chart data using chosen range of dates & channels
   function updateChartDatasets() {
-    chart.data.datasets = [] // @TODO do i need to do this everytime?
+    chart.data.datasets = []
     const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
     if (activeChannelIDs.length) {
@@ -141,22 +140,22 @@
   }
 
   $: routingEvents = ($incomeEvents$.data || []).filter(
-    (event) => event.tag === 'routed' && event.credit_msat > 0
+    (event) => event.tag === 'routed' && Number(event.credit_msat) > 0
   )
   $: noRoutingFees = !routingEvents.length
   $: routingDates = formatRoutesByDate(routingEvents)
   $: channelIDs = new Set(routingEvents?.map((event) => event.account))
-  $: startDate = new Date(routingEvents[0]?.timestamp * 1000) // Date of first routing event
-  // @TODO use for end-date of all data
-  $: endDate = new Date(routingEvents[routingEvents.length]?.timestamp * 1000) // Date of last routing event
 
-  // Generate chartDates & initlize chart range
-  $: if (startDate) {
-    chartDates = xAxisDates(startDate, new Date())
+  // Generate chartDates & initalize chart range
+  $: if (routingEvents.length) {
+    chartDates = xAxisDates(
+      new Date(routingEvents[0]?.timestamp * 1000), // First event date
+      new Date(routingEvents[routingEvents.length - 1]?.timestamp * 1000) // Last event date
+    )
     chartRange = { start: 0, end: chartDates.length }
   }
 
-  // Initialize chart data & update when channel is toggled in dropdown
+  // Initialize chart data & update chart data when channel is toggled in dropdown
   $: if (chart && activeChannelIDs) {
     updateChartDatasets()
   }
