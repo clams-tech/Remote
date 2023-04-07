@@ -1,7 +1,7 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
   import { BitcoinDenomination } from '$lib/types'
-  import { truncateValue } from '$lib/utils'
+  import { truncateValue, userAgent } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { incomeEvents$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
@@ -21,6 +21,7 @@
   // List of account routing fees sorted by date
   type SortedDateData = Record<string, string>[]
 
+  const device = userAgent!.getDevice()
   const colors = [
     '#FF4136', // Red
     '#2ECC40', // Green
@@ -113,6 +114,7 @@
 
   // Generate chart data using chosen range of dates & channels
   function updateChartDatasets() {
+    console.log('UPDATING DATA SETS')
     chart.data.datasets = []
     const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
@@ -149,10 +151,11 @@
     chart = new Chart(chartEl, {
       type: 'line',
       data: {
-        labels: chartDates,
+        labels: [],
         datasets: []
       },
       options: {
+        ...(device.type === 'mobile' && { aspectRatio: 1.1 }), // make chart more readible on mobile
         scales: {
           x: {
             display: true,
@@ -216,19 +219,7 @@
     chartRange = { start: 0, end: chartDates.length }
   }
 
-  // Initialize chart data & update chart data when channel is toggled in dropdown
-  $: if (chart && activeChannelIDs) {
-    updateChartDatasets()
-  }
-
-  // Update chart dates & data when chartRange is updated via slider
-  $: if (chart && chartRange) {
-    chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
-    chart.data.labels = chartDatesSliced
-    updateChartDatasets()
-  }
-
-  $: if (!noRoutingFees && chartEl && chartDates.length) {
+  $: if (!noRoutingFees && chartEl) {
     renderChart()
   }
 
@@ -236,20 +227,31 @@
     renderSlider()
   }
 
+  // Initialize chart dates/data & update when chartRange is updated via slider
+  $: if (chart && chartRange) {
+    chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
+    chart.data.labels = chartDatesSliced
+    updateChartDatasets()
+  }
+
+  // Update chart data when channel is toggled in dropdown
+  $: if (chart && activeChannelIDs) {
+    updateChartDatasets()
+  }
+
   onDestroy(() => {
     chart && chart.destroy()
     sliderInstance && sliderInstance.destroy()
   })
-
-  let dropdownOpen = false
-
   // @TODO
   // chartjs determine how to render lines on top of eachother in a clear way
-  // improve mobile styles
   // change background color of slider
   // Fix loop of chart colors to ensure that it can support more than 10 channels
-  // Add fade effect to open/close of dropdown
   // Update arrow direction on dropdown button to be reactive
+  // Test component with 100 channels
+  // Test colors & darkmode styling of dropdown
+  // Prevent updateChartDatasets getting called twice when app mounts
+  // Fix issue where there at empty fee dates to right of chart on mount
 </script>
 
 <section
@@ -290,15 +292,19 @@
             text={$translate('app.buttons.total')}
           />
           <Dropdown label="Channels">
-            {#each [...channelIDs] as channelID}
-              <Toggle
-                handleChange={() => {
-                  toggleActiveChannel(channelID)
-                }}
-                toggled={activeChannelIDs.includes(channelID)}
-                label={truncateValue(channelID, 3)}
-              />
-            {/each}
+            <div class="flex flex-wrap gap-2 w-56">
+              {#each [...channelIDs] as channelID}
+                <div class="">
+                  <Toggle
+                    handleChange={() => {
+                      toggleActiveChannel(channelID)
+                    }}
+                    toggled={activeChannelIDs.includes(channelID)}
+                    label={truncateValue(channelID, 3)}
+                  />
+                </div>
+              {/each}
+            </div>
           </Dropdown>
         </div>
 
