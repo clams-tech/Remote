@@ -1,19 +1,25 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
   import Button from './Button.svelte'
+  import caret from '$lib/icons/caret'
 
   export let label = ''
-  let dropdownOpen = false
+  let dropdownOpen = true
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="relative inline-block text-left"
-  on:click={() => {
-    dropdownOpen = !dropdownOpen
-  }}
->
-  <Button small={true} text={label} />
+<div class="relative inline-block text-left">
+  <Button
+    small={true}
+    text={label}
+    on:click={() => {
+      dropdownOpen = !dropdownOpen
+    }}
+  >
+    <div slot="iconRight" class="w-5 ml-2 mb-[2px]" class:-rotate-180={!dropdownOpen}>
+      {@html caret}
+    </div>
+  </Button>
   {#if dropdownOpen}
     <div
       in:slide|local={{ duration: 250 }}

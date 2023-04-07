@@ -247,11 +247,15 @@
   // chartjs determine how to render lines on top of eachother in a clear way
   // change background color of slider
   // Fix loop of chart colors to ensure that it can support more than 10 channels
-  // Update arrow direction on dropdown button to be reactive
-  // Test component with 100 channels
   // Test colors & darkmode styling of dropdown
   // Prevent updateChartDatasets getting called twice when app mounts
   // Fix issue where there at empty fee dates to right of chart on mount
+  // Finish styling of pagination component
+  let channelsToTest = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+  ]
+  let currentPage = 1
+  const itemsPerPage = 10
 </script>
 
 <section
@@ -293,8 +297,8 @@
           />
           <Dropdown label="Channels">
             <div class="flex flex-wrap gap-2 w-56">
-              {#each [...channelIDs] as channelID}
-                <div class="">
+              {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
+                <div>
                   <Toggle
                     handleChange={() => {
                       toggleActiveChannel(channelID)
@@ -305,6 +309,22 @@
                 </div>
               {/each}
             </div>
+            <!-- Pagination of channels -->
+            {#if [...channelIDs].length > 10}
+              <div class="flex justify-center mt-4">
+                <button
+                  disabled={currentPage === 1}
+                  on:click={() => (currentPage = currentPage - 1)}>{`<<`}</button
+                >
+                <p class="ml-2 mr-2">
+                  {currentPage} / {Math.ceil([...channelIDs].length / itemsPerPage)}
+                </p>
+                <button
+                  disabled={currentPage === Math.ceil([...channelIDs].length / itemsPerPage)}
+                  on:click={() => (currentPage = currentPage + 1)}>{`>>`}</button
+                >
+              </div>
+            {/if}
           </Dropdown>
         </div>
 
