@@ -12,10 +12,9 @@
   import Button from '$lib/elements/Button.svelte'
   import Toggle from '$lib/elements/Toggle.svelte'
   import type { IncomeEvent } from '$lib/backends'
-  import noUiSlider, { type API, type target } from 'nouislider'
-  import 'nouislider/dist/nouislider.css'
   import Dropdown from '$lib/components/Dropdown.svelte'
   import Pagination from '$lib/components/Pagination.svelte'
+  import Slider from '$lib/components/Slider.svelte'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
   type DateData = Record<string, Record<string, string>>
@@ -36,8 +35,7 @@
     '#E6DB74' // Light yellow
   ]
   const itemsPerPage = 10 // channel pagination in dropdown
-  let slider: target | HTMLDivElement
-  let sliderInstance: API
+  let currentPage = 1 // channel pagination in dropdown
   let noRoutingFees = false
   let activeChannelIDs: string[] = []
   let chartEl: string | HTMLCanvasElement
@@ -45,7 +43,6 @@
   let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
   let chartDates: string[] = []
   let chartDatesSliced: string[] = []
-  let currentPage = 1 // channel pagination in dropdown
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
@@ -145,6 +142,7 @@
     chart.update()
   }
 
+  // @TODO Consider stacked barchart to improve readability of identical day data for multiple channels
   async function renderChart() {
     const { Chart } = await import('chart.js/auto')
 
@@ -187,24 +185,6 @@
     })
   }
 
-  function renderSlider() {
-    if (slider) {
-      sliderInstance = noUiSlider.create(slider, {
-        start: [0, chartDates.length],
-        connect: true,
-        step: 1,
-        range: {
-          min: 0,
-          max: chartDates.length
-        }
-      })
-      // Update range for x-axis dates & data on chart when slider is moved
-      sliderInstance.on('change', (event) => {
-        chartRange = { start: Number(event[0]), end: Number(event[1]) }
-      })
-    }
-  }
-
   $: routingEvents = ($incomeEvents$.data || []).filter(
     (event) => event.tag === 'routed' && Number(event.credit_msat) > 0
   )
@@ -225,10 +205,6 @@
     renderChart()
   }
 
-  $: if (slider) {
-    renderSlider()
-  }
-
   // Initialize chart dates/data & update when chartRange is updated via slider
   $: if (chart && chartRange) {
     chartDatesSliced = chartDates.slice(chartRange.start, chartRange.end)
@@ -243,10 +219,8 @@
 
   onDestroy(() => {
     chart && chart.destroy()
-    sliderInstance && sliderInstance.destroy()
   })
   // @TODO
-  // chartjs determine how to render lines on top of eachother in a clear way
   // change background color of slider
   // Prevent updateChartDatasets getting called twice when app mounts
   // Rearrange tiles on bkpr page to use less space
@@ -315,9 +289,14 @@
         <canvas bind:this={chartEl} />
 
         <p class="mb-4">{$translate('app.labels.date_range')}</p>
-        <div class="mr-4 mb-4 ml-4 w-full">
-          <div bind:this={slider} />
-        </div>
+        {#if chartDates.length}
+          <Slider
+            totalItems={chartDates.length}
+            bind:start={chartRange.start}
+            bind:end={chartRange.end}
+            on:updateRange={(e) => (chartRange = e.detail)}
+          />
+        {/if}
       {/if}
     </section>
   {/if}
