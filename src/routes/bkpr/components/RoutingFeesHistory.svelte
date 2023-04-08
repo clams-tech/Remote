@@ -90,6 +90,7 @@
     } else {
       activeChannelIDs = activeChannelIDs.filter((id) => id !== channelID)
     }
+    updateChartDatasets()
   }
 
   // Returns chart data for a given channel or data for total channels
@@ -114,6 +115,7 @@
 
   // Generate chart data using chosen range of dates & channels
   function updateChartDatasets() {
+    console.log('UPDATING CHART DATASETS!!')
     chart.data.datasets = []
     const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
@@ -142,7 +144,6 @@
     chart.update()
   }
 
-  // @TODO Consider stacked barchart to improve readability of identical day data for multiple channels
   async function renderChart() {
     const { Chart } = await import('chart.js/auto')
 
@@ -212,17 +213,11 @@
     updateChartDatasets()
   }
 
-  // Update chart data when channel is toggled in dropdown
-  $: if (chart && activeChannelIDs) {
-    updateChartDatasets()
-  }
-
   onDestroy(() => {
     chart && chart.destroy()
   })
   // @TODO
   // change background color of slider
-  // Prevent updateChartDatasets getting called twice when app mounts
   // Rearrange tiles on bkpr page to use less space
 </script>
 
@@ -289,14 +284,12 @@
         <canvas bind:this={chartEl} />
 
         <p class="mb-4">{$translate('app.labels.date_range')}</p>
-        {#if chartDates.length}
-          <Slider
-            totalItems={chartDates.length}
-            bind:start={chartRange.start}
-            bind:end={chartRange.end}
-            on:updateRange={(e) => (chartRange = e.detail)}
-          />
-        {/if}
+        <Slider
+          totalItems={chartDates?.length}
+          bind:start={chartRange.start}
+          bind:end={chartRange.end}
+          on:updateRange={(e) => (chartRange = e.detail)}
+        />
       {/if}
     </section>
   {/if}
