@@ -16,7 +16,6 @@
   import 'nouislider/dist/nouislider.css'
   import Dropdown from '$lib/components/Dropdown.svelte'
   import Pagination from '$lib/components/Pagination.svelte'
-  import caret from '$lib/icons/caret'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
   type DateData = Record<string, Record<string, string>>
@@ -118,7 +117,6 @@
 
   // Generate chart data using chosen range of dates & channels
   function updateChartDatasets() {
-    console.log('UPDATING DATA SETS')
     chart.data.datasets = []
     const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
@@ -130,7 +128,7 @@
           label: truncateValue(channelID, 3),
           data,
           fill: false,
-          borderColor: colors[i]
+          borderColor: colors[i % colors.length]
         })
       })
       // A single line for total fees
@@ -250,12 +248,8 @@
   // @TODO
   // chartjs determine how to render lines on top of eachother in a clear way
   // change background color of slider
-  // Fix loop of chart colors to ensure that it can support more than 10 channels
   // Prevent updateChartDatasets getting called twice when app mounts
-  // Fix issue where there at empty fee dates to right of chart on mount
-  const testItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
-  $: console.log('CURRENT PAGE = ', currentPage)
+  // Rearrange tiles on bkpr page to use less space
 </script>
 
 <section

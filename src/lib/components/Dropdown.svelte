@@ -4,7 +4,7 @@
   import caret from '$lib/icons/caret'
 
   export let label = ''
-  let dropdownOpen = true
+  let dropdownOpen = false
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
