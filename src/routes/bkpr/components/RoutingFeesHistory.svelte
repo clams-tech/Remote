@@ -14,7 +14,8 @@
   import type { IncomeEvent } from '$lib/backends'
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
-  import Dropdown from '$lib/elements/Dropdown.svelte'
+  import Dropdown from '$lib/components/Dropdown.svelte'
+  import Pagination from '$lib/components/Pagination.svelte'
   import caret from '$lib/icons/caret'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
@@ -250,9 +251,11 @@
   // chartjs determine how to render lines on top of eachother in a clear way
   // change background color of slider
   // Fix loop of chart colors to ensure that it can support more than 10 channels
-  // Test colors & darkmode styling of dropdown
   // Prevent updateChartDatasets getting called twice when app mounts
   // Fix issue where there at empty fee dates to right of chart on mount
+  const testItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+  $: console.log('CURRENT PAGE = ', currentPage)
 </script>
 
 <section
@@ -294,7 +297,7 @@
           />
           <Dropdown label="Channels">
             <div class="p-4">
-              <div class="flex flex-wrap gap-2 w-56 h-56">
+              <div class="flex flex-wrap gap-2 w-56" class:h-56={[...channelIDs].length > 10}>
                 {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
                   <div>
                     <Toggle
@@ -307,29 +310,9 @@
                   </div>
                 {/each}
               </div>
-              <!-- Pagination of channels -->
+
               {#if [...channelIDs].length > 10}
-                <div class="flex justify-center mt-4">
-                  <button
-                    disabled={currentPage === 1}
-                    on:click={() => (currentPage = currentPage - 1)}
-                  >
-                    <div class="w-6 cursor-pointer rotate-90">
-                      {@html caret}
-                    </div></button
-                  >
-                  <p class="ml-2 mr-2 text-sm">
-                    {currentPage} / {Math.ceil([...channelIDs].length / itemsPerPage)}
-                  </p>
-                  <button
-                    disabled={currentPage === Math.ceil([...channelIDs].length / itemsPerPage)}
-                    on:click={() => (currentPage = currentPage + 1)}
-                  >
-                    <div class="w-6 cursor-pointer rotate-90 scale-y-[-1]">
-                      {@html caret}
-                    </div></button
-                  >
-                </div>
+                <Pagination items={[...channelIDs]} bind:currentPage {itemsPerPage} />
               {/if}
             </div>
           </Dropdown>

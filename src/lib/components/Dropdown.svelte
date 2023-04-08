@@ -1,6 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import Button from './Button.svelte'
+  import Button from '$lib/elements/Button.svelte'
   import caret from '$lib/icons/caret'
 
   export let label = ''
