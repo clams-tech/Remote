@@ -26,9 +26,7 @@
       out:slide|local={{ duration: 250 }}
       class="absolute left-0 z-10 mt-2 bg-white dark:bg-neutral-900 dark:text-white border rounded-md shadow-lg"
     >
-      <div class="p-2">
-        <slot />
-      </div>
+      <slot />
     </div>
   {/if}
 </div>

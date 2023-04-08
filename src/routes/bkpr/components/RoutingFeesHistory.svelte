@@ -15,6 +15,7 @@
   import noUiSlider, { type API, type target } from 'nouislider'
   import 'nouislider/dist/nouislider.css'
   import Dropdown from '$lib/elements/Dropdown.svelte'
+  import caret from '$lib/icons/caret'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
   type DateData = Record<string, Record<string, string>>
@@ -34,6 +35,7 @@
     '#01FF70', // Lime green
     '#E6DB74' // Light yellow
   ]
+  const itemsPerPage = 10 // channel pagination in dropdown
   let slider: target | HTMLDivElement
   let sliderInstance: API
   let noRoutingFees = false
@@ -43,6 +45,7 @@
   let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
   let chartDates: string[] = []
   let chartDatesSliced: string[] = []
+  let currentPage = 1 // channel pagination in dropdown
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
@@ -250,12 +253,6 @@
   // Test colors & darkmode styling of dropdown
   // Prevent updateChartDatasets getting called twice when app mounts
   // Fix issue where there at empty fee dates to right of chart on mount
-  // Finish styling of pagination component
-  let channelsToTest = [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
-  ]
-  let currentPage = 1
-  const itemsPerPage = 10
 </script>
 
 <section
@@ -296,35 +293,45 @@
             text={$translate('app.buttons.total')}
           />
           <Dropdown label="Channels">
-            <div class="flex flex-wrap gap-2 w-56">
-              {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
-                <div>
-                  <Toggle
-                    handleChange={() => {
-                      toggleActiveChannel(channelID)
-                    }}
-                    toggled={activeChannelIDs.includes(channelID)}
-                    label={truncateValue(channelID, 3)}
-                  />
-                </div>
-              {/each}
-            </div>
-            <!-- Pagination of channels -->
-            {#if [...channelIDs].length > 10}
-              <div class="flex justify-center mt-4">
-                <button
-                  disabled={currentPage === 1}
-                  on:click={() => (currentPage = currentPage - 1)}>{`<<`}</button
-                >
-                <p class="ml-2 mr-2">
-                  {currentPage} / {Math.ceil([...channelIDs].length / itemsPerPage)}
-                </p>
-                <button
-                  disabled={currentPage === Math.ceil([...channelIDs].length / itemsPerPage)}
-                  on:click={() => (currentPage = currentPage + 1)}>{`>>`}</button
-                >
+            <div class="p-4">
+              <div class="flex flex-wrap gap-2 w-56 h-56">
+                {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
+                  <div>
+                    <Toggle
+                      handleChange={() => {
+                        toggleActiveChannel(channelID)
+                      }}
+                      toggled={activeChannelIDs.includes(channelID)}
+                      label={truncateValue(channelID, 3)}
+                    />
+                  </div>
+                {/each}
               </div>
-            {/if}
+              <!-- Pagination of channels -->
+              {#if [...channelIDs].length > 10}
+                <div class="flex justify-center mt-4">
+                  <button
+                    disabled={currentPage === 1}
+                    on:click={() => (currentPage = currentPage - 1)}
+                  >
+                    <div class="w-6 cursor-pointer rotate-90">
+                      {@html caret}
+                    </div></button
+                  >
+                  <p class="ml-2 mr-2 text-sm">
+                    {currentPage} / {Math.ceil([...channelIDs].length / itemsPerPage)}
+                  </p>
+                  <button
+                    disabled={currentPage === Math.ceil([...channelIDs].length / itemsPerPage)}
+                    on:click={() => (currentPage = currentPage + 1)}
+                  >
+                    <div class="w-6 cursor-pointer rotate-90 scale-y-[-1]">
+                      {@html caret}
+                    </div></button
+                  >
+                </div>
+              {/if}
+            </div>
           </Dropdown>
         </div>
 
