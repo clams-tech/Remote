@@ -217,8 +217,6 @@
   onDestroy(() => {
     chart && chart.destroy()
   })
-  // @TODO
-  // change background color of slider
 </script>
 
 <section
