@@ -253,6 +253,7 @@
             primary={!activeChannelIDs.length}
             on:click={() => {
               activeChannelIDs = []
+              updateChartDatasets()
             }}
             text={$translate('app.buttons.total')}
           />
