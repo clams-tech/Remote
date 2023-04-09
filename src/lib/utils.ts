@@ -589,30 +589,3 @@ export function formatDecodedOffer(
     quantityMax
   }
 }
-
-export function generateColor(id: string, darkmode = false) {
-  const letters = '0123456789ABCDEF'
-  let hash = 0
-  // Calculate a hash value based on the channel ID
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  let color = '#'
-  // Generate a color based on the hash value
-  for (let i = 0; i < 3; i++) {
-    let value = (hash >> (i * 8)) & 0xff
-    if (darkmode) {
-      value = Math.min(value + 30, 255) // Make dark mode colors lighter
-    }
-    let hex = letters[value % 16]
-    hex += letters[Math.floor(value / 16)]
-    color += hex
-  }
-  // Add an alpha channel for readability
-  const rgb = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
-    color.slice(3, 5),
-    16
-  )}, ${parseInt(color.slice(5, 7), 16)}, ${darkmode ? 0.5 : 1})`
-
-  return rgb
-}
