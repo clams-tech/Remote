@@ -7,8 +7,7 @@ import {
   distinctUntilKeyChanged,
   filter,
   skip,
-  switchMap,
-  tap
+  switchMap
 } from 'rxjs/operators'
 
 import {
@@ -142,8 +141,7 @@ function registerSideEffects() {
 
   const fiatDenominationChange$ = settings$.pipe(
     distinctUntilKeyChanged('fiatDenomination'),
-    skip(1),
-    tap(({ fiatDenomination }) => console.log({ fiatDenomination }))
+    skip(1)
   )
 
   // get and update bitcoin exchange rate by poll or if fiat denomination changes
