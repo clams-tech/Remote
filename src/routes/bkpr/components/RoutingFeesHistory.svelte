@@ -54,8 +54,8 @@
 
       acc[dateString] = {
         ...currentVal,
-        [account]: updatedAccountTotal.toString(),
-        total: updatedTotal.toString()
+        [account]: updatedAccountTotal.toString(), // Fees for channel for given date
+        total: updatedTotal.toString() // Total fees for the given date
       }
 
       return acc
@@ -115,7 +115,6 @@
 
   // Generate chart data using chosen range of dates & channels
   function updateChartDatasets() {
-    console.log('UPDATING CHART DATASETS!!')
     chart.data.datasets = []
     const dayData = Array.from(chartDatesSliced, (date) => ({ x: date, y: 0 }))
     // A line for each selected channel on the chart
@@ -258,7 +257,7 @@
             }}
             text={$translate('app.buttons.total')}
           />
-          <Dropdown label="Channels">
+          <Dropdown label={$translate('app.labels.channels')}>
             <div class="p-4">
               <div class="flex flex-wrap gap-2 w-56" class:h-56={[...channelIDs].length > 10}>
                 {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
@@ -280,9 +279,7 @@
             </div>
           </Dropdown>
         </div>
-
         <canvas bind:this={chartEl} />
-
         <p class="mb-4">{$translate('app.labels.date_range')}</p>
         <Slider
           totalItems={chartDates?.length}

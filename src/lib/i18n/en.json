@@ -124,7 +124,8 @@
     "optional": "Optional",
     "never": "Never",
     "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}",
-    "date_range": "Date range:"
+    "date_range": "Date range:",
+    "channels": "Channels"
   },
   "time": {
     "mins": "mins"
