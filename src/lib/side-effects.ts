@@ -1,4 +1,7 @@
 import { from, merge, timer } from 'rxjs'
+import lightning from '$lib/lightning'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
+
 import {
   distinctUntilChanged,
   distinctUntilKeyChanged,
@@ -7,8 +10,6 @@ import {
   switchMap,
   tap
 } from 'rxjs/operators'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
-import lightning from '$lib/lightning'
 
 import {
   AUTH_STORAGE_KEY,
