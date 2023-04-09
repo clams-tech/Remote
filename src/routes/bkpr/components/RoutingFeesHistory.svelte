@@ -148,41 +148,43 @@
 
     const ticksColor = $settings$.darkmode ? 'white' : 'black'
 
-    chart = new Chart(chartEl, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: []
-      },
-      options: {
-        ...(device.type === 'mobile' && { aspectRatio: 1.1 }), // make chart more readible on mobile
-        scales: {
-          x: {
-            display: true,
-            ticks: {
-              color: ticksColor
-            },
-            title: {
-              color: ticksColor,
+    if (chartEl) {
+      chart = new Chart(chartEl, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          ...(device.type === 'mobile' && { aspectRatio: 1.1 }), // make chart more readible on mobile
+          scales: {
+            x: {
               display: true,
-              text: 'DATE'
-            }
-          },
-          y: {
-            display: true,
-            beginAtZero: true,
-            ticks: {
-              color: ticksColor
+              ticks: {
+                color: ticksColor
+              },
+              title: {
+                color: ticksColor,
+                display: true,
+                text: 'DATE'
+              }
             },
-            title: {
-              color: ticksColor,
+            y: {
               display: true,
-              text: $settings$.bitcoinDenomination.toLocaleUpperCase()
+              beginAtZero: true,
+              ticks: {
+                color: ticksColor
+              },
+              title: {
+                color: ticksColor,
+                display: true,
+                text: $settings$.bitcoinDenomination.toLocaleUpperCase()
+              }
             }
           }
         }
-      }
-    })
+      })
+    }
   }
 
   $: routingEvents = ($incomeEvents$.data || []).filter(
@@ -217,7 +219,6 @@
   })
   // @TODO
   // change background color of slider
-  // Rearrange tiles on bkpr page to use less space
 </script>
 
 <section
