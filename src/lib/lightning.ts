@@ -34,7 +34,8 @@ import {
   customNotifications$,
   pin$,
   incomeEvents$,
-  channelsAPY$
+  channelsAPY$,
+  listNodes$
 } from './streams'
 
 class Lightning {
@@ -207,6 +208,30 @@ class Lightning {
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
+      })
+    }
+  }
+
+  public async updateListNodes(id: string) {
+    const lnApi = this.getLn()
+
+    try {
+      listNodes$.next({ loading: true, data: listNodes$.getValue().data })
+      const node = await lnApi.listNodes(id)
+      console.log('NODE = ', node)
+      listNodes$.next({ loading: false, data: node })
+
+      return node
+    } catch (error) {
+      const { message } = error as Error
+      listNodes$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        // @TODO update errors
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
       })

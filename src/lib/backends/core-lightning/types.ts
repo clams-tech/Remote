@@ -694,6 +694,36 @@ export type BkprChannelsAPYResponse = {
   channels_apy: ChannelAPY[]
 }
 
+export type ListNode = {
+  nodeid: string
+  alias: string
+  color: string
+  last_timestamp: number
+  features: string
+  addresses: [
+    {
+      type: string
+      address: string
+      port: number
+    }
+  ]
+}
+
+export type ListNodesResponse = {
+  nodeid: string
+  alias: string
+  color: string
+  last_timestamp: number
+  features: string
+  addresses: [
+    {
+      type: string
+      address: string
+      port: number
+    }
+  ]
+}[]
+
 export type DecodedBolt11 = {
   currency: string
   created_at: number
@@ -905,5 +935,6 @@ export type LNResponse =
   | ListInvoiceRequestsResponse
   | CreatePayOfferResponse
   | CreateWithdrawOfferResponse
+  | ListNodesResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

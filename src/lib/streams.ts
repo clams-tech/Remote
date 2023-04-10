@@ -29,6 +29,7 @@ import type {
   FormattedOfferSummary,
   GetinfoResponse,
   ListfundsResponse,
+  ListNodesResponse,
   OfferCommon
 } from './backends'
 
@@ -147,6 +148,12 @@ export const incomeEvents$ = new BehaviorSubject<{
 
 export const channelsAPY$ = new BehaviorSubject<{
   data: BkprChannelsAPYResponse['channels_apy'] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const listNodes$ = new BehaviorSubject<{
+  data: ListNodesResponse | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
