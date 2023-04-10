@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "1.6.1-0.0.2",
+  "version": "1.6.1-0.1.2",
   "scripts": {
     "dev": "vite dev",
     "dev-http": "vite dev --mode http",
@@ -17,7 +17,7 @@
   "devDependencies": {
     "@playwright/test": "^1.28.1",
     "@sveltejs/adapter-static": "^2.0.0",
-    "@sveltejs/kit": "^1.8.4",
+    "@sveltejs/kit": "^1.15.2",
     "@types/big.js": "^6.1.5",
     "@types/crypto-js": "^4.1.1",
     "@types/hammerjs": "^2.0.41",
