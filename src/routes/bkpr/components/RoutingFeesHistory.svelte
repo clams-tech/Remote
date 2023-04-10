@@ -13,7 +13,6 @@
   import Toggle from '$lib/elements/Toggle.svelte'
   import type { IncomeEvent } from '$lib/backends'
   import Dropdown from '$lib/components/Dropdown.svelte'
-  import Pagination from '$lib/components/Pagination.svelte'
   import Slider from '$lib/components/Slider.svelte'
 
   // Mapping of date -> (account -> total routed on that date) & total routed for all channels on that date
@@ -34,8 +33,6 @@
     '#01FF70', // Lime green
     '#E6DB74' // Light yellow
   ]
-  const itemsPerPage = 10 // channel pagination in dropdown
-  let currentPage = 1 // channel pagination in dropdown
   let noRoutingFees = false
   let activeChannelIDs: string[] = []
   let chartEl: string | HTMLCanvasElement
@@ -259,8 +256,8 @@
           />
           <Dropdown label={$translate('app.labels.channels')}>
             <div class="p-4">
-              <div class="flex flex-wrap gap-2 w-56" class:h-56={[...channelIDs].length > 10}>
-                {#each [...channelIDs].slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as channelID}
+              <div class="flex flex-col gap-2 w-56 h-56 overflow-auto">
+                {#each [...channelIDs] as channelID}
                   <div>
                     <Toggle
                       handleChange={() => {
@@ -272,10 +269,6 @@
                   </div>
                 {/each}
               </div>
-
-              {#if [...channelIDs].length > 10}
-                <Pagination items={[...channelIDs]} bind:currentPage {itemsPerPage} />
-              {/if}
             </div>
           </Dropdown>
         </div>
