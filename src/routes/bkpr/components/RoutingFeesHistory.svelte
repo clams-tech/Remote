@@ -197,8 +197,8 @@
   // Generate chartDates & initalize chart range
   $: if (routingEvents.length) {
     chartDates = xAxisDates(
-      new Date(routingEvents[0]?.timestamp * 1000), // First event date
-      new Date(routingEvents[routingEvents.length - 1]?.timestamp * 1000) // Last event date
+      new Date(routingDates[0].date), // First event date
+      new Date(routingDates[routingDates.length - 1].date) // Last event date
     )
     chartRange = { start: 0, end: chartDates.length }
   }
