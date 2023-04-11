@@ -427,11 +427,6 @@ class CoreLn {
   }
 
   async listNodes(id: string): Promise<ListNodesResponse['nodes']> {
-    console.log(`
-    
-    ID PASSED TO LIST NODES = ${id}
-
-    `)
     const result = (await this.connection.commando({
       method: 'listnodes',
       rune: this.rune,

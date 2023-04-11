@@ -209,9 +209,8 @@ class Lightning {
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',
-        // @TODO add list balances translations
         heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+        message: `${get(translate)('app.errors.bkpr_list_balances')}: ${message}`
       })
     }
   }
@@ -242,10 +241,11 @@ class Lightning {
     const lnApi = this.getLn()
 
     try {
-      nodes$.next({ loading: true, data: nodes$.getValue().data })
+      nodes$.next({ data: nodes$.getValue().data, loading: true })
       const node = await lnApi.listNodes(id)
-      console.log('NODE = ', node)
-      nodes$.next({ loading: false, data: node })
+      const currentNodes = nodes$.getValue().data
+      const data = currentNodes ? currentNodes.concat(node) : node
+      nodes$.next({ loading: false, data })
 
       return node
     } catch (error) {
@@ -255,9 +255,8 @@ class Lightning {
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',
-        // @TODO add list nodes translations
         heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
+        message: `${get(translate)('app.errors.list_nodes')}: ${message}`
       })
     }
   }

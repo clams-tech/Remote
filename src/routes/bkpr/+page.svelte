@@ -11,19 +11,23 @@
   import graph from '$lib/icons/graph'
   import { balances$, nodes$ } from '$lib/streams'
 
-  // Fetch bookkeeper channels apy
+  // Fetch bookkeeper channels apy, income events & balances
   onMount(() => {
     lightning.updateChannelsAPY()
     lightning.updateIncomeEvents()
+    lightning.updateListBalances()
   })
 
+  // @TODO
+  // accommodate a ton of accounts to prevent rate limit on node
+  // add node alias to all charts
   $: if ($balances$.data) {
-    console.log('BALANCES = ', $balances$.data)
-    // @TODO fetch node alias for all account balances using the peer_id & add to dropdown & pie charts
-    // lightning.updateListBalances()
+    $balances$.data.forEach((balance) => {
+      if (balance.account !== 'wallet' && balance.peer_id) {
+        lightning.updateListNodes(balance.peer_id)
+      }
+    })
   }
-
-  $: console.log('NODES = ', $nodes$)
 </script>
 
 <svelte:head>

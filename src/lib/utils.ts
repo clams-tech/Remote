@@ -248,7 +248,6 @@ export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.
 // limited to offchain funds for the moment
 export const calculateBalance = (funds: ListfundsResponse): string => {
   const offChain = funds.channels.reduce((total, channel) => {
-    console.log('CHANNEL = ', channel)
     const { our_amount_msat } = channel
 
     if (!our_amount_msat) {
