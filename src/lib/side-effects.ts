@@ -1,7 +1,14 @@
-import { from, timer } from 'rxjs'
-import { distinctUntilChanged, filter, skip, switchMap } from 'rxjs/operators'
-import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
+import { from, merge, timer } from 'rxjs'
 import lightning from '$lib/lightning'
+import { deriveLastPayIndex, encryptWithAES, getBitcoinExchangeRate, logger } from './utils'
+
+import {
+  distinctUntilChanged,
+  distinctUntilKeyChanged,
+  filter,
+  skip,
+  switchMap
+} from 'rxjs/operators'
 
 import {
   AUTH_STORAGE_KEY,
@@ -130,8 +137,15 @@ function registerSideEffects() {
     }
   })
 
-  // get and update bitcoin exchange rate
-  timer(0, 1 * MIN_IN_MS)
+  const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
+
+  const fiatDenominationChange$ = settings$.pipe(
+    distinctUntilKeyChanged('fiatDenomination'),
+    skip(1)
+  )
+
+  // get and update bitcoin exchange rate by poll or if fiat denomination changes
+  merge(exchangeRatePoll$, fiatDenominationChange$)
     .pipe(switchMap(() => from(getBitcoinExchangeRate())))
     .subscribe(bitcoinExchangeRates$)
 
