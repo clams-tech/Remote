@@ -665,6 +665,23 @@ export type BkprListIncomeResponse = {
   income_events: IncomeEvent[]
 }
 
+export type BkprListBalancesResponse = {
+  accounts: {
+    account: 'wallet' | string
+    peer_id?: string
+    we_opened?: boolean
+    account_closed?: boolean
+    account_resolved?: boolean
+    resolved_at_block?: number
+    balances: [
+      {
+        balance_msat: number
+        coin_type: string
+      }
+    ]
+  }[]
+}
+
 export type ChannelAPY = {
   account: 'net' | string
   routed_out_msat: number | string
@@ -710,19 +727,21 @@ export type ListNode = {
 }
 
 export type ListNodesResponse = {
-  nodeid: string
-  alias: string
-  color: string
-  last_timestamp: number
-  features: string
-  addresses: [
-    {
-      type: string
-      address: string
-      port: number
-    }
-  ]
-}[]
+  nodes: {
+    nodeid: string
+    alias: string
+    color: string
+    last_timestamp: number
+    features: string
+    addresses: [
+      {
+        type: string
+        address: string
+        port: number
+      }
+    ]
+  }[]
+}
 
 export type DecodedBolt11 = {
   currency: string

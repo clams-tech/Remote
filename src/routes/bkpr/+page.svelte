@@ -9,12 +9,21 @@
   import lightning from '$lib/lightning'
   import { onMount } from 'svelte'
   import graph from '$lib/icons/graph'
+  import { balances$, nodes$ } from '$lib/streams'
 
   // Fetch bookkeeper channels apy
   onMount(() => {
     lightning.updateChannelsAPY()
     lightning.updateIncomeEvents()
   })
+
+  $: if ($balances$.data) {
+    console.log('BALANCES = ', $balances$.data)
+    // @TODO fetch node alias for all account balances using the peer_id & add to dropdown & pie charts
+    // lightning.updateListBalances()
+  }
+
+  $: console.log('NODES = ', $nodes$)
 </script>
 
 <svelte:head>

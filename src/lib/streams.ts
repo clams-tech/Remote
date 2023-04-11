@@ -25,6 +25,7 @@ import { logger } from './utils'
 
 import type {
   BkprChannelsAPYResponse,
+  BkprListBalancesResponse,
   BkprListIncomeResponse,
   FormattedOfferSummary,
   GetinfoResponse,
@@ -146,14 +147,20 @@ export const incomeEvents$ = new BehaviorSubject<{
   error?: string
 }>({ loading: true, data: null })
 
+export const balances$ = new BehaviorSubject<{
+  data: BkprListBalancesResponse['accounts'] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
 export const channelsAPY$ = new BehaviorSubject<{
   data: BkprChannelsAPYResponse['channels_apy'] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })
 
-export const listNodes$ = new BehaviorSubject<{
-  data: ListNodesResponse | null
+export const nodes$ = new BehaviorSubject<{
+  data: ListNodesResponse['nodes'] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

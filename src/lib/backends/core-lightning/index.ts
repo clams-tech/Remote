@@ -15,6 +15,7 @@ import {
 
 import type {
   BkprChannelsAPYResponse,
+  BkprListBalancesResponse,
   BkprListIncomeResponse,
   ChannelAPY,
   CreatePayOfferRequest,
@@ -387,6 +388,15 @@ class CoreLn {
     return formatted
   }
 
+  async bkprListBalances(): Promise<BkprListBalancesResponse['accounts']> {
+    const result = await this.connection.commando({
+      method: 'bkpr-listbalances',
+      rune: this.rune
+    })
+
+    return (result as BkprListBalancesResponse).accounts
+  }
+
   async bkprChannelsAPY(): Promise<ChannelAPY[]> {
     const result = (await this.connection.commando({
       method: 'bkpr-channelsapy',
@@ -416,14 +426,19 @@ class CoreLn {
     return (result as ListInvoiceRequestsResponse).invoicerequests
   }
 
-  async listNodes(id: string): Promise<ListNodesResponse> {
+  async listNodes(id: string): Promise<ListNodesResponse['nodes']> {
+    console.log(`
+    
+    ID PASSED TO LIST NODES = ${id}
+
+    `)
     const result = (await this.connection.commando({
       method: 'listnodes',
       rune: this.rune,
       params: { id }
     })) as ListNodesResponse
 
-    return result
+    return (result as ListNodesResponse).nodes
   }
 }
 

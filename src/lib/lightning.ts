@@ -35,7 +35,8 @@ import {
   pin$,
   incomeEvents$,
   channelsAPY$,
-  listNodes$
+  balances$,
+  nodes$
 } from './streams'
 
 class Lightning {
@@ -192,6 +193,29 @@ class Lightning {
     }
   }
 
+  public async updateListBalances() {
+    const lnApi = this.getLn()
+
+    try {
+      balances$.next({ loading: true, data: balances$.getValue().data })
+      const balances = await lnApi.bkprListBalances()
+      balances$.next({ loading: false, data: balances })
+
+      return balances
+    } catch (error) {
+      const { message } = error as Error
+      incomeEvents$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        // @TODO add list balances translations
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
   public async updateChannelsAPY() {
     const lnApi = this.getLn()
 
@@ -218,20 +242,20 @@ class Lightning {
     const lnApi = this.getLn()
 
     try {
-      listNodes$.next({ loading: true, data: listNodes$.getValue().data })
+      nodes$.next({ loading: true, data: nodes$.getValue().data })
       const node = await lnApi.listNodes(id)
       console.log('NODE = ', node)
-      listNodes$.next({ loading: false, data: node })
+      nodes$.next({ loading: false, data: node })
 
       return node
     } catch (error) {
       const { message } = error as Error
-      listNodes$.next({ loading: false, data: null, error: message })
+      nodes$.next({ loading: false, data: null, error: message })
 
       customNotifications$.next({
         id: createRandomHex(),
         type: 'error',
-        // @TODO update errors
+        // @TODO add list nodes translations
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
       })
