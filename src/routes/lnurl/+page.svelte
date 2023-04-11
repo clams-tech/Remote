@@ -5,7 +5,7 @@
   import Withdraw from './components/withdraw.svelte'
   import warning from '$lib/icons/warning'
   import Spinner from '$lib/elements/Spinner.svelte'
-  import { LNURL_PROXY } from '$lib/constants'
+  import { API_URL } from '$lib/constants'
   import { decodeLightningAddress } from '$lib/utils'
   import type { PageData } from './$types'
   import { goto } from '$app/navigation'
@@ -55,9 +55,9 @@
       if (!tag) {
         parsingLnurl = true
 
-        const result = await fetch(LNURL_PROXY, { headers: { 'Target-URL': url.toString() } }).then(
-          (res) => res.json()
-        )
+        const result = await fetch(`${API_URL}/http-proxy`, {
+          headers: { 'Target-URL': url.toString() }
+        }).then((res) => res.json())
 
         if (result.status === 'ERROR') {
           parseLnurlError = result.reason

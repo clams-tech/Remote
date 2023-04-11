@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { LNURL_PROXY } from '$lib/constants'
+  import { API_URL } from '$lib/constants'
   import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import check from '$lib/icons/check'
@@ -28,7 +28,7 @@
       loginURL.searchParams.set('key', signer.publicKey)
       loginURL.searchParams.set('t', Date.now().toString())
 
-      const authResponse = await fetch(LNURL_PROXY, {
+      const authResponse = await fetch(`${API_URL}/http-proxy`, {
         headers: { 'Target-URL': loginURL.toString() }
       }).then((res) => res.json())
 

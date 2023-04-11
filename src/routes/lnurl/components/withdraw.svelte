@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'
   import Amount from '$lib/components/Amount.svelte'
   import Summary from '$lib/components/Summary.svelte'
-  import { LNURL_PROXY } from '$lib/constants'
+  import { API_URL } from '$lib/constants'
   import { convertValue } from '$lib/conversion'
   import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
@@ -117,7 +117,7 @@
       url.searchParams.set('k1', k1)
       url.searchParams.set('pr', payment.invoice as string)
 
-      const result = await fetch(LNURL_PROXY, {
+      const result = await fetch(`${API_URL}/http-proxy`, {
         headers: {
           'Target-URL': url.toString()
         }
