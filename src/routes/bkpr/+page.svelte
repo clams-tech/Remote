@@ -20,14 +20,17 @@
 
   // @TODO
   // accommodate a ton of accounts to prevent rate limit on node
-  // add node alias to all charts
   $: if ($balances$.data) {
     $balances$.data.forEach((balance) => {
-      if (balance.account !== 'wallet' && balance.peer_id) {
-        lightning.updateListNodes(balance.peer_id)
+      if (balance.account !== 'wallet') {
+        // @TODO if PeerNode exists but does not have balance account in account array - fetch and add
+        // otherwise do not call updateListNodes
+        lightning.updateListNodes(balance.peer_id, balance.account)
       }
     })
   }
+
+  $: console.log('NODES = ', $nodes$.data)
 </script>
 
 <svelte:head>

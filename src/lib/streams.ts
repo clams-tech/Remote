@@ -19,7 +19,8 @@ import type {
   Payment,
   Auth,
   Settings,
-  FormattedDecodedOffer
+  FormattedDecodedOffer,
+  PeerNode
 } from './types'
 import { logger } from './utils'
 
@@ -30,7 +31,6 @@ import type {
   FormattedOfferSummary,
   GetinfoResponse,
   ListfundsResponse,
-  ListNodesResponse,
   OfferCommon
 } from './backends'
 
@@ -160,7 +160,7 @@ export const channelsAPY$ = new BehaviorSubject<{
 }>({ loading: true, data: null })
 
 export const nodes$ = new BehaviorSubject<{
-  data: ListNodesResponse['nodes'] | null
+  data: PeerNode[] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

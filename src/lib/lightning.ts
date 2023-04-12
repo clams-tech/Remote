@@ -2,7 +2,7 @@ import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
-import type { Auth, Payment } from './types'
+import type { Auth, Payment, PeerNode } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
@@ -237,17 +237,18 @@ class Lightning {
     }
   }
 
-  public async updateListNodes(id: string) {
+  public async updateListNodes(peer_id: string, account: string) {
     const lnApi = this.getLn()
 
     try {
       nodes$.next({ data: nodes$.getValue().data, loading: true })
-      const node = await lnApi.listNodes(id)
+      const nodes = await lnApi.listNodes(peer_id)
+      const peerNode = { ...nodes[0], accounts: [account] } as PeerNode // Add accounts (channel_id's) array to response
       const currentNodes = nodes$.getValue().data
-      const data = currentNodes ? currentNodes.concat(node) : node
+      const data = currentNodes ? currentNodes.concat(peerNode) : [peerNode]
       nodes$.next({ loading: false, data })
 
-      return node
+      return nodes
     } catch (error) {
       const { message } = error as Error
       nodes$.next({ loading: false, data: null, error: message })

@@ -3,6 +3,7 @@ import type {
   DecodedBolt12Invoice,
   DecodedBolt12Offer,
   DecodedCommon,
+  ListNode,
   OfferCommon
 } from './backends'
 
@@ -214,3 +215,5 @@ export type FormattedDecodedOffer = {
   issuer?: OfferCommon['offer_issuer']
   quantityMax?: OfferCommon['offer_quantity_max']
 }
+
+export type PeerNode = ListNode & { accounts: string[] }

@@ -727,20 +727,7 @@ export type ListNode = {
 }
 
 export type ListNodesResponse = {
-  nodes: {
-    nodeid: string
-    alias: string
-    color: string
-    last_timestamp: number
-    features: string
-    addresses: [
-      {
-        type: string
-        address: string
-        port: number
-      }
-    ]
-  }[]
+  nodes: ListNode[]
 }
 
 export type DecodedBolt11 = {
