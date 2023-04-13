@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$ } from '$lib/streams'
+  import { channelsAPY$, nodes$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
@@ -14,6 +14,7 @@
 
   let feesChart: Chart<'pie', number[], string>
   let apyChart: Chart<'pie', number[], string>
+  let nodeLabels: string[]
 
   enum ChartIDs {
     fees = 'fees',
@@ -47,7 +48,19 @@
 
   $: noAPY = net && net[0]?.apy_total.slice(0, -1) === '0.0000'
 
-  $: if (channels && !noRoutingFees) {
+  // create data for chart labels
+  $: {
+    if (channels.length && $nodes$.data?.length) {
+      nodeLabels = channels
+        .filter(({ fees_in_msat }) => fees_in_msat !== '0')
+        .map(({ account }) => {
+          const match = $nodes$.data?.find((node) => node.accounts.includes(account))
+          return match ? `${truncateValue(account, 3)} : ${match.alias}` : truncateValue(account, 3)
+        })
+    }
+  }
+
+  $: if (channels && !noRoutingFees && nodeLabels) {
     renderFeesChart(channels)
 
     if (!noAPY) {
@@ -55,6 +68,7 @@
     }
   }
 
+  // @TODO hide chart
   async function renderFeesChart(channels: ChannelAPY[]) {
     const { Chart } = await import('chart.js/auto')
 
@@ -69,7 +83,7 @@
       })
 
       if (value && value !== '0') {
-        labels.push(account) // @TODO - Add node alias and handle 100's of channels - hide if mre than 10
+        labels.push(account)
         data.push(parseFloat(value))
       }
     })
@@ -86,7 +100,7 @@
         feesChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels: labels.map((label) => truncateValue(label, 3)),
+            labels: nodeLabels,
             datasets: [
               {
                 data
@@ -126,7 +140,7 @@
         apyChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels: labels.map((label) => truncateValue(label, 3)),
+            labels: nodeLabels,
             datasets: [
               {
                 data

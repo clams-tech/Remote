@@ -219,7 +219,7 @@
   $: {
     if ([...channelIDs].length && $nodes$.data?.length) {
       toggles = [...channelIDs].map((channelID) => {
-        const match = $nodes$.data?.find((obj) => obj.accounts.includes(channelID))
+        const match = $nodes$.data?.find((node) => node.accounts.includes(channelID))
         return {
           id: channelID,
           alias: match ? match.alias : channelID
