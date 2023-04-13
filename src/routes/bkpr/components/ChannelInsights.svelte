@@ -69,7 +69,7 @@
       })
 
       if (value && value !== '0') {
-        labels.push(account)
+        labels.push(account) // @TODO - Add node alias and handle 100's of channels - hide if mre than 10
         data.push(parseFloat(value))
       }
     })

@@ -17,7 +17,7 @@
     lightning.updateIncomeEvents()
     lightning.updateListBalances().then((balances) => {
       if (!$nodes$.data) {
-        // Set timer on this function so we do not hit rate limit. chunks of 50 calls.
+        // @TODO split into chunks of 50 calls so app doesn't get rate limited by node
         balances.forEach((balance) => {
           if (balance.account !== 'wallet') {
             // Add accounts associated with each node to listnodes reponse to create PeerNode[]

@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue, userAgent } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { incomeEvents$, settings$ } from '$lib/streams'
+  import { incomeEvents$, settings$, nodes$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { Chart } from 'chart.js'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -40,6 +40,10 @@
   let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
   let chartDates: string[] = []
   let chartDatesSliced: string[] = []
+  let toggles: {
+    id: string
+    alias: string
+  }[]
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
     const dateMap = events.reduce((acc, { timestamp, credit_msat, account }) => {
@@ -211,6 +215,19 @@
     updateChartDatasets()
   }
 
+  // create data for channel toggles
+  $: {
+    if ([...channelIDs].length && $nodes$.data?.length) {
+      toggles = [...channelIDs].map((channelID) => {
+        const match = $nodes$.data?.find((obj) => obj.accounts.includes(channelID))
+        return {
+          id: channelID,
+          alias: match ? match.alias : channelID
+        }
+      })
+    }
+  }
+
   onDestroy(() => {
     chart && chart.destroy()
   })
@@ -257,15 +274,15 @@
           <Dropdown label={$translate('app.labels.channels')}>
             <div class="p-4">
               <div class="flex flex-col gap-2 w-56 h-56 overflow-auto">
-                {#each [...channelIDs] as channelID}
-                  <div>
+                {#each toggles as toggle}
+                  <div class="flex cursor-pointer" on:click={() => toggleActiveChannel(toggle.id)}>
                     <Toggle
-                      handleChange={() => {
-                        toggleActiveChannel(channelID)
-                      }}
-                      toggled={activeChannelIDs.includes(channelID)}
-                      label={truncateValue(channelID, 3)}
+                      toggled={activeChannelIDs.includes(toggle.id)}
+                      label={truncateValue(toggle.id, 3)}
                     />
+                    <p class="ml-2">
+                      {toggle.alias}
+                    </p>
                   </div>
                 {/each}
               </div>
