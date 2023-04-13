@@ -242,11 +242,28 @@ class Lightning {
 
     try {
       nodes$.next({ data: nodes$.getValue().data, loading: true })
+      // Fetch single node with given peer_id
       const nodes = await lnApi.listNodes(peer_id)
-      const peerNode = { ...nodes[0], accounts: [account] } as PeerNode // Add accounts (channel_id's) array to response
       const currentNodes = nodes$.getValue().data
-      const data = currentNodes ? currentNodes.concat(peerNode) : [peerNode]
-      nodes$.next({ loading: false, data })
+      // Updates accounts array for matching node found in state
+      if (currentNodes?.some((node) => node.nodeid === peer_id)) {
+        const updatedNodes = currentNodes.map((node) => {
+          if (node.nodeid === peer_id) {
+            return {
+              ...node,
+              accounts: [...node.accounts, account]
+            }
+          } else {
+            return node
+          }
+        })
+        nodes$.next({ loading: false, data: updatedNodes })
+        // Add accounts array for node with matching peer_id
+      } else {
+        const peerNode = { ...nodes[0], accounts: [account] } as PeerNode
+        const data = currentNodes ? currentNodes.concat(peerNode) : [peerNode]
+        nodes$.next({ loading: false, data })
+      }
 
       return nodes
     } catch (error) {

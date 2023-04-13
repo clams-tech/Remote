@@ -9,28 +9,24 @@
   import lightning from '$lib/lightning'
   import { onMount } from 'svelte'
   import graph from '$lib/icons/graph'
-  import { balances$, nodes$ } from '$lib/streams'
+  import { nodes$ } from '$lib/streams'
 
   // Fetch bookkeeper channels apy, income events & balances
   onMount(() => {
     lightning.updateChannelsAPY()
     lightning.updateIncomeEvents()
-    lightning.updateListBalances()
-  })
-
-  // @TODO
-  // accommodate a ton of accounts to prevent rate limit on node
-  $: if ($balances$.data) {
-    $balances$.data.forEach((balance) => {
-      if (balance.account !== 'wallet') {
-        // @TODO if PeerNode exists but does not have balance account in account array - fetch and add
-        // otherwise do not call updateListNodes
-        lightning.updateListNodes(balance.peer_id, balance.account)
+    lightning.updateListBalances().then((balances) => {
+      if (!$nodes$.data) {
+        // Set timer on this function so we do not hit rate limit. chunks of 50 calls.
+        balances.forEach((balance) => {
+          if (balance.account !== 'wallet') {
+            // Add accounts associated with each node to listnodes reponse to create PeerNode[]
+            lightning.updateListNodes(balance.peer_id, balance.account)
+          }
+        })
       }
     })
-  }
-
-  $: console.log('NODES = ', $nodes$.data)
+  })
 </script>
 
 <svelte:head>
