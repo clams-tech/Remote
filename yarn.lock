@@ -230,10 +230,10 @@
   resolved "https://registry.yarnpkg.com/@sveltejs/adapter-static/-/adapter-static-2.0.0.tgz#508d0eb5d060094b49c592cfcbd72349b4f1d6bb"
   integrity sha512-M9F8EyCIdVcpZu0zvS7U7v+rc7elNNDUkMHLsOkJYlfQ9rDdif3fqteMqddcrq1lFPEGH1ErdTjpsXdb3k1e8w==
 
-"@sveltejs/kit@^1.8.4":
-  version "1.8.4"
-  resolved "https://registry.yarnpkg.com/@sveltejs/kit/-/kit-1.8.4.tgz#5f2fccb2c26acb1719422436ece061e56a1e4516"
-  integrity sha512-SUNHiaFuvOxeu/3wVLbdR2ki9sqcPEQUOtxWulI+H7fa1JfSTYuA0KgjValVlKBUlyWiW9XKyTtSE+I+qQOToA==
+"@sveltejs/kit@^1.15.2":
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/@sveltejs/kit/-/kit-1.15.2.tgz#2d351b15aa39ab792c36c2c236c7e31a2010a6b0"
+  integrity sha512-rLNxZrjbrlPf8AWW8GAU4L/Vvu17e9v8EYl7pUip7x72lTft7RcxeP3z7tsrHpMSBBxC9o4XdKzFvz1vMZyXZw==
   dependencies:
     "@sveltejs/vite-plugin-svelte" "^2.0.0"
     "@types/cookie" "^0.5.1"
@@ -1554,10 +1554,10 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-lnmessage@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.0.tgz#3f24f2f6aef31f8c7dbcd48903087d02ee050ca6"
-  integrity sha512-zyNLn3BPz+lQq0B7Vu3Y93qjBeLxyZAHEMRzhUAHdEVlRhg4wKViJjjiKSqxs8pMHfHCizMu73U2lt38OSvpjw==
+lnmessage@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.1.tgz#ff8daaa52632c12b4f90559f04922e3e5f6ecb80"
+  integrity sha512-TZQNZP4EYyaHE4bRuoGb81NbSGkyAwzZkSbrYHKLpKpe2yLlBp7vgru9n9d8iEMQNlkyGLIwvi2eRbRJPkqi1Q==
   dependencies:
     "@noble/hashes" "^1.2.0"
     "@noble/secp256k1" "^1.7.1"
