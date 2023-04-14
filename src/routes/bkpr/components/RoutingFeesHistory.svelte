@@ -40,9 +40,9 @@
   let chartRange = { start: 0, end: 0 } // Used to slice chartDates & chartData
   let chartDates: string[] = []
   let chartDatesSliced: string[] = []
-  let toggles: {
-    id: string
-    alias: string
+  let labels: {
+    id: string // channel id
+    alias: string // node alias
   }[]
 
   function formatRoutesByDate(events: IncomeEvent[]): SortedDateData {
@@ -122,9 +122,12 @@
     if (activeChannelIDs.length) {
       activeChannelIDs.forEach((channelID, i) => {
         const data = getChartData(dayData, channelID)
+        const label = labels.find((label) => label.id === channelID)
 
         chart.data.datasets.push({
-          label: truncateValue(channelID, 3),
+          label:
+            (label && `${label?.alias}: ${truncateValue(label?.id, 3)}`) ||
+            truncateValue(channelID, 3),
           data,
           fill: false,
           borderColor: colors[i % colors.length]
@@ -215,10 +218,9 @@
     updateChartDatasets()
   }
 
-  // create data for channel toggles
   $: {
     if ([...channelIDs].length && $nodes$.data?.length) {
-      toggles = [...channelIDs].map((channelID) => {
+      labels = [...channelIDs].map((channelID) => {
         const match = $nodes$.data?.find((node) => node.accounts.includes(channelID))
         return {
           id: channelID,
@@ -274,15 +276,14 @@
           <Dropdown label={$translate('app.labels.channels')}>
             <div class="p-4">
               <div class="flex flex-col gap-2 w-56 h-56 overflow-auto">
-                {#each toggles as toggle}
-                  <div class="flex cursor-pointer" on:click={() => toggleActiveChannel(toggle.id)}>
+                {#each labels as label}
+                  <div class="flex cursor-pointer" on:click={() => toggleActiveChannel(label.id)}>
                     <Toggle
-                      toggled={activeChannelIDs.includes(toggle.id)}
-                      label={truncateValue(toggle.id, 3)}
+                      handleChange={() => toggleActiveChannel(label.id)}
+                      toggled={activeChannelIDs.includes(label.id)}
+                      label={`${label.alias}: ${truncateValue(label.id, 3)}`}
+                      labelPosition={'right'}
                     />
-                    <p class="ml-2">
-                      {toggle.alias}
-                    </p>
                   </div>
                 {/each}
               </div>

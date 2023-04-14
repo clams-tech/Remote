@@ -55,12 +55,20 @@
         .filter(({ fees_in_msat }) => fees_in_msat !== '0')
         .map(({ account }) => {
           const match = $nodes$.data?.find((node) => node.accounts.includes(account))
-          return match ? `${truncateValue(account, 3)} : ${match.alias}` : truncateValue(account, 3)
+          return match ? `${match.alias}: ${truncateValue(account, 3)}` : truncateValue(account, 3)
         })
     }
   }
 
-  $: if (channels && !noRoutingFees && nodeLabels) {
+  // @TODO work out why wrong labels applied to channels
+  $: if (feesChart && apyChart && nodeLabels) {
+    feesChart.data.labels = nodeLabels
+    apyChart.data.labels = nodeLabels
+    feesChart.update()
+    apyChart.update()
+  }
+
+  $: if (channels && !noRoutingFees) {
     renderFeesChart(channels)
 
     if (!noAPY) {
@@ -68,14 +76,12 @@
     }
   }
 
-  // @TODO hide chart
   async function renderFeesChart(channels: ChannelAPY[]) {
     const { Chart } = await import('chart.js/auto')
 
-    let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, fees_in_msat }) => {
+    channels.forEach(({ fees_in_msat }) => {
       const value = convertValue({
         value: fees_in_msat.toString(),
         from: BitcoinDenomination.msats,
@@ -83,14 +89,13 @@
       })
 
       if (value && value !== '0') {
-        labels.push(account)
         data.push(parseFloat(value))
       }
     })
 
     // If chart exists, update data
     if (feesChart) {
-      feesChart.data = { labels, datasets: [{ data }] }
+      feesChart.data = { datasets: [{ data }] }
       feesChart.update()
     } else {
       // Create new chart
@@ -100,7 +105,6 @@
         feesChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels: nodeLabels,
             datasets: [
               {
                 data
@@ -115,21 +119,19 @@
   async function renderApyChart(channels: ChannelAPY[]) {
     const { Chart } = await import('chart.js/auto')
 
-    let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, apy_in }) => {
+    channels.forEach(({ apy_in }) => {
       const apy = parseFloat(apy_in.slice(0, -1))
 
       if (apy) {
-        labels.push(account)
         data.push(apy)
       }
     })
 
     // If chart exists, update data
     if (apyChart) {
-      apyChart.data = { labels, datasets: [{ data }] }
+      apyChart.data = { datasets: [{ data }] }
       apyChart.update()
       return
     } else {
@@ -140,7 +142,6 @@
         apyChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels: nodeLabels,
             datasets: [
               {
                 data
