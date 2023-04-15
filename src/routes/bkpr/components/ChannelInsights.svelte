@@ -60,7 +60,7 @@
     }
   }
 
-  // @TODO - only show data labels next to charts if less than 10 (channel details willl be visible on hover)
+  // Add node labels after node alias' have been fetched
   $: if (feesChart && apyChart && nodeLabels) {
     feesChart.data.labels = nodeLabels
     apyChart.data.labels = nodeLabels
@@ -110,6 +110,14 @@
                 data
               }
             ]
+          },
+          options: {
+            plugins: {
+              legend: {
+                // Hide legend is more than 10 channels
+                display: data.length > 10 ? false : true
+              }
+            }
           }
         })
       }
@@ -147,6 +155,14 @@
                 data
               }
             ]
+          },
+          options: {
+            plugins: {
+              legend: {
+                // Hide legend is more than 10 channels
+                display: data.length > 10 ? false : true
+              }
+            }
           }
         })
       }
