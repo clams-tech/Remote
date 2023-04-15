@@ -47,7 +47,7 @@
       <div>
         <p class="text-2xl font-bold">{formatValue(net.routed_in_msat)}</p>
         <p class="text-neutral-400">
-          {$translate('app.labels.value')} ({$settings$.bitcoinDenomination})
+          {$translate('app.labels.routed')} ({$settings$.bitcoinDenomination})
         </p>
       </div>
       <div>

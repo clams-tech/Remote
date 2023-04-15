@@ -60,7 +60,7 @@
     }
   }
 
-  // @TODO work out why wrong labels applied to channels
+  // @TODO - only show data labels next to charts if less than 10 (channel details willl be visible on hover)
   $: if (feesChart && apyChart && nodeLabels) {
     feesChart.data.labels = nodeLabels
     apyChart.data.labels = nodeLabels
@@ -157,6 +157,8 @@
     feesChart && feesChart.destroy()
     apyChart && apyChart.destroy()
   })
+
+  // @TODO - Switch out fees_in_msat for fees_out_msat everywhere in this component if this is the correct value to use for income
 </script>
 
 <section

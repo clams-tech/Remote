@@ -89,7 +89,7 @@
     "app_proxy": "App Proxy",
     "custom_proxy": "Custom Proxy",
     "direct_connection": "Direct Connection",
-    "value": "Value",
+    "routed": "Routed",
     "fees": "Fees",
     "apy": "APY",
     "in": "In",

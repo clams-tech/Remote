@@ -17,13 +17,35 @@
     lightning.updateIncomeEvents()
     lightning.updateListBalances().then((balances) => {
       if (!$nodes$.data) {
-        // @TODO split into chunks of 50 calls so app doesn't get rate limited by node
-        balances.forEach((balance) => {
-          if (balance.account !== 'wallet') {
-            // Add accounts associated with each node to listnodes reponse to create PeerNode[]
+        // channel balances
+        const channels = balances.filter((balance) => balance.account !== 'wallet')
+        const numChannels = channels.length
+        // if more than 50 channels, fetch node alias for first 50
+        if (numChannels > 50) {
+          const [first50Channels, remainingChannels] = channels.splice(0, 50)
+
+          for (const balance of first50Channels) {
             lightning.updateListNodes(balance.peer_id, balance.account)
           }
-        })
+
+          const fetchRemainingChannels = () => {
+            let i = 0
+            const balance = remainingChannels[i]
+            // Space out remaining listNodes fetches for channels not in first batch of 50
+            if (balance) {
+              lightning.updateListNodes(balance.peer_id, balance.account)
+              i++
+              // 1 second
+              setTimeout(fetchRemainingChannels, 1000)
+            }
+          }
+
+          fetchRemainingChannels()
+        } else {
+          for (const balance of channels) {
+            lightning.updateListNodes(balance.peer_id, balance.account)
+          }
+        }
       }
     })
   })
