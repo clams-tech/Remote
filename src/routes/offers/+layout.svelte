@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { DecodedType, InvoiceRequestSummary, OfferSummary } from '$lib/backends'
+  import type { Bolt12Type, InvoiceRequestSummary, OfferSummary } from '$lib/backends'
   import { translate } from '$lib/i18n/translations'
   import lightning from '$lib/lightning'
   import { offers$, offersPayments$ } from '$lib/streams'
@@ -39,7 +39,7 @@
             bolt12,
             label,
             id: offer_id || invreq_id,
-            type: (offer_id ? 'pay' : 'withdraw') as DecodedType
+            type: offer_id ? 'pay' : 'withdraw'
           }
         })
         .sort((a, b) => {

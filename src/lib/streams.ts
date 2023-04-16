@@ -2,16 +2,29 @@ import {
   BehaviorSubject,
   combineLatest,
   defer,
+  from,
   fromEvent,
+  merge,
   Observable,
   of,
   ReplaySubject,
-  Subject
+  Subject,
+  timer
 } from 'rxjs'
 
-import { map, scan, shareReplay, startWith, take } from 'rxjs/operators'
+import {
+  distinctUntilChanged,
+  distinctUntilKeyChanged,
+  map,
+  scan,
+  shareReplay,
+  skip,
+  startWith,
+  switchMap,
+  take
+} from 'rxjs/operators'
 import { onDestroy, onMount } from 'svelte'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './constants'
+import { DEFAULT_SETTINGS, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
 
 import type {
   BitcoinExchangeRates,
@@ -21,7 +34,7 @@ import type {
   Settings,
   FormattedDecodedOffer
 } from './types'
-import { logger } from './utils'
+import { deriveLastPayIndex, getBitcoinExchangeRate, logger } from './utils'
 
 import type {
   BkprChannelsAPYResponse,
@@ -31,6 +44,7 @@ import type {
   ListfundsResponse,
   OfferCommon
 } from './backends'
+import lightning from './lightning.js'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -246,3 +260,48 @@ export function updateAuth(update: Partial<Auth> | Auth): void {
   const currentAuth = auth$.getValue()
   auth$.next(currentAuth ? { ...currentAuth, ...update } : (update as Auth))
 }
+
+// update payments when payment update comes through
+paymentUpdates$.subscribe(async (update) => {
+  updatePayments(update)
+
+  if (update.status === 'complete') {
+    // delay 1 second to allow for updated data from node
+    setTimeout(() => lightning.updateFunds(), 1000)
+  }
+})
+
+const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
+
+const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDenomination'), skip(1))
+
+// get and update bitcoin exchange rate by poll or if fiat denomination changes
+merge(exchangeRatePoll$, fiatDenominationChange$)
+  .pipe(switchMap(() => from(getBitcoinExchangeRate())))
+  .subscribe(bitcoinExchangeRates$)
+
+// manage connection based on app visibility
+appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
+  const auth = auth$.getValue()
+  if (!auth || !auth.token) return
+  const lnApi = lightning.getLn()
+
+  if (visible) {
+    logger.info('App is visible, reconnecting to node')
+    // reconnect
+    lnApi.connect()
+    const payments = payments$.getValue().data
+    if (payments) {
+      // start listening for payment updates again
+      const lastPayIndex = deriveLastPayIndex(payments)
+      lightning.listenForAllInvoiceUpdates(lastPayIndex)
+    }
+  } else {
+    logger.info(
+      'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
+    )
+    // disconnect
+    lnApi.disconnect()
+    disconnect$.next()
+  }
+})

@@ -1,12 +1,12 @@
 import i18n from 'sveltekit-i18n'
 import parser from '@sveltekit-i18n/parser-default'
 import type { Config, Parser } from '@sveltekit-i18n/parser-default'
-import type { DecodedType } from '$lib/backends'
+import type { Bolt12Type } from '$lib/backends'
 
 export interface Payload extends Parser.PayloadDefault {
   paymentType?: string
   paymentAction?: 'create' | 'fulfill'
-  offerType?: DecodedType
+  offerType?: Bolt12Type
   direction?: string
   status?: string
   feeType?: string

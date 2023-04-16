@@ -1,4 +1,3 @@
-import type { GenesisBlockhash } from '$lib/types'
 import type { JsonRpcRequest } from 'lnmessage/dist/types'
 
 // ==== REQUESTS ==== //
@@ -254,6 +253,12 @@ export interface GetinfoResponse {
    * Lightningd is still loading latest blocks from bitcoind.
    */
   warning_lightningd_sync?: string
+}
+
+export enum GenesisBlockhash {
+  regtest = '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206',
+  mainnet = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+  testnet = '000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943'
 }
 
 export type Address = {
@@ -710,14 +715,10 @@ export type DecodedBolt11 = {
   payment_metadata?: string
 }
 
-export type DecodedType =
-  | 'bolt12 offer'
-  | 'bolt12 invoice'
-  | 'bolt12 invoice_request'
-  | 'bolt11 invoice'
+export type Bolt12Type = 'bolt12 offer' | 'bolt12 invoice' | 'bolt12 invoice_request'
 
 export type DecodedCommon = {
-  type: DecodedType
+  type: Bolt12Type
   valid: boolean
 }
 
@@ -868,11 +869,6 @@ export type OfferSummary = OfferSummaryCommon & {
 export type InvoiceRequestSummary = OfferSummaryCommon & {
   /**the id of this offer (merkle hash of non-signature fields) */
   invreq_id: string
-}
-
-export type FormattedOfferSummary = OfferSummaryCommon & {
-  id: string
-  type: string
 }
 
 export type ListOffersResponse = {

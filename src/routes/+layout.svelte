@@ -2,7 +2,6 @@
   import { beforeNavigate } from '$app/navigation'
   import { browser } from '$app/environment'
   import { auth$, lastPath$ } from '$lib/streams'
-  import registerSideEffects from '$lib/side-effects'
   import { locale, loadTranslations } from '$lib/i18n/translations'
   import '../app.css'
   import Notifications from '$lib/components/Notifications.svelte'
@@ -21,8 +20,6 @@
     }
   })
 
-  registerSideEffects()
-
   if (browser) {
     initialise()
 
@@ -32,10 +29,14 @@
   }
 
   async function initialise() {
+    /** LOAD TRANSLATIONS */
     const defaultLocale = 'en'
     const initLocale = locale.get() || defaultLocale
     await loadTranslations(initLocale)
 
+    // open the db
+
+    // check if we have decryption key and initialise data
     $auth$ && lightning.initialiseData()
 
     setTimeout(() => (loading = false), 2000)

@@ -887,6 +887,11 @@ devalue@^4.3.0:
   resolved "https://registry.yarnpkg.com/devalue/-/devalue-4.3.0.tgz#d86db8fee63a70317c2355be0d3d1b4d8f89a44e"
   integrity sha512-n94yQo4LI3w7erwf84mhRUkUJfhLoCZiLyoOZ/QFsDbcWNZePrLwbQpvZBUG2TNxwV3VjCKPxkiiQA6pe3TrTA==
 
+dexie@^4.0.1-alpha.10:
+  version "4.0.1-alpha.10"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.0.1-alpha.10.tgz#ba6a2c4f74669cc0902b91b7d50707c249baf328"
+  integrity sha512-j1aqeWaUMiFRF+67JVPS+G50yVX69Moe/kIdrDQ65sIyo9fj2v6xhkzXlsQcDWl9m3NC+MEmFu6D9ng0gU3ymQ==
+
 didyoumean@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/didyoumean/-/didyoumean-1.2.2.tgz#989346ffe9e839b4555ecf5666edea0d3e8ad037"
