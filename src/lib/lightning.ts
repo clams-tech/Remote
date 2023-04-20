@@ -36,7 +36,8 @@ import {
   incomeEvents$,
   channelsAPY$,
   balances$,
-  nodes$
+  nodes$,
+  channels$
 } from './streams'
 
 class Lightning {
@@ -166,6 +167,29 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateChannels() {
+    const lnApi = this.getLn()
+
+    try {
+      channels$.next({ loading: true, data: channels$.getValue().data })
+      const channels = await lnApi.getChannels()
+      channels$.next({ loading: false, data: channels })
+
+      return channels
+    } catch (error) {
+      const { message } = error as Error
+      channels$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        // @TODO error messaging
         message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
       })
     }

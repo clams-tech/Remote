@@ -1,6 +1,6 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Auth, Payment } from '$lib/types'
+import type { Auth, Payment, Channel } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
@@ -39,6 +39,7 @@ import type {
   ListNodesResponse,
   ListOffersResponse,
   ListpaysResponse,
+  ListPeersResponse,
   OfferSummary,
   PayResponse,
   SendInvoiceRequest,
@@ -434,6 +435,71 @@ class CoreLn {
     })) as ListNodesResponse
 
     return (result as ListNodesResponse).nodes
+  }
+
+  async listPeers(): Promise<ListPeersResponse['peers']> {
+    const result = await this.connection.commando({
+      method: 'listpeers',
+      rune: this.rune
+    })
+
+    return (result as ListPeersResponse).peers
+  }
+
+  async getChannels(): Promise<Channel[]> {
+    const channels: Channel[] = []
+    const peers = await this.listPeers()
+    const channelsAPY = await this.bkprChannelsAPY()
+    const balances = await this.bkprListBalances()
+
+    await Promise.all(
+      // @TODO handle the case where user has more than 50 peers.
+      // App should only perform the first 50 calls to backend,
+      // then limit to 50 calls per second until all peer infromation has been fetched
+      peers.map(async (peer) => {
+        const nodes = await this.listNodes(peer.id)
+        const node = nodes[0]
+
+        peer.channels?.forEach((channel) => {
+          const channelAPYMatch = channelsAPY.find(
+            (channelAPY) => channelAPY.account === channel.channel_id
+          )
+          const balanceMatch = balances.find((balance) => balance.account === channel.channel_id)
+
+          channels.push({
+            opener: channel.opener,
+            peerId: peer.id,
+            peerAlias: node?.alias ?? null,
+            fundingTransactionId: channel.funding_txid ?? null,
+            fundingOutput: channel.funding_outnum ?? null,
+            id: channel.channel_id ?? null,
+            shortId: channel.short_channel_id ?? null,
+            status: channel.state,
+            balanceLocal: channel.to_us_msat.toString() ?? null,
+            balanceRemote:
+              (BigInt(channel.total_msat) - BigInt(channel.to_us_msat)).toString() ?? null,
+            balanceTotal: channel.total_msat.toString() ?? null,
+            balanceSendable: channel.spendable_msat.toString() ?? null,
+            balanceReceivable: channel.receivable_msat.toString() ?? null,
+            sendsAttempted: channel.out_payments_offered ?? null,
+            sendsComplete: channel.out_payments_fulfilled ?? null,
+            receivesAttempted: channel.in_payments_offered ?? null,
+            receivesComplete: channel.in_payments_fulfilled ?? null,
+            feeBase: channel.fee_base_msat.toString() ?? null,
+            routingFees: channelAPYMatch?.fees_out_msat.toString() ?? null,
+            apy: channelAPYMatch?.apy_out ?? null,
+            scratchTransactionId: channel.scratch_txid ?? null,
+            closeTo: channel.close_to ?? null,
+            closeToAddress: channel.close_to_addr ?? null,
+            closer: channel.closer ?? null,
+            resolved: balanceMatch?.account_resolved ?? null,
+            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null
+          })
+        })
+      })
+    )
+
+    return channels
   }
 }
 

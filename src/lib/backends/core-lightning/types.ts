@@ -922,6 +922,97 @@ export type ListInvoiceRequestsResponse = {
 export type CreatePayOfferResponse = OfferSummary & { created: boolean }
 export type CreateWithdrawOfferResponse = InvoiceRequestSummary
 
+type PeerChannel = {
+  state: State
+  opener: 'local' | 'remote'
+  features: Array<'option_static_remotekey' | 'option_anchor_outputs' | 'option_zeroconf'>
+  scratch_txid?: string
+  feerate?: {
+    perkw: number
+    perkb: number
+  }
+  fee_base_msat: number
+  owner?: string
+  short_channel_id?: string
+  channel_id?: string
+  funding_txid?: string
+  funding_outnum?: number
+  initial_feerate?: string
+  last_feerate?: string
+  next_feerate?: string
+  next_fee_step?: number
+  inflight?: Array<{
+    funding_txid: string
+    funding_outnum: number
+    feerate: string
+    total_funding_msat: string
+    our_funding_msat: string
+    scratch_txid: string
+    close_to?: string
+  }>
+  private?: boolean
+  closer?: 'local' | 'remote'
+  funding?: {
+    local_funds_msat: string
+    remote_funds_msat: string
+    pushed_msat?: string
+    fee_paid_msat?: string
+    fee_rcvd_msat?: string
+    to_us_msat?: string
+    min_to_us_msat?: string
+    max_to_us_msat?: string
+    total_msat?: string
+    fee_base_msat?: string
+    fee_proportional_millionths?: number
+    dust_limit_msat?: string
+    max_total_htlc_in_msat?: string
+    their_reserve_msat?: string
+    our_reserve_msat?: string
+  }
+  close_to?: string
+  close_to_addr?: string
+  to_us_msat: string
+  total_msat: string
+  spendable_msat: string
+  receivable_msat: string
+  in_payments_offered: number // of incoming payment attempts
+  in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
+  in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
+  in_fulfilled_msat: string //(msat, optional): Total amount of successful incoming payment attempts
+  out_payments_offered: number //  (u64, optional): Number of outgoing payment attempts
+  out_offered_msat: string //  (msat, optional): Total amount of outgoing payment attempts
+  out_payments_fulfilled: number //  (u64, optional): Number of successful outgoing payment attempts
+  out_fulfilled_msat: string // (msat, optional): Total amount of successful outgoing payment attempts
+}
+
+type PeerLog =
+  | {
+      type: 'SKIPPED'
+      num_skipped: number
+    }
+  | {
+      type: 'BROKEN' | 'UNUSUAL' | 'INFO' | 'DEBUG' | 'IO_IN' | 'IO_OUT'
+      time: string
+      source: string
+      log: string
+      node_id: string
+      data?: string
+    }
+
+type Peer = {
+  id: string // The unique id of the peer
+  connected: boolean // A boolean value showing the connection status
+  netaddr?: string[] // A list of network addresses the node is listening on
+  features?: string // Bit flags showing supported features (BOLT #9)
+  log?: Array<PeerLog> // Only present if level is set. List logs related to the peer at the specified level
+  num_channels?: number // added v23.02
+  channels: Array<PeerChannel> // An array of objects describing channels with the peer.
+}
+
+export type ListPeersResponse = {
+  peers: Peer[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse

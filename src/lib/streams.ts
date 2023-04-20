@@ -20,7 +20,8 @@ import type {
   Auth,
   Settings,
   FormattedDecodedOffer,
-  PeerNode
+  PeerNode,
+  Channel
 } from './types'
 import { logger } from './utils'
 
@@ -131,6 +132,12 @@ export const nodeInfo$ = new BehaviorSubject<{
 
 export const payments$ = new BehaviorSubject<{
   data: Payment[] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const channels$ = new BehaviorSubject<{
+  data: Channel[] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

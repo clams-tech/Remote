@@ -1,11 +1,10 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
-  import { BitcoinDenomination } from '$lib/types'
+  import { BitcoinDenomination, type Channel } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$, nodes$ } from '$lib/streams'
+  import { channelsAPY$, channels$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
-  import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
   import Big from 'big.js'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -32,30 +31,19 @@
     }
   ]
 
-  $: ({ net, channels } = ($channelsAPY$.data || []).reduce(
-    (acc, item) => {
-      acc[item.account === 'net' ? 'net' : 'channels'].push(item)
-      return acc
-    },
-    { net: [], channels: [] } as { net: ChannelAPY[]; channels: ChannelAPY[] }
-  ))
-
-  $: noRoutingFees =
-    net &&
-    Big(net[0]?.fees_in_msat || '0')
-      .plus(net[0]?.fees_out_msat || '0')
-      .toString() === '0'
-
-  $: noAPY = net && net[0]?.apy_total.slice(0, -1) === '0.0000'
+  // fee/apy data for all channels
+  $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
+  $: channels = $channels$.data || []
+  $: noRoutingFees = net && net?.fees_out_msat === '0'
+  $: noAPY = net && net?.apy_total.slice(0, -1) === '0.0000'
 
   // create data for chart labels
   $: {
-    if (channels.length && $nodes$.data?.length) {
+    if (channels.length) {
       nodeLabels = channels
-        .filter(({ fees_in_msat }) => fees_in_msat !== '0')
-        .map(({ account }) => {
-          const match = $nodes$.data?.find((node) => node.accounts.includes(account))
-          return match ? `${match.alias}: ${truncateValue(account, 3)}` : truncateValue(account, 3)
+        .filter(({ routingFees }) => routingFees !== '0')
+        .map(({ id, peerAlias }) => {
+          return `${peerAlias}: ${truncateValue(id || '', 3)}` || truncateValue(id || '', 3)
         })
     }
   }
@@ -76,14 +64,14 @@
     }
   }
 
-  async function renderFeesChart(channels: ChannelAPY[]) {
+  async function renderFeesChart(channels: Channel[]) {
     const { Chart } = await import('chart.js/auto')
 
     let data: number[] = []
 
-    channels.forEach(({ fees_in_msat }) => {
+    channels.forEach(({ peerAlias, routingFees }) => {
       const value = convertValue({
-        value: fees_in_msat.toString(),
+        value: routingFees || '0',
         from: BitcoinDenomination.msats,
         to: BitcoinDenomination.sats
       })
@@ -124,16 +112,16 @@
     }
   }
 
-  async function renderApyChart(channels: ChannelAPY[]) {
+  async function renderApyChart(channels: Channel[]) {
     const { Chart } = await import('chart.js/auto')
 
     let data: number[] = []
 
-    channels.forEach(({ apy_in }) => {
-      const apy = parseFloat(apy_in.slice(0, -1))
+    channels.forEach(({ apy }) => {
+      const apyValue = parseFloat(apy?.slice(0, -1) || '0')
 
-      if (apy) {
-        data.push(apy)
+      if (apyValue) {
+        data.push(apyValue)
       }
     })
 
@@ -173,8 +161,6 @@
     feesChart && feesChart.destroy()
     apyChart && apyChart.destroy()
   })
-
-  // @TODO - Switch out fees_in_msat for fees_out_msat everywhere in this component if this is the correct value to use for income
 </script>
 
 <section
