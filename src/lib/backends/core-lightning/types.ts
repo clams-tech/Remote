@@ -1033,5 +1033,6 @@ export type LNResponse =
   | CreatePayOfferResponse
   | CreateWithdrawOfferResponse
   | ListNodesResponse
+  | ListPeersResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
