@@ -9,7 +9,6 @@
   import lightning from '$lib/lightning'
   import { onMount } from 'svelte'
   import graph from '$lib/icons/graph'
-  import { channels$ } from '$lib/streams'
 
   // Fetch channels APY, income events & channels data
   onMount(() => {
@@ -40,8 +39,8 @@
       <ChannelInsights />
       <AccountingExports />
     </div>
-    <!-- <div class="mt-2 p-1 w-full max-w-3xl">
+    <div class="mt-2 p-1 w-full max-w-3xl">
       <RoutingFeesHistory />
-    </div> -->
+    </div>
   </div>
 </div>

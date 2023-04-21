@@ -175,6 +175,7 @@
     "bkpr_list_income": "Error trying to list income",
     "bkpr_list_balances": "Error trying to list balances",
     "bkpr_channels_apy": "Error trying to show APY",
+    "update_channels": "Error trying to update channels",
     "list_nodes": "Error trying to list nodes",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",

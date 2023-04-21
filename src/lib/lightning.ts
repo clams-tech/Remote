@@ -189,8 +189,7 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
-        // @TODO error messaging
-        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+        message: `${get(translate)('app.errors.update_channels')}: ${message}`
       })
     }
   }
@@ -257,48 +256,6 @@ class Lightning {
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_channels_apy')}: ${message}`
-      })
-    }
-  }
-
-  public async updateListNodes(peer_id: string, account: string) {
-    const lnApi = this.getLn()
-
-    try {
-      nodes$.next({ data: nodes$.getValue().data, loading: true })
-      // Fetch single node with given peer_id
-      const nodes = await lnApi.listNodes(peer_id)
-      const currentNodes = nodes$.getValue().data
-      // Updates accounts array for matching node found in state
-      if (currentNodes?.some((node) => node.nodeid === peer_id)) {
-        const updatedNodes = currentNodes.map((node) => {
-          if (node.nodeid === peer_id) {
-            return {
-              ...node,
-              accounts: [...node.accounts, account]
-            }
-          } else {
-            return node
-          }
-        })
-        nodes$.next({ loading: false, data: updatedNodes })
-        // Add accounts array for node with matching peer_id
-      } else {
-        const peerNode = { ...nodes[0], accounts: [account] } as PeerNode
-        const data = currentNodes ? currentNodes.concat(peerNode) : [peerNode]
-        nodes$.next({ loading: false, data })
-      }
-
-      return nodes
-    } catch (error) {
-      const { message } = error as Error
-      nodes$.next({ loading: false, data: null, error: message })
-
-      customNotifications$.next({
-        id: createRandomHex(),
-        type: 'error',
-        heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.list_nodes')}: ${message}`
       })
     }
   }

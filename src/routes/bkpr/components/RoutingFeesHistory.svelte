@@ -3,7 +3,7 @@
   import { BitcoinDenomination } from '$lib/types'
   import { truncateValue, userAgent } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { incomeEvents$, settings$, nodes$ } from '$lib/streams'
+  import { incomeEvents$, settings$, channels$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { Chart } from 'chart.js'
   import Spinner from '$lib/elements/Spinner.svelte'
@@ -219,12 +219,12 @@
   }
 
   $: {
-    if ([...channelIDs].length && $nodes$.data?.length) {
+    if ([...channelIDs].length && $channels$.data?.length) {
       labels = [...channelIDs].map((channelID) => {
-        const match = $nodes$.data?.find((node) => node.accounts.includes(channelID))
+        const match = $channels$.data?.find((channel) => channel.id === channelID)
         return {
           id: channelID,
-          alias: match ? match.alias : channelID
+          alias: match?.peerAlias ? match.peerAlias : channelID
         }
       })
     }
