@@ -3,7 +3,6 @@ import type {
   DecodedBolt12Invoice,
   DecodedBolt12Offer,
   DecodedCommon,
-  ListNode,
   OfferCommon
 } from './backends'
 
@@ -216,10 +215,6 @@ export type FormattedDecodedOffer = {
   quantityMax?: OfferCommon['offer_quantity_max']
 }
 
-// @TODO delete after channel[] work is done
-export type PeerNode = ListNode & { accounts: string[] }
-
-// @TODO consider using State type from backends types
 export type ChannelStatus =
   | 'OPENINGD'
   | 'CHANNELD_AWAITING_LOCKIN'

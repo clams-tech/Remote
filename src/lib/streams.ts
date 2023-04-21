@@ -20,7 +20,6 @@ import type {
   Auth,
   Settings,
   FormattedDecodedOffer,
-  PeerNode,
   Channel
 } from './types'
 import { logger } from './utils'
@@ -162,12 +161,6 @@ export const balances$ = new BehaviorSubject<{
 
 export const channelsAPY$ = new BehaviorSubject<{
   data: BkprChannelsAPYResponse['channels_apy'] | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const nodes$ = new BehaviorSubject<{
-  data: PeerNode[] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

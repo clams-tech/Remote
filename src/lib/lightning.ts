@@ -2,7 +2,7 @@ import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
-import type { Auth, Payment, PeerNode } from './types'
+import type { Auth, Payment } from './types'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
@@ -36,7 +36,6 @@ import {
   incomeEvents$,
   channelsAPY$,
   balances$,
-  nodes$,
   channels$
 } from './streams'
 

@@ -452,11 +452,30 @@ class CoreLn {
     const channelsAPY = await this.bkprChannelsAPY()
     const balances = await this.bkprListBalances()
 
-    await Promise.all(
-      // @TODO handle the case where user has more than 50 peers.
-      // App should only perform the first 50 calls to backend,
-      // then limit to 50 calls per second until all peer infromation has been fetched
-      peers.map(async (peer) => {
+    function chunkArray<T>(arr: T[], size: number): T[][] {
+      // Create an array to hold the chunks
+      const chunkedArr: T[][] = []
+      // Loop over each item in the array
+      for (const item of arr) {
+        // If the last chunk is full (or doesn't exist), create a new chunk with this item
+        if (!chunkedArr.length || chunkedArr[chunkedArr.length - 1].length === size) {
+          chunkedArr.push([item])
+        } else {
+          // Otherwise, add the item to the last chunk
+          chunkedArr[chunkedArr.length - 1].push(item)
+        }
+      }
+      // Return the array of chunks
+      return chunkedArr
+    }
+
+    // Chunk the peers array into smaller arrays of size 50
+    const peerChunks = chunkArray(peers, 50)
+
+    // Loop over the chunked arrays of peers
+    for (const chunk of peerChunks) {
+      // Make API calls for each chunk of peers in parallel
+      const promises = chunk.map(async (peer) => {
         const nodes = await this.listNodes(peer.id)
         const node = nodes[0]
 
@@ -497,7 +516,10 @@ class CoreLn {
           })
         })
       })
-    )
+
+      // Wait for all API calls for the current chunk to complete before processing the next chunk
+      await Promise.all(promises)
+    }
 
     return channels
   }
