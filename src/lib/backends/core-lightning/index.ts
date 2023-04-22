@@ -469,6 +469,14 @@ class CoreLn {
       return chunkedArr
     }
 
+    function trimMsat(value: string): string {
+      if (value.endsWith('msat')) {
+        return value.slice(0, -4)
+      } else {
+        return value
+      }
+    }
+
     // Chunk the peers array into smaller arrays of size 50
     const peerChunks = chunkArray(peers, 50)
 
@@ -494,17 +502,19 @@ class CoreLn {
             id: channel.channel_id ?? null,
             shortId: channel.short_channel_id ?? null,
             status: channel.state,
-            balanceLocal: channel.to_us_msat.toString() ?? null,
+            balanceLocal: trimMsat(channel.to_us_msat.toString()) ?? null,
             balanceRemote:
-              (BigInt(channel.total_msat) - BigInt(channel.to_us_msat)).toString() ?? null,
-            balanceTotal: channel.total_msat.toString() ?? null,
-            balanceSendable: channel.spendable_msat.toString() ?? null,
-            balanceReceivable: channel.receivable_msat.toString() ?? null,
+              (
+                BigInt(trimMsat(channel.total_msat)) - BigInt(trimMsat(channel.to_us_msat))
+              ).toString() ?? null,
+            balanceTotal: trimMsat(channel.total_msat) ?? null,
+            balanceSendable: trimMsat(channel.spendable_msat) ?? null,
+            balanceReceivable: trimMsat(channel.receivable_msat) ?? null,
             sendsAttempted: channel.out_payments_offered ?? null,
             sendsComplete: channel.out_payments_fulfilled ?? null,
             receivesAttempted: channel.in_payments_offered ?? null,
             receivesComplete: channel.in_payments_fulfilled ?? null,
-            feeBase: channel.fee_base_msat.toString() ?? null,
+            feeBase: trimMsat(channel.fee_base_msat.toString()) ?? null,
             routingFees: channelAPYMatch?.fees_out_msat.toString() ?? null,
             apy: channelAPYMatch?.apy_out ?? null,
             scratchTransactionId: channel.scratch_txid ?? null,
