@@ -502,7 +502,7 @@ class CoreLn {
             id: channel.channel_id ?? null,
             shortId: channel.short_channel_id ?? null,
             status: channel.state,
-            balanceLocal: trimMsat(channel.to_us_msat.toString()) ?? null,
+            balanceLocal: trimMsat(channel.to_us_msat) ?? null,
             balanceRemote:
               (
                 BigInt(trimMsat(channel.total_msat)) - BigInt(trimMsat(channel.to_us_msat))

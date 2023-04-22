@@ -8,7 +8,6 @@
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
 
   $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
-
   // Format value or fees
   function formatValue(value: number | string) {
     return formatValueForDisplay({
@@ -45,19 +44,19 @@
   {:else if net}
     <div class="mt-6 flex justify-between flex-wrap gap-4 uppercase">
       <div>
-        <p class="text-2xl font-bold">{formatValue(net.routed_in_msat)}</p>
+        <p class="text-2xl font-bold">{formatValue(net.routed_out_msat)}</p>
         <p class="text-neutral-400">
           {$translate('app.labels.routed')} ({$settings$.bitcoinDenomination})
         </p>
       </div>
       <div>
-        <p class="text-2xl font-bold">{formatValue(net.fees_in_msat)}</p>
+        <p class="text-2xl font-bold">{formatValue(net.fees_out_msat)}</p>
         <p class="text-neutral-400">
           {$translate('app.labels.fees')} ({$settings$.bitcoinDenomination})
         </p>
       </div>
       <div>
-        <p class="text-2xl font-bold">{formatAPY(net.apy_in)}</p>
+        <p class="text-2xl font-bold">{formatAPY(net.apy_out)}</p>
         <p class="text-neutral-400">{$translate('app.labels.apy')} (%)</p>
       </div>
     </div>

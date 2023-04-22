@@ -6,7 +6,6 @@
   import { channelsAPY$, channels$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { Chart, ChartItem } from 'chart.js'
-  import Big from 'big.js'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import info from '$lib/icons/info'
@@ -69,7 +68,7 @@
 
     let data: number[] = []
 
-    channels.forEach(({ peerAlias, routingFees }) => {
+    channels.forEach(({ routingFees }) => {
       const value = convertValue({
         value: routingFees || '0',
         from: BitcoinDenomination.msats,
