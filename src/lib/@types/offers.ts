@@ -3,17 +3,17 @@ import type { BitcoinDenomination, FiatDenomination } from './settings.js'
 
 export type Offer = {
   id: string
-  active: boolean
-  single_use: boolean
   bolt12: string
-  used: boolean
+  used?: boolean
   type: Bolt12Type
   denomination: BitcoinDenomination.msats | FiatDenomination
   amount: string
   description: string
   nodeId: string
+  singleUse?: boolean
+  active?: boolean
   label?: string
-  offerExpiry?: number
+  expiry?: number
   issuer?: string
   quantityMax?: number
 }

@@ -10,7 +10,8 @@
   import Slide from '$lib/elements/Slide.svelte'
   import { createRandomHex, formatValueForDisplay, truncateValue } from '$lib/utils'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { BitcoinDenomination, type FiatDenomination, type Payment } from '$lib/types'
+  import { BitcoinDenomination } from '$lib/@types/settings.js'
+  import type { Payment } from '$lib/@types/payments.js'
   import { lastPath$, paymentUpdates$, settings$ } from '$lib/streams'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import Button from '$lib/elements/Button.svelte'
@@ -23,11 +24,11 @@
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import type { DecodedCommon, OfferCommon } from '$lib/backends'
   import { formatDecodedOffer } from '$lib/utils'
   import Modal from '$lib/elements/Modal.svelte'
   import { currencySymbols } from '$lib/constants'
   import Quantity from '$lib/components/Quantity.svelte'
+  import type { Offer } from '$lib/@types/offers.js'
 
   export let data: PageData
 
@@ -39,15 +40,7 @@
   let completing = false
   let completionError = ''
 
-  let offerType: DecodedCommon['type']
-  let offerExpiry: OfferCommon['offer_absolute_expiry']
-  let recurrence: OfferCommon['offer_recurrence'] | null = null
-  let denomination: BitcoinDenomination.msats | FiatDenomination
-  let amount: string
-  let description: OfferCommon['offer_description']
-  let nodeId: OfferCommon['offer_node_id']
-  let issuer: OfferCommon['offer_issuer']
-  let quantityMax: OfferCommon['offer_quantity_max']
+  let offer: Offer
   let quantity = 1
 
   // manual input value if amount === 'any'
@@ -63,17 +56,7 @@
       const { default: decoder } = await import('bolt12-decoder')
       const decoded = decoder(data.bolt12)
 
-      ;({
-        offerType,
-        offerExpiry,
-        recurrence,
-        denomination,
-        amount,
-        description,
-        nodeId,
-        issuer,
-        quantityMax
-      } = formatDecodedOffer(decoded))
+      offer = formatDecodedOffer({ ...decoded, bolt12: data.bolt12 })
     } catch (error) {
       const { message } = error as { message: string }
       decodeError = message
@@ -83,7 +66,7 @@
   }
 
   const timeSeconds$ = timer(0, 1000).pipe(map(() => Date.now() / 1000))
-  $: offerExpired = !!offerExpiry && offerExpiry <= $timeSeconds$
+  $: offerExpired = !!offer.expiry && offer.expiry <= $timeSeconds$
 
   type Slides = typeof slides
   type SlideStep = Slides[number]
@@ -111,14 +94,14 @@
   function handleNext() {
     // invoice and invoice request type do not need a payer note
     // so are ready to finalize
-    if (offerType === 'bolt12 invoice' || offerType === 'bolt12 invoice_request') {
+    if (offer.type === 'bolt12 invoice' || offer.type === 'bolt12 invoice_request') {
       complete()
       return
     }
 
-    if (amount === 'any' || (amount === '0' && slide !== 'amount')) {
+    if (offer.amount === 'any' || (offer.amount === '0' && slide !== 'amount')) {
       next('amount')
-    } else if (typeof quantityMax === 'number') {
+    } else if (typeof offer.quantityMax === 'number') {
       next('quantity')
     } else {
       next('note')
@@ -130,14 +113,8 @@
 
     let payment: Payment
 
-    const offer: Payment['offer'] = {
-      issuer,
-      payerNote,
-      description
-    }
-
     try {
-      if (offerType === 'bolt12 invoice') {
+      if (offer.type === 'bolt12 invoice') {
         const result = await lnApi.payInvoice({
           invoice: data.bolt12,
           type: 'bolt12',
@@ -145,7 +122,7 @@
         })
 
         payment = { ...result, offer }
-      } else if (offerType === 'bolt12 offer') {
+      } else if (offer.type === 'bolt12 offer') {
         const {
           changes,
           invoice
@@ -153,7 +130,7 @@
         } = await lnApi.fetchInvoice({
           offer: data.bolt12,
           amount_msat:
-            amount === 'any' || amount === '0'
+            offer.amount === 'any' || offer.amount === '0'
               ? (convertValue({
                   value,
                   from: $settings$.primaryDenomination,
@@ -161,7 +138,7 @@
                 }) as string)
               : undefined,
           payer_note: payerNote,
-          quantity: quantityMax && quantity
+          quantity: offer.quantityMax && quantity
         })
 
         if (changes && changes.amount_msat) {
@@ -173,11 +150,11 @@
 
         const result = await lnApi.payInvoice({ invoice, type: 'bolt12', id: createRandomHex() })
         payment = { ...result, offer }
-      } else if (offerType === 'bolt12 invoice_request') {
+      } else if (offer.type === 'bolt12 invoice_request') {
         const result = await lnApi.sendInvoice({
           offer: data.bolt12,
           label: createRandomHex(),
-          amount_msat: amount === 'any' ? value : undefined
+          amount_msat: offer.amount === 'any' ? value : undefined
         })
 
         payment = { ...result, offer }
@@ -193,7 +170,7 @@
         paymentUpdates$.next(payment)
 
         // delay to allow time for node to update
-        if (offerType !== 'bolt12 invoice_request') {
+        if (offer.type !== 'bolt12 invoice_request') {
           setTimeout(() => lightning.updateFunds(), 1000)
         }
 
@@ -211,13 +188,13 @@
 
 {#if loading}
   <Spinner />
-{:else if decodeError || !!recurrence}
+{:else if decodeError}
   <BackButton on:click={() => goto('/')} text={$translate('app.titles./')} />
   <section class="w-full p-4 max-w-lg flex items-center justify-center">
     <div class="flex text-utility-error">
       <div class="w-4 mr-2">{@html warning}</div>
       <p>
-        {$translate(`app.errors.bolt12_${decodeError ? 'decode_error' : 'recurrence_unsupported'}`)}
+        {$translate('app.errors.bolt12_decode_error')}
       </p>
     </div>
   </section>
@@ -233,37 +210,37 @@
       <div class="mt-6 w-full">
         <SummaryRow>
           <span slot="label">{$translate('app.labels.issuer')}:</span>
-          <span slot="value">{issuer || truncateValue(nodeId)}</span>
+          <span slot="value">{offer.issuer || truncateValue(offer.nodeId)}</span>
         </SummaryRow>
 
         <SummaryRow>
           <span slot="label">{$translate('app.labels.offer_type')}:</span>
           <span slot="value" class="flex items-center"
-            >{$translate('app.labels.offer_type_value', { offerType })}
+            >{$translate('app.labels.offer_type_value', { offerType: offer.type })}
             <div
-              class:text-utility-success={offerType === 'bolt12 invoice_request'}
-              class:text-utility-error={offerType !== 'bolt12 invoice_request'}
+              class:text-utility-success={offer.type === 'bolt12 invoice_request'}
+              class:text-utility-error={offer.type !== 'bolt12 invoice_request'}
               class="w-6 ml-2"
             >
-              {@html offerType === 'bolt12 invoice_request' ? trendingUp : trendingDown}
+              {@html offer.type === 'bolt12 invoice_request' ? trendingUp : trendingDown}
             </div></span
           >
         </SummaryRow>
 
         <SummaryRow>
           <span slot="label">{$translate('app.labels.description')}:</span>
-          <span slot="value">{description}</span>
+          <span slot="value">{offer.description}</span>
         </SummaryRow>
 
         <SummaryRow>
           <span slot="label">{$translate('app.labels.amount')}:</span>
           <span slot="value">
-            {#if amount === 'any' || amount === '0'}
+            {#if offer.amount === 'any' || offer.amount === '0'}
               {$translate('app.labels.any')}
             {:else}
               {convertValue({
-                value: amount.toString(),
-                from: denomination,
+                value: offer.amount.toString(),
+                from: offer.denomination,
                 to: $settings$.primaryDenomination
               })}
               {$settings$.primaryDenomination}
@@ -271,7 +248,7 @@
           </span>
         </SummaryRow>
 
-        {#if offerExpiry}
+        {#if offer.expiry}
           <SummaryRow>
             <span slot="label"
               >{$translate(`app.labels.${offerExpired ? 'expired' : 'expires'}`)}:</span
@@ -280,7 +257,7 @@
               ><ExpiryCountdown
                 small={false}
                 label={false}
-                expiry={new Date(offerExpiry * 1000)}
+                expiry={new Date(offer.expiry * 1000)}
               /></span
             >
           </SummaryRow>
@@ -291,9 +268,9 @@
         <Button
           text={$translate(
             `app.${
-              offerType === 'bolt12 invoice'
+              offer.type === 'bolt12 invoice'
                 ? 'labels.pay'
-                : offerType === 'bolt12 invoice_request'
+                : offer.type === 'bolt12 invoice_request'
                 ? 'labels.withdraw'
                 : 'buttons.next'
             }`
@@ -303,7 +280,7 @@
           disabled={offerExpired}
         >
           <div slot="iconRight">
-            {#if offerType === 'bolt12 offer'}
+            {#if offer.type === 'bolt12 offer'}
               <div class="w-6 -rotate-90">
                 {@html arrow}
               </div>
@@ -319,21 +296,29 @@
   </Slide>
 {:else if slide === 'quantity'}
   <Slide
-    back={() => (amount === 'any' || amount === '0' ? back() : next('offer'))}
+    back={() => (offer.amount === 'any' || offer.amount === '0' ? back() : next('offer'))}
     backText={$translate(
-      `app.labels.${amount === 'any' || amount === '0' ? previousSlide : 'offer'}`
+      `app.labels.${offer.amount === 'any' || offer.amount === '0' ? previousSlide : 'offer'}`
     )}
     direction={slideDirection}
   >
-    <Quantity {next} bind:quantity max={quantityMax} />
+    <Quantity {next} bind:quantity max={offer.quantityMax} />
   </Slide>
 {:else if slide === 'note'}
   <Slide
     back={() =>
-      quantityMax ? back() : amount === 'any' || amount === '0' ? next('amount') : next('offer')}
+      offer.quantityMax
+        ? back()
+        : offer.amount === 'any' || offer.amount === '0'
+        ? next('amount')
+        : next('offer')}
     backText={$translate(
       `app.labels.${
-        quantityMax ? previousSlide : amount === 'any' || amount === '0' ? 'amount' : 'offer'
+        offer.quantityMax
+          ? previousSlide
+          : offer.amount === 'any' || offer.amount === '0'
+          ? 'amount'
+          : 'offer'
       }`
     )}
     direction={slideDirection}
@@ -350,20 +335,20 @@
     <Summary
       paymentType="bolt12"
       paymentAction="fulfill"
-      destination={truncateValue(nodeId)}
-      {issuer}
-      direction={offerType === 'bolt12 invoice_request' ? 'receive' : 'send'}
-      value={amount === 'any' || amount === '0'
+      destination={truncateValue(offer.nodeId)}
+      issuer={offer.issuer}
+      direction={offer.type === 'bolt12 invoice_request' ? 'receive' : 'send'}
+      value={offer.amount === 'any' || offer.amount === '0'
         ? value
         : convertValue({
-            value: amount.toString(),
+            value: offer.amount.toString(),
             from: BitcoinDenomination.msats,
             to: $settings$.primaryDenomination
           })}
-      {description}
-      quantity={quantityMax ? quantity : undefined}
+      description={offer.description}
+      quantity={offer.quantityMax ? quantity : undefined}
       {payerNote}
-      expiry={offerExpiry || null}
+      expiry={offer.expiry || null}
       requesting={completing}
       on:complete={complete}
     />

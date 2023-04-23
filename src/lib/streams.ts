@@ -1,6 +1,16 @@
+import { deriveLastPayIndex, getBitcoinExchangeRate, logger } from './utils'
+import lightning from './lightning.js'
+import { onDestroy, onMount } from 'svelte'
+import { DEFAULT_SETTINGS, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import type { BitcoinExchangeRates } from './@types/settings.js'
+import type { Notification } from './@types/ui.js'
+import type { Auth } from './@types/auth.js'
+import type { Settings } from './@types/settings.js'
+import type { Payment } from './@types/payments.js'
+import type { Offer } from './@types/offers.js'
+
 import {
   BehaviorSubject,
-  combineLatest,
   defer,
   from,
   fromEvent,
@@ -23,28 +33,13 @@ import {
   switchMap,
   take
 } from 'rxjs/operators'
-import { onDestroy, onMount } from 'svelte'
-import { DEFAULT_SETTINGS, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
-
-import type {
-  BitcoinExchangeRates,
-  Notification,
-  Payment,
-  Auth,
-  Settings,
-  FormattedDecodedOffer
-} from './types'
-import { deriveLastPayIndex, getBitcoinExchangeRate, logger } from './utils'
 
 import type {
   BkprChannelsAPYResponse,
   BkprListIncomeResponse,
-  FormattedOfferSummary,
   GetinfoResponse,
-  ListfundsResponse,
-  OfferCommon
+  ListfundsResponse
 } from './backends'
-import lightning from './lightning.js'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -166,40 +161,10 @@ export const channelsAPY$ = new BehaviorSubject<{
 }>({ loading: true, data: null })
 
 export const offers$ = new SvelteSubject<{
-  data: (FormattedDecodedOffer & FormattedOfferSummary)[] | null
+  data: Offer[] | null
   loading?: boolean
   error?: string
 }>({ loading: false, data: null })
-
-export const offersPayments$ = combineLatest([payments$, offers$]).pipe(
-  map(([{ data: payments }, { data: offers }]) =>
-    (payments || []).reduce((acc, payment) => {
-      const { offer, status } = payment
-      if (status === 'expired' || status === 'failed') return acc
-
-      if (offer) {
-        if (offer.id) {
-          acc[offer.id] = [...(acc[offer.id] || []), payment]
-        } else if (payment.direction === 'send') {
-          // try and match a payment with an withdrawal offer
-          const matchedOffer = (offers || []).find(({ offerType, description, issuer }) => {
-            return (
-              offerType === 'bolt12 invoice_request' &&
-              description === offer.description &&
-              issuer === offer.issuer
-            )
-          })
-
-          if (matchedOffer) {
-            acc[matchedOffer.id] = [...(acc[matchedOffer.id] || []), payment]
-          }
-        }
-      }
-
-      return acc
-    }, {} as Record<OfferCommon['offer_id'], Payment[]>)
-  )
-)
 
 // browsers use different event names and hidden properties
 const pageVisibilityParams =

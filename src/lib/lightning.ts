@@ -1,8 +1,16 @@
 import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
-import type { GetinfoResponse, Invoice, ListfundsResponse, LnAPI } from './backends'
-import type { Auth, Payment } from './types'
+import type {
+  GetinfoResponse,
+  Invoice,
+  InvoiceRequestSummary,
+  ListfundsResponse,
+  LnAPI,
+  OfferSummary
+} from './backends'
+import type { Auth } from './@types/auth.js'
+import type { Payment } from './@types/payments.js'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
@@ -19,6 +27,7 @@ import {
   createRandomHex,
   decryptWithAES,
   deriveLastPayIndex,
+  formatDecodedOffer,
   getDataFromStorage,
   logger
 } from './utils'
@@ -34,7 +43,8 @@ import {
   customNotifications$,
   pin$,
   incomeEvents$,
-  channelsAPY$
+  channelsAPY$,
+  offers$
 } from './streams'
 
 class Lightning {
@@ -121,6 +131,44 @@ class Lightning {
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.list_funds')}: ${message}`
+      })
+    }
+  }
+
+  public async getoffers() {
+    const lnApi = this.getLn()
+
+    try {
+      offers$.next({ loading: true, data: offers$.getValue().data })
+
+      const [offers, invoiceRequests] = await Promise.all([
+        lnApi.listOffers(),
+        lnApi.listInvoiceRequests()
+      ])
+
+      const { default: decoder } = await import('bolt12-decoder')
+
+      const data = [...offers, ...invoiceRequests].map((offer) => {
+        const { bolt12, active, single_use, used, label } = offer as OfferSummary
+        const decoded = decoder(bolt12)
+        const formatted = formatDecodedOffer({ ...decoded, bolt12 })
+
+        return {
+          ...formatted,
+          active,
+          single_use,
+          used,
+          label
+        }
+      })
+
+      offers$.next({ loading: false, data })
+    } catch (error) {
+      const { code, message } = error as { code: number; message: string }
+      offers$.next({
+        loading: false,
+        error: get(translate)(`app.errors.${code}`, { default: message }),
+        data: null
       })
     }
   }

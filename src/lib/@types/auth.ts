@@ -6,3 +6,9 @@ export type Auth = {
   /** private key used for lnconnect for consistent browser node public key */
   sessionSecret: string
 }
+
+export type ParsedNodeAddress = {
+  publicKey: string
+  ip: string
+  port?: number
+}

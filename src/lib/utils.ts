@@ -5,35 +5,35 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import type {
-  DecodedBolt12Invoice,
-  DecodedBolt12InvoiceRequest,
-  DecodedBolt12Offer,
-  ListfundsResponse,
-  OfferCommon
-} from './backends'
 import { customNotifications$, log$, settings$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
 import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
+import type { BitcoinExchangeRates } from './@types/settings.js'
+import type { ParsedNodeAddress, Auth } from './@types/auth.js'
+import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
+import type { Offer } from './@types/offers.js'
 
-import {
-  type Denomination,
-  type PaymentType,
-  type Payment,
-  type BitcoinExchangeRates,
-  type ParsedNodeAddress,
-  type Auth,
-  type DecodedInvoice,
-  type ParsedBitcoinString,
-  type ParsedBitcoinStringError,
-  type ParsedOnchainString,
-  type FormattedDecodedBolt11,
-  type FormattedDecodedOffer,
-  BitcoinDenomination,
-  FiatDenomination
-} from './types'
+import type {
+  DecodedBolt12Invoice,
+  DecodedBolt12InvoiceRequest,
+  DecodedBolt12Offer,
+  DecodeResponse,
+  ListfundsResponse,
+  OfferCommon,
+  OfferSummary
+} from './backends'
+
+import type {
+  PaymentType,
+  FormattedDecodedBolt11,
+  Payment,
+  DecodedInvoice,
+  ParsedBitcoinString,
+  ParsedBitcoinStringError,
+  ParsedOnchainString
+} from './@types/payments.js'
 
 export function deriveLastPayIndex(payments: Payment[]): number {
   return payments.length
@@ -522,11 +522,12 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
 }
 
 export function formatDecodedOffer(
-  decoded: DecodedBolt12Offer | DecodedBolt12Invoice | DecodedBolt12InvoiceRequest
-): FormattedDecodedOffer {
+  decoded: DecodeResponse & Partial<OfferSummary> & { bolt12: string }
+): Offer {
   const {
     type,
-    offer_recurrence,
+    active,
+    single_use,
     offer_currency,
     offer_amount,
     offer_amount_msat,
@@ -534,21 +535,20 @@ export function formatDecodedOffer(
     offer_node_id,
     offer_issuer,
     offer_absolute_expiry,
-    offer_quantity_max
+    offer_quantity_max,
+    used,
+    bolt12
   } = decoded
 
-  const offerType = type
-  const offerExpiry = offer_absolute_expiry
-  const recurrence = offer_recurrence
-  const description = offer_description
-  const issuer = offer_issuer
+  const { offer_id } = decoded as DecodedBolt12Offer
+  const { invreq_id } = decoded as DecodedBolt12InvoiceRequest
 
   let denomination: BitcoinDenomination.msats | FiatDenomination
   let nodeId: OfferCommon['offer_node_id']
   let quantityMax: OfferCommon['offer_quantity_max']
   let amount: OfferCommon['offer_amount']
 
-  if (offerType === 'bolt12 invoice_request') {
+  if (type === 'bolt12 invoice_request') {
     const { invreq_amount_msat, invreq_amount, invreq_payer_id } =
       decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.msats
@@ -566,14 +566,18 @@ export function formatDecodedOffer(
   }
 
   return {
-    offerType,
-    offerExpiry,
-    recurrence,
-    description,
-    issuer,
+    id: offer_id || invreq_id,
+    type,
+    expiry: offer_absolute_expiry,
+    description: offer_description,
+    issuer: offer_issuer,
     denomination,
     amount,
     nodeId,
-    quantityMax
+    quantityMax,
+    active,
+    singleUse: single_use,
+    used,
+    bolt12
   }
 }
