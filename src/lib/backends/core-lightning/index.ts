@@ -469,11 +469,12 @@ class CoreLn {
       return chunkedArr
     }
 
-    function trimMsat(value: string): string {
-      if (value.endsWith('msat')) {
-        return value.slice(0, -4)
+    // msat is appended to some values in later versions of CLN
+    function trimMsat(value: string | number): string {
+      if (value.toString().endsWith('msat')) {
+        return value.toString().slice(0, -4)
       } else {
-        return value
+        return value.toString()
       }
     }
 

@@ -170,13 +170,17 @@
     {$translate('app.subheadings.account_insights')}
   </p>
 
-  {#if $channelsAPY$.loading}
+  {#if $channelsAPY$.loading || $channels$.loading}
     <section class="w-full py-6 flex items-center justify-center">
       <Spinner />
     </section>
   {:else if $channelsAPY$.error}
     <div class="flex items-center justify-center">
       <ErrorMsg message={$channelsAPY$.error} closable={false} />
+    </div>
+  {:else if $channels$.error}
+    <div class="flex items-center justify-center">
+      <ErrorMsg message={$channels$.error} closable={false} />
     </div>
   {:else}
     <section class="mt-6 flex flex-wrap">
