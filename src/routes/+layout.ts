@@ -1,6 +1,6 @@
 import { browser } from '$app/environment'
 import { goto } from '$app/navigation'
-import type { Auth } from '$lib/@types/auth.js'
+import type { Auth } from '$lib/@types/node.js'
 import { AUTH_STORAGE_KEY } from '$lib/constants'
 import { auth$ } from '$lib/streams'
 import { getDataFromStorage, isProtectedRoute } from '$lib/utils'

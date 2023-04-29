@@ -1,13 +1,12 @@
-import { deriveLastPayIndex, getBitcoinExchangeRate, logger } from './utils'
+import { liveQuery } from 'dexie'
+import { db, getLastPaymentIndex } from './db'
+import { getBitcoinExchangeRate, logger } from './utils'
 import lightning from './lightning.js'
 import { onDestroy, onMount } from 'svelte'
-import { DEFAULT_SETTINGS, MIN_IN_MS, SETTINGS_STORAGE_KEY } from './constants'
+import { MIN_IN_MS } from './constants'
 import type { BitcoinExchangeRates } from './@types/settings.js'
 import type { Notification } from './@types/ui.js'
-import type { Auth } from './@types/auth.js'
-import type { Settings } from './@types/settings.js'
 import type { Payment } from './@types/payments.js'
-import type { Offer } from './@types/offers.js'
 
 import {
   BehaviorSubject,
@@ -24,7 +23,6 @@ import {
 
 import {
   distinctUntilChanged,
-  distinctUntilKeyChanged,
   map,
   scan,
   shareReplay,
@@ -33,13 +31,6 @@ import {
   switchMap,
   take
 } from 'rxjs/operators'
-
-import type {
-  BkprChannelsAPYResponse,
-  BkprListIncomeResponse,
-  GetinfoResponse,
-  ListfundsResponse
-} from './backends'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -71,36 +62,19 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('/')
 
-let storedSettings: null | string = null
-
-if (typeof window !== 'undefined') {
-  try {
-    storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
-  } catch (error) {
-    logger.error('Could not retrieve settings, access to local storage denied')
-  }
-}
-
-// app settings$
-export const settings$ = new SvelteSubject<Settings>({
-  ...DEFAULT_SETTINGS,
-  ...(storedSettings ? JSON.parse(storedSettings) : {})
-})
-
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 
 // all payment update events
 export const paymentUpdates$ = new Subject<Payment>()
 
-// core ln credentials
-export const auth$ = new BehaviorSubject<Auth | null>(null)
-
 // key for decrypting stored data
-export const pin$ = new BehaviorSubject<string | null>(null)
+export const passphrase$ = new BehaviorSubject<string | null>(null)
 
 // debug logs
 export const log$ = new Subject<string>()
+
+export const loading$ = new BehaviorSubject<boolean>(false)
 
 // log to console in staging
 if (import.meta.env.MODE === 'staging' || import.meta.env.DEV) {
@@ -128,43 +102,6 @@ export const recentLogs$: Observable<string[]> = log$.pipe(
 
 // subscribe to ensure that we start collecting logs
 recentLogs$.subscribe()
-
-// ==== NODE DATA ==== //
-export const nodeInfo$ = new BehaviorSubject<{
-  data: GetinfoResponse | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const payments$ = new BehaviorSubject<{
-  data: Payment[] | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const funds$ = new BehaviorSubject<{
-  data: ListfundsResponse | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const incomeEvents$ = new BehaviorSubject<{
-  data: BkprListIncomeResponse['income_events'] | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const channelsAPY$ = new BehaviorSubject<{
-  data: BkprChannelsAPYResponse['channels_apy'] | null
-  loading?: boolean
-  error?: string
-}>({ loading: true, data: null })
-
-export const offers$ = new SvelteSubject<{
-  data: Offer[] | null
-  loading?: boolean
-  error?: string
-}>({ loading: false, data: null })
 
 // browsers use different event names and hidden properties
 const pageVisibilityParams =
@@ -206,39 +143,23 @@ export const listeningForAllInvoiceUpdates$ = new BehaviorSubject<boolean>(false
 // for all custom notifications such as errors and hints
 export const customNotifications$ = new ReplaySubject<Notification>(10, 10000)
 
-export function updatePayments(payment: Payment): void {
-  const payments = payments$.getValue().data || []
-  const paymentIndex = payments.findIndex(({ hash }) => hash === payment.hash)
-
-  if (paymentIndex !== -1) {
-    // if exists, the replace with update
-    payments[paymentIndex] = payment
-  } else {
-    // otherwise put in the front of payments list
-    payments.unshift(payment)
-  }
-
-  payments$.next({ data: payments })
-}
-
-export function updateAuth(update: Partial<Auth> | Auth): void {
-  const currentAuth = auth$.getValue()
-  auth$.next(currentAuth ? { ...currentAuth, ...update } : (update as Auth))
-}
-
 // update payments when payment update comes through
 paymentUpdates$.subscribe(async (update) => {
-  updatePayments(update)
-
-  if (update.status === 'complete') {
-    // delay 1 second to allow for updated data from node
-    setTimeout(() => lightning.updateFunds(), 1000)
-  }
+  // @TODO - listen to payment updates and update db
+  // if (update.status === 'complete') {
+  //   // delay 1 second to allow for updated data from node
+  //   setTimeout(() => lightning.updateFunds(), 1000)
+  // }
 })
 
 const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
 
-const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDenomination'), skip(1))
+const fiatDenominationChange$ = from(
+  liveQuery(async () => {
+    const [settings] = await db.settings.toArray()
+    return settings.fiatDenomination
+  })
+).pipe(distinctUntilChanged())
 
 // get and update bitcoin exchange rate by poll or if fiat denomination changes
 merge(exchangeRatePoll$, fiatDenominationChange$)
@@ -247,20 +168,20 @@ merge(exchangeRatePoll$, fiatDenominationChange$)
 
 // manage connection based on app visibility
 appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
-  const auth = auth$.getValue()
+  const [auth] = await db.auth.toArray()
   if (!auth || !auth.token) return
   const lnApi = lightning.getLn()
 
   if (visible) {
     logger.info('App is visible, reconnecting to node')
+
     // reconnect
     lnApi.connect()
-    const payments = payments$.getValue().data
-    if (payments) {
-      // start listening for payment updates again
-      const lastPayIndex = deriveLastPayIndex(payments)
-      lightning.listenForAllInvoiceUpdates(lastPayIndex)
-    }
+
+    const lastPayIndex = await getLastPaymentIndex()
+
+    // start listening for payment updates again
+    lightning.listenForAllInvoiceUpdates(lastPayIndex)
   } else {
     logger.info(
       'App is hidden, disconnecting from node and cancelling listening for any invoice updates'

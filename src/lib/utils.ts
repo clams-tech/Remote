@@ -11,7 +11,7 @@ import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
 import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
 import type { BitcoinExchangeRates } from './@types/settings.js'
-import type { ParsedNodeAddress, Auth } from './@types/auth.js'
+import type { ParsedNodeAddress, Auth } from './@types/node.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
 
@@ -34,14 +34,6 @@ import type {
   ParsedBitcoinStringError,
   ParsedOnchainString
 } from './@types/payments.js'
-
-export function deriveLastPayIndex(payments: Payment[]): number {
-  return payments.length
-    ? payments.reduce((currentHighestIndex, { payIndex }) => {
-        return payIndex && payIndex > currentHighestIndex ? payIndex : currentHighestIndex
-      }, 0)
-    : 0
-}
 
 export function truncateValue(val: string, length = 9): string {
   return val.length <= length ? val : `${val.slice(0, length)}...${val.slice(-length)}`

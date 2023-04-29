@@ -6,10 +6,11 @@ import type {
   Invoice,
   InvoiceRequestSummary,
   ListfundsResponse,
-  LnAPI,
-  OfferSummary
+  this.ln,
+  OfferSummary,
+  LnAPI
 } from './backends'
-import type { Auth } from './@types/auth.js'
+import type { Auth } from './@types/node.js'
 import type { Payment } from './@types/payments.js'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
@@ -26,124 +27,76 @@ import {
 import {
   createRandomHex,
   decryptWithAES,
-  deriveLastPayIndex,
   formatDecodedOffer,
   getDataFromStorage,
   logger
 } from './utils'
 
 import {
-  auth$,
   disconnect$,
-  funds$,
   listeningForAllInvoiceUpdates$,
-  nodeInfo$,
-  payments$,
   paymentUpdates$,
   customNotifications$,
-  pin$,
-  incomeEvents$,
-  channelsAPY$,
-  offers$
+  loading$
 } from './streams'
+import { db, getLastPaymentIndex } from './db.js'
 
 class Lightning {
   public ln: LnAPI
 
   constructor() {}
 
-  public getLn(initialAuth?: Auth): LnAPI {
-    if (!this.ln || initialAuth) {
-      const auth = initialAuth || auth$.getValue()
-
-      if (!auth) {
-        throw new Error('Authentication needed to create connection to node')
-      }
-
-      this.ln = initLn({ backend: 'core_lightning', auth })
-    }
-
+  public init(auth: Auth) {
+    this.ln = initLn({ backend: 'core_lightning', auth })
     return this.ln
   }
 
   public async initialiseData() {
-    // 1. get and decrypt all cached data
-    const storedInfo = getDataFromStorage(INFO_STORAGE_KEY)
-    const storedFunds = getDataFromStorage(FUNDS_STORAGE_KEY)
-    const storedPayments = getDataFromStorage(PAYMENTS_STORAGE_KEY)
-
-    let info: GetinfoResponse
-    let funds: ListfundsResponse
-    let payments: Payment[] = []
-
-    if (storedInfo && storedFunds && storedPayments) {
-      const pin = pin$.getValue()
-
-      if (pin) {
-        // decrypt data
-        info = JSON.parse(decryptWithAES(storedInfo, pin))
-        funds = JSON.parse(decryptWithAES(storedFunds, pin))
-        payments = JSON.parse(decryptWithAES(storedPayments, pin))
-      } else {
-        info = JSON.parse(storedInfo)
-        funds = JSON.parse(storedFunds)
-        payments = JSON.parse(storedPayments)
-      }
-
-      // 2. Set state so app is loaded with cached data
-      nodeInfo$.next({ data: info as GetinfoResponse, loading: false })
-      funds$.next({ data: funds as ListfundsResponse, loading: false })
-      payments$.next({ data: payments as Payment[], loading: false })
+    if (!this.ln) {
+      const [auth] = await db.auth.toArray()
+      this.init(auth)
     }
 
-    // refresh all data on load
+    // refresh all data on load (for now, ideally use sql plugin)
     await this.refreshData()
 
-    const updatedPayments = payments$.getValue().data
+    const lastPayIndex = await getLastPaymentIndex()
 
-    // 5. listen for invoices based on the last index of updated payments
-    const lastPayIndex = updatedPayments ? deriveLastPayIndex(updatedPayments) : undefined
-    this.listenForAllInvoiceUpdates(lastPayIndex)
+    // start listening for payment updates again
+    lightning.listenForAllInvoiceUpdates(lastPayIndex)
   }
 
   public async refreshData() {
+    loading$.next(true)
     logger.info('Refreshing data')
-    await Promise.all([this.updateFunds(), this.updateInfo(), this.updatePayments()])
 
+    await Promise.all([
+      this.updateFunds(),
+      this.updateInfo(),
+      this.updatePayments(),
+      this.getoffers()
+    ])
+
+    loading$.next(false)
     logger.info('Refresh data complete')
   }
 
   public async updateFunds() {
-    const lnApi = this.getLn()
-
     try {
-      funds$.next({ loading: true, data: funds$.getValue().data })
-      const funds = await lnApi.listFunds()
-      funds$.next({ loading: false, data: funds })
-
+      const funds = await this.ln.listFunds()
       return funds
     } catch (error) {
-      const { message } = error as Error
-      funds$.next({ loading: false, data: null, error: message })
-
-      customNotifications$.next({
-        id: createRandomHex(),
-        type: 'error',
-        heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.list_funds')}: ${message}`
-      })
+      const { code, message } = error as { code: number; message: string }
+      const errorMsg = get(translate)(`app.errors.${code}`, { default: message })
+      // @TODO - do something with error message
     }
   }
 
   public async getoffers() {
-    const lnApi = this.getLn()
-
     try {
-      offers$.next({ loading: true, data: offers$.getValue().data })
-
       const [offers, invoiceRequests] = await Promise.all([
-        lnApi.listOffers(),
-        lnApi.listInvoiceRequests()
+        this.ln.listOffers(),
+        this.ln.listInvoiceRequests()
       ])
 
       const { default: decoder } = await import('bolt12-decoder')
@@ -162,67 +115,39 @@ class Lightning {
         }
       })
 
-      offers$.next({ loading: false, data })
+      await db.offers.bulkAdd(data)
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      offers$.next({
-        loading: false,
-        error: get(translate)(`app.errors.${code}`, { default: message }),
-        data: null
-      })
+      db.errors.add({code, message, context: 'Trying to load offers and invoice requests', timestamp: Date.now()})
     }
   }
 
   public async updateInfo() {
-    const lnApi = this.getLn()
-
     try {
-      nodeInfo$.next({ loading: true, data: nodeInfo$.getValue().data })
-      const info = await lnApi.getInfo()
-      nodeInfo$.next({ loading: false, data: info })
-
-      return info
+      const {alias, id} = await this.ln.getInfo()
+      await db.node.add({alias, id })
     } catch (error) {
-      const { message } = error as Error
-      nodeInfo$.next({ loading: false, data: null, error: message })
-
-      customNotifications$.next({
-        id: createRandomHex(),
-        type: 'error',
-        heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.get_info')}: ${message}`
-      })
+      const { code, message } = error as { code: number; message: string }
+      db.errors.add({code, message, context: 'Trying to load node info', timestamp: Date.now()})
     }
   }
 
   public async updatePayments() {
-    const lnApi = this.getLn()
-
     try {
-      payments$.next({ loading: true, data: payments$.getValue().data })
-      const payments = await lnApi.getPayments()
-      payments$.next({ loading: false, data: payments })
+      const payments = await this.ln.getPayments()
+      await db.payments.bulkPut(payments)
 
       return payments
     } catch (error) {
-      const { message } = error as Error
-      payments$.next({ loading: false, data: null, error: message })
-
-      customNotifications$.next({
-        id: createRandomHex(),
-        type: 'error',
-        heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
-      })
+      const { code, message } = error as { code: number; message: string }
+      db.errors.add({code, message, context: 'Trying to load payments', timestamp: Date.now()})
     }
   }
 
   public async updateIncomeEvents() {
-    const lnApi = this.getLn()
-
     try {
       incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
-      const incomeEvents = await lnApi.bkprListIncome()
+      const incomeEvents = await this.ln.bkprListIncome()
       incomeEvents$.next({ loading: false, data: incomeEvents })
 
       return incomeEvents
@@ -240,11 +165,11 @@ class Lightning {
   }
 
   public async updateChannelsAPY() {
-    const lnApi = this.getLn()
+    const this.ln = this.getLn()
 
     try {
       channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
-      const channelsAPY = await lnApi.bkprChannelsAPY()
+      const channelsAPY = await this.ln.bkprChannelsAPY()
       channelsAPY$.next({ loading: false, data: channelsAPY })
 
       return channelsAPY
@@ -263,7 +188,7 @@ class Lightning {
 
   public async listenForAllInvoiceUpdates(payIndex?: number): Promise<void> {
     listeningForAllInvoiceUpdates$.next(true)
-    const lnApi = this.getLn()
+    const this.ln = this.getLn()
     const disconnectProm = firstValueFrom(disconnect$.pipe(map(() => null)))
     const listeningStorage = getDataFromStorage(LISTEN_INVOICE_STORAGE_KEY)
     const currentlyListening = listeningStorage && JSON.parse(listeningStorage)
@@ -275,7 +200,7 @@ class Lightning {
       )
 
       const resultProm = firstValueFrom(
-        lnApi.connection.commandoMsgs$.pipe(
+        this.ln.connection.commandoMsgs$.pipe(
           filter(({ reqId }) => reqId === currentlyListening.reqId),
           map((response) => (response as JsonRpcSuccessResponse).result as Invoice)
         )
@@ -297,7 +222,7 @@ class Lightning {
           )
         }
 
-        invoice = await Promise.race([lnApi.waitAnyInvoice(payIndex, reqId), disconnectProm])
+        invoice = await Promise.race([this.ln.waitAnyInvoice(payIndex, reqId), disconnectProm])
       } catch (error) {
         const { message } = error as { message: string }
 
@@ -325,9 +250,9 @@ class Lightning {
   }
 
   public async waitForAndUpdatePayment(payment: Payment): Promise<void> {
-    const lnApi = this.getLn()
+    const this.ln = this.getLn()
     try {
-      const update = await lnApi.waitForInvoicePayment(payment)
+      const update = await this.ln.waitForInvoicePayment(payment)
       paymentUpdates$.next(update)
     } catch (error) {
       //

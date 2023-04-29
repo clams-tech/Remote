@@ -1,3 +1,8 @@
+export type Node = {
+  alias: string
+  id: string
+}
+
 export type Auth = {
   /** <node_public_key>@<ip>:<port>*/
   address: string
