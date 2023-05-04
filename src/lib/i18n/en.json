@@ -89,14 +89,14 @@
     "app_proxy": "App Proxy",
     "custom_proxy": "Custom Proxy",
     "direct_connection": "Direct Connection",
-    "value": "Value",
+    "routed": "Routed",
     "fees": "Fees",
     "apy": "APY",
     "in": "In",
     "out": "Out",
     "total": "Total",
-    "routing_chart": "Fees (Channel IDs)",
-    "apy_chart": "APY (Channel IDs)",
+    "routing_chart": "Fees",
+    "apy_chart": "APY",
     "pay": "Pay",
     "withdraw": "Withdraw",
     "summary": "Summary",
@@ -123,7 +123,9 @@
     "quantity": "Quantity",
     "optional": "Optional",
     "never": "Never",
-    "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}"
+    "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}",
+    "date_range": "Date range:",
+    "channels": "Channels"
   },
   "time": {
     "mins": "mins"
@@ -171,7 +173,10 @@
     "listen_invoice": "Error trying to listen for invoice payments",
     "list_payments": "Error trying to list payments",
     "bkpr_list_income": "Error trying to list income",
+    "bkpr_list_balances": "Error trying to list balances",
     "bkpr_channels_apy": "Error trying to show APY",
+    "update_channels": "Error trying to update channels",
+    "list_nodes": "Error trying to list nodes",
     "lnurl_metadata_hash": "Description hash in payment request does not match the hash of LNURL metadata.",
     "lnurl_pay_amount": "Amount in payment request does not match the amount requested.",
     "lnurl_parse_error": "Failed to parse LNURL.",
@@ -214,7 +219,8 @@
     "create_offer": "Create offer",
     "confirm": "Confirm",
     "summary_complete": "{{paymentType; keysend:Send Payment; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
-    "disable": "Disable"
+    "disable": "Disable",
+    "total": "Total"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -245,6 +251,7 @@
     "accounting_exports": "Accounting Exports",
     "routing_performance": "Routing Performance",
     "account_insights": "Channel Insights",
+    "routing_fees_history": "Routing Fees History",
     "offer": "Offer",
     "offers": "Offers",
     "payer_note": "Note",
@@ -267,6 +274,7 @@
     "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:",
     "routing_performance": "Fees earned by your node for routing value:",
     "account_insights": "Fees earned and APY per channel (SATS):",
+    "routing_fees_history": "Total fees earned vs fees earned per channel over time:",
     "payer_note": "Attach a note to this payment.",
     "changes": "This offer has been updated, please approve changes before paying invoice.",
     "quantity": "{{direction; receive:What is the max quantity that can be requested with this offer?; send:How many do you want? {{max:ne; 0:(Maximum {{max}});}}}}",

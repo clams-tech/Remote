@@ -214,3 +214,45 @@ export type FormattedDecodedOffer = {
   issuer?: OfferCommon['offer_issuer']
   quantityMax?: OfferCommon['offer_quantity_max']
 }
+
+export type ChannelStatus =
+  | 'OPENINGD'
+  | 'CHANNELD_AWAITING_LOCKIN'
+  | 'CHANNELD_NORMAL'
+  | 'CHANNELD_SHUTTING_DOWN'
+  | 'CLOSINGD_SIGEXCHANGE'
+  | 'CLOSINGD_COMPLETE'
+  | 'AWAITING_UNILATERAL'
+  | 'FUNDING_SPEND_SEEN'
+  | 'ONCHAIN'
+  | 'DUALOPEND_OPEN_INIT'
+  | 'DUALOPEND_AWAITING_LOCKIN'
+
+export type Channel = {
+  opener: 'local' | 'remote' // which side opened this channel
+  fundingTransactionId: string | null // funding transaction id
+  fundingOutput: number | null // 0-based index of the output in the funding transaction
+  id: string | null // full channel id
+  shortId: string | null // short channel id
+  peerId: string // id of node with which channel is opened
+  peerAlias: string | null // alias of node with which channel is opened
+  status: ChannelStatus
+  balanceLocal: string | null // msat
+  balanceRemote: string | null // msat
+  balanceTotal: string | null // msat
+  balanceSendable: string | null // value spendable (msat)
+  balanceReceivable: string | null // value receivable (msat)
+  sendsAttempted: number | null // number of send attempts
+  sendsComplete: number | null // number of successful send
+  receivesAttempted: number | null // number of receives attempts
+  receivesComplete: number | null // number of successful receives
+  feeBase: string | null // amount we charge to use the channel (msat)
+  routingFees: string | null // Fees earned on routed OUTBOUND (msat)
+  apy: string | null // APY for fees earned on OUTBOUND routed payments
+  scratchTransactionId: string | null // id to sign and send to chain if the channel were to fail
+  closeTo: string | null // The raw scriptPubKey indicated in fundchannel_start
+  closeToAddress: string | null // The bitcoin address we will close to
+  closer: 'local' | 'remote' | null // which side closed this channel
+  resolved: boolean | null // has channel been closed and all outputs resolved?
+  resolvedAtBlock: number | null // block number the channel was resolved at
+}

@@ -34,7 +34,9 @@ import {
   customNotifications$,
   pin$,
   incomeEvents$,
-  channelsAPY$
+  channelsAPY$,
+  balances$,
+  channels$
 } from './streams'
 
 class Lightning {
@@ -169,6 +171,28 @@ class Lightning {
     }
   }
 
+  public async updateChannels() {
+    const lnApi = this.getLn()
+
+    try {
+      channels$.next({ loading: true, data: channels$.getValue().data })
+      const channels = await lnApi.getChannels()
+      channels$.next({ loading: false, data: channels })
+
+      return channels
+    } catch (error) {
+      const { message } = error as Error
+      channels$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.update_channels')}: ${message}`
+      })
+    }
+  }
+
   public async updateIncomeEvents() {
     const lnApi = this.getLn()
 
@@ -187,6 +211,28 @@ class Lightning {
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
         message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+      })
+    }
+  }
+
+  public async updateListBalances() {
+    const lnApi = this.getLn()
+
+    try {
+      balances$.next({ loading: true, data: balances$.getValue().data })
+      const balances = await lnApi.bkprListBalances()
+      balances$.next({ loading: false, data: balances })
+
+      return balances
+    } catch (error) {
+      const { message } = error as Error
+      incomeEvents$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_balances')}: ${message}`
       })
     }
   }
