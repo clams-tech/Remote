@@ -1,15 +1,7 @@
 import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
-import type {
-  GetinfoResponse,
-  Invoice,
-  InvoiceRequestSummary,
-  ListfundsResponse,
-  this.ln,
-  OfferSummary,
-  LnAPI
-} from './backends'
+import type { Invoice, OfferSummary, LnAPI } from './backends'
 import type { Auth } from './@types/node.js'
 import type { Payment } from './@types/payments.js'
 import { initLn } from '$lib/backends'
@@ -17,20 +9,9 @@ import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
 import { translate } from './i18n/translations'
 
-import {
-  FUNDS_STORAGE_KEY,
-  INFO_STORAGE_KEY,
-  LISTEN_INVOICE_STORAGE_KEY,
-  PAYMENTS_STORAGE_KEY
-} from './constants'
+import { LISTEN_INVOICE_STORAGE_KEY } from './constants'
 
-import {
-  createRandomHex,
-  decryptWithAES,
-  formatDecodedOffer,
-  getDataFromStorage,
-  logger
-} from './utils'
+import { createRandomHex, formatDecodedOffer, getDataFromStorage, logger } from './utils'
 
 import {
   disconnect$,
@@ -118,17 +99,22 @@ class Lightning {
       await db.offers.bulkAdd(data)
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      db.errors.add({code, message, context: 'Trying to load offers and invoice requests', timestamp: Date.now()})
+      db.errors.add({
+        code,
+        message,
+        context: 'Trying to load offers and invoice requests',
+        timestamp: Date.now()
+      })
     }
   }
 
   public async updateInfo() {
     try {
-      const {alias, id} = await this.ln.getInfo()
-      await db.node.add({alias, id })
+      const { alias, id } = await this.ln.getInfo()
+      await db.node.add({ alias, id })
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      db.errors.add({code, message, context: 'Trying to load node info', timestamp: Date.now()})
+      db.errors.add({ code, message, context: 'Trying to load node info', timestamp: Date.now() })
     }
   }
 
@@ -140,20 +126,34 @@ class Lightning {
       return payments
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      db.errors.add({code, message, context: 'Trying to load payments', timestamp: Date.now()})
+      db.errors.add({ code, message, context: 'Trying to load payments', timestamp: Date.now() })
+    }
+  }
+
+  public async updateChannels() {
+    try {
+      const channels = await this.ln.getChannels()
+
+      return channels
+    } catch (error) {
+      const { message } = error as Error
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.update_channels')}: ${message}`
+      })
     }
   }
 
   public async updateIncomeEvents() {
     try {
-      incomeEvents$.next({ loading: true, data: incomeEvents$.getValue().data })
       const incomeEvents = await this.ln.bkprListIncome()
-      incomeEvents$.next({ loading: false, data: incomeEvents })
 
       return incomeEvents
     } catch (error) {
       const { message } = error as Error
-      incomeEvents$.next({ loading: false, data: null, error: message })
 
       customNotifications$.next({
         id: createRandomHex(),
@@ -164,18 +164,30 @@ class Lightning {
     }
   }
 
-  public async updateChannelsAPY() {
-    const this.ln = this.getLn()
-
+  public async updateListBalances() {
     try {
-      channelsAPY$.next({ loading: true, data: channelsAPY$.getValue().data })
+      const balances = await this.ln.bkprListBalances()
+
+      return balances
+    } catch (error) {
+      const { message } = error as Error
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.bkpr_list_balances')}: ${message}`
+      })
+    }
+  }
+
+  public async updateChannelsAPY() {
+    try {
       const channelsAPY = await this.ln.bkprChannelsAPY()
-      channelsAPY$.next({ loading: false, data: channelsAPY })
 
       return channelsAPY
     } catch (error) {
       const { message } = error as Error
-      channelsAPY$.next({ loading: false, data: null, error: message })
 
       customNotifications$.next({
         id: createRandomHex(),
@@ -188,7 +200,6 @@ class Lightning {
 
   public async listenForAllInvoiceUpdates(payIndex?: number): Promise<void> {
     listeningForAllInvoiceUpdates$.next(true)
-    const this.ln = this.getLn()
     const disconnectProm = firstValueFrom(disconnect$.pipe(map(() => null)))
     const listeningStorage = getDataFromStorage(LISTEN_INVOICE_STORAGE_KEY)
     const currentlyListening = listeningStorage && JSON.parse(listeningStorage)
@@ -250,7 +261,6 @@ class Lightning {
   }
 
   public async waitForAndUpdatePayment(payment: Payment): Promise<void> {
-    const this.ln = this.getLn()
     try {
       const update = await this.ln.waitForInvoicePayment(payment)
       paymentUpdates$.next(update)

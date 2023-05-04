@@ -1,6 +1,6 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Auth, Payment } from '$lib/types'
+import type { Auth, Payment, Channel } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
@@ -15,6 +15,7 @@ import {
 
 import type {
   BkprChannelsAPYResponse,
+  BkprListBalancesResponse,
   BkprListIncomeResponse,
   ChannelAPY,
   CreatePayOfferRequest,
@@ -35,8 +36,10 @@ import type {
   ListfundsResponse,
   ListInvoiceRequestsResponse,
   ListinvoicesResponse,
+  ListNodesResponse,
   ListOffersResponse,
   ListpaysResponse,
+  ListPeersResponse,
   OfferSummary,
   PayResponse,
   SendInvoiceRequest,
@@ -386,6 +389,15 @@ class CoreLn {
     return formatted
   }
 
+  async bkprListBalances(): Promise<BkprListBalancesResponse['accounts']> {
+    const result = await this.connection.commando({
+      method: 'bkpr-listbalances',
+      rune: this.rune
+    })
+
+    return (result as BkprListBalancesResponse).accounts
+  }
+
   async bkprChannelsAPY(): Promise<ChannelAPY[]> {
     const result = (await this.connection.commando({
       method: 'bkpr-channelsapy',
@@ -413,6 +425,114 @@ class CoreLn {
     })
 
     return (result as ListInvoiceRequestsResponse).invoicerequests
+  }
+
+  async listNodes(id: string): Promise<ListNodesResponse['nodes']> {
+    const result = (await this.connection.commando({
+      method: 'listnodes',
+      rune: this.rune,
+      params: { id }
+    })) as ListNodesResponse
+
+    return (result as ListNodesResponse).nodes
+  }
+
+  async listPeers(): Promise<ListPeersResponse['peers']> {
+    const result = await this.connection.commando({
+      method: 'listpeers',
+      rune: this.rune
+    })
+
+    return (result as ListPeersResponse).peers
+  }
+
+  async getChannels(): Promise<Channel[]> {
+    const channels: Channel[] = []
+    const peers = await this.listPeers()
+    const channelsAPY = await this.bkprChannelsAPY()
+    const balances = await this.bkprListBalances()
+
+    function chunkArray<T>(arr: T[], size: number): T[][] {
+      // Create an array to hold the chunks
+      const chunkedArr: T[][] = []
+      // Loop over each item in the array
+      for (const item of arr) {
+        // If the last chunk is full (or doesn't exist), create a new chunk with this item
+        if (!chunkedArr.length || chunkedArr[chunkedArr.length - 1].length === size) {
+          chunkedArr.push([item])
+        } else {
+          // Otherwise, add the item to the last chunk
+          chunkedArr[chunkedArr.length - 1].push(item)
+        }
+      }
+      // Return the array of chunks
+      return chunkedArr
+    }
+
+    // msat is appended to some values in later versions of CLN
+    function trimMsat(value: string | number): string {
+      if (value.toString().endsWith('msat')) {
+        return value.toString().slice(0, -4)
+      } else {
+        return value.toString()
+      }
+    }
+
+    // Chunk the peers array into smaller arrays of size 50
+    const peerChunks = chunkArray(peers, 50)
+
+    // Loop over the chunked arrays of peers
+    for (const chunk of peerChunks) {
+      // Make API calls for each chunk of peers in parallel
+      const promises = chunk.map(async (peer) => {
+        const nodes = await this.listNodes(peer.id)
+        const node = nodes[0]
+
+        peer.channels?.forEach((channel) => {
+          const channelAPYMatch = channelsAPY.find(
+            (channelAPY) => channelAPY.account === channel.channel_id
+          )
+          const balanceMatch = balances.find((balance) => balance.account === channel.channel_id)
+
+          channels.push({
+            opener: channel.opener,
+            peerId: peer.id,
+            peerAlias: node?.alias ?? null,
+            fundingTransactionId: channel.funding_txid ?? null,
+            fundingOutput: channel.funding_outnum ?? null,
+            id: channel.channel_id ?? null,
+            shortId: channel.short_channel_id ?? null,
+            status: channel.state,
+            balanceLocal: trimMsat(channel.to_us_msat) ?? null,
+            balanceRemote:
+              (
+                BigInt(trimMsat(channel.total_msat)) - BigInt(trimMsat(channel.to_us_msat))
+              ).toString() ?? null,
+            balanceTotal: trimMsat(channel.total_msat) ?? null,
+            balanceSendable: trimMsat(channel.spendable_msat) ?? null,
+            balanceReceivable: trimMsat(channel.receivable_msat) ?? null,
+            sendsAttempted: channel.out_payments_offered ?? null,
+            sendsComplete: channel.out_payments_fulfilled ?? null,
+            receivesAttempted: channel.in_payments_offered ?? null,
+            receivesComplete: channel.in_payments_fulfilled ?? null,
+            feeBase: trimMsat(channel.fee_base_msat.toString()) ?? null,
+            routingFees: channelAPYMatch?.fees_out_msat.toString() ?? null,
+            apy: channelAPYMatch?.apy_out ?? null,
+            scratchTransactionId: channel.scratch_txid ?? null,
+            closeTo: channel.close_to ?? null,
+            closeToAddress: channel.close_to_addr ?? null,
+            closer: channel.closer ?? null,
+            resolved: balanceMatch?.account_resolved ?? null,
+            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null
+          })
+        })
+      })
+
+      // Wait for all API calls for the current chunk to complete before processing the next chunk
+      await Promise.all(promises)
+    }
+
+    return channels
   }
 }
 

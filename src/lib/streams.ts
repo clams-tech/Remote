@@ -170,7 +170,7 @@ merge(exchangeRatePoll$, fiatDenominationChange$)
 appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
   const [auth] = await db.auth.toArray()
   if (!auth || !auth.token) return
-  const lnApi = lightning.getLn()
+  const lnApi = lightning.ln
 
   if (visible) {
     logger.info('App is visible, reconnecting to node')

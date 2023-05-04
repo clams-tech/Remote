@@ -1,19 +1,18 @@
 <script lang="ts">
   import { convertValue } from '$lib/conversion'
-  import { BitcoinDenomination } from '$lib/types'
+  import { BitcoinDenomination, type Channel } from '$lib/types'
   import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
-  import { channelsAPY$ } from '$lib/streams'
+  import { channelsAPY$, channels$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
-  import type { ChannelAPY } from '$lib/backends'
   import type { Chart, ChartItem } from 'chart.js'
-  import Big from 'big.js'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import info from '$lib/icons/info'
 
   let feesChart: Chart<'pie', number[], string>
   let apyChart: Chart<'pie', number[], string>
+  let nodeLabels: string[]
 
   enum ChartIDs {
     fees = 'fees',
@@ -31,21 +30,30 @@
     }
   ]
 
-  $: ({ net, channels } = ($channelsAPY$.data || []).reduce(
-    (acc, item) => {
-      acc[item.account === 'net' ? 'net' : 'channels'].push(item)
-      return acc
-    },
-    { net: [], channels: [] } as { net: ChannelAPY[]; channels: ChannelAPY[] }
-  ))
+  // fee/apy data for all channels
+  $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
+  $: channels = $channels$.data || []
+  $: noRoutingFees = net && net?.fees_out_msat === '0'
+  $: noAPY = net && net?.apy_total.slice(0, -1) === '0.0000'
 
-  $: noRoutingFees =
-    net &&
-    Big(net[0]?.fees_in_msat || '0')
-      .plus(net[0]?.fees_out_msat || '0')
-      .toString() === '0'
+  // create data for chart labels
+  $: {
+    if (channels.length) {
+      nodeLabels = channels
+        .filter(({ routingFees }) => routingFees !== '0')
+        .map(({ id, peerAlias }) => {
+          return `${peerAlias}: ${truncateValue(id || '', 3)}` || truncateValue(id || '', 3)
+        })
+    }
+  }
 
-  $: noAPY = net && net[0]?.apy_total.slice(0, -1) === '0.0000'
+  // Add node labels after node alias' have been fetched
+  $: if (feesChart && apyChart && nodeLabels) {
+    feesChart.data.labels = nodeLabels
+    apyChart.data.labels = nodeLabels
+    feesChart.update()
+    apyChart.update()
+  }
 
   $: if (channels && !noRoutingFees) {
     renderFeesChart(channels)
@@ -55,28 +63,26 @@
     }
   }
 
-  async function renderFeesChart(channels: ChannelAPY[]) {
+  async function renderFeesChart(channels: Channel[]) {
     const { Chart } = await import('chart.js/auto')
 
-    let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, fees_in_msat }) => {
+    channels.forEach(({ routingFees }) => {
       const value = convertValue({
-        value: fees_in_msat.toString(),
+        value: routingFees || '0',
         from: BitcoinDenomination.msats,
         to: BitcoinDenomination.sats
       })
 
-      if (value) {
-        labels.push(truncateValue(account, 5))
+      if (value && value !== '0') {
         data.push(parseFloat(value))
       }
     })
 
     // If chart exists, update data
     if (feesChart) {
-      feesChart.data = { labels, datasets: [{ data }] }
+      feesChart.data = { datasets: [{ data }] }
       feesChart.update()
     } else {
       // Create new chart
@@ -86,36 +92,41 @@
         feesChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels,
             datasets: [
               {
                 data
               }
             ]
+          },
+          options: {
+            plugins: {
+              legend: {
+                // Hide legend is more than 10 channels
+                display: data.length > 10 ? false : true
+              }
+            }
           }
         })
       }
     }
   }
 
-  async function renderApyChart(channels: ChannelAPY[]) {
+  async function renderApyChart(channels: Channel[]) {
     const { Chart } = await import('chart.js/auto')
 
-    let labels: string[] = []
     let data: number[] = []
 
-    channels.forEach(({ account, apy_in }) => {
-      const apy = parseFloat(apy_in.slice(0, -1))
+    channels.forEach(({ apy }) => {
+      const apyValue = parseFloat(apy?.slice(0, -1) || '0')
 
-      if (apy) {
-        labels.push(truncateValue(account, 5))
-        data.push(apy)
+      if (apyValue) {
+        data.push(apyValue)
       }
     })
 
     // If chart exists, update data
     if (apyChart) {
-      apyChart.data = { labels, datasets: [{ data }] }
+      apyChart.data = { datasets: [{ data }] }
       apyChart.update()
       return
     } else {
@@ -126,12 +137,19 @@
         apyChart = new Chart(el, {
           type: 'pie',
           data: {
-            labels,
             datasets: [
               {
                 data
               }
             ]
+          },
+          options: {
+            plugins: {
+              legend: {
+                // Hide legend is more than 10 channels
+                display: data.length > 10 ? false : true
+              }
+            }
           }
         })
       }
@@ -152,13 +170,17 @@
     {$translate('app.subheadings.account_insights')}
   </p>
 
-  {#if $channelsAPY$.loading}
+  {#if $channelsAPY$.loading || $channels$.loading}
     <section class="w-full py-6 flex items-center justify-center">
       <Spinner />
     </section>
   {:else if $channelsAPY$.error}
     <div class="flex items-center justify-center">
       <ErrorMsg message={$channelsAPY$.error} closable={false} />
+    </div>
+  {:else if $channels$.error}
+    <div class="flex items-center justify-center">
+      <ErrorMsg message={$channels$.error} closable={false} />
     </div>
   {:else}
     <section class="mt-6 flex flex-wrap">

@@ -1,6 +1,7 @@
 <script>
   import BackButton from '$lib/elements/BackButton.svelte'
   import RoutingPerformance from './components/RoutingPerformance.svelte'
+  import RoutingFeesHistory from './components/RoutingFeesHistory.svelte'
   import ChannelInsights from './components/ChannelInsights.svelte'
   import AccountingExports from './components/AccountingExports.svelte'
   import { translate } from '$lib/i18n/translations'
@@ -9,10 +10,11 @@
   import { onMount } from 'svelte'
   import graph from '$lib/icons/graph'
 
-  // Fetch bookkeeper channels apy
+  // Fetch channels APY, income events & channels data
   onMount(() => {
-    lightning.updateChannelsAPY()
+    lightning.updateChannelsAPY() // "net" value required for Routing Performance component
     lightning.updateIncomeEvents()
+    lightning.updateChannels()
   })
 </script>
 
@@ -36,6 +38,9 @@
       <RoutingPerformance />
       <ChannelInsights />
       <AccountingExports />
+    </div>
+    <div class="mt-2 p-1 w-full max-w-3xl">
+      <RoutingFeesHistory />
     </div>
   </div>
 </div>

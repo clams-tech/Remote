@@ -412,6 +412,11 @@ export function decodeLightningAddress(val: string): { username: string; domain:
 }
 
 export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11: string }) | null {
+  // Remove prepended string if found
+  if (bolt11.includes('lightning:')) {
+    bolt11 = bolt11.replace('lightning:', '')
+  }
+
   try {
     const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
 
