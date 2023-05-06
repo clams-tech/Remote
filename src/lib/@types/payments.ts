@@ -5,12 +5,13 @@ export type Payment = {
   value: string // msat
   fee: string | null // msat
   type: PaymentType
-  startedAt: string // ISO UTC
-  completedAt: string | null // ISO UTC
-  expiresAt: string | null // ISO UTC
+  startedAt: number // unix seconds
+  completedAt: number | null // unix seconds
+  expiresAt: number | null // unix seconds
+  hash: string
+  nodeId: string
   invoice?: string
   description?: string
-  hash: string
   preimage?: string
   destination?: string
   payIndex?: number

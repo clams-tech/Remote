@@ -9,4 +9,6 @@ export type Error = {
   context: string
   /** Optional code (usually from CLN) */
   code?: number
+  /** the node this error was associated with */
+  nodeId: string
 }

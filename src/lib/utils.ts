@@ -11,7 +11,7 @@ import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
 import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
 import type { BitcoinExchangeRates } from './@types/settings.js'
-import type { ParsedNodeAddress, Auth } from './@types/node.js'
+import type { ParsedNodeAddress, Auth } from './@types/nodes.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
 
