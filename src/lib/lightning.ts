@@ -2,7 +2,6 @@ import { get } from 'svelte/store'
 import { firstValueFrom } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import type { Invoice, OfferSummary, LnAPI } from './backends'
-import type { Auth } from './@types/nodes.js'
 import type { Payment } from './@types/payments.js'
 import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
@@ -21,21 +20,22 @@ import {
   loading$
 } from './streams'
 import { db, getLastPaymentIndex } from './db.js'
+import type { Connection } from './@types/connections.js'
 
 class Lightning {
   public ln: LnAPI
 
   constructor() {}
 
-  public init(auth: Auth) {
-    this.ln = initLn({ backend: 'core_lightning', auth })
+  public init(connection: Connection) {
+    this.ln = initLn({ backend: 'core_lightning', auth: connection })
     return this.ln
   }
 
   public async initialiseData() {
     if (!this.ln) {
-      const [auth] = await db.auth.toArray()
-      this.init(auth)
+      const [connection] = await db.connections.toArray()
+      this.init(connection)
     }
 
     // refresh all data on load (for now, ideally use sql plugin)
@@ -52,6 +52,12 @@ class Lightning {
     logger.info('Refreshing data')
 
     await Promise.all([
+      // @TODO - need to change fetch functions to do the following
+      // channels
+      // nodes
+      // offers
+      // outputs
+      // payments
       this.updateFunds(),
       this.updateInfo(),
       this.updatePayments(),
@@ -99,22 +105,33 @@ class Lightning {
       await db.offers.bulkAdd(data)
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
+      const [node] = await db.nodes.toArray()
+
       db.errors.add({
         code,
         message,
         context: 'Trying to load offers and invoice requests',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        nodeId: node.id
       })
     }
   }
 
   public async updateInfo() {
     try {
-      const { alias, id } = await this.ln.getInfo()
-      await db.node.add({ alias, id })
+      const { alias, id, color, network, version } = await this.ln.getInfo()
+      await db.nodes.add({ alias, id, color, network, version })
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      db.errors.add({ code, message, context: 'Trying to load node info', timestamp: Date.now() })
+      const [node] = await db.nodes.toArray()
+
+      db.errors.add({
+        code,
+        message,
+        context: 'Trying to load node info',
+        timestamp: Date.now(),
+        nodeId: node.id
+      })
     }
   }
 
@@ -126,7 +143,15 @@ class Lightning {
       return payments
     } catch (error) {
       const { code, message } = error as { code: number; message: string }
-      db.errors.add({ code, message, context: 'Trying to load payments', timestamp: Date.now() })
+      const [node] = await db.nodes.toArray()
+
+      db.errors.add({
+        code,
+        message,
+        context: 'Trying to load payments',
+        timestamp: Date.now(),
+        nodeId: node.id
+      })
     }
   }
 

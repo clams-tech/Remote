@@ -5,13 +5,13 @@ import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import { customNotifications$, log$, settings$ } from './streams'
+import { customNotifications$, log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
 import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
 import type { BitcoinExchangeRates } from './@types/settings.js'
-import type { ParsedNodeAddress, Auth } from './@types/nodes.js'
+import type { ParsedNodeAddress } from './@types/nodes.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
 
@@ -34,6 +34,18 @@ import type {
   ParsedBitcoinStringError,
   ParsedOnchainString
 } from './@types/payments.js'
+import { BehaviorSubject } from 'rxjs'
+import { db, getSettings } from './db.js'
+import type { Connection } from './@types/connections.js'
+
+// Makes a BehaviourSubject compatible with Svelte stores
+export class SvelteSubject<T> extends BehaviorSubject<T> {
+  set: BehaviorSubject<T>['next']
+  constructor(initialState: T) {
+    super(initialState)
+    this.set = super.next
+  }
+}
 
 export function truncateValue(val: string, length = 9): string {
   return val.length <= length ? val : `${val.slice(0, length)}...${val.slice(-length)}`
@@ -265,15 +277,15 @@ export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
 export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
-  const currency = settings$.value.fiatDenomination
+  const { fiatDenomination } = await getSettings()
 
   try {
-    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then((res) =>
-      res.json()
+    const result = await fetch(`${API_URL}/exchange-rates?currency=${fiatDenomination}`).then(
+      (res) => res.json()
     )
     return result
   } catch (error) {
-    logger.warn(`Could not get exchange rate for currency: ${currency} `)
+    logger.warn(`Could not get exchange rate for currency: ${fiatDenomination} `)
     return null
   }
 }
@@ -321,7 +333,7 @@ export function encryptAllData(pin: string) {
   }
 }
 
-export function parseStoredAuth(storedAuth: string, pin: string): Auth | null {
+export function parseStoredAuth(storedAuth: string, pin: string): Connection | null {
   try {
     const decryptedAuth = decryptWithAES(storedAuth, pin)
     const auth = JSON.parse(decryptedAuth)
@@ -577,4 +589,9 @@ export function formatDecodedOffer(
     used,
     bolt12
   }
+}
+
+/** return unix timestamp in seconds for now  */
+export function now() {
+  return Math.round(Date.now() / 1000)
 }

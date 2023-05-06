@@ -10,6 +10,7 @@ export type Payment = {
   expiresAt: number | null // unix seconds
   hash: string
   nodeId: string
+  /** BOLT11 | BOLT12 */
   invoice?: string
   description?: string
   preimage?: string

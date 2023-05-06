@@ -38,4 +38,18 @@ export async function getLastPaymentIndex(): Promise<Payment['payIndex'] | undef
   return payment?.payIndex
 }
 
+export async function getSettings(): Promise<Settings> {
+  const [settings] = await db.settings.toArray()
+  return settings
+}
+
+export async function getConnection(): Promise<Connection> {
+  const [connection] = await db.connections.toArray()
+  return connection
+}
+
+export async function updatePayment(update: Payment): Promise<void> {
+  return db.payments.put(update)
+}
+
 export const db = new DB()

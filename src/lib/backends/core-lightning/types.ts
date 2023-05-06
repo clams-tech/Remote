@@ -224,7 +224,7 @@ export interface GetinfoResponse {
    * represents the type of network on the node are working (e.g: `bitcoin`, `testnet`, or
    * `regtest`)
    */
-  network: string
+  network: 'bitcoin' | 'regtest' | 'testnet'
   /**
    * The total count of channels in normal state
    */

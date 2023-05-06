@@ -1,5 +1,5 @@
 import { liveQuery } from 'dexie'
-import { db, getLastPaymentIndex } from './db'
+import { db, getConnection, getLastPaymentIndex, updatePayment } from './db'
 import { getBitcoinExchangeRate, logger } from './utils'
 import lightning from './lightning.js'
 import { onDestroy, onMount } from 'svelte'
@@ -31,15 +31,6 @@ import {
   switchMap,
   take
 } from 'rxjs/operators'
-
-// Makes a BehaviourSubject compatible with Svelte stores
-export class SvelteSubject<T> extends BehaviorSubject<T> {
-  set: BehaviorSubject<T>['next']
-  constructor(initialState: T) {
-    super(initialState)
-    this.set = super.next
-  }
-}
 
 // when svelte component is mounted
 export const onMount$ = defer(() => {
@@ -145,7 +136,20 @@ export const customNotifications$ = new ReplaySubject<Notification>(10, 10000)
 
 // update payments when payment update comes through
 paymentUpdates$.subscribe(async (update) => {
-  // @TODO - listen to payment updates and update db
+  try {
+    await updatePayment(update)
+  } catch (error) {
+    const [node] = await db.nodes.toArray()
+    const { message } = error as { message: string }
+
+    db.errors.add({
+      message,
+      context: 'Trying to update payments in DB',
+      timestamp: Date.now(),
+      nodeId: node.id
+    })
+  }
+  // @TODO - Is there a smart way to update balance without fetching from the node??
   // if (update.status === 'complete') {
   //   // delay 1 second to allow for updated data from node
   //   setTimeout(() => lightning.updateFunds(), 1000)
@@ -168,8 +172,10 @@ merge(exchangeRatePoll$, fiatDenominationChange$)
 
 // manage connection based on app visibility
 appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
-  const [auth] = await db.auth.toArray()
-  if (!auth || !auth.token) return
+  const connection = await getConnection()
+
+  if (!connection || !connection.token) return
+
   const lnApi = lightning.ln
 
   if (visible) {

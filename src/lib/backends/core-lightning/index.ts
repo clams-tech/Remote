@@ -1,9 +1,8 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Auth, Payment, Channel } from '$lib/types'
-import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import { formatMsat, now, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
-import { settings$ } from '$lib/streams'
+import type { Connection } from '$lib/@types/connections.js'
 
 import {
   formatChannelsAPY,
@@ -48,14 +47,17 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
+import type { Settings } from '$lib/@types/settings.js'
+import type { Payment } from '$lib/@types/payments.js'
+import type { Channel } from '$lib/@types/channels.js'
 
 class CoreLn {
   public connection: LnMessage
   public rune: string
 
-  constructor(auth: Auth, logger?: Logger) {
-    const { address, token, sessionSecret } = auth
-    const { wsProxy, directConnection } = settings$.value
+  constructor(connection: Connection, settings: Settings, logger?: Logger) {
+    const { address, token, sessionSecret } = connection
+    const { wsProxy, directConnection } = settings
     const { publicKey, ip, port } = parseNodeAddress(address)
 
     this.connection = new LnMessage({
@@ -90,7 +92,7 @@ class CoreLn {
 
   async createInvoice(params: InvoiceRequest['params']): Promise<Payment> {
     const { label, amount_msat, description } = params
-    const startedAt = new Date().toISOString()
+    const startedAt = now()
 
     const result = await this.connection.commando({
       method: 'invoice',
@@ -109,11 +111,12 @@ class CoreLn {
       type: 'bolt11',
       startedAt,
       completedAt: null,
-      expiresAt: new Date(expires_at * 1000).toISOString(),
+      expiresAt: expires_at,
       invoice: bolt11,
       description,
       hash: payment_hash,
-      preimage: payment_secret
+      preimage: payment_secret,
+      nodeId: this.connection.remoteNodePublicKey
     }
 
     return payment
@@ -181,7 +184,7 @@ class CoreLn {
       ...payment,
       status: status === 'paid' ? 'complete' : 'expired',
       value: formatMsat(amount_received_msat || payment.value),
-      completedAt: new Date((paid_at as number) * 1000).toISOString(),
+      completedAt: paid_at as number,
       preimage: payment_preimage
     }
   }
@@ -236,12 +239,13 @@ class CoreLn {
       type,
       direction: 'send',
       value: formatMsat(amount_msat),
-      completedAt: new Date().toISOString(),
+      completedAt: now(),
       expiresAt: null,
-      startedAt: new Date(created_at * 1000).toISOString(),
+      startedAt: created_at,
       fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
-      invoice: invoice
+      invoice: invoice,
+      nodeId: this.connection.remoteNodePublicKey
     }
   }
 
@@ -259,7 +263,7 @@ class CoreLn {
   /**Create an invoice for a BOLT12 Offer and send it to be paid */
   async sendInvoice(params: SendInvoiceRequest['params']): Promise<Payment> {
     const { offer, label, amount_msat, timeout, quantity } = params
-    const createdAt = Date.now() / 1000
+    const createdAt = now()
 
     const orderedParams = amount_msat
       ? [offer, label, amount_msat, timeout, quantity]
@@ -289,13 +293,14 @@ class CoreLn {
       type: 'bolt12',
       direction: 'receive',
       value: formatMsat((amount_received_msat || amount_msat) as string),
-      completedAt: new Date(paid_at ? paid_at * 1000 : Date.now()).toISOString(),
-      expiresAt: new Date(expires_at * 1000).toISOString(),
-      startedAt: new Date(createdAt).toISOString(),
+      completedAt: paid_at ? paid_at : now(),
+      expiresAt: expires_at,
+      startedAt: createdAt,
       fee: null,
       status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
       invoice: bolt12,
-      payIndex: pay_index
+      payIndex: pay_index,
+      nodeId: this.connection.remoteNodePublicKey
     }
   }
 
@@ -336,11 +341,12 @@ class CoreLn {
       type: 'bolt11',
       direction: 'send',
       value: amountMsat,
-      completedAt: new Date().toISOString(),
+      completedAt: now(),
       expiresAt: null,
-      startedAt: new Date(created_at * 1000).toISOString(),
+      startedAt: created_at,
       fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
-      status
+      status,
+      nodeId: this.connection.remoteNodePublicKey
     }
   }
 
@@ -511,19 +517,14 @@ class CoreLn {
             balanceTotal: trimMsat(channel.total_msat) ?? null,
             balanceSendable: trimMsat(channel.spendable_msat) ?? null,
             balanceReceivable: trimMsat(channel.receivable_msat) ?? null,
-            sendsAttempted: channel.out_payments_offered ?? null,
-            sendsComplete: channel.out_payments_fulfilled ?? null,
-            receivesAttempted: channel.in_payments_offered ?? null,
-            receivesComplete: channel.in_payments_fulfilled ?? null,
             feeBase: trimMsat(channel.fee_base_msat.toString()) ?? null,
             routingFees: channelAPYMatch?.fees_out_msat.toString() ?? null,
             apy: channelAPYMatch?.apy_out ?? null,
-            scratchTransactionId: channel.scratch_txid ?? null,
-            closeTo: channel.close_to ?? null,
             closeToAddress: channel.close_to_addr ?? null,
             closer: channel.closer ?? null,
             resolved: balanceMatch?.account_resolved ?? null,
-            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null
+            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null,
+            nodeId: this.connection.remoteNodePublicKey
           })
         })
       })

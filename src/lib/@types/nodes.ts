@@ -2,9 +2,8 @@ export type Node = {
   alias: string
   id: string
   color: string
-  network: 'regtest' | 'mainnet' | 'testnet'
+  network: 'bitcoin' | 'regtest' | 'testnet'
   version: string
-  binding: NodeBinding[]
 }
 
 export type NodeBinding = {
