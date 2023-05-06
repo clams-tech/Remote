@@ -7,6 +7,7 @@ import type { Error } from './@types/errors.js'
 import type { Connection } from './@types/connections.js'
 import type { Channel } from './@types/channels.js'
 import type { Output } from './@types/outputs.js'
+import type { Peer } from './@types/peers.js'
 
 export class DB extends Dexie {
   channels!: Table<Channel>
@@ -16,6 +17,7 @@ export class DB extends Dexie {
   offers!: Table<Offer>
   outputs!: Table<Output>
   payments!: Table<Payment>
+  peers!: Table<Peer>
   settings!: Table<Settings>
 
   constructor() {
@@ -24,10 +26,11 @@ export class DB extends Dexie {
       channels: 'id, nodeId, peerId',
       connections: 'id, nodeId',
       errors: '++, timestamp, nodeId',
-      nodes: 'id',
+      nodes: 'id, alias',
       offers: 'id, nodeId',
       outputs: 'txid, nodeId',
       payments: 'id, nodeId, offerId, value, fee, payIndex',
+      peers: 'id, alias',
       settings: ''
     })
   }

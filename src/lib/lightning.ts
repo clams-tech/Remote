@@ -58,6 +58,7 @@ class Lightning {
       // offers
       // outputs
       // payments
+      // peers
       this.updateFunds(),
       this.updateInfo(),
       this.updatePayments(),

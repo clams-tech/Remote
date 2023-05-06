@@ -6,12 +6,6 @@ export type Node = {
   version: string
 }
 
-export type NodeBinding = {
-  type: string
-  address: string
-  port: number
-}
-
 export type ParsedNodeAddress = {
   publicKey: string
   ip: string
