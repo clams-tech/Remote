@@ -1,19 +1,18 @@
-import AES from 'crypto-js/aes'
-import encUtf8 from 'crypto-js/enc-utf8'
 import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 import Big from 'big.js'
 import UAParser from 'ua-parser-js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { formatDistanceToNowStrict, formatRelative, type Locale } from 'date-fns'
-import { customNotifications$, log$ } from './streams'
+import { log$ } from './streams'
 import { get } from 'svelte/store'
 import { translate } from './i18n/translations'
 import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation'
-import { ALL_DATA_KEYS, API_URL, ENCRYPTED_DATA_KEYS } from './constants'
+import { API_URL } from './constants'
 import type { BitcoinExchangeRates } from './@types/settings.js'
 import type { ParsedNodeAddress } from './@types/nodes.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
+import { BehaviorSubject } from 'rxjs'
 
 import type {
   DecodedBolt12Invoice,
@@ -34,9 +33,7 @@ import type {
   ParsedBitcoinStringError,
   ParsedOnchainString
 } from './@types/payments.js'
-import { BehaviorSubject } from 'rxjs'
-import { db, getSettings } from './db.js'
-import type { Connection } from './@types/connections.js'
+import { getSettings } from './storage.js'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -161,26 +158,6 @@ export async function writeClipboardValue(text: string): Promise<boolean> {
   }
 }
 
-export const encryptWithAES = (text: string, passphrase: string) => {
-  return AES.encrypt(text, passphrase).toString()
-}
-
-export const decryptWithAES = (ciphertext: string, passphrase: string) => {
-  const bytes = AES.decrypt(ciphertext, passphrase)
-  const originalText = bytes.toString(encUtf8)
-  return originalText
-}
-
-export function getDataFromStorage(storageKey: string): string | null {
-  try {
-    if (typeof window === 'undefined') return null
-    return window.localStorage.getItem(storageKey)
-  } catch (error) {
-    logger.error('Could no get data from storage, access to local storage is blocked')
-    return null
-  }
-}
-
 // Svelte action to use when wanting to do something when there is a click outside of element
 export function clickOutside(element: HTMLElement, callbackFunction: () => void) {
   function onClick(event: MouseEvent) {
@@ -277,7 +254,7 @@ export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
 
 /** Tries to get exchange rates from Coingecko first, if that fails then try Coinbase */
 export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
-  const { fiatDenomination } = await getSettings()
+  const { fiatDenomination } = getSettings()
 
   try {
     const result = await fetch(`${API_URL}/exchange-rates?currency=${fiatDenomination}`).then(
@@ -316,47 +293,6 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
   if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
 
   return true
-}
-
-export function encryptAllData(pin: string) {
-  try {
-    ENCRYPTED_DATA_KEYS.forEach((key) => {
-      const data = window.localStorage.getItem(key)
-
-      if (data) {
-        const encrypted = encryptWithAES(data, pin)
-        window.localStorage.setItem(key, encrypted)
-      }
-    })
-  } catch (error) {
-    logger.error('Could not encrypt data, access to local storage is blocked')
-  }
-}
-
-export function parseStoredAuth(storedAuth: string, pin: string): Connection | null {
-  try {
-    const decryptedAuth = decryptWithAES(storedAuth, pin)
-    const auth = JSON.parse(decryptedAuth)
-    return auth
-  } catch (error) {
-    // could not decrypt
-    return null
-  }
-}
-
-export function resetApp() {
-  try {
-    ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key))
-  } catch (error) {
-    customNotifications$.next({
-      id: createRandomHex(),
-      type: 'error',
-      heading: get(translate)('app.errors.reset_error'),
-      message: get(translate)('app.errors.storage_access')
-    })
-  }
-
-  window.location.reload()
 }
 
 export function isProtectedRoute(route: string): boolean {

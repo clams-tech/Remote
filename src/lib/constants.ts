@@ -2,9 +2,15 @@ import bitcoin from './icons/bitcoin'
 import lightningIcon from './icons/lightning'
 import lightningOutlineIcon from './icons/lightning-outline'
 import settingsOutlineIcon from '$lib/icons/settings-outline'
-import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 import graphIcon from './icons/graph'
 import { translate } from './i18n/translations'
+
+import {
+  BitcoinDenomination,
+  FiatDenomination,
+  Language,
+  type Settings
+} from './@types/settings.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -43,23 +49,6 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 export const SUPPORTED_LOCALES = ['en-US', 'en-GB']
-export const SETTINGS_STORAGE_KEY = 'clams-app:settings'
-export const AUTH_STORAGE_KEY = 'clams-app:auth'
-export const PAYMENTS_STORAGE_KEY = 'clams-app:payments'
-export const FUNDS_STORAGE_KEY = 'clams-app:funds'
-export const INFO_STORAGE_KEY = 'clams-app:info'
-export const LISTEN_INVOICE_STORAGE_KEY = 'clams-app:listening'
-
-export const ENCRYPTED_DATA_KEYS = [
-  AUTH_STORAGE_KEY,
-  PAYMENTS_STORAGE_KEY,
-  FUNDS_STORAGE_KEY,
-  INFO_STORAGE_KEY
-]
-export const ALL_DATA_KEYS = ENCRYPTED_DATA_KEYS.concat(
-  SETTINGS_STORAGE_KEY,
-  LISTEN_INVOICE_STORAGE_KEY
-)
 
 export const DOCS_LINK = 'https://docs.clams.tech'
 export const DOCS_CONNECT_LINK = 'https://docs.clams.tech/connection'

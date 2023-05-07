@@ -7,10 +7,10 @@ import { initLn } from '$lib/backends'
 import { invoiceToPayment } from './backends/core-lightning/utils'
 import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types'
 import { translate } from './i18n/translations'
-
-import { LISTEN_INVOICE_STORAGE_KEY } from './constants'
-
-import { createRandomHex, formatDecodedOffer, getDataFromStorage, logger } from './utils'
+import { createRandomHex, formatDecodedOffer, logger } from './utils'
+import { db, getLastPaymentIndex } from './db.js'
+import { getAuth, storePayIndex } from './storage.js'
+import type { Auth } from './@types/auth.js'
 
 import {
   disconnect$,
@@ -19,23 +19,21 @@ import {
   customNotifications$,
   loading$
 } from './streams'
-import { db, getLastPaymentIndex } from './db.js'
-import type { Connection } from './@types/connections.js'
 
 class Lightning {
   public ln: LnAPI
 
   constructor() {}
 
-  public init(connection: Connection) {
-    this.ln = initLn({ backend: 'core_lightning', auth: connection })
+  public init(auth: Auth) {
+    this.ln = initLn({ backend: 'core_lightning', auth })
     return this.ln
   }
 
   public async initialiseData() {
     if (!this.ln) {
-      const [connection] = await db.connections.toArray()
-      this.init(connection)
+      const auth = getAuth()
+      this.init(auth)
     }
 
     // refresh all data on load (for now, ideally use sql plugin)
@@ -252,7 +250,7 @@ class Lightning {
         const reqId = createRandomHex(8)
 
         try {
-          localStorage.setItem(LISTEN_INVOICE_STORAGE_KEY, JSON.stringify({ payIndex, reqId }))
+          storePayIndex(JSON.stringify({ payIndex, reqId }))
         } catch (error) {
           throw new Error(
             'Could not save invoice index to local storage, so will not listen for all invoices'

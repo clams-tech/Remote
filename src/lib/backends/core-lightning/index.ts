@@ -2,7 +2,7 @@ import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import { formatMsat, now, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
-import type { Connection } from '$lib/@types/connections.js'
+import type { Connection } from '$lib/@types/auth.js'
 
 import {
   formatChannelsAPY,
