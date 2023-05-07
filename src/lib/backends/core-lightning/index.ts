@@ -1,8 +1,19 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import { formatMsat, now, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import {
+  formatDecodedOffer,
+  formatMsat,
+  now,
+  parseNodeAddress,
+  sortPaymentsMostRecent
+} from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
-import type { Connection } from '$lib/@types/auth.js'
+import type { Auth } from '$lib/@types/auth.js'
+import type { Node } from '$lib/@types/nodes.js'
+import type { Settings } from '$lib/@types/settings.js'
+import type { Payment } from '$lib/@types/payments.js'
+import type { Channel } from '$lib/@types/channels.js'
+import bolt12Decoder from 'bolt12-decoder'
 
 import {
   formatChannelsAPY,
@@ -47,16 +58,112 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types'
-import type { Settings } from '$lib/@types/settings.js'
-import type { Payment } from '$lib/@types/payments.js'
-import type { Channel } from '$lib/@types/channels.js'
+import type { Offer } from '$lib/@types/offers.js'
+import type { DecodedType } from 'bolt12-decoder/@types/types.js'
+
+type RpcCall = (method: string, params?: unknown) => Promise<unknown>
+
+class RPC {
+  public rpc: RpcCall
+
+  constructor(rpc: (method: string, params?: unknown) => Promise<unknown>) {
+    this.rpc = rpc
+  }
+}
+
+class NodeInfo extends RPC {
+  constructor(rpc: RpcCall) {
+    super(rpc)
+  }
+
+  async get(): Promise<Node> {
+    const result = await this.rpc('getinfo')
+    const { alias, id, version, color, network } = result as GetinfoResponse
+    return { alias, id, version, color, network }
+  }
+}
+
+class Channels extends RPC {
+  constructor(rpc: RpcCall) {
+    super(rpc)
+  }
+
+  async get(): Promise<Channel[]> {
+    // @TODO - Implement logic to get channels
+  }
+}
+
+class Offers extends RPC {
+  constructor(rpc: RpcCall) {
+    super(rpc)
+  }
+
+  async get(): Promise<Offer[]> {
+    const [offersResponse, invoiceRequestsResponse] = await Promise.all([
+      this.rpc('listoffers'),
+      this.rpc('listinvoicerequests')
+    ])
+
+    const { offers } = offersResponse as ListOffersResponse
+    const { invoicerequests } = invoiceRequestsResponse as ListInvoiceRequestsResponse
+
+    const formatted = [...offers, ...invoicerequests].map((offer) => {
+      const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
+      const { invreq_id } = offer as InvoiceRequestSummary
+      const decoded = bolt12Decoder(bolt12)
+      const formatted = formatDecodedOffer({ ...decoded, valid: true, offer_id })
+
+      return {
+        ...formatted,
+        active,
+        single_use,
+        used,
+        bolt12,
+        label,
+        id: offer_id || invreq_id,
+        type: (offer_id ? 'pay' : 'withdraw') as DecodedType
+      }
+    })
+
+    return formatted
+  }
+
+  async createPay(params: CreatePayOfferRequest['params']): Promise<CreatePayOfferResponse> {
+    const result = await this.rpc('offer', params)
+    return result as CreatePayOfferResponse
+  }
+
+  async createWithdraw(
+    params: CreateWithdrawOfferRequest['params']
+  ): Promise<CreateWithdrawOfferResponse> {
+    const result = await this.rpc('invoicerequest', params)
+    return result as CreateWithdrawOfferResponse
+  }
+
+  async disablePay(params: DisableOfferRequest['params']): Promise<OfferSummary> {
+    const result = await this.rpc('disableoffer', params)
+    return result as OfferSummary
+  }
+
+  async disableWithdraw(
+    params: DisableInvoiceRequestRequest['params']
+  ): Promise<InvoiceRequestSummary> {
+    const result = await this.rpc('disableinvoicerequest', params)
+    return result as InvoiceRequestSummary
+  }
+}
 
 class CoreLn {
   public connection: LnMessage
   public rune: string
+  public rpc: RpcCall
 
-  constructor(connection: Connection, settings: Settings, logger?: Logger) {
-    const { address, token, sessionSecret } = connection
+  public node: NodeInfo
+  public channels: Channels
+  public offers: Offers
+
+  constructor(auth: Auth, settings: Settings, logger?: Logger) {
+    const { address, token, sessionSecret } = auth
     const { wsProxy, directConnection } = settings
     const { publicKey, ip, port } = parseNodeAddress(address)
 
@@ -71,13 +178,21 @@ class CoreLn {
     })
 
     this.rune = token
+
+    this.rpc = (method: string, params: unknown): Promise<unknown> => {
+      return this.connection.commando({ method, params, rune: this.rune })
+    }
+
+    this.node = new NodeInfo(this.rpc)
+    this.channels = new Channels(this.rpc)
+    this.offers = new Offers(this.rpc)
   }
 
   setToken(token: string) {
     this.rune = token
   }
 
-  async connect() {
+  connect() {
     return this.connection.connect()
   }
 
@@ -85,10 +200,14 @@ class CoreLn {
     return this.connection.disconnect()
   }
 
-  async getInfo(): Promise<GetinfoResponse> {
-    const result = await this.connection.commando({ method: 'getinfo', rune: this.rune })
-    return result as GetinfoResponse
-  }
+  // @TODO - Implement the following
+  /** Connection status */
+  /** getNodeInfo */
+  /** getChannels */
+  /** getOffers */
+  /** getOutputs */
+  /** getPayments */
+  /** getPeers */
 
   async createInvoice(params: InvoiceRequest['params']): Promise<Payment> {
     const { label, amount_msat, description } = params
@@ -120,84 +239,6 @@ class CoreLn {
     }
 
     return payment
-  }
-
-  async createPayOffer(params: CreatePayOfferRequest['params']): Promise<CreatePayOfferResponse> {
-    const result = await this.connection.commando({
-      method: 'offer',
-      params,
-      rune: this.rune
-    })
-
-    return result as CreatePayOfferResponse
-  }
-
-  async createWithdrawOffer(
-    params: CreateWithdrawOfferRequest['params']
-  ): Promise<CreateWithdrawOfferResponse> {
-    const result = await this.connection.commando({
-      method: 'invoicerequest',
-      params,
-      rune: this.rune
-    })
-
-    return result as CreateWithdrawOfferResponse
-  }
-
-  async disableOffer(params: DisableOfferRequest['params']): Promise<OfferSummary> {
-    const result = await this.connection.commando({
-      method: 'disableoffer',
-      params,
-      rune: this.rune
-    })
-
-    return result as OfferSummary
-  }
-
-  async disableInvoiceRequest(
-    params: DisableInvoiceRequestRequest['params']
-  ): Promise<InvoiceRequestSummary> {
-    const result = await this.connection.commando({
-      method: 'disableinvoicerequest',
-      params,
-      rune: this.rune
-    })
-
-    return result as InvoiceRequestSummary
-  }
-
-  async waitForInvoicePayment(payment: Payment): Promise<Payment> {
-    const { id } = payment
-
-    const result = await this.connection.commando({
-      method: 'waitinvoice',
-      params: {
-        label: id
-      },
-      rune: this.rune
-    })
-
-    const { status, amount_received_msat, paid_at, payment_preimage } =
-      result as WaitInvoiceResponse
-
-    return {
-      ...payment,
-      status: status === 'paid' ? 'complete' : 'expired',
-      value: formatMsat(amount_received_msat || payment.value),
-      completedAt: paid_at as number,
-      preimage: payment_preimage
-    }
-  }
-
-  async waitAnyInvoice(lastPayIndex?: number, reqId?: string): Promise<WaitAnyInvoiceResponse> {
-    const response = await this.connection.commando({
-      method: 'waitanyinvoice',
-      params: { lastpay_index: lastPayIndex },
-      rune: this.rune,
-      reqId
-    })
-
-    return response as WaitAnyInvoiceResponse
   }
 
   async payInvoice(options: {
@@ -247,6 +288,40 @@ class CoreLn {
       invoice: invoice,
       nodeId: this.connection.remoteNodePublicKey
     }
+  }
+
+  async waitForInvoicePayment(payment: Payment): Promise<Payment> {
+    const { id } = payment
+
+    const result = await this.connection.commando({
+      method: 'waitinvoice',
+      params: {
+        label: id
+      },
+      rune: this.rune
+    })
+
+    const { status, amount_received_msat, paid_at, payment_preimage } =
+      result as WaitInvoiceResponse
+
+    return {
+      ...payment,
+      status: status === 'paid' ? 'complete' : 'expired',
+      value: formatMsat(amount_received_msat || payment.value),
+      completedAt: paid_at as number,
+      preimage: payment_preimage
+    }
+  }
+
+  async waitAnyInvoice(lastPayIndex?: number, reqId?: string): Promise<WaitAnyInvoiceResponse> {
+    const response = await this.connection.commando({
+      method: 'waitanyinvoice',
+      params: { lastpay_index: lastPayIndex },
+      rune: this.rune,
+      reqId
+    })
+
+    return response as WaitAnyInvoiceResponse
   }
 
   /**Fetch an invoice for a BOLT12 Offer */
@@ -356,7 +431,7 @@ class CoreLn {
     const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
     const sentPayments: Payment[] = await Promise.all(pays.map(payToPayment))
 
-    return sortPaymentsMostRecent(invoicePayments.concat(sentPayments))
+    return invoicePayments.concat(sentPayments)
   }
 
   async listInvoices(): Promise<ListinvoicesResponse> {
@@ -413,24 +488,6 @@ class CoreLn {
     const formatted = formatChannelsAPY(result.channels_apy)
 
     return formatted
-  }
-
-  async listOffers(): Promise<ListOffersResponse['offers']> {
-    const result = await this.connection.commando({
-      method: 'listoffers',
-      rune: this.rune
-    })
-
-    return (result as ListOffersResponse).offers
-  }
-
-  async listInvoiceRequests(): Promise<ListInvoiceRequestsResponse['invoicerequests']> {
-    const result = await this.connection.commando({
-      method: 'listinvoicerequests',
-      rune: this.rune
-    })
-
-    return (result as ListInvoiceRequestsResponse).invoicerequests
   }
 
   async listNodes(id: string): Promise<ListNodesResponse['nodes']> {

@@ -19,7 +19,6 @@ import type {
   DecodedBolt12InvoiceRequest,
   DecodedBolt12Offer,
   DecodeResponse,
-  ListfundsResponse,
   OfferCommon,
   OfferSummary
 } from './backends'
@@ -34,6 +33,8 @@ import type {
   ParsedOnchainString
 } from './@types/payments.js'
 import { getSettings } from './storage.js'
+import type { Output } from './@types/outputs.js'
+import type { Channel } from './@types/channels.js'
 
 // Makes a BehaviourSubject compatible with Svelte stores
 export class SvelteSubject<T> extends BehaviorSubject<T> {
@@ -227,21 +228,16 @@ export function formatDestination(destination: string, type: PaymentType): strin
 export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.userAgent) : null
 
 // limited to offchain funds for the moment
-export const calculateBalance = (funds: ListfundsResponse): string => {
-  const offChain = funds.channels.reduce((total, channel) => {
-    const { our_amount_msat } = channel
+export const calculateBalance = (channels: Channel[], outputs: Output[]): string => {
+  const offChain = channels.reduce((total, channel) => {
+    const { balanceLocal } = channel
 
-    if (!our_amount_msat) {
-      logger.warn(JSON.stringify({ msg: 'no our_amount_msat value', channel }))
-    }
-
-    return total.add(formatMsat(our_amount_msat))
+    return total.add(formatMsat(balanceLocal as string))
   }, Big('0'))
 
-  // const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+  const onChain = outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
 
-  // return offChain.add(onChain).toString()
-  return offChain.toString()
+  return offChain.add(onChain).toString()
 }
 
 export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>

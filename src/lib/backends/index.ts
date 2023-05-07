@@ -1,17 +1,15 @@
-import type { Auth } from '$lib/types'
+import type { Auth } from '$lib/@types/auth.js'
+import { getSettings } from '$lib/storage.js'
 import { logger } from '$lib/utils'
 import CoreLn from './core-lightning'
-export * from './core-lightning/types'
 
-export type LnAPI = CoreLn
-export type LnBackend = 'core_lightning'
-
-export function initLn(options: { backend: LnBackend; auth: Auth }): LnAPI {
+export function initLn(options: { backend: string; auth: Auth }) {
   const { backend, auth } = options
+  const settings = getSettings()
 
   switch (backend) {
     case 'core_lightning':
-      return new CoreLn(auth, logger)
+      return new CoreLn(auth, settings, logger)
     default:
       throw new Error(`${backend} is not a valid backend`)
   }
