@@ -1,11 +1,13 @@
 import Big from 'big.js'
 import type { Payment } from '$lib/@types/payments.js'
 import { formatMsat, now } from '$lib/utils.js'
+import { invoiceToPayment, payToPayment } from './utils.js'
+import type { Node } from '$lib/@types/nodes.js'
+
 import type {
   InvoiceRequest,
   InvoiceResponse,
   KeysendResponse,
-  ListInvoiceRequestsResponse,
   ListinvoicesResponse,
   ListpaysResponse,
   PayResponse,
@@ -13,9 +15,8 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
-import { invoiceToPayment, payToPayment } from './utils.js'
 
-const payments = (rpc: RpcCall, nodeId: string) => {
+const payments = (rpc: RpcCall, node: Node) => {
   /** Get all payments (pays, invoices) */
   const get = async (): Promise<Payment[]> => {
     const { invoices } = (await rpc({ method: 'listinvoices' })) as ListinvoicesResponse
@@ -52,7 +53,7 @@ const payments = (rpc: RpcCall, nodeId: string) => {
       description,
       hash: payment_hash,
       preimage: payment_secret,
-      nodeId
+      nodeId: node.id
     }
 
     return payment
@@ -103,7 +104,7 @@ const payments = (rpc: RpcCall, nodeId: string) => {
       fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
       invoice: invoice,
-      nodeId
+      nodeId: node.id
     }
   }
 
@@ -186,7 +187,7 @@ const payments = (rpc: RpcCall, nodeId: string) => {
       startedAt: created_at,
       fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
       status,
-      nodeId
+      nodeId: node.id
     }
   }
 

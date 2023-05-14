@@ -1,4 +1,5 @@
 import type { Channel } from '$lib/@types/channels.js'
+import type { Node } from '$lib/@types/nodes.js'
 import { formatMsat } from '$lib/utils.js'
 import type {
   BkprChannelsAPYResponse,
@@ -7,9 +8,10 @@ import type {
   RpcCall
 } from './types.js'
 
-const channels = (rpc: RpcCall, nodeId: string) => {
+const channels = (rpc: RpcCall, node: Node) => {
   /** Get all channels */
   const get = async (): Promise<Channel[]> => {
+    // @TODO - Need to check version as listpeers channel info is deprecated as of 23.11
     const { peers } = (await rpc({ method: 'listpeers' })) as ListPeersResponse
     const { channels_apy } = (await rpc({ method: 'bkpr-channelsapy' })) as BkprChannelsAPYResponse
     const { accounts } = (await rpc({ method: 'bkpr-listbalances' })) as BkprListBalancesResponse
@@ -38,15 +40,15 @@ const channels = (rpc: RpcCall, nodeId: string) => {
           balanceSendable: formatMsat(channel.spendable_msat),
           balanceReceivable: formatMsat(channel.receivable_msat),
           feeBase: formatMsat(channel.fee_base_msat.toString()),
-          routingFees: channelAPYMatch?.fees_out_msat.toString(),
-          routedOut: channelAPYMatch?.routed_out_msat,
-          routedIn: channelAPYMatch?.routed_in_msat,
+          routingFees: channelAPYMatch?.fees_out_msat.toString() || null,
+          routedOut: (channelAPYMatch?.routed_out_msat as string) || null,
+          routedIn: (channelAPYMatch?.routed_in_msat as string) || null,
           apy: channelAPYMatch?.apy_out ?? null,
           closeToAddress: channel.close_to_addr ?? null,
           closer: channel.closer ?? null,
           resolved: balanceMatch?.account_resolved ?? null,
           resolvedAtBlock: balanceMatch?.resolved_at_block ?? null,
-          nodeId
+          nodeId: node.id
         }
       })
     })

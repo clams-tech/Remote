@@ -1,7 +1,8 @@
+import type { Node } from '$lib/@types/nodes.js'
 import type { Output } from '$lib/@types/outputs.js'
 import type { ListfundsResponse, RpcCall } from './types.js'
 
-const outputs = (rpc: RpcCall, nodeId: string) => {
+const outputs = (rpc: RpcCall, node: Node) => {
   /** Get all unspent outputs */
   const get = async (): Promise<Output[]> => {
     const { outputs } = (await rpc({ method: 'listfunds' })) as ListfundsResponse
@@ -16,7 +17,7 @@ const outputs = (rpc: RpcCall, nodeId: string) => {
         status,
         reserved,
         blockHeight,
-        nodeId
+        nodeId: node.id
       })
     )
   }

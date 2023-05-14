@@ -7,8 +7,11 @@ import offers from './offers.js'
 import node from './node.js'
 import payments from './payments.js'
 import outputs from './outputs.js'
+import type { GetinfoResponse } from './types.js'
+import channels from './channels.js'
+import peers from './peers.js'
 
-const CoreLightning = (auth: Auth, settings: Settings, logger?: Logger) => {
+const CoreLightning = async (auth: Auth, settings: Settings, logger?: Logger) => {
   const { address, token, sessionSecret } = auth
   const { wsProxy, directConnection } = settings
   const { publicKey, ip, port } = parseNodeAddress(address)
@@ -25,7 +28,7 @@ const CoreLightning = (auth: Auth, settings: Settings, logger?: Logger) => {
 
   let rune = token
 
-  const setToken = (token: string) => {
+  const updateToken = (token: string) => {
     rune = token
   }
 
@@ -42,14 +45,21 @@ const CoreLightning = (auth: Auth, settings: Settings, logger?: Logger) => {
   const connect = () => connection.connect()
   const disconnect = () => connection.disconnect()
 
+  await connect()
+  const info = (await rpcCall({ method: 'getinfo' })) as GetinfoResponse
+
   return {
-    setToken,
+    updateToken,
     connect,
     disconnect,
-    offers: offers(rpcCall, publicKey),
+    connectionStatus$: connection.connectionStatus$,
+    info,
     node: node(rpcCall),
-    payments: payments(rpcCall, publicKey),
-    outputs: outputs(rpcCall, publicKey)
+    offers: offers(rpcCall, info),
+    payments: payments(rpcCall, info),
+    outputs: outputs(rpcCall, info),
+    channels: channels(rpcCall, info),
+    peers: peers(rpcCall, info)
   }
 }
 

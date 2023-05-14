@@ -22,8 +22,9 @@ import { formatDecodedOffer, formatMsat, now } from '$lib/utils.js'
 import type { DecodedType } from 'bolt12-decoder/@types/types.js'
 import type { Payment } from '$lib/@types/payments.js'
 import { invoiceStatusToPaymentStatus } from './utils.js'
+import type { Node } from '$lib/@types/nodes.js'
 
-const offers = (rpc: RpcCall, nodeId: string) => {
+const offers = (rpc: RpcCall, node: Node) => {
   /** Get all offers and invoice requests */
   const get = async (): Promise<Offer[]> => {
     const [offersResponse, invoiceRequestsResponse] = await Promise.all([
@@ -130,7 +131,7 @@ const offers = (rpc: RpcCall, nodeId: string) => {
       status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
       invoice: bolt12,
       payIndex: pay_index,
-      nodeId
+      nodeId: node.id
     }
   }
 

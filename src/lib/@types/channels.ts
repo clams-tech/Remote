@@ -40,9 +40,9 @@ export type Channel = {
   /** Fees earned on routed OUTBOUND (msat) */
   routingFees: string | null
   /** Amount msat routed out from this channel */
-  routedOut: string
+  routedOut: string | null
   /** Amount msat routed in from this channel */
-  routedIn: string
+  routedIn: string | null
   /** APY for fees earned on OUTBOUND routed payments */
   apy: string | null
   /** The bitcoin address we will close to */
