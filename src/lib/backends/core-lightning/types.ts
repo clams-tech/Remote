@@ -543,11 +543,11 @@ export type Output = {
   /**
    * the bitcoin address of the output
    */
-  address?: string
+  address: string
   /**
    * the amount of the output
    */
-  amount_msat: number
+  amount_msat: string
   /**
    * the index within *txid*
    */
@@ -566,6 +566,7 @@ export type Output = {
    */
   txid: string
   reserved: boolean
+  blockHeight?: number
 }
 
 export enum OutputStatus {
@@ -1032,3 +1033,8 @@ export type LNResponse =
   | ListPeersResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
+export type RpcCall = (options: {
+  method: string
+  params?: unknown
+  reqId?: string
+}) => Promise<unknown>

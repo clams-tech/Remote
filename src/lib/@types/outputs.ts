@@ -6,8 +6,8 @@ export type Output = {
   amount_msat: string
   scriptpubkey: string
   address: string
-  status: 'confirmed'
-  blockheight: number
+  status: OutputStatus
   reserved: boolean
   nodeId: string
+  blockheight?: number
 }

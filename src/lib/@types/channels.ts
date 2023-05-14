@@ -24,23 +24,25 @@ export type Channel = {
   fundingOutput: number | null
   /** id of node with which channel is opened */
   peerId: string
-  /** alias of node with which channel is opened */
-  peerAlias: string | null
   status: ChannelStatus
   /** msat */
-  balanceLocal: string | null
+  balanceLocal: string
   /** msat */
-  balanceRemote: string | null
+  balanceRemote: string
   /** msat */
-  balanceTotal: string | null
+  balanceTotal: string
   /** value spendable (msat) */
-  balanceSendable: string | null
+  balanceSendable: string
   /** value receivable (msat) */
-  balanceReceivable: string | null
+  balanceReceivable: string
   /** amount we charge to use the channel (msat) */
   feeBase: string | null
   /** Fees earned on routed OUTBOUND (msat) */
   routingFees: string | null
+  /** Amount msat routed out from this channel */
+  routedOut: string
+  /** Amount msat routed in from this channel */
+  routedIn: string
   /** APY for fees earned on OUTBOUND routed payments */
   apy: string | null
   /** The bitcoin address we will close to */
