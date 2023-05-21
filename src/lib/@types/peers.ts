@@ -3,4 +3,5 @@ export type Peer = {
   alias: string
   color: string
   connected: boolean
+  nodeId: string
 }

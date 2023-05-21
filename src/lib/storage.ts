@@ -37,24 +37,14 @@ function writeDataToStorage(storageKey: string, data: unknown) {
   }
 }
 
-export function getAuth(passphrase: string): Auth | null {
-  const json = getDataFromStorage(AUTH_STORAGE_KEY)
+export function getAuth(): string | null {
+  return getDataFromStorage(AUTH_STORAGE_KEY)
+}
 
-  if (!json) return null
-
-  try {
-    const parsed = JSON.parse(json)
-    return parsed as Auth
-  } catch (error) {
-    // encrypted, so try and decrypt
-    try {
-      const decrypted = decryptWithAES(json, passphrase)
-      return JSON.parse(decrypted) as Auth
-    } catch (error) {
-      logger.error('Error trying to decrypt and parse auth')
-      return null
-    }
-  }
+export function decryptAndParseAuth(text: string, passphrase: string): Auth {
+  const decrypted = decryptWithAES(text, passphrase)
+  const parsed = JSON.parse(decrypted)
+  return parsed as Auth
 }
 
 export function storeAuth(auth: Auth, passphrase?: string) {

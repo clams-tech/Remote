@@ -22,7 +22,7 @@ export class DB extends Dexie {
       offers: 'id, nodeId',
       outputs: 'txid, nodeId',
       payments: 'id, nodeId, offerId, value, fee, payIndex',
-      peers: 'id, alias'
+      peers: 'id, alias, nodeId'
     })
   }
 }

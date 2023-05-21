@@ -1,9 +1,8 @@
 import { browser } from '$app/environment'
 import { goto } from '$app/navigation'
-import type { Auth } from '$lib/@types/nodes.js'
-import { AUTH_STORAGE_KEY } from '$lib/constants'
-import { auth$ } from '$lib/streams'
-import { getDataFromStorage, isProtectedRoute } from '$lib/utils'
+import { getAuth } from '$lib/storage.js'
+import { passphrase$ } from '$lib/streams'
+import { isProtectedRoute } from '$lib/utils'
 import type { LayoutLoad } from './$types'
 
 export const ssr = false
@@ -21,17 +20,13 @@ export const load: LayoutLoad = async ({ url }) => {
 
   const { pathname } = url
   const protectedRoute = isProtectedRoute(pathname)
-  // @TODO switch to authenticated$ observable
-  const inMemoryAuth = auth$.getValue()
+  const auth = getAuth(passphrase$.getValue())
 
-  if (inMemoryAuth) {
+  if (auth) {
     // already have auth and not protected route, so redirect home
     !isProtectedRoute && goto('/')
     return
   }
-
-  // @TODO get auth from db
-  const storedAuth = getDataFromStorage(AUTH_STORAGE_KEY)
 
   if (storedAuth && !protectedRoute) {
     // redirect from welcome and connect -> home page if has connected before

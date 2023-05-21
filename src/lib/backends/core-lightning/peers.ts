@@ -15,7 +15,8 @@ const peers = (rpc: RpcCall, node: Node) => {
           id,
           alias,
           color,
-          connected
+          connected,
+          nodeId: node.id
         }
       })
     )

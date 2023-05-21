@@ -54,7 +54,9 @@ const channels = (rpc: RpcCall, node: Node) => {
     })
   }
 
-  return get
+  return {
+    get
+  }
 }
 
 export default channels
