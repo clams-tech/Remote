@@ -1,8 +1,5 @@
 import LnMessage from 'lnmessage'
-import type { Auth } from '$lib/@types/auth.js'
-import type { Settings } from '$lib/@types/settings.js'
-import { parseNodeAddress } from '$lib/utils.js'
-import type { Logger } from 'lnmessage/dist/types.js'
+import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
 import offers from './offers.js'
 import node from './node.js'
 import payments from './payments.js'
@@ -10,19 +7,26 @@ import outputs from './outputs.js'
 import type { GetinfoResponse } from './types.js'
 import channels from './channels.js'
 import peers from './peers.js'
+import type { CoreLnConnection } from '$lib/@types/connections.js'
+import type { Session } from '$lib/@types/session.js'
 
-const CoreLightning = async (auth: Auth, settings: Settings, logger?: Logger) => {
-  const { address, token, sessionSecret } = auth
-  const { wsProxy, directConnection } = settings
-  const { publicKey, ip, port } = parseNodeAddress(address)
+const CoreLightning = async (options: CoreLnConnection, session: Session, logger?: Logger) => {
+  const {
+    data: { publicKey, ip, port, connection, token },
+    id: connectionId
+  } = options
+  const { secret } = session
 
-  const connection = new LnMessage({
+  const socket = new LnMessage({
     remoteNodePublicKey: publicKey,
-    wsProxy: directConnection ? undefined : wsProxy,
-    wsProtocol: directConnection,
+    wsProxy: connection.type === 'proxy' ? connection.value : undefined,
+    wsProtocol:
+      connection.type === 'direct'
+        ? (connection.value as LnWebSocketOptions['wsProtocol'])
+        : undefined,
     ip,
     port: port || 9735,
-    privateKey: sessionSecret,
+    privateKey: secret,
     logger: logger
   })
 
@@ -40,19 +44,21 @@ const CoreLightning = async (auth: Auth, settings: Settings, logger?: Logger) =>
     method: string
     params?: unknown
     reqId?: string
-  }) => connection.commando({ method, params, rune, reqId })
+  }) => socket.commando({ method, params, rune, reqId })
 
-  const connect = () => connection.connect()
-  const disconnect = () => connection.disconnect()
+  const connect = () => socket.connect()
+  const disconnect = () => socket.disconnect()
 
   await connect()
-  const info = (await rpcCall({ method: 'getinfo' })) as GetinfoResponse
+
+  const { id, alias, color, version } = (await rpcCall({ method: 'getinfo' })) as GetinfoResponse
+  const info = { id, alias, color, version, connectionId }
 
   return {
     updateToken,
     connect,
     disconnect,
-    connectionStatus$: connection.connectionStatus$,
+    connectionStatus$: socket.connectionStatus$,
     info,
     node: node(rpcCall),
     offers: offers(rpcCall, info),

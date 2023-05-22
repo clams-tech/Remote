@@ -1,28 +1,31 @@
 import Dexie, { type Table } from 'dexie'
-import type { Node } from './@types/connections.js'
+import type { Node } from './@types/nodes.js'
+import type { Connection } from './@types/connections.js'
 import type { Offer } from './@types/offers.js'
 import type { Payment } from './@types/payments.js'
 import type { Channel } from './@types/channels.js'
-import type { Output } from './@types/outputs.js'
-import type { Peer } from './@types/peers.js'
+import type { Utxo } from './@types/utxos.js'
+import type { Transaction } from './@types/transactions.js'
 
 export class DB extends Dexie {
   channels!: Table<Channel>
+  connections!: Table<Connection>
   nodes!: Table<Node>
   offers!: Table<Offer>
-  outputs!: Table<Output>
   payments!: Table<Payment>
-  peers!: Table<Peer>
+  transactions!: Table<Transaction>
+  utxos!: Table<Utxo>
 
   constructor() {
     super('Clams')
     this.version(1).stores({
-      channels: 'id, nodeId, peerId',
-      nodes: 'id, alias',
+      channels: 'id, nodeId',
+      connections: 'id, type',
+      nodes: 'id, alias, connectionId',
       offers: 'id, nodeId',
-      outputs: 'txid, nodeId',
       payments: 'id, nodeId, offerId, value, fee, payIndex',
-      peers: 'id, alias, nodeId'
+      transactions: 'hash, nodeId',
+      utxos: 'txid, nodeId'
     })
   }
 }

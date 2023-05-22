@@ -19,13 +19,7 @@ export type Payment = {
   offerId?: string
 }
 
-export type PaymentType =
-  | 'keysend'
-  | 'bolt11'
-  | 'lightning_address'
-  | 'lnurl'
-  | 'onchain'
-  | 'bolt12'
+export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'bolt12'
 
 type PaymentDirection = 'receive' | 'send'
 

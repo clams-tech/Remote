@@ -1,6 +1,6 @@
 import type { Channel } from '$lib/@types/channels.js'
-import type { Node } from '$lib/@types/connections.js'
-import { formatMsat } from '$lib/utils.js'
+import type { Node } from '$lib/@types/nodes.js'
+import { convertVersionNumber, formatMsat } from '$lib/utils.js'
 import type {
   BkprChannelsAPYResponse,
   BkprListBalancesResponse,
@@ -12,6 +12,7 @@ const channels = (rpc: RpcCall, node: Node) => {
   /** Get all channels */
   const get = async (): Promise<Channel[]> => {
     // @TODO - Need to check version as listpeers channel info is deprecated as of 23.11
+    const versionNumber = convertVersionNumber(node.version)
     const { peers } = (await rpc({ method: 'listpeers' })) as ListPeersResponse
     const { channels_apy } = (await rpc({ method: 'bkpr-channelsapy' })) as BkprChannelsAPYResponse
     const { accounts } = (await rpc({ method: 'bkpr-listbalances' })) as BkprListBalancesResponse
@@ -27,8 +28,8 @@ const channels = (rpc: RpcCall, node: Node) => {
         return {
           opener: channel.opener,
           peerId: id,
-          fundingTransactionId: channel.funding_txid || null,
-          fundingOutput: channel.funding_outnum || null,
+          fundingTransactionId: channel.funding_txid,
+          fundingOutput: channel.funding_outnum,
           id: channel.channel_id || null,
           shortId: channel.short_channel_id || null,
           status: channel.state,
@@ -40,9 +41,9 @@ const channels = (rpc: RpcCall, node: Node) => {
           balanceSendable: formatMsat(channel.spendable_msat),
           balanceReceivable: formatMsat(channel.receivable_msat),
           feeBase: formatMsat(channel.fee_base_msat.toString()),
-          routingFees: channelAPYMatch?.fees_out_msat.toString() || null,
-          routedOut: (channelAPYMatch?.routed_out_msat as string) || null,
-          routedIn: (channelAPYMatch?.routed_in_msat as string) || null,
+          routingFees: channelAPYMatch?.fees_out_msat.toString() || '0',
+          routedOut: (channelAPYMatch?.routed_out_msat as string) || '0',
+          routedIn: (channelAPYMatch?.routed_in_msat as string) || '0',
           apy: channelAPYMatch?.apy_out ?? null,
           closeToAddress: channel.close_to_addr ?? null,
           closer: channel.closer ?? null,

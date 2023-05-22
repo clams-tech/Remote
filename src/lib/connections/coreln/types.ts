@@ -931,9 +931,9 @@ type PeerChannel = {
   fee_base_msat: number
   owner?: string
   short_channel_id?: string
-  channel_id?: string
-  funding_txid?: string
-  funding_outnum?: number
+  channel_id: string
+  funding_txid: string
+  funding_outnum: number
   initial_feerate?: string
   last_feerate?: string
   next_feerate?: string

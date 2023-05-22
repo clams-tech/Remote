@@ -1,6 +1,6 @@
-export type Connection = CoreLnConnection | XPubConnection | MultiSigConnection
+export type Connection = CoreLnConnection | LndConnection | XPubConnection | MultiSigConnection
 
-export type ConnectionType = 'lightning' | 'xpub' | 'multisig'
+export type ConnectionType = 'coreln' | 'lnd' | 'xpub' | 'multisig'
 
 export type ConnectionBase = {
   /** randomly generated id */
@@ -14,7 +14,6 @@ export type CoreLnConnection = ConnectionBase & {
   data: {
     /** the node public key */
     publicKey: string
-    version?: string
     ip: string
     port: number
     connection: {

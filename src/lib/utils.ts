@@ -8,3 +8,9 @@ export function formatMsat(val: string | number): string {
 export function nowSeconds() {
   return Math.round(Date.now() / 1000)
 }
+
+export function convertVersionNumber(version: string): number {
+  const [withoutDash] = version.split('-')
+  const withoutDots = withoutDash.replace('.', '')
+  return Number(withoutDots)
+}

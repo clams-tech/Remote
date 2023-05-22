@@ -19,9 +19,9 @@ export type Channel = {
   /** which side opened this channel */
   opener: 'local' | 'remote'
   /** funding transaction id */
-  fundingTransactionId: string | null
+  fundingTransactionId: string
   /** 0-based index of the output in the funding transaction */
-  fundingOutput: number | null
+  fundingOutput: number
   /** id of node with which channel is opened */
   peerId: string
   status: ChannelStatus
@@ -36,13 +36,13 @@ export type Channel = {
   /** value receivable (msat) */
   balanceReceivable: string
   /** amount we charge to use the channel (msat) */
-  feeBase: string | null
+  feeBase: string
   /** Fees earned on routed OUTBOUND (msat) */
-  routingFees: string | null
+  routingFees: string
   /** Amount msat routed out from this channel */
-  routedOut: string | null
+  routedOut: string
   /** Amount msat routed in from this channel */
-  routedIn: string | null
+  routedIn: string
   /** APY for fees earned on OUTBOUND routed payments */
   apy: string | null
   /** The bitcoin address we will close to */
