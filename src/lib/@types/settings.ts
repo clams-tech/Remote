@@ -1,5 +1,3 @@
-import type { LnWebSocketOptions } from 'lnmessage/dist/types'
-
 export type Settings = {
   language: Language
   fiatDenomination: FiatDenomination
@@ -11,9 +9,6 @@ export type Settings = {
   sendTimeoutSeconds: number
   notifications: boolean
   darkmode: boolean
-  encrypt: boolean
-  wsProxy: LnWebSocketOptions['wsProxy']
-  directConnection?: LnWebSocketOptions['wsProtocol']
 }
 
 // locale => Display language

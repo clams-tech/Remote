@@ -1,73 +1,16 @@
 <script lang="ts">
   import { beforeNavigate } from '$app/navigation'
-  import { browser } from '$app/environment'
-  import { auth$, lastPath$ } from '$lib/streams'
-  import { locale, loadTranslations } from '$lib/i18n/translations'
+  import { page } from '$app/stores'
+  import { translate } from '$lib/i18n/translations.js'
   import '../app.css'
-  import Notifications from '$lib/components/Notifications.svelte'
-  import { loadVConsole } from '$lib/utils'
-  import Menu from '$lib/components/Menu.svelte'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import lightning from '$lib/lightning'
-
-  let loading = true
-  let innerHeight = window.innerHeight
-  let innerWidth = window.innerWidth
-
-  beforeNavigate(({ from }) => {
-    if (from) {
-      lastPath$.next(from.url.pathname)
-    }
-  })
-
-  if (browser) {
-    initialise()
-
-    if (import.meta.env.MODE === 'staging') {
-      loadVConsole()
-    }
-  }
-
-  async function initialise() {
-    /** LOAD TRANSLATIONS */
-    const defaultLocale = 'en'
-    const initLocale = locale.get() || defaultLocale
-    await loadTranslations(initLocale)
-
-    // open the db
-
-    // check if we have decryption key and initialise data
-    $auth$ && lightning.initialiseData()
-
-    setTimeout(() => (loading = false), 2000)
-  }
 </script>
 
-<svelte:window bind:innerHeight bind:innerWidth />
+<svelte:head>
+  <title>{$translate(`app.titles.${$page.url.pathname}`)}</title>
+</svelte:head>
 
-<div
-  style="width: {innerWidth}px; height: {innerHeight}px;"
-  class="flex w-screen h-screen flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 neutral-50 relative overflow-hidden"
+<main
+  class="w-screen h-screen flex flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 bg-neutral-50 relative overflow-hidden"
 >
-  {#if loading}
-    <div class="w-full h-full flex items-center justify-center">
-      <div class="w-2/3 max-w-lg">
-        <ClamsLogo min={1} max={2.1} />
-      </div>
-    </div>
-  {:else}
-    <header class="flex px-2 py-2 fixed justify-end items-center top-0 w-full" />
-    <div class="absolute top-0 right-0 z-20">
-      <Menu />
-    </div>
-
-    <!-- CONTENT -->
-    <main
-      class="flex h-full w-full justify-center flex-col items-center bg-inherit transition-all overflow-hidden"
-    >
-      <slot />
-    </main>
-
-    <Notifications />
-  {/if}
-</div>
+  <slot />
+</main>

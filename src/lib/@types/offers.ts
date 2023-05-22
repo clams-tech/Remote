@@ -1,4 +1,4 @@
-import type { Bolt12Type } from '$lib/backends/index.js'
+import type { Bolt12Type } from '$lib/connections/coreln/types.js'
 import type { BitcoinDenomination, FiatDenomination } from './settings.js'
 
 export type Offer = {

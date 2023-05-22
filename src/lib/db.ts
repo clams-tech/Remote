@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Node } from './@types/nodes.js'
+import type { Node } from './@types/connections.js'
 import type { Offer } from './@types/offers.js'
 import type { Payment } from './@types/payments.js'
 import type { Channel } from './@types/channels.js'

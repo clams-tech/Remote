@@ -1,12 +1,12 @@
 import i18n from 'sveltekit-i18n'
 import parser from '@sveltekit-i18n/parser-default'
+import lang from './lang.json'
 import type { Config, Parser } from '@sveltekit-i18n/parser-default'
-import type { Bolt12Type } from '$lib/backends'
 
 export interface Payload extends Parser.PayloadDefault {
   paymentType?: string
   paymentAction?: 'create' | 'fulfill'
-  offerType?: Bolt12Type
+  offerType?: string
   direction?: string
   status?: string
   feeType?: string
@@ -16,6 +16,9 @@ export interface Payload extends Parser.PayloadDefault {
 }
 
 const config: Config<Payload> = {
+  translations: {
+    en: { lang }
+  },
   loaders: [
     {
       locale: 'en',
