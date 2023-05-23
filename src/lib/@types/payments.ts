@@ -1,3 +1,5 @@
+import type { DecodedBolt12Invoice, DecodedBolt12Offer } from '$lib/connections/coreln/types.js'
+
 export type Payment = {
   id: string
   status: PaymentStatus
@@ -16,7 +18,13 @@ export type Payment = {
   preimage?: string
   destination?: string
   payIndex?: number
-  offerId?: string
+  offer?: {
+    id?: string
+    issuer: DecodedBolt12Offer['offer_issuer']
+    payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+    payerId?: DecodedBolt12Invoice['invreq_payer_id']
+    description?: DecodedBolt12Offer['offer_description']
+  }
 }
 
 export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'bolt12'

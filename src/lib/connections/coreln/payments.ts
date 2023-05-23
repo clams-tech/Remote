@@ -21,8 +21,10 @@ const payments = (rpc: RpcCall, node: Node) => {
   const get = async (): Promise<Payment[]> => {
     const { invoices } = (await rpc({ method: 'listinvoices' })) as ListinvoicesResponse
     const { pays } = (await await rpc({ method: 'listpays' })) as ListpaysResponse
-    const invoicePayments: Payment[] = await Promise.all(invoices.map(invoiceToPayment))
-    const sentPayments: Payment[] = await Promise.all(pays.map(payToPayment))
+    const invoicePayments: Payment[] = await Promise.all(
+      invoices.map((invoice) => invoiceToPayment(invoice, node))
+    )
+    const sentPayments: Payment[] = await Promise.all(pays.map((pay) => payToPayment(pay, node)))
 
     return invoicePayments.concat(sentPayments)
   }

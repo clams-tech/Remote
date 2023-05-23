@@ -1,10 +1,10 @@
-import type { Node } from '$lib/@types/connections.js'
-import type { Output } from '$lib/@types/utxos.js'
+import type { Node } from '$lib/@types/nodes.js'
+import type { Utxo } from '$lib/@types/utxos.js'
 import type { ListfundsResponse, RpcCall } from './types.js'
 
 const outputs = (rpc: RpcCall, node: Node) => {
   /** Get all unspent outputs */
-  const get = async (): Promise<Output[]> => {
+  const get = async (): Promise<Utxo[]> => {
     const { outputs } = (await rpc({ method: 'listfunds' })) as ListfundsResponse
 
     return outputs.map(

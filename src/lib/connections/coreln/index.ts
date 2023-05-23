@@ -6,7 +6,7 @@ import payments from './payments.js'
 import outputs from './outputs.js'
 import type { GetinfoResponse } from './types.js'
 import channels from './channels.js'
-import peers from './peers.js'
+import peers from './transactions.js'
 import type { CoreLnConnection } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 
@@ -15,6 +15,7 @@ const CoreLightning = async (options: CoreLnConnection, session: Session, logger
     data: { publicKey, ip, port, connection, token },
     id: connectionId
   } = options
+
   const { secret } = session
 
   const socket = new LnMessage({

@@ -1010,6 +1010,46 @@ export type ListPeersResponse = {
   peers: Peer[]
 }
 
+type InputOutputType =
+  | 'theirs'
+  | 'deposit'
+  | 'withdraw'
+  | 'channel_funding'
+  | 'channel_mutual_close'
+  | 'channel_unilateral_close'
+  | 'channel_sweep'
+  | 'channel_htlc_success'
+  | 'channel_htlc_timeout'
+  | 'channel_penalty'
+  | 'channel_unilateral_cheat'
+
+type Transaction = {
+  hash: string
+  rawtx: string
+  blockheight: number
+  txindex: number
+  locktime: number
+  version: number
+  inputs: {
+    txid: string
+    index: number
+    sequence: number
+    type?: InputOutputType
+    channel?: string
+  }[]
+  outputs: {
+    index: number
+    amount_msat: string
+    scriptPubKey: string
+    type?: InputOutputType
+    channel?: string
+  }[]
+}
+
+export type ListTransactionsResponse = {
+  transactions: Transaction[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1031,6 +1071,7 @@ export type LNResponse =
   | CreateWithdrawOfferResponse
   | ListNodesResponse
   | ListPeersResponse
+  | ListTransactionsResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 export type RpcCall = (options: {

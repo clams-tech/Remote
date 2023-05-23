@@ -5,8 +5,6 @@ export type Transaction = {
   txindex: number
   locktime: number
   version: number
-  /** Sats per vbyte */
-  fee: number
   rbfEnabled: boolean
   inputs: Array<{
     txid: string

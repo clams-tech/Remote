@@ -1,5 +1,5 @@
 import Big from 'big.js'
-import type { Payment } from '$lib/types'
+import type { Payment } from '$lib/@types/payments.js'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
 
 import type {
@@ -10,6 +10,7 @@ import type {
   IncomeEvent,
   DecodedBolt12Invoice
 } from './types'
+import type { Node } from '$lib/@types/nodes.js'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
   switch (status) {
@@ -22,7 +23,7 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
   }
 }
 
-export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
+export async function invoiceToPayment(invoice: Invoice, node: Node): Promise<Payment> {
   const {
     bolt11,
     bolt12,
@@ -39,7 +40,7 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
     local_offer_id
   } = invoice
 
-  let timestamp: number | null = new Date().getTime() / 1000
+  let timestamp: number = new Date().getTime() / 1000
 
   let offer: Payment['offer']
 
@@ -65,8 +66,8 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
     offer = {
       id: local_offer_id,
       issuer: offer_issuer,
-      payerNote: invreq_payer_note,
-      description: offer_description
+      description: offer_description,
+      payerNote: invreq_payer_note
     }
   }
 
@@ -79,18 +80,19 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
     preimage: payment_preimage,
     value: formatMsat(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
-    completedAt: paid_at ? new Date(paid_at * 1000).toISOString() : null,
-    expiresAt: new Date(expires_at * 1000).toISOString(),
+    completedAt: paid_at ? paid_at : null,
+    expiresAt: expires_at,
     description,
     destination: undefined,
     fee: null,
-    startedAt: new Date(timestamp * 1000).toISOString(),
+    startedAt: timestamp,
     payIndex: pay_index,
-    offer
+    offer,
+    nodeId: node.id
   }
 }
 
-export async function payToPayment(pay: Pay): Promise<Payment> {
+export async function payToPayment(pay: Pay, node: Node): Promise<Payment> {
   const {
     bolt11,
     bolt12,
@@ -104,7 +106,7 @@ export async function payToPayment(pay: Pay): Promise<Payment> {
     amount_sent_msat
   } = pay
 
-  const timestamp = new Date(created_at * 1000).toISOString()
+  const timestamp = created_at
 
   let description: string | undefined
   let offer: Payment['offer']
@@ -151,7 +153,8 @@ export async function payToPayment(pay: Pay): Promise<Payment> {
     expiresAt: null,
     completedAt: timestamp,
     description,
-    offer
+    offer,
+    nodeId: node.id
   }
 }
 
