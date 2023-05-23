@@ -1050,6 +1050,10 @@ export type ListTransactionsResponse = {
   transactions: Transaction[]
 }
 
+export type NewAddrResponse = {
+  bech32: string
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1072,6 +1076,7 @@ export type LNResponse =
   | ListNodesResponse
   | ListPeersResponse
   | ListTransactionsResponse
+  | NewAddrResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 export type RpcCall = (options: {

@@ -1,8 +1,8 @@
 import type { Transaction } from '$lib/@types/transactions.js'
 import type { Node } from '$lib/@types/nodes.js'
-import type { ListTransactionsResponse, RpcCall } from './types.js'
+import type { ListTransactionsResponse, NewAddrResponse, RpcCall } from './types.js'
 
-const peers = (rpc: RpcCall, node: Node) => {
+const transactions = (rpc: RpcCall, node: Node) => {
   const get = async (): Promise<Transaction[]> => {
     const { transactions } = (await rpc({ method: 'listtransactions' })) as ListTransactionsResponse
 
@@ -26,9 +26,21 @@ const peers = (rpc: RpcCall, node: Node) => {
     )
   }
 
+  const receive = async (): Promise<string> => {
+    const { bech32 } = (await rpc({ method: 'newaddr' })) as NewAddrResponse
+    return bech32
+  }
+
+  // @TODO
+  // const send = async (): Promise<string> => {
+  //   const { bech32 } = (await rpc({ method: 'newaddr' })) as NewAddrResponse
+  //   return bech32
+  // }
+
   return {
-    get
+    get,
+    receive
   }
 }
 
-export default peers
+export default transactions

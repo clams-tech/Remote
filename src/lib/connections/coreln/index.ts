@@ -1,4 +1,3 @@
-import LnMessage from 'lnmessage'
 import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
 import offers from './offers.js'
 import node from './node.js'
@@ -6,7 +5,7 @@ import payments from './payments.js'
 import outputs from './outputs.js'
 import type { GetinfoResponse } from './types.js'
 import channels from './channels.js'
-import peers from './transactions.js'
+import transactions from './transactions.js'
 import type { CoreLnConnection } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 
@@ -17,6 +16,8 @@ const CoreLightning = async (options: CoreLnConnection, session: Session, logger
   } = options
 
   const { secret } = session
+
+  const { default: LnMessage } = await import('lnmessage')
 
   const socket = new LnMessage({
     remoteNodePublicKey: publicKey,
@@ -66,7 +67,7 @@ const CoreLightning = async (options: CoreLnConnection, session: Session, logger
     payments: payments(rpcCall, info),
     outputs: outputs(rpcCall, info),
     channels: channels(rpcCall, info),
-    peers: peers(rpcCall, info)
+    transactions: transactions(rpcCall, info)
   }
 }
 
