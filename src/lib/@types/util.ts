@@ -4,3 +4,9 @@ export type Notification = {
   heading: string
   message: string
 }
+
+export type Logger = {
+  info: (msg: string) => void
+  warn: (msg: string) => void
+  error: (msg: string) => void
+}

@@ -1,73 +1,95 @@
-import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
-import offers from './offers.js'
-import node from './node.js'
-import payments from './payments.js'
-import outputs from './outputs.js'
+import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
+import LnMessage from 'lnmessage'
+import Offers from './offers.js'
+import Node from './node.js'
+import Payments from './payments.js'
+import Utxos from './utxos.js'
+import Channels from './channels.js'
+import Transactions from './transactions.js'
 import type { GetinfoResponse } from './types.js'
-import channels from './channels.js'
-import transactions from './transactions.js'
-import type { CoreLnConnection } from '$lib/@types/connections.js'
+import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
+import type {
+  ChannelsInterface,
+  ConnectionInterface,
+  Info,
+  NodeInterface,
+  OffersInterface,
+  PaymentsInterface,
+  RpcCall,
+  TransactionsInterface,
+  UtxosInterface
+} from '../interfaces.js'
 import type { Session } from '$lib/@types/session.js'
+import type { Logger } from '$lib/@types/util.js'
 
-const CoreLightning = async (options: CoreLnConnection, session: Session, logger?: Logger) => {
-  const {
-    data: { publicKey, ip, port, connection, token },
-    id: connectionId
-  } = options
+class CoreLightning implements ConnectionInterface {
+  info: Info
+  rune: string
+  rpc: RpcCall
+  connect: () => Promise<Info | null>
+  disconnect: () => void
+  node: NodeInterface
+  offers: OffersInterface
+  payments: PaymentsInterface
+  utxos: UtxosInterface
+  channels: ChannelsInterface
+  transactions: TransactionsInterface
 
-  const { secret } = session
+  constructor(options: CoreLnConnectionInfo, session: Session, logger?: Logger) {
+    const {
+      data: { publicKey, ip, port, connection, token },
+      id: connectionId
+    } = options as CoreLnConnectionInfo
 
-  const { default: LnMessage } = await import('lnmessage')
+    const { secret } = session
 
-  const socket = new LnMessage({
-    remoteNodePublicKey: publicKey,
-    wsProxy: connection.type === 'proxy' ? connection.value : undefined,
-    wsProtocol:
-      connection.type === 'direct'
-        ? (connection.value as LnWebSocketOptions['wsProtocol'])
-        : undefined,
-    ip,
-    port: port || 9735,
-    privateKey: secret,
-    logger: logger
-  })
+    const socket = new LnMessage({
+      remoteNodePublicKey: publicKey,
+      wsProxy: connection.type === 'proxy' ? connection.value : undefined,
+      wsProtocol:
+        connection.type === 'direct'
+          ? (connection.value as LnWebSocketOptions['wsProtocol'])
+          : undefined,
+      ip,
+      port: port || 9735,
+      privateKey: secret,
+      logger: logger
+    })
 
-  let rune = token
+    this.rune = token
 
-  const updateToken = (token: string) => {
-    rune = token
+    this.rpc = ({ method, params, reqId }: { method: string; params?: unknown; reqId?: string }) =>
+      socket.commando({ method, params, rune: this.rune, reqId })
+
+    this.connect = async () => {
+      const connected = await socket.connect()
+
+      if (connected) {
+        const { id, alias, color, version } = (await this.rpc({
+          method: 'getinfo'
+        })) as GetinfoResponse
+
+        this.info = { id, alias, color, version, connectionId }
+
+        return this.info
+      } else {
+        return null
+      }
+    }
+
+    this.disconnect = () => socket.disconnect()
+
+    this.node = new Node(this)
+    this.offers = new Offers(this)
+    this.payments = new Payments(this)
+    this.utxos = new Utxos(this)
+    this.channels = new Channels(this)
+    this.transactions = new Transactions(this)
   }
 
-  const rpcCall = ({
-    method,
-    params,
-    reqId
-  }: {
-    method: string
-    params?: unknown
-    reqId?: string
-  }) => socket.commando({ method, params, rune, reqId })
-
-  const connect = () => socket.connect()
-  const disconnect = () => socket.disconnect()
-
-  await connect()
-
-  const { id, alias, color, version } = (await rpcCall({ method: 'getinfo' })) as GetinfoResponse
-  const info = { id, alias, color, version, connectionId }
-
-  return {
-    updateToken,
-    connect,
-    disconnect,
-    connectionStatus$: socket.connectionStatus$,
-    info,
-    node: node(rpcCall),
-    offers: offers(rpcCall, info),
-    payments: payments(rpcCall, info),
-    outputs: outputs(rpcCall, info),
-    channels: channels(rpcCall, info),
-    transactions: transactions(rpcCall, info)
+  updateToken(token: string): void {
+    this.rune = token
+    return
   }
 }
 

@@ -31,7 +31,6 @@ const transactions = (rpc: RpcCall, node: Node) => {
     return bech32
   }
 
-  // @TODO
   // const send = async (): Promise<string> => {
   //   const { bech32 } = (await rpc({ method: 'newaddr' })) as NewAddrResponse
   //   return bech32
@@ -40,6 +39,7 @@ const transactions = (rpc: RpcCall, node: Node) => {
   return {
     get,
     receive
+    // send
   }
 }
 

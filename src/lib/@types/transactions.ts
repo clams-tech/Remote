@@ -18,3 +18,16 @@ export type Transaction = {
   /** the node this onchain tx is associated with */
   nodeId?: string
 }
+
+export type SendTransactionOptions = {
+  /** amount to send msats */
+  amount: string
+  /** the address to send to */
+  address: string
+  /** the fee rate in sats/vbyte */
+  feeRate?: number
+  /** select which utxo(s) to use for the transaction
+   * format is `<txid>:<vout>`
+   */
+  utxos?: string[]
+}

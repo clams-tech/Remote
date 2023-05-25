@@ -48,7 +48,7 @@
     "@noble/hashes": "^1.2.0",
     "big.js": "^6.2.1",
     "bitcoin-address-validation": "^2.2.1",
-    "bolt12-decoder": "^0.0.5",
+    "bolt12-decoder": "^0.0.6",
     "chart.js": "^4.2.1",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.28.0",

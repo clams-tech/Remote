@@ -1,12 +1,14 @@
-import type { Offer } from '$lib/@types/offers.js'
+import type { CreatePayOfferOptions, Offer } from '$lib/@types/offers.js'
+import { bolt12ToOffer, formatMsat, nowSeconds } from '$lib/utils.js'
+import type { Payment } from '$lib/@types/payments.js'
+import { invoiceStatusToPaymentStatus } from './utils.js'
+import type { Node } from '$lib/@types/nodes.js'
+import type { OffersInterface } from '$lib/@types/connections.js'
+import { BitcoinDenomination } from '$lib/@types/settings.js'
+
 import type {
-  CreatePayOfferRequest,
   CreatePayOfferResponse,
-  CreateWithdrawOfferRequest,
   CreateWithdrawOfferResponse,
-  DisableInvoiceRequestRequest,
-  DisableOfferRequest,
-  FetchInvoiceRequest,
   FetchInvoiceResponse,
   InvoiceRequestSummary,
   InvoiceStatus,
@@ -14,17 +16,10 @@ import type {
   ListOffersResponse,
   OfferSummary,
   RpcCall,
-  SendInvoiceRequest,
   SendInvoiceResponse
 } from './types.js'
-import bolt12Decoder from 'bolt12-decoder'
-import { formatDecodedOffer, formatMsat, now } from '$lib/utils.js'
-import type { DecodedType } from 'bolt12-decoder/@types/types.js'
-import type { Payment } from '$lib/@types/payments.js'
-import { invoiceStatusToPaymentStatus } from './utils.js'
-import type { Node } from '$lib/@types/connections.js'
 
-const offers = (rpc: RpcCall, node: Node) => {
+const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
   /** Get all offers and invoice requests */
   const get = async (): Promise<Offer[]> => {
     const [offersResponse, invoiceRequestsResponse] = await Promise.all([
@@ -35,38 +30,64 @@ const offers = (rpc: RpcCall, node: Node) => {
     const { offers } = offersResponse as ListOffersResponse
     const { invoicerequests } = invoiceRequestsResponse as ListInvoiceRequestsResponse
 
-    const formatted = [...offers, ...invoicerequests].map((offer) => {
+    const formatted = [...offers, ...invoicerequests].map(async (offer) => {
       const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
       const { invreq_id } = offer as InvoiceRequestSummary
-      const decoded = bolt12Decoder(bolt12)
-      const formatted = formatDecodedOffer({ ...decoded, valid: true, offer_id })
+      const formattedOffer = await bolt12ToOffer(bolt12, offer_id || invreq_id)
 
       return {
-        ...formatted,
+        ...formattedOffer,
         active,
         single_use,
         used,
         bolt12,
-        label,
-        id: offer_id || invreq_id,
-        type: (offer_id ? 'pay' : 'withdraw') as DecodedType
+        label
       }
     })
 
-    return formatted
+    return Promise.all(formatted)
   }
 
   /** Create a pay type offer */
-  const createPay = async (
-    params: CreatePayOfferRequest['params']
-  ): Promise<CreatePayOfferResponse> => {
-    const result = await rpc({ method: 'offer', params })
-    return result as CreatePayOfferResponse
+  const createPay = async (options: CreatePayOfferOptions): Promise<Offer> => {
+    const { amount, description, issuer, label, quantityMax, expiry, singleUse } = options
+
+    const result = await rpc({
+      method: 'offer',
+      params: {
+        amount,
+        description,
+        issuer,
+        label,
+        quantity_max: quantityMax,
+        absolute_expiry: expiry,
+        single_use: singleUse
+      }
+    })
+
+    const { offer_id, bolt12, used, single_use, active } = result as CreatePayOfferResponse
+
+    return {
+      id: offer_id,
+      bolt12,
+      type: 'pay',
+      denomination: BitcoinDenomination.msats,
+      amount,
+      description,
+      nodeId: node.id,
+      used,
+      singleUse: single_use,
+      active,
+      label,
+      expiry,
+      issuer,
+      quantityMax
+    }
   }
 
   /** Disable a pay type offer */
-  const disablePay = async (params: DisableOfferRequest['params']): Promise<OfferSummary> => {
-    const result = await rpc({ method: 'disableoffer', params })
+  const disablePay = async (offerId: string): Promise<OfferSummary> => {
+    const result = await rpc({ method: 'disableoffer', params: { offer_id: offerId } })
     return result as OfferSummary
   }
 
@@ -98,7 +119,7 @@ const offers = (rpc: RpcCall, node: Node) => {
   /** Create an invoice for a BOLT12 Offer and send it to be paid */
   const sendInvoice = async (params: SendInvoiceRequest['params']): Promise<Payment> => {
     const { offer, label, amount_msat, timeout, quantity } = params
-    const createdAt = now()
+    const createdAt = nowSeconds()
 
     const orderedParams = amount_msat
       ? [offer, label, amount_msat, timeout, quantity]
@@ -124,7 +145,7 @@ const offers = (rpc: RpcCall, node: Node) => {
       type: 'bolt12',
       direction: 'receive',
       value: formatMsat((amount_received_msat || amount_msat) as string),
-      completedAt: paid_at ? paid_at : now(),
+      completedAt: paid_at ? paid_at : nowSeconds(),
       expiresAt: expires_at,
       startedAt: createdAt,
       fee: null,

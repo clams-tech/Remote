@@ -27,6 +27,41 @@ export type Payment = {
   }
 }
 
+export type SendPaymentOptions = {
+  id: string
+  invoice: string
+  amount?: string
+  maxFeePercent?: string
+  retryFor?: number
+  maxDelay?: string
+}
+
+export type PayKeysendOptions = {
+  id: string
+  destination: string
+  amount: string
+  maxFeePercent?: string
+  retryFor?: number
+  maxDelay?: string
+}
+
+export type CreateInvoiceOptions = {
+  amount: string | 'any'
+  id: string
+  description: string
+  expiry?: number
+}
+
+export type PayInvoiceOptions = {
+  invoice: string
+  id: string
+  amount?: string
+  /** required if the invoice contains a description hash
+   * to validate they match
+   */
+  description?: unknown
+}
+
 export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'bolt12'
 
 type PaymentDirection = 'receive' | 'send'

@@ -23,7 +23,7 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
   }
 }
 
-export async function invoiceToPayment(invoice: Invoice, node: Node): Promise<Payment> {
+export async function invoiceToPayment(invoice: Invoice, nodeId: string): Promise<Payment> {
   const {
     bolt11,
     bolt12,
@@ -88,11 +88,11 @@ export async function invoiceToPayment(invoice: Invoice, node: Node): Promise<Pa
     startedAt: timestamp,
     payIndex: pay_index,
     offer,
-    nodeId: node.id
+    nodeId
   }
 }
 
-export async function payToPayment(pay: Pay, node: Node): Promise<Payment> {
+export async function payToPayment(pay: Pay, nodeId: string): Promise<Payment> {
   const {
     bolt11,
     bolt12,
@@ -154,7 +154,7 @@ export async function payToPayment(pay: Pay, node: Node): Promise<Payment> {
     completedAt: timestamp,
     description,
     offer,
-    nodeId: node.id
+    nodeId
   }
 }
 

@@ -1,16 +1,25 @@
-export type Connection = CoreLnConnection | LndConnection | XPubConnection | MultiSigConnection
+import type { BehaviorSubject } from 'rxjs'
+import type { CreatePayOfferOptions, Offer } from './offers.js'
+import type { Session } from './session.js'
+import type { Logger } from './util.js'
 
-export type ConnectionType = 'coreln' | 'lnd' | 'xpub' | 'multisig'
+export type ConnectionInfo =
+  | CoreLnConnectionInfo
+  | LndConnectionInfo
+  | XPubConnectionInfo
+  | MultiSigConnectionInfo
 
-export type ConnectionBase = {
+export type ConnectionInfoType = 'coreln' | 'lnd' | 'xpub' | 'multisig'
+
+export type ConnectionInfoBase = {
   /** randomly generated id */
   id: string
-  type: ConnectionType
+  type: ConnectionInfoType
   /** user input label */
   label: string
 }
 
-export type CoreLnConnection = ConnectionBase & {
+export type CoreLnConnectionInfo = ConnectionInfoBase & {
   data: {
     /** the node public key */
     publicKey: string
@@ -28,9 +37,9 @@ export type CoreLnConnection = ConnectionBase & {
   }
 }
 
-export type LndConnection = ConnectionBase
+export type LndConnectionInfo = ConnectionInfoBase
 
-export type XPubConnection = ConnectionBase & {
+export type XPubConnectionInfo = ConnectionInfoBase & {
   data: {
     xpub: string
     /** the derivation path to use to derive public keys */
@@ -38,9 +47,9 @@ export type XPubConnection = ConnectionBase & {
   }
 }
 
-export type MultiSigConnection = ConnectionBase & {
+export type MultiSigConnectionInfo = ConnectionInfoBase & {
   data: {
     quorum: `${number}of${number}`
-    xpubs: Array<XPubConnection['data']>
+    xpubs: Array<XPubConnectionInfo['data']>
   }
 }

@@ -1,51 +1,68 @@
 import Big from 'big.js'
-import type { Payment } from '$lib/@types/payments.js'
-import { formatMsat, nowSeconds } from '$lib/utils.js'
+import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
 import { invoiceToPayment, payToPayment } from './utils.js'
-import type { Node } from '$lib/@types/nodes.js'
+import type { ConnectionInterface, PaymentsInterface } from '../interfaces.js'
 
 import type {
-  InvoiceRequest,
+  CreateInvoiceOptions,
+  PayInvoiceOptions,
+  PayKeysendOptions,
+  Payment
+} from '$lib/@types/payments.js'
+
+import type {
   InvoiceResponse,
   KeysendResponse,
   ListinvoicesResponse,
   ListpaysResponse,
   PayResponse,
-  RpcCall,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
 
-const payments = (rpc: RpcCall, node: Node) => {
-  /** Get all payments (pays, invoices) */
-  const get = async (): Promise<Payment[]> => {
-    const { invoices } = (await rpc({ method: 'listinvoices' })) as ListinvoicesResponse
-    const { pays } = (await await rpc({ method: 'listpays' })) as ListpaysResponse
+class Payments implements PaymentsInterface {
+  connection: ConnectionInterface
+
+  constructor(connection: ConnectionInterface) {
+    this.connection = connection
+  }
+
+  async get(): Promise<Payment[]> {
+    const { invoices } = (await this.connection.rpc({
+      method: 'listinvoices'
+    })) as ListinvoicesResponse
+    const { pays } = (await await this.connection.rpc({ method: 'listpays' })) as ListpaysResponse
     const invoicePayments: Payment[] = await Promise.all(
-      invoices.map((invoice) => invoiceToPayment(invoice, node))
+      invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.id))
     )
-    const sentPayments: Payment[] = await Promise.all(pays.map((pay) => payToPayment(pay, node)))
+    const sentPayments: Payment[] = await Promise.all(
+      pays.map((pay) => payToPayment(pay, this.connection.info.id))
+    )
 
     return invoicePayments.concat(sentPayments)
   }
 
-  /** Create a BOLT11 invoice */
-  const createInvoice = async (params: InvoiceRequest['params']): Promise<Payment> => {
-    const { label, amount_msat, description } = params
+  async createInvoice(options: CreateInvoiceOptions): Promise<Payment> {
+    const { id, amount, description, expiry } = options
     const startedAt = nowSeconds()
 
-    const result = await rpc({
+    const result = await this.connection.rpc({
       method: 'invoice',
-      params
+      params: {
+        label: id,
+        amount_msat: amount,
+        description,
+        expiry
+      }
     })
 
     const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
 
     const payment: Payment = {
-      id: label,
+      id,
       status: 'pending',
       direction: 'receive',
-      value: amount_msat,
+      value: amount,
       fee: null,
       type: 'bolt11',
       startedAt,
@@ -55,29 +72,21 @@ const payments = (rpc: RpcCall, node: Node) => {
       description,
       hash: payment_hash,
       preimage: payment_secret,
-      nodeId: node.id
+      nodeId: this.connection.info.id
     }
 
     return payment
   }
 
-  /** Pay a BOLT11 invoice */
-  const payInvoice = async (options: {
-    /**Can be bolt11 or bolt12 */
-    invoice: string
-    type: 'bolt11' | 'bolt12'
-    id: string
-    amount_msat?: string
-    description?: unknown
-  }): Promise<Payment> => {
-    const { invoice, type, id, amount_msat: send_msat, description } = options
+  async payInvoice(options: PayInvoiceOptions): Promise<Payment> {
+    const { invoice, id, amount, description } = options
 
-    const result = await rpc({
+    const result = await this.connection.rpc({
       method: 'pay',
       params: {
         label: id,
         bolt11: invoice,
-        amount_msat: send_msat,
+        amount_msat: amount,
         description
       }
     })
@@ -97,7 +106,7 @@ const payments = (rpc: RpcCall, node: Node) => {
       hash: payment_hash,
       preimage: payment_preimage,
       destination,
-      type,
+      type: isBolt12Invoice(invoice) ? 'bolt12' : 'bolt11',
       direction: 'send',
       value: formatMsat(amount_msat),
       completedAt: nowSeconds(),
@@ -105,16 +114,49 @@ const payments = (rpc: RpcCall, node: Node) => {
       startedAt: created_at,
       fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
       status,
-      invoice: invoice,
-      nodeId: node.id
+      invoice,
+      nodeId: this.connection.info.id
     }
   }
 
-  /** Wait for a specific BOLT11 payment */
-  const waitForInvoicePayment = async (payment: Payment): Promise<Payment> => {
+  async payKeysend(options: PayKeysendOptions): Promise<Payment> {
+    const { destination, id, amount } = options
+
+    const result = await this.connection.rpc({
+      method: 'keysend',
+      params: {
+        label: id,
+        destination,
+        amount_msat: amount
+      }
+    })
+
+    const { payment_hash, payment_preimage, created_at, amount_msat, amount_sent_msat, status } =
+      result as KeysendResponse
+
+    const amountMsat = formatMsat(amount_msat)
+
+    return {
+      id,
+      hash: payment_hash,
+      preimage: payment_preimage,
+      destination,
+      type: 'bolt11',
+      direction: 'send',
+      value: amountMsat,
+      completedAt: nowSeconds(),
+      expiresAt: null,
+      startedAt: created_at,
+      fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
+      status,
+      nodeId: this.connection.info.id
+    }
+  }
+
+  async listenForInvoicePayment(payment: Payment): Promise<Payment> {
     const { id } = payment
 
-    const result = await rpc({
+    const result = await this.connection.rpc({
       method: 'waitinvoice',
       params: {
         label: id
@@ -133,74 +175,18 @@ const payments = (rpc: RpcCall, node: Node) => {
     }
   }
 
-  /** Listen for any invoice payments after a pay index */
-  const waitAnyInvoice = async (
-    lastPayIndex?: number,
+  async listenForAnyInvoicePayment(
+    lastPayIndex?: number | undefined,
     reqId?: string
-  ): Promise<WaitAnyInvoiceResponse> => {
-    const response = await rpc({
+  ): Promise<Payment> {
+    const response = await this.connection.rpc({
       method: 'waitanyinvoice',
       params: { lastpay_index: lastPayIndex },
       reqId
     })
 
-    return response as WaitAnyInvoiceResponse
-  }
-
-  /** Keysend payment to a destination node public key */
-  const payKeysend = async (options: {
-    destination: string
-    id: string
-    amount_msat: string
-  }): Promise<Payment> => {
-    const { destination: send_destination, id, amount_msat: send_msat } = options
-
-    const result = await rpc({
-      method: 'keysend',
-      params: {
-        label: id,
-        destination: send_destination,
-        amount_msat: send_msat
-      }
-    })
-
-    const {
-      payment_hash,
-      payment_preimage,
-      created_at,
-      amount_msat,
-      amount_sent_msat,
-      status,
-      destination
-    } = result as KeysendResponse
-
-    const amountMsat = formatMsat(amount_msat)
-
-    return {
-      id,
-      hash: payment_hash,
-      preimage: payment_preimage,
-      destination,
-      type: 'bolt11',
-      direction: 'send',
-      value: amountMsat,
-      completedAt: nowSeconds(),
-      expiresAt: null,
-      startedAt: created_at,
-      fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
-      status,
-      nodeId: node.id
-    }
-  }
-
-  return {
-    get,
-    createInvoice,
-    payInvoice,
-    waitForInvoicePayment,
-    waitAnyInvoice,
-    payKeysend
+    return invoiceToPayment(response as WaitAnyInvoiceResponse, this.connection.info.id)
   }
 }
 
-export default payments
+export default Payments

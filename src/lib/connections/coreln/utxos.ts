@@ -2,7 +2,7 @@ import type { Node } from '$lib/@types/nodes.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { ListfundsResponse, RpcCall } from './types.js'
 
-const outputs = (rpc: RpcCall, node: Node) => {
+const utxos = (rpc: RpcCall, node: Node) => {
   /** Get all unspent outputs */
   const get = async (): Promise<Utxo[]> => {
     const { outputs } = (await rpc({ method: 'listfunds' })) as ListfundsResponse
@@ -27,4 +27,4 @@ const outputs = (rpc: RpcCall, node: Node) => {
   }
 }
 
-export default outputs
+export default utxos

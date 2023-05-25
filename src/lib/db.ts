@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { Node } from './@types/nodes.js'
-import type { Connection } from './@types/connections.js'
+import type { ConnectionInfo } from './@types/connections.js'
 import type { Offer } from './@types/offers.js'
 import type { Payment } from './@types/payments.js'
 import type { Channel } from './@types/channels.js'
@@ -9,7 +9,7 @@ import type { Transaction } from './@types/transactions.js'
 
 export class DB extends Dexie {
   channels!: Table<Channel>
-  connections!: Table<Connection>
+  connections!: Table<ConnectionInfo>
   nodes!: Table<Node>
   offers!: Table<Offer>
   payments!: Table<Payment>

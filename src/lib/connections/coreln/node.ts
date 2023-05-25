@@ -1,18 +1,23 @@
-import type { RpcCall, SignMessageResponse } from './types.js'
+import type { ConnectionInterface, NodeInterface } from '../interfaces.js'
+import type { SignMessageResponse } from './types.js'
 
-const node = (rpc: RpcCall) => {
-  const signMessage = async (message: string): Promise<SignMessageResponse> => {
-    const result = await rpc({
+class Node implements NodeInterface {
+  connection: ConnectionInterface
+
+  constructor(connection: ConnectionInterface) {
+    this.connection = connection
+  }
+
+  async signMessage(message: string): Promise<string> {
+    const result = await this.connection.rpc({
       method: 'signmessage',
       params: { message }
     })
 
-    return result as SignMessageResponse
-  }
+    const { signature } = result as SignMessageResponse
 
-  return {
-    signMessage
+    return signature
   }
 }
 
-export default node
+export default Node
