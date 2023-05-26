@@ -8,9 +8,16 @@ import Channels from './channels.js'
 import Transactions from './transactions.js'
 import type { GetinfoResponse } from './types.js'
 import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
+import type { Session } from '$lib/@types/session.js'
+import type { Logger } from '$lib/@types/util.js'
+import type { BehaviorSubject } from 'rxjs'
+import { Subject } from 'rxjs'
+import Blocks from './blocks.js'
+
 import type {
+  BlocksInterface,
   ChannelsInterface,
-  ConnectionInterface,
+  CorelnConnectionInterface,
   Info,
   NodeInterface,
   OffersInterface,
@@ -19,26 +26,28 @@ import type {
   TransactionsInterface,
   UtxosInterface
 } from '../interfaces.js'
-import type { Session } from '$lib/@types/session.js'
-import type { Logger } from '$lib/@types/util.js'
 
-class CoreLightning implements ConnectionInterface {
-  info: Info
+class CoreLightning implements CorelnConnectionInterface {
+  info: Required<Info>
+  destroy$: Subject<void>
   rune: string
   rpc: RpcCall
   connect: () => Promise<Info | null>
   disconnect: () => void
+  connectionStatus$: BehaviorSubject<
+    'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
+  >
   node: NodeInterface
   offers: OffersInterface
   payments: PaymentsInterface
   utxos: UtxosInterface
   channels: ChannelsInterface
   transactions: TransactionsInterface
+  blocks: BlocksInterface
 
   constructor(options: CoreLnConnectionInfo, session: Session, logger?: Logger) {
     const {
-      data: { publicKey, ip, port, connection, token },
-      id: connectionId
+      data: { publicKey, ip, port, connection, token }
     } = options as CoreLnConnectionInfo
 
     const { secret } = session
@@ -69,7 +78,7 @@ class CoreLightning implements ConnectionInterface {
           method: 'getinfo'
         })) as GetinfoResponse
 
-        this.info = { id, alias, color, version, connectionId }
+        this.info = { id, alias, color, version, type: 'coreln' }
 
         return this.info
       } else {
@@ -77,7 +86,13 @@ class CoreLightning implements ConnectionInterface {
       }
     }
 
-    this.disconnect = () => socket.disconnect()
+    this.destroy$ = new Subject()
+
+    this.disconnect = () => {
+      socket.disconnect()
+      this.destroy$.next()
+    }
+    this.connectionStatus$ = socket.connectionStatus$
 
     this.node = new Node(this)
     this.offers = new Offers(this)
@@ -85,6 +100,7 @@ class CoreLightning implements ConnectionInterface {
     this.utxos = new Utxos(this)
     this.channels = new Channels(this)
     this.transactions = new Transactions(this)
+    this.blocks = new Blocks(this)
   }
 
   updateToken(token: string): void {

@@ -2,7 +2,7 @@ export type Transaction = {
   hash: string
   rawtx: string
   blockheight: number | null
-  txindex: number
+  txindex: number | null
   locktime: number
   version: number
   rbfEnabled: boolean

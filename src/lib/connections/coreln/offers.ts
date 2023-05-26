@@ -1,10 +1,16 @@
-import type { CreatePayOfferOptions, Offer } from '$lib/@types/offers.js'
 import { bolt12ToOffer, formatMsat, nowSeconds } from '$lib/utils.js'
 import type { Payment } from '$lib/@types/payments.js'
 import { invoiceStatusToPaymentStatus } from './utils.js'
-import type { Node } from '$lib/@types/nodes.js'
-import type { OffersInterface } from '$lib/@types/connections.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
+import type { CorelnConnectionInterface, OffersInterface } from '../interfaces.js'
+
+import type {
+  CreatePayOfferOptions,
+  CreateWithdrawOfferOptions,
+  Offer,
+  FetchInvoiceOptions,
+  SendInvoiceOptions
+} from '$lib/@types/offers.js'
 
 import type {
   CreatePayOfferResponse,
@@ -15,16 +21,20 @@ import type {
   ListInvoiceRequestsResponse,
   ListOffersResponse,
   OfferSummary,
-  RpcCall,
   SendInvoiceResponse
 } from './types.js'
 
-const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
-  /** Get all offers and invoice requests */
-  const get = async (): Promise<Offer[]> => {
+class Offers implements OffersInterface {
+  connection: CorelnConnectionInterface
+
+  constructor(connection: CorelnConnectionInterface) {
+    this.connection = connection
+  }
+
+  async get(): Promise<Offer[]> {
     const [offersResponse, invoiceRequestsResponse] = await Promise.all([
-      rpc({ method: 'listoffers' }),
-      rpc({ method: 'listinvoicerequests' })
+      this.connection.rpc({ method: 'listoffers' }),
+      this.connection.rpc({ method: 'listinvoicerequests' })
     ])
 
     const { offers } = offersResponse as ListOffersResponse
@@ -48,11 +58,10 @@ const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
     return Promise.all(formatted)
   }
 
-  /** Create a pay type offer */
-  const createPay = async (options: CreatePayOfferOptions): Promise<Offer> => {
+  async createPay(options: CreatePayOfferOptions): Promise<Offer> {
     const { amount, description, issuer, label, quantityMax, expiry, singleUse } = options
 
-    const result = await rpc({
+    const result = await this.connection.rpc({
       method: 'offer',
       params: {
         amount,
@@ -74,7 +83,7 @@ const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
       denomination: BitcoinDenomination.msats,
       amount,
       description,
-      nodeId: node.id,
+      nodeId: this.connection.info.id,
       used,
       singleUse: single_use,
       active,
@@ -85,47 +94,79 @@ const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
     }
   }
 
-  /** Disable a pay type offer */
-  const disablePay = async (offerId: string): Promise<OfferSummary> => {
-    const result = await rpc({ method: 'disableoffer', params: { offer_id: offerId } })
-    return result as OfferSummary
+  async disablePay(offerId: string): Promise<void> {
+    await this.connection.rpc({ method: 'disableoffer', params: { offer_id: offerId } })
   }
 
-  /** Create a withdraw type offer */
-  const createWithdraw = async (
-    params: CreateWithdrawOfferRequest['params']
-  ): Promise<CreateWithdrawOfferResponse> => {
-    const result = await rpc({ method: 'invoicerequest', params })
-    return result as CreateWithdrawOfferResponse
+  async createWithdraw(options: CreateWithdrawOfferOptions): Promise<Offer> {
+    const { amount, description, issuer, label, expiry, singleUse } = options
+
+    const result = await this.connection.rpc({
+      method: 'invoicerequest',
+      params: {
+        amount,
+        description,
+        issuer,
+        label,
+        absolute_expiry: expiry,
+        single_use: singleUse
+      }
+    })
+
+    const { invreq_id, bolt12, used, single_use, active } = result as CreateWithdrawOfferResponse
+
+    return {
+      id: invreq_id,
+      bolt12,
+      type: 'withdraw',
+      denomination: BitcoinDenomination.msats,
+      amount,
+      description,
+      nodeId: this.connection.info.id,
+      used,
+      singleUse: single_use,
+      active,
+      label,
+      expiry,
+      issuer
+    }
   }
 
-  /** Disable a withdraw type offer */
-  const disableWithdraw = async (
-    params: DisableInvoiceRequestRequest['params']
-  ): Promise<InvoiceRequestSummary> => {
-    const result = await rpc({ method: 'disableinvoicerequest', params })
-    return result as InvoiceRequestSummary
+  async disableWithdraw(invoiceRequestId: string): Promise<void> {
+    await this.connection.rpc({
+      method: 'disableinvoicerequest',
+      params: { invreq_id: invoiceRequestId }
+    })
   }
 
-  /** Fetch an invoice for a BOLT12 Offer */
-  const fetchInvoice = async (
-    params: FetchInvoiceRequest['params']
-  ): Promise<FetchInvoiceResponse> => {
-    const result = await rpc({ method: 'fetchinvoice', params })
+  async fetchInvoice(options: FetchInvoiceOptions): Promise<string> {
+    const { amount, offer, quantity, timeout, payerNote } = options
 
-    return result as FetchInvoiceResponse
+    const result = await this.connection.rpc({
+      method: 'fetchinvoice',
+      params: {
+        offer,
+        amount_msat: amount,
+        quantity,
+        timeout,
+        payer_note: payerNote
+      }
+    })
+
+    const { invoice } = result as FetchInvoiceResponse
+
+    return invoice
   }
 
-  /** Create an invoice for a BOLT12 Offer and send it to be paid */
-  const sendInvoice = async (params: SendInvoiceRequest['params']): Promise<Payment> => {
-    const { offer, label, amount_msat, timeout, quantity } = params
+  async sendInvoice(options: SendInvoiceOptions): Promise<Payment> {
+    const { offer, label, amount, timeout, quantity } = options
     const createdAt = nowSeconds()
 
-    const orderedParams = amount_msat
-      ? [offer, label, amount_msat, timeout, quantity]
+    const orderedParams = amount
+      ? [offer, label, amount, timeout, quantity]
       : [offer, label, timeout, quantity]
 
-    const result = await rpc({ method: 'sendinvoice', params: orderedParams })
+    const result = await this.connection.rpc({ method: 'sendinvoice', params: orderedParams })
 
     const {
       payment_hash,
@@ -144,7 +185,7 @@ const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
       preimage: payment_preimage,
       type: 'bolt12',
       direction: 'receive',
-      value: formatMsat((amount_received_msat || amount_msat) as string),
+      value: formatMsat((amount_received_msat || amount) as string),
       completedAt: paid_at ? paid_at : nowSeconds(),
       expiresAt: expires_at,
       startedAt: createdAt,
@@ -152,19 +193,9 @@ const offers: (rpc: RpcCall, node: Node) => OffersInterface = (rpc, node) => {
       status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
       invoice: bolt12,
       payIndex: pay_index,
-      nodeId: node.id
+      nodeId: this.connection.info.id
     }
-  }
-
-  return {
-    get,
-    createPay,
-    disablePay,
-    createWithdraw,
-    disableWithdraw,
-    fetchInvoice,
-    sendInvoice
   }
 }
 
-export default offers
+export default Offers

@@ -1,21 +1,33 @@
 import type { Channel } from '$lib/@types/channels.js'
-import type { Node } from '$lib/@types/nodes.js'
 import { convertVersionNumber, formatMsat } from '$lib/utils.js'
+import type { ChannelsInterface, CorelnConnectionInterface } from '../interfaces.js'
+
 import type {
   BkprChannelsAPYResponse,
   BkprListBalancesResponse,
-  ListPeersResponse,
-  RpcCall
+  ListPeersResponse
 } from './types.js'
 
-const channels = (rpc: RpcCall, node: Node) => {
-  /** Get all channels */
-  const get = async (): Promise<Channel[]> => {
+class Channels implements ChannelsInterface {
+  connection: CorelnConnectionInterface
+
+  constructor(connection: CorelnConnectionInterface) {
+    this.connection = connection
+  }
+
+  async get(): Promise<Channel[]> {
     // @TODO - Need to check version as listpeers channel info is deprecated as of 23.11
-    const versionNumber = convertVersionNumber(node.version)
-    const { peers } = (await rpc({ method: 'listpeers' })) as ListPeersResponse
-    const { channels_apy } = (await rpc({ method: 'bkpr-channelsapy' })) as BkprChannelsAPYResponse
-    const { accounts } = (await rpc({ method: 'bkpr-listbalances' })) as BkprListBalancesResponse
+    const versionNumber = convertVersionNumber(this.connection.info.version)
+
+    const [listPeersResult, bkprChannelsResult, bkprBalancesResult] = await Promise.all([
+      this.connection.rpc({ method: 'listpeers' }),
+      this.connection.rpc({ method: 'bkpr-channelsapy' }),
+      this.connection.rpc({ method: 'bkpr-listbalances' })
+    ])
+
+    const { peers } = listPeersResult as ListPeersResponse
+    const { channels_apy } = bkprChannelsResult as BkprChannelsAPYResponse
+    const { accounts } = bkprBalancesResult as BkprListBalancesResponse
 
     return peers.flatMap(({ id, channels }) => {
       return channels.map((channel) => {
@@ -49,15 +61,11 @@ const channels = (rpc: RpcCall, node: Node) => {
           closer: channel.closer ?? null,
           resolved: balanceMatch?.account_resolved ?? null,
           resolvedAtBlock: balanceMatch?.resolved_at_block ?? null,
-          nodeId: node.id
+          nodeId: this.connection.info.id
         }
       })
     })
   }
-
-  return {
-    get
-  }
 }
 
-export default channels
+export default Channels

@@ -1,15 +1,10 @@
-import type { BehaviorSubject } from 'rxjs'
-import type { CreatePayOfferOptions, Offer } from './offers.js'
-import type { Session } from './session.js'
-import type { Logger } from './util.js'
-
 export type ConnectionInfo =
   | CoreLnConnectionInfo
   | LndConnectionInfo
   | XPubConnectionInfo
   | MultiSigConnectionInfo
 
-export type ConnectionInfoType = 'coreln' | 'lnd' | 'xpub' | 'multisig'
+export type ConnectionInfoType = 'coreln' | 'lnd' | 'xpub' | 'multisig' | 'webln' | 'lnbits'
 
 export type ConnectionInfoBase = {
   /** randomly generated id */

@@ -1,10 +1,10 @@
-import type { ConnectionInterface, NodeInterface } from '../interfaces.js'
+import type { CorelnConnectionInterface, NodeInterface } from '../interfaces.js'
 import type { SignMessageResponse } from './types.js'
 
 class Node implements NodeInterface {
-  connection: ConnectionInterface
+  connection: CorelnConnectionInterface
 
-  constructor(connection: ConnectionInterface) {
+  constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
   }
 

@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
 import { invoiceToPayment, payToPayment } from './utils.js'
-import type { ConnectionInterface, PaymentsInterface } from '../interfaces.js'
+import type { CorelnConnectionInterface, PaymentsInterface } from '../interfaces.js'
 
 import type {
   CreateInvoiceOptions,
@@ -21,20 +21,25 @@ import type {
 } from './types.js'
 
 class Payments implements PaymentsInterface {
-  connection: ConnectionInterface
+  connection: CorelnConnectionInterface
 
-  constructor(connection: ConnectionInterface) {
+  constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
   }
 
   async get(): Promise<Payment[]> {
-    const { invoices } = (await this.connection.rpc({
-      method: 'listinvoices'
-    })) as ListinvoicesResponse
-    const { pays } = (await await this.connection.rpc({ method: 'listpays' })) as ListpaysResponse
+    const [invoicesResponse, paysResponse] = await Promise.all([
+      this.connection.rpc({ method: 'listinvoices' }),
+      this.connection.rpc({ method: 'listpays' })
+    ])
+
+    const { invoices } = invoicesResponse as ListinvoicesResponse
+    const { pays } = paysResponse as ListpaysResponse
+
     const invoicePayments: Payment[] = await Promise.all(
       invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.id))
     )
+
     const sentPayments: Payment[] = await Promise.all(
       pays.map((pay) => payToPayment(pay, this.connection.info.id))
     )

@@ -866,6 +866,15 @@ export type NewAddrResponse = {
   bech32: string
 }
 
+export type WithdrawResponse = {
+  /** the fully signed bitcoin transaction */
+  tx: string
+  /** the transaction id of tx */
+  txid: string
+  /** the PSBT representing the unsigned transaction */
+  psbt: string
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -889,5 +898,6 @@ export type LNResponse =
   | ListPeersResponse
   | ListTransactionsResponse
   | NewAddrResponse
+  | WithdrawResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
