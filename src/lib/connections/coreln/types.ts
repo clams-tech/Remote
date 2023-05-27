@@ -935,3 +935,5 @@ export type LNResponse =
   | WithdrawResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
+
+export type CoreLnError = { code: number; message: string }

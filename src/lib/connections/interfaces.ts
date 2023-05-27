@@ -121,3 +121,20 @@ export interface BlocksInterface {
   /** subscribe to increases in block height */
   blockHeight$: Subject<number>
 }
+
+export interface ConnectionError {
+  /** the i18n key that maps to a generic message to display to the user */
+  key: string
+  detail: {
+    /** unix timestamp in seconds */
+    timestamp: number
+    /** the message direct from the implementation that gives
+     * specific details on what went wrong to help with debugging
+     */
+    message: string
+    /** the context the error occured. ie what was the app trying to do
+     * at the time of error?
+     */
+    context: string
+  }
+}

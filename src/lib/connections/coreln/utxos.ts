@@ -1,6 +1,7 @@
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { UtxosInterface } from '../interfaces.js'
-import type { CorelnConnectionInterface, ListfundsResponse } from './types.js'
+import handleError from './error.js'
+import type { CorelnConnectionInterface, CoreLnError, ListfundsResponse } from './types.js'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -10,22 +11,27 @@ class Utxos implements UtxosInterface {
   }
 
   async get(): Promise<Utxo[]> {
-    const funds = await this.connection.rpc({ method: 'listfunds' })
-    const { outputs } = funds as ListfundsResponse
+    try {
+      const funds = await this.connection.rpc({ method: 'listfunds' })
+      const { outputs } = funds as ListfundsResponse
 
-    return outputs.map(
-      ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockHeight }) => ({
-        txid,
-        output,
-        amount_msat,
-        scriptpubkey,
-        address,
-        status,
-        reserved,
-        blockHeight,
-        nodeId: this.connection.info.id
-      })
-    )
+      return outputs.map(
+        ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockHeight }) => ({
+          txid,
+          output,
+          amount_msat,
+          scriptpubkey,
+          address,
+          status,
+          reserved,
+          blockHeight,
+          nodeId: this.connection.info.id
+        })
+      )
+    } catch (error) {
+      const context = 'get (utxos)'
+      throw handleError(error as CoreLnError, context)
+    }
   }
 }
 

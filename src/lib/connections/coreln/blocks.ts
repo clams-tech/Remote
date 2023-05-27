@@ -1,6 +1,7 @@
 import { Subject, take } from 'rxjs'
 import type { BlocksInterface } from '../interfaces.js'
-import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
+import handleError from './error.js'
+import type { CorelnConnectionInterface, CoreLnError, GetinfoResponse } from './types.js'
 
 class Blocks implements BlocksInterface {
   connection: CorelnConnectionInterface
@@ -18,23 +19,33 @@ class Blocks implements BlocksInterface {
     })
 
     const subscribeToBlockHeight = async (blockHeight: number) => {
-      if (destroyed) return
+      try {
+        if (destroyed) return
 
-      const result = await this.connection.rpc({
-        method: 'waitblockheight',
-        params: { blockheight: blockHeight, timeout: 7200 }
-      })
+        const result = await this.connection.rpc({
+          method: 'waitblockheight',
+          params: { blockheight: blockHeight, timeout: 7200 }
+        })
 
-      const { blockheight } = result as { blockheight: number }
-      this.blockHeight$.next(blockheight)
-      subscribeToBlockHeight(blockheight + 1)
+        const { blockheight } = result as { blockheight: number }
+        this.blockHeight$.next(blockheight)
+        subscribeToBlockHeight(blockheight + 1)
+      } catch (error) {
+        const context = 'subscribeToBlockHeight (blocks)'
+        throw handleError(error as CoreLnError, context)
+      }
     }
 
     const getCurrentBlock = async () => {
-      const info = await this.connection.rpc({ method: 'getinfo' })
-      const { blockheight } = info as GetinfoResponse
-      this.blockHeight$.next(blockheight)
-      subscribeToBlockHeight(blockheight + 1)
+      try {
+        const info = await this.connection.rpc({ method: 'getinfo' })
+        const { blockheight } = info as GetinfoResponse
+        this.blockHeight$.next(blockheight)
+        subscribeToBlockHeight(blockheight + 1)
+      } catch (error) {
+        const context = 'getCurrentBlock (blocks)'
+        throw handleError(error as CoreLnError, context)
+      }
     }
 
     getCurrentBlock()

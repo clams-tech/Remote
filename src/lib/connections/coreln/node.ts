@@ -1,5 +1,6 @@
 import type { NodeInterface } from '../interfaces.js'
-import type { CorelnConnectionInterface, SignMessageResponse } from './types.js'
+import handleError from './error.js'
+import type { CorelnConnectionInterface, CoreLnError, SignMessageResponse } from './types.js'
 
 class Node implements NodeInterface {
   connection: CorelnConnectionInterface
@@ -9,14 +10,19 @@ class Node implements NodeInterface {
   }
 
   async signMessage(message: string): Promise<string> {
-    const result = await this.connection.rpc({
-      method: 'signmessage',
-      params: { message }
-    })
+    try {
+      const result = await this.connection.rpc({
+        method: 'signmessage',
+        params: { message }
+      })
 
-    const { signature } = result as SignMessageResponse
+      const { signature } = result as SignMessageResponse
 
-    return signature
+      return signature
+    } catch (error) {
+      const context = 'signMessage (node)'
+      throw handleError(error as CoreLnError, context)
+    }
   }
 }
 
