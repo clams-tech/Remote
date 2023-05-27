@@ -6,7 +6,7 @@ import Payments from './payments.js'
 import Utxos from './utxos.js'
 import Channels from './channels.js'
 import Transactions from './transactions.js'
-import type { GetinfoResponse } from './types.js'
+import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
@@ -17,7 +17,6 @@ import Blocks from './blocks.js'
 import type {
   BlocksInterface,
   ChannelsInterface,
-  CorelnConnectionInterface,
   Info,
   NodeInterface,
   OffersInterface,

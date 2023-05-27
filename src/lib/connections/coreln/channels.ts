@@ -1,10 +1,11 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { convertVersionNumber, formatMsat } from '$lib/utils.js'
-import type { ChannelsInterface, CorelnConnectionInterface } from '../interfaces.js'
+import type { ChannelsInterface } from '../interfaces.js'
 
 import type {
   BkprChannelsAPYResponse,
   BkprListBalancesResponse,
+  CorelnConnectionInterface,
   ListPeersResponse
 } from './types.js'
 

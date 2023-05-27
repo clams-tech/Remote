@@ -38,25 +38,6 @@ export interface ConnectionInterface {
   blocks?: BlocksInterface
 }
 
-export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
-  info: Required<Info>
-  destroy$: Subject<void>
-  updateToken: (token: string) => void
-  connect: () => Promise<Info | null>
-  disconnect: () => void
-  connectionStatus$: BehaviorSubject<
-    'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
-  >
-  rpc: RpcCall
-  node: NodeInterface
-  offers: OffersInterface
-  payments: PaymentsInterface
-  utxos: UtxosInterface
-  channels: ChannelsInterface
-  transactions: TransactionsInterface
-  blocks: BlocksInterface
-}
-
 export type Info = {
   id: string
   type: ConnectionInfoType
@@ -86,13 +67,13 @@ export interface OffersInterface {
   /** Disable a pay (offer) type offer */
   disablePay?(offerId: string): Promise<void>
   /** Create a withdraw (invoice request) type offer */
-  createWithdraw(options: CreateWithdrawOfferOptions): Promise<Offer>
+  createWithdraw?(options: CreateWithdrawOfferOptions): Promise<Offer>
   /** Disable a withdraw (invoice request) type offer */
-  disableWithdraw(invoiceRequestId: string): Promise<void>
+  disableWithdraw?(invoiceRequestId: string): Promise<void>
   /** Fetch an BOLT12 invoice for a BOLT12 Pay Offer */
-  fetchInvoice(options: FetchInvoiceOptions): Promise<string>
+  fetchInvoice?(options: FetchInvoiceOptions): Promise<string>
   /** Create an invoice for a BOLT12 Withdraw Offer and send it to be paid */
-  sendInvoice(options: SendInvoiceOptions): Promise<Payment>
+  sendInvoice?(options: SendInvoiceOptions): Promise<Payment>
 }
 
 export interface PaymentsInterface {
@@ -100,15 +81,15 @@ export interface PaymentsInterface {
   /** Get all invoice receive and send payments and format to a list of Payments */
   get(): Promise<Payment[]>
   /** Create a BOLT 11 invoice to receive to */
-  createInvoice(options: CreateInvoiceOptions): Promise<Payment>
+  createInvoice?(options: CreateInvoiceOptions): Promise<Payment>
   /** Pay a BOLT11 invoice */
-  payInvoice(options: PayInvoiceOptions): Promise<Payment>
+  payInvoice?(options: PayInvoiceOptions): Promise<Payment>
   /** Pay to a node public key via Keysend */
-  payKeysend(options: PayKeysendOptions): Promise<Payment>
+  payKeysend?(options: PayKeysendOptions): Promise<Payment>
   /** listen for a specific invoice payment */
-  listenForInvoicePayment(payment: Payment): Promise<Payment>
+  listenForInvoicePayment?(payment: Payment): Promise<Payment>
   /** listen for any invoice payment after a particular pay index */
-  listenForAnyInvoicePayment(lastPayIndex?: number, reqId?: string): Promise<Payment>
+  listenForAnyInvoicePayment?(lastPayIndex?: number, reqId?: string): Promise<Payment>
 }
 
 export interface UtxosInterface {
@@ -128,15 +109,15 @@ export interface TransactionsInterface {
   /** get all onchain transactions */
   get(): Promise<Transaction[]>
   /** derive a new bech32 receive address */
-  receive(): Promise<string>
+  receive?(): Promise<string>
   /** send to an onchain address */
-  send(options: SendTransactionOptions): Promise<Transaction>
+  send?(options: SendTransactionOptions): Promise<Transaction>
   /** wait for an unconfirmed transaction to be included in a block */
-  listenForTransactionConfirmation(transaction: Transaction): Promise<Transaction>
+  listenForTransactionConfirmation?(transaction: Transaction): Promise<Transaction>
 }
 
 export interface BlocksInterface {
   connection: ConnectionInterface
-  /** can subscribe to increases in block height */
+  /** subscribe to increases in block height */
   blockHeight$: Subject<number>
 }

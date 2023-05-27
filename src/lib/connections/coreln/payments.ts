@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
 import { invoiceToPayment, payToPayment } from './utils.js'
-import type { CorelnConnectionInterface, PaymentsInterface } from '../interfaces.js'
+import type { PaymentsInterface } from '../interfaces.js'
 
 import type {
   CreateInvoiceOptions,
@@ -11,6 +11,7 @@ import type {
 } from '$lib/@types/payments.js'
 
 import type {
+  CorelnConnectionInterface,
   InvoiceResponse,
   KeysendResponse,
   ListinvoicesResponse,

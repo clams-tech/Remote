@@ -2,7 +2,7 @@ import { bolt12ToOffer, formatMsat, nowSeconds } from '$lib/utils.js'
 import type { Payment } from '$lib/@types/payments.js'
 import { invoiceStatusToPaymentStatus } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
-import type { CorelnConnectionInterface, OffersInterface } from '../interfaces.js'
+import type { OffersInterface } from '../interfaces.js'
 
 import type {
   CreatePayOfferOptions,
@@ -13,6 +13,7 @@ import type {
 } from '$lib/@types/offers.js'
 
 import type {
+  CorelnConnectionInterface,
   CreatePayOfferResponse,
   CreateWithdrawOfferResponse,
   FetchInvoiceResponse,

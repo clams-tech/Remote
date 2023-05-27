@@ -1,6 +1,6 @@
 import { Subject, take } from 'rxjs'
-import type { BlocksInterface, CorelnConnectionInterface } from '../interfaces.js'
-import type { GetinfoResponse } from './types.js'
+import type { BlocksInterface } from '../interfaces.js'
+import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
 
 class Blocks implements BlocksInterface {
   connection: CorelnConnectionInterface

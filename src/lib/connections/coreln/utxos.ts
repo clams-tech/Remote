@@ -1,6 +1,6 @@
 import type { Utxo } from '$lib/@types/utxos.js'
-import type { CorelnConnectionInterface, UtxosInterface } from '../interfaces.js'
-import type { ListfundsResponse } from './types.js'
+import type { UtxosInterface } from '../interfaces.js'
+import type { CorelnConnectionInterface, ListfundsResponse } from './types.js'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface

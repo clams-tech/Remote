@@ -1,4 +1,38 @@
 import type { JsonRpcRequest } from 'lnmessage/dist/types'
+import type { BehaviorSubject, Subject } from 'rxjs'
+
+import type {
+  BlocksInterface,
+  ChannelsInterface,
+  ConnectionInterface,
+  Info,
+  NodeInterface,
+  OffersInterface,
+  PaymentsInterface,
+  RpcCall,
+  TransactionsInterface,
+  UtxosInterface
+} from '../interfaces.js'
+
+export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
+  info: Required<Info>
+  destroy$: Subject<void>
+  updateToken: (token: string) => void
+  connect: () => Promise<Info | null>
+  disconnect: () => void
+  connectionStatus$: BehaviorSubject<
+    'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
+  >
+  rpc: RpcCall
+  node: NodeInterface
+  offers: OffersInterface
+  payments: PaymentsInterface
+  utxos: UtxosInterface
+  channels: ChannelsInterface
+  transactions: TransactionsInterface
+  blocks: BlocksInterface
+}
+
 export interface GetinfoResponse {
   /**
    * The addresses we announce to the world

@@ -1,5 +1,5 @@
-import type { CorelnConnectionInterface, NodeInterface } from '../interfaces.js'
-import type { SignMessageResponse } from './types.js'
+import type { NodeInterface } from '../interfaces.js'
+import type { CorelnConnectionInterface, SignMessageResponse } from './types.js'
 
 class Node implements NodeInterface {
   connection: CorelnConnectionInterface

@@ -1,7 +1,7 @@
 export const connections = [
   {
     label: 'Core Lightning',
-    icon: '',
-    module: async () => (await import('./coreln/index.js')).default
+    icon: () => import('./coreln/logo.js').then(({ default: logo }) => logo),
+    module: () => import('./coreln/index.js').then(({ default: connection }) => connection)
   }
 ]
