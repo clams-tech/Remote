@@ -10,6 +10,7 @@
     "sourceMap": true,
     "strict": true,
     "lib": ["es2020", "DOM", "webworker"],
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "target": "ES2021"
   }
 }

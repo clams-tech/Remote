@@ -128,3 +128,28 @@ export async function bolt12ToOffer(bolt12: string, offerId?: string): Promise<O
 export function isBolt12Invoice(invoice: string): boolean {
   return invoice.toLowerCase().startsWith('lni')
 }
+
+// Used in background animation
+export class Particle {
+  x: number
+  y: number
+  d: number
+  w: number
+  h: number
+  level: number
+
+  constructor(x: number, y: number, d: number, level: number, w: number, h: number) {
+    this.x = x
+    this.y = y
+    this.d = d
+    this.h = h
+    this.w = w
+    this.level = level
+  }
+
+  respawn(): void {
+    this.x = Math.random() * (this.w * 0.8) + 0.1 * this.w
+    this.y = Math.random() * 30 + this.h - ((this.h - 100) * this.level) / 100 - 50 + 50
+    this.d = Math.random() * 5 + 5
+  }
+}
