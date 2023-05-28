@@ -3,6 +3,7 @@ import type { SendTransactionOptions, Transaction } from '$lib/@types/transactio
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
 import type { ConnectionInfoType } from '$lib/@types/connections.js'
+import type { Forward } from '$lib/@types/forwards.js'
 
 import type {
   CreatePayOfferOptions,
@@ -35,6 +36,7 @@ export interface ConnectionInterface {
   utxos?: UtxosInterface
   channels?: ChannelsInterface
   transactions?: TransactionsInterface
+  forwards?: ForwardsInterface
   blocks?: BlocksInterface
 }
 
@@ -114,6 +116,12 @@ export interface TransactionsInterface {
   send?(options: SendTransactionOptions): Promise<Transaction>
   /** wait for an unconfirmed transaction to be included in a block */
   listenForTransactionConfirmation?(transaction: Transaction): Promise<Transaction>
+}
+
+export interface ForwardsInterface {
+  connection: ConnectionInterface
+  /** get all forwards for node */
+  get(): Promise<Forward[]>
 }
 
 export interface BlocksInterface {

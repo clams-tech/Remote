@@ -18,21 +18,26 @@
   ]
 
   let screenWidth: number
+
+  // minimum of 125px and maximum of 200px
+  $: buttonWidth = Math.max(125, Math.min(200, Math.round(screenWidth / 10)))
 </script>
 
 <svelte:window bind:innerWidth={screenWidth} />
 
 <div class="flex flex-col justify-center items-center w-full h-full relative">
-  <div class="w-48 mb-6">
+  <div class=" w-1/4 max-w-[225px] min-w-[175px] mb-6">
     <ClamsLogo />
   </div>
 
-  <div class="flex flex-wrap gap-2 w-full max-w-xl justify-center items-center p-4">
+  <div
+    class="flex flex-wrap gap-2 w-full 2xl:max-w-4xl xl:max-w-2xl max-w-md justify-center items-center p-4"
+  >
     {#each buttons as { key, icon, styles } (key)}
       {@const route = `/${key}`}
       <a
         href={route}
-        style="width: {Math.round(screenWidth / 10)}px;"
+        style="width: {buttonWidth}px;"
         class="aspect-square border rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
       >
         <div class="w-10 xs:w-12 {styles}">
