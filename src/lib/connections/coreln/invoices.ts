@@ -1,14 +1,15 @@
 import Big from 'big.js'
 import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
 import { invoiceToPayment, payToPayment } from './utils.js'
-import type { PaymentsInterface } from '../interfaces.js'
+import type { InvoicesInterface } from '../interfaces.js'
+import handleError from './error.js'
 
 import type {
   CreateInvoiceOptions,
   PayInvoiceOptions,
   PayKeysendOptions,
-  Payment
-} from '$lib/@types/payments.js'
+  Invoice
+} from '$lib/@types/invoices.js'
 
 import type {
   CorelnConnectionInterface,
@@ -21,16 +22,15 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
-import handleError from './error.js'
 
-class Payments implements PaymentsInterface {
+class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
 
   constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
   }
 
-  async get(): Promise<Payment[]> {
+  async get(): Promise<Invoice[]> {
     try {
       const [invoicesResponse, paysResponse] = await Promise.all([
         this.connection.rpc({ method: 'listinvoices' }),
@@ -40,11 +40,11 @@ class Payments implements PaymentsInterface {
       const { invoices } = invoicesResponse as ListinvoicesResponse
       const { pays } = paysResponse as ListpaysResponse
 
-      const invoicePayments: Payment[] = await Promise.all(
+      const invoicePayments: Invoice[] = await Promise.all(
         invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.id))
       )
 
-      const sentPayments: Payment[] = await Promise.all(
+      const sentPayments: Invoice[] = await Promise.all(
         pays.map((pay) => payToPayment(pay, this.connection.info.id))
       )
 
@@ -55,7 +55,7 @@ class Payments implements PaymentsInterface {
     }
   }
 
-  async createInvoice(options: CreateInvoiceOptions): Promise<Payment> {
+  async createInvoice(options: CreateInvoiceOptions): Promise<Invoice> {
     try {
       const { id, amount, description, expiry } = options
       const startedAt = nowSeconds()
@@ -72,7 +72,7 @@ class Payments implements PaymentsInterface {
 
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
 
-      const payment: Payment = {
+      const payment: Invoice = {
         id,
         status: 'pending',
         direction: 'receive',
@@ -82,7 +82,7 @@ class Payments implements PaymentsInterface {
         startedAt,
         completedAt: null,
         expiresAt: expires_at,
-        invoice: bolt11,
+        request: bolt11,
         description,
         hash: payment_hash,
         preimage: payment_secret,
@@ -96,15 +96,15 @@ class Payments implements PaymentsInterface {
     }
   }
 
-  async payInvoice(options: PayInvoiceOptions): Promise<Payment> {
+  async payInvoice(options: PayInvoiceOptions): Promise<Invoice> {
     try {
-      const { invoice, id, amount, description } = options
+      const { request, id, amount, description } = options
 
       const result = await this.connection.rpc({
         method: 'pay',
         params: {
           label: id,
-          bolt11: invoice,
+          bolt11: request,
           amount_msat: amount,
           description
         }
@@ -125,7 +125,7 @@ class Payments implements PaymentsInterface {
         hash: payment_hash,
         preimage: payment_preimage,
         destination,
-        type: isBolt12Invoice(invoice) ? 'bolt12' : 'bolt11',
+        type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
         direction: 'send',
         value: formatMsat(amount_msat),
         completedAt: nowSeconds(),
@@ -133,7 +133,7 @@ class Payments implements PaymentsInterface {
         startedAt: created_at,
         fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
         status,
-        invoice,
+        request,
         nodeId: this.connection.info.id
       }
     } catch (error) {
@@ -142,7 +142,7 @@ class Payments implements PaymentsInterface {
     }
   }
 
-  async payKeysend(options: PayKeysendOptions): Promise<Payment> {
+  async payKeysend(options: PayKeysendOptions): Promise<Invoice> {
     try {
       const { destination, id, amount } = options
 
@@ -181,7 +181,7 @@ class Payments implements PaymentsInterface {
     }
   }
 
-  async listenForInvoicePayment(payment: Payment): Promise<Payment> {
+  async listenForInvoicePayment(payment: Invoice): Promise<Invoice> {
     try {
       const { id } = payment
 
@@ -211,7 +211,7 @@ class Payments implements PaymentsInterface {
   async listenForAnyInvoicePayment(
     lastPayIndex?: number | undefined,
     reqId?: string
-  ): Promise<Payment> {
+  ): Promise<Invoice> {
     try {
       const response = await this.connection.rpc({
         method: 'waitanyinvoice',
@@ -227,4 +227,4 @@ class Payments implements PaymentsInterface {
   }
 }
 
-export default Payments
+export default Invoices

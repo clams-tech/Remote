@@ -1,5 +1,5 @@
 import { bolt12ToOffer, formatMsat, nowSeconds } from '$lib/utils.js'
-import type { Payment } from '$lib/@types/payments.js'
+import type { Invoice } from '$lib/@types/invoices.js'
 import { invoiceStatusToPaymentStatus } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
@@ -191,7 +191,7 @@ class Offers implements OffersInterface {
     }
   }
 
-  async sendInvoice(options: SendInvoiceOptions): Promise<Payment> {
+  async sendInvoice(options: SendInvoiceOptions): Promise<Invoice> {
     try {
       const { offer, label, amount, timeout, quantity } = options
       const createdAt = nowSeconds()

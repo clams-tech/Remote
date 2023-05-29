@@ -1,18 +1,10 @@
 import Big from 'big.js'
-import type { Payment } from '$lib/@types/payments.js'
+import type { Invoice } from '$lib/@types/invoices.js'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
+import type { InvoiceStatus, Pay, ChannelAPY, IncomeEvent, RawInvoice } from './types'
+import type { DecodedBolt12Invoice } from 'bolt12-decoder/@types/types.js'
 
-import type {
-  InvoiceStatus,
-  Invoice,
-  Pay,
-  ChannelAPY,
-  IncomeEvent,
-  DecodedBolt12Invoice
-} from './types'
-import type { Node } from '$lib/@types/nodes.js'
-
-export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
+export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Invoice['status'] {
   switch (status) {
     case 'paid':
       return 'complete'
@@ -23,7 +15,7 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['st
   }
 }
 
-export async function invoiceToPayment(invoice: Invoice, nodeId: string): Promise<Payment> {
+export async function invoiceToPayment(invoice: RawInvoice, nodeId: string): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
@@ -42,7 +34,7 @@ export async function invoiceToPayment(invoice: Invoice, nodeId: string): Promis
 
   let timestamp: number = new Date().getTime() / 1000
 
-  let offer: Payment['offer']
+  let offer: Invoice['offer']
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -73,7 +65,7 @@ export async function invoiceToPayment(invoice: Invoice, nodeId: string): Promis
 
   return {
     id: label || payment_hash,
-    invoice: bolt12 || bolt11,
+    request: bolt12 || bolt11,
     hash: payment_hash,
     direction: 'receive',
     type: bolt12 ? 'bolt12' : 'bolt11',
@@ -92,7 +84,7 @@ export async function invoiceToPayment(invoice: Invoice, nodeId: string): Promis
   }
 }
 
-export async function payToPayment(pay: Pay, nodeId: string): Promise<Payment> {
+export async function payToPayment(pay: Pay, nodeId: string): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
@@ -109,7 +101,7 @@ export async function payToPayment(pay: Pay, nodeId: string): Promise<Payment> {
   const timestamp = created_at
 
   let description: string | undefined
-  let offer: Payment['offer']
+  let offer: Invoice['offer']
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -141,7 +133,7 @@ export async function payToPayment(pay: Pay, nodeId: string): Promise<Payment> {
   return {
     id: label || payment_hash,
     destination,
-    invoice: bolt12 || bolt11,
+    request: bolt12 || bolt11,
     status,
     startedAt: timestamp,
     hash: payment_hash,

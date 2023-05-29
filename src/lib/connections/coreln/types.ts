@@ -8,7 +8,7 @@ import type {
   Info,
   NodeInterface,
   OffersInterface,
-  PaymentsInterface,
+  InvoicesInterface,
   RpcCall,
   TransactionsInterface,
   UtxosInterface
@@ -26,7 +26,7 @@ export interface CorelnConnectionInterface extends Required<ConnectionInterface>
   rpc: RpcCall
   node: NodeInterface
   offers: OffersInterface
-  payments: PaymentsInterface
+  payments: InvoicesInterface
   utxos: UtxosInterface
   channels: ChannelsInterface
   transactions: TransactionsInterface
@@ -422,10 +422,10 @@ export enum OutputStatus {
 }
 
 export type ListinvoicesResponse = {
-  invoices: Invoice[]
+  invoices: RawInvoice[]
 }
 
-export type Invoice = {
+export type RawInvoice = {
   /**
    * the amount required to pay this invoice
    */
@@ -487,8 +487,8 @@ export type ErrorResponse = {
   message: string
 }
 
-export type WaitInvoiceResponse = Invoice
-export type WaitAnyInvoiceResponse = Invoice
+export type WaitInvoiceResponse = RawInvoice
+export type WaitAnyInvoiceResponse = RawInvoice
 
 export type SignMessageResponse = {
   /** (hex): The signature (always 128 characters) */

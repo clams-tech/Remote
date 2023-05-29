@@ -1,4 +1,4 @@
-import type { DecodedInvoice, FormattedDecodedBolt11 } from './@types/payments.js'
+import type { DecodedInvoice, FormattedDecodedBolt11 } from './@types/invoices.js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { log$ } from './streams.js'
 import type { Offer } from './@types/offers.js'

@@ -3,89 +3,116 @@
   import debounce from 'lodash.debounce'
   import { onMount } from 'svelte'
 
-  let canvas: HTMLCanvasElement
-  let ctx: CanvasRenderingContext2D
+  let canvas: HTMLCanvasElement[] = []
   let innerHeight: number
   let innerWidth: number
-  let w: number
-  let h: number
 
-  //essential variables
-  let animationId: number
+  type Wave = {
+    ctx: CanvasRenderingContext2D
+    w: number
+    h: number
+    animationId: number
+    particles: Particle[]
+    level: number
+    colors: string[]
+    c: number
+  }
 
-  const particles: Particle[] = [] //particle array
-  const level: number = 10
-  const color: string = '#6305f0'
-  let c: number
+  const waves: Wave[] = []
+  const wavesCustomisations: { level: number; colors: string[] }[] = [
+    { level: 12, colors: ['#5600ea', '#9a67f6'] },
+    { level: 10, colors: ['#6305f0', '#9a67f6'] }
+  ]
 
   //function to start or restart the animation
-  function init(): void {
-    w = innerWidth - 230
-    h = innerHeight
-    canvas.width = w
-    canvas.height = h
-    c = 0
-    particles.length = 0
-    for (let i = 0; i < 40; i++) {
-      const obj: Particle = new Particle(0, 0, 0, level, w, h)
-      obj.respawn()
-      particles.push(obj)
+  function init(wave: number): void {
+    canvas[wave].width = innerWidth
+    canvas[wave].height = innerHeight
+
+    waves[wave] = {
+      ctx: canvas[wave].getContext('2d') as CanvasRenderingContext2D,
+      w: innerWidth,
+      h: innerHeight,
+      c: 0,
+      level: wavesCustomisations[wave].level,
+      colors: wavesCustomisations[wave].colors,
+      particles: [],
+      animationId: 0
     }
-    animationId = window.requestAnimationFrame(draw)
+
+    for (let i = 0; i < 40; i++) {
+      const obj: Particle = new Particle(0, 0, 0, waves[wave].level, waves[wave].w, waves[wave].h)
+      obj.respawn()
+      waves[wave].particles.push(obj)
+    }
+
+    waves[wave].animationId = window.requestAnimationFrame(() => draw(wave))
   }
 
   //function that draws into the canvas in a loop
-  function draw(): void {
-    ctx.clearRect(0, 0, w, h)
-    ctx.fillStyle = color
-    ctx.strokeStyle = color
+  function draw(wave: number): void {
+    waves[wave].ctx.clearRect(0, 0, waves[wave].w, waves[wave].h)
+    const gradient = waves[wave].ctx.createLinearGradient(0, 400, 3000, 2000)
+    console.log(waves[wave].colors[0], waves[wave].colors[1])
+    gradient.addColorStop(0, waves[wave].colors[0])
+    gradient.addColorStop(1, waves[wave].colors[1])
+    waves[wave].ctx.fillStyle = gradient
+    waves[wave].ctx.strokeStyle = waves[wave].colors[0]
 
     //draw the liquid
-    ctx.beginPath()
-    ctx.moveTo(w, h - ((h - 100) * level) / 100 - 50)
-    ctx.lineTo(w, h)
-    ctx.lineTo(0, h)
-    ctx.lineTo(0, h - ((h - 100) * level) / 100 - 50)
-
-    const temp: number = 50 * Math.sin((c * 1) / 50)
-
-    ctx.bezierCurveTo(
-      w / 3,
-      h - ((h - 100) * level) / 100 - 50 - temp,
-      (2 * w) / 3,
-      h - ((h - 100) * level) / 100 - 50 + temp,
-      w,
-      h - ((h - 100) * level) / 100 - 50
+    waves[wave].ctx.beginPath()
+    waves[wave].ctx.moveTo(
+      waves[wave].w,
+      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
+    )
+    waves[wave].ctx.lineTo(waves[wave].w, waves[wave].h)
+    waves[wave].ctx.lineTo(0, waves[wave].h)
+    waves[wave].ctx.lineTo(
+      0,
+      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
     )
 
-    ctx.fill()
+    const temp: number = 50 * Math.sin((waves[wave].c * 1 + wave * 40) / 50)
 
-    update()
-    animationId = window.requestAnimationFrame(draw)
+    waves[wave].ctx.bezierCurveTo(
+      waves[wave].w / 3,
+      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50 - temp,
+      (2 * waves[wave].w) / 3,
+      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50 + temp,
+      waves[wave].w,
+      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
+    )
+
+    waves[wave].ctx.fill()
+
+    update(wave)
+    waves[wave].animationId = window.requestAnimationFrame(() => draw(wave))
   }
 
-  function update(): void {
-    c++
-    if (100 * Math.PI <= c) c = 0
+  function update(wave: number): void {
+    waves[wave].c++
+    if (100 * Math.PI <= waves[wave].c) waves[wave].c = 0
     for (let i = 0; i < 40; i++) {
-      particles[i].x = particles[i].x + Math.random() * 2 - 1
-      particles[i].y = particles[i].y - 1
-      particles[i].d = particles[i].d - 0.04
-      if (particles[i].d <= 0) particles[i].respawn()
+      waves[wave].particles[i].x = waves[wave].particles[i].x + Math.random() * 2 - 1
+      waves[wave].particles[i].y = waves[wave].particles[i].y - 1
+      waves[wave].particles[i].d = waves[wave].particles[i].d - 0.04
+      if (waves[wave].particles[i].d <= 0) waves[wave].particles[i].respawn()
     }
   }
 
   function handleResize() {
-    window.cancelAnimationFrame(animationId)
-    init()
+    waves.forEach(({ animationId }) => window.cancelAnimationFrame(animationId))
+    init(0)
+    init(1)
   }
 
   onMount(() => {
-    ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-    init()
+    init(0)
+    init(1)
   })
 </script>
 
 <svelte:window on:resize={debounce(handleResize, 500)} bind:innerHeight bind:innerWidth />
 
-<canvas class="w-screen h-screen" bind:this={canvas} />
+<canvas class="absolute top-0 left-0" bind:this={canvas[0]} />
+<canvas class="absolute top-0 left-0" bind:this={canvas[1]} />

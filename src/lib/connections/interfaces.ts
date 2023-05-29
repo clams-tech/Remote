@@ -17,8 +17,8 @@ import type {
   CreateInvoiceOptions,
   PayInvoiceOptions,
   PayKeysendOptions,
-  Payment
-} from '$lib/@types/payments.js'
+  Invoice
+} from '$lib/@types/invoices.js'
 
 export interface ConnectionInterface {
   info: Info
@@ -32,7 +32,7 @@ export interface ConnectionInterface {
   rpc?: RpcCall
   node?: NodeInterface
   offers?: OffersInterface
-  payments?: PaymentsInterface
+  invoices?: InvoicesInterface
   utxos?: UtxosInterface
   channels?: ChannelsInterface
   transactions?: TransactionsInterface
@@ -75,23 +75,23 @@ export interface OffersInterface {
   /** Fetch an BOLT12 invoice for a BOLT12 Pay Offer */
   fetchInvoice?(options: FetchInvoiceOptions): Promise<string>
   /** Create an invoice for a BOLT12 Withdraw Offer and send it to be paid */
-  sendInvoice?(options: SendInvoiceOptions): Promise<Payment>
+  sendInvoice?(options: SendInvoiceOptions): Promise<Invoice>
 }
 
-export interface PaymentsInterface {
+export interface InvoicesInterface {
   connection: ConnectionInterface
-  /** Get all invoice receive and send payments and format to a list of Payments */
-  get(): Promise<Payment[]>
+  /** Get all invoice receive and send invoices and format to a list of Payments */
+  get(): Promise<Invoice[]>
   /** Create a BOLT 11 invoice to receive to */
-  createInvoice?(options: CreateInvoiceOptions): Promise<Payment>
+  createInvoice?(options: CreateInvoiceOptions): Promise<Invoice>
   /** Pay a BOLT11 invoice */
-  payInvoice?(options: PayInvoiceOptions): Promise<Payment>
+  payInvoice?(options: PayInvoiceOptions): Promise<Invoice>
   /** Pay to a node public key via Keysend */
-  payKeysend?(options: PayKeysendOptions): Promise<Payment>
+  payKeysend?(options: PayKeysendOptions): Promise<Invoice>
   /** listen for a specific invoice payment */
-  listenForInvoicePayment?(payment: Payment): Promise<Payment>
+  listenForInvoicePayment?(payment: Invoice): Promise<Invoice>
   /** listen for any invoice payment after a particular pay index */
-  listenForAnyInvoicePayment?(lastPayIndex?: number, reqId?: string): Promise<Payment>
+  listenForAnyInvoicePayment?(lastPayIndex?: number, reqId?: string): Promise<Invoice>
 }
 
 export interface UtxosInterface {

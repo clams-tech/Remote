@@ -2,19 +2,34 @@
   import { translate } from '$lib/i18n/translations.js'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import arrow from '$lib/icons/arrow.js'
+  import channels from '$lib/icons/channels.js'
+  import contacts from '$lib/icons/contacts.js'
+  import feeOutline from '$lib/icons/fee-outline.js'
+  import keys from '$lib/icons/keys.js'
+  import lightningOutline from '$lib/icons/lightning-outline.js'
+  import lightning from '$lib/icons/lightning.js'
+  import list from '$lib/icons/list.js'
+  import qr from '$lib/icons/qr.js'
+  import receive from '$lib/icons/receive.js'
   import scan from '$lib/icons/scan.js'
+  import send from '$lib/icons/send.js'
+  import settingsOutline from '$lib/icons/settings-outline.js'
+  import share from '$lib/icons/share.js'
+  import wallet from '$lib/icons/wallet.js'
 
   const buttons = [
-    { key: 'send', icon: arrow, styles: 'rotate-180' },
+    { key: 'send', icon: send, styles: '' },
     { key: 'scan', icon: scan, styles: '' },
-    { key: 'receive', icon: arrow, styles: '' },
-    { key: 'offers', icon: arrow, styles: '' },
-    { key: 'payments', icon: arrow, styles: '' },
-    { key: 'balances', icon: arrow, styles: '' },
-    { key: 'accounting', icon: arrow, styles: '' },
-    { key: 'settings', icon: arrow, styles: '' },
-    { key: 'connections', icon: arrow, styles: '' },
-    { key: 'imports', icon: arrow, styles: '' }
+    { key: 'receive', icon: receive, styles: '' },
+    { key: 'connections', icon: keys, styles: '' },
+    { key: 'balances', icon: wallet, styles: '' },
+    { key: 'payments', icon: list, styles: '' },
+    { key: 'channels', icon: channels, styles: '' },
+    { key: 'accounting', icon: feeOutline, styles: '' },
+    { key: 'imports', icon: share, styles: '' },
+    { key: 'offers', icon: lightningOutline, styles: '' },
+    { key: 'settings', icon: settingsOutline, styles: '' },
+    { key: 'contacts', icon: contacts, styles: '' }
   ]
 
   let screenWidth: number
@@ -25,20 +40,17 @@
 
 <svelte:window bind:innerWidth={screenWidth} />
 
-<div class="flex flex-col justify-center items-center w-full h-full relative">
+<div class="flex flex-col justify-center items-center w-full h-full p-2">
   <div class=" w-1/4 max-w-[225px] min-w-[175px] mb-6">
     <ClamsLogo />
   </div>
 
-  <div
-    class="flex flex-wrap gap-2 w-full 2xl:max-w-4xl xl:max-w-2xl max-w-md justify-center items-center p-4"
-  >
+  <div class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl">
     {#each buttons as { key, icon, styles } (key)}
       {@const route = `/${key}`}
       <a
         href={route}
-        style="width: {buttonWidth}px;"
-        class="aspect-square border rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
+        class="aspect-square border rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/40 hover:bg-neutral-100 transition-all"
       >
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}

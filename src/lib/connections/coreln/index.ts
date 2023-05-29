@@ -2,17 +2,17 @@ import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
 import Node from './node.js'
-import Payments from './payments.js'
 import Utxos from './utxos.js'
 import Channels from './channels.js'
 import Transactions from './transactions.js'
+import Blocks from './blocks.js'
+import Invoices from './invoices.js'
 import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
-import Blocks from './blocks.js'
 
 import type {
   BlocksInterface,
@@ -20,10 +20,11 @@ import type {
   Info,
   NodeInterface,
   OffersInterface,
-  PaymentsInterface,
+  InvoicesInterface,
   RpcCall,
   TransactionsInterface,
-  UtxosInterface
+  UtxosInterface,
+  ForwardsInterface
 } from '../interfaces.js'
 
 class CoreLightning implements CorelnConnectionInterface {
@@ -38,7 +39,7 @@ class CoreLightning implements CorelnConnectionInterface {
   >
   node: NodeInterface
   offers: OffersInterface
-  payments: PaymentsInterface
+  invoices: InvoicesInterface
   utxos: UtxosInterface
   channels: ChannelsInterface
   transactions: TransactionsInterface
@@ -95,12 +96,14 @@ class CoreLightning implements CorelnConnectionInterface {
 
     this.node = new Node(this)
     this.offers = new Offers(this)
-    this.payments = new Payments(this)
+    this.invoices = new Invoices(this)
     this.utxos = new Utxos(this)
     this.channels = new Channels(this)
     this.transactions = new Transactions(this)
     this.blocks = new Blocks(this)
   }
+  payments: InvoicesInterface
+  forwards: ForwardsInterface
 
   updateToken(token: string): void {
     this.rune = token

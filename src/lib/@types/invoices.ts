@@ -1,6 +1,6 @@
 import type { DecodedBolt12Invoice, DecodedBolt12Offer } from '$lib/connections/coreln/types.js'
 
-export type Payment = {
+export type Invoice = {
   id: string
   status: PaymentStatus
   direction: PaymentDirection
@@ -13,7 +13,7 @@ export type Payment = {
   hash: string
   nodeId: string
   /** BOLT11 | BOLT12 */
-  invoice?: string
+  request?: string
   description?: string
   preimage?: string
   destination?: string
@@ -29,7 +29,7 @@ export type Payment = {
 
 export type SendPaymentOptions = {
   id: string
-  invoice: string
+  request: string
   amount?: string
   maxFeePercent?: string
   retryFor?: number
@@ -53,7 +53,7 @@ export type CreateInvoiceOptions = {
 }
 
 export type PayInvoiceOptions = {
-  invoice: string
+  request: string
   id: string
   amount?: string
   /** required if the invoice contains a description hash

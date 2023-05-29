@@ -12,7 +12,9 @@
 <main
   class="w-screen h-screen flex flex-col text-neutral-900 dark:text-neutral-50 dark:bg-neutral-900 bg-neutral-50 relative overflow-hidden"
 >
-  <Background />
+  {#if $page.url.pathname === '/'}
+    <Background />
+  {/if}
   <div class="absolute top-0 left-0 w-full h-full p-2">
     <slot />
   </div>
