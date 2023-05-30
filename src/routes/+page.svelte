@@ -1,15 +1,12 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations.js'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import arrow from '$lib/icons/arrow.js'
   import channels from '$lib/icons/channels.js'
   import contacts from '$lib/icons/contacts.js'
   import feeOutline from '$lib/icons/fee-outline.js'
   import keys from '$lib/icons/keys.js'
   import lightningOutline from '$lib/icons/lightning-outline.js'
-  import lightning from '$lib/icons/lightning.js'
   import list from '$lib/icons/list.js'
-  import qr from '$lib/icons/qr.js'
   import receive from '$lib/icons/receive.js'
   import scan from '$lib/icons/scan.js'
   import send from '$lib/icons/send.js'
@@ -32,25 +29,27 @@
     { key: 'contacts', icon: contacts, styles: '' }
   ]
 
-  let screenWidth: number
-
-  // minimum of 125px and maximum of 200px
-  $: buttonWidth = Math.max(125, Math.min(200, Math.round(screenWidth / 10)))
+  let innerHeight: number
 </script>
 
-<svelte:window bind:innerWidth={screenWidth} />
+<svelte:window bind:innerHeight />
 
-<div class="flex flex-col justify-center items-center w-full h-full p-2">
-  <div class=" w-1/4 max-w-[225px] min-w-[175px] mb-6">
-    <ClamsLogo />
-  </div>
-
-  <div class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl">
+<div
+  class="flex flex-col justify-center items-center w-full h-full overflow-hidden p-2 bg-blend-overlay"
+>
+  {#if innerHeight && innerHeight > 700}
+    <div class="w-1/4 max-w-[225px] min-w-[175px] mb-6">
+      <ClamsLogo />
+    </div>
+  {/if}
+  <div
+    class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
+  >
     {#each buttons as { key, icon, styles } (key)}
       {@const route = `/${key}`}
       <a
         href={route}
-        class="aspect-square border rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/40 hover:bg-neutral-100 transition-all"
+        class="aspect-square border border-neutral-800/70 dark:border-neutral-200/70 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/70 hover:bg-neutral-100/70 transition-all"
       >
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}

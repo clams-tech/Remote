@@ -16,26 +16,30 @@
     level: number
     colors: string[]
     c: number
+    g: number
   }
 
   const waves: Wave[] = []
-  const wavesCustomisations: { level: number; colors: string[] }[] = [
-    { level: 12, colors: ['#5600ea', '#9a67f6'] },
-    { level: 10, colors: ['#6305f0', '#9a67f6'] }
+
+  const wavesCustomisations: { level: number; colors: string[]; g: number }[] = [
+    { level: 5, colors: ['#4000e2', '#6305f0'], g: 100 },
+    { level: 1, colors: ['#6305f0', '#5600ea'], g: 200 }
   ]
 
-  //function to start or restart the animation
+  // Function to start or restart the animation
   function init(wave: number): void {
-    canvas[wave].width = innerWidth
-    canvas[wave].height = innerHeight
+    const canvasElement = canvas[wave]
+    canvasElement.width = innerWidth
+    canvasElement.height = innerHeight
 
     waves[wave] = {
-      ctx: canvas[wave].getContext('2d') as CanvasRenderingContext2D,
+      ctx: canvasElement.getContext('2d') as CanvasRenderingContext2D,
       w: innerWidth,
       h: innerHeight,
       c: 0,
       level: wavesCustomisations[wave].level,
       colors: wavesCustomisations[wave].colors,
+      g: wavesCustomisations[wave].g,
       particles: [],
       animationId: 0
     }
@@ -49,48 +53,42 @@
     waves[wave].animationId = window.requestAnimationFrame(() => draw(wave))
   }
 
-  //function that draws into the canvas in a loop
+  // Function that draws into the canvas in a loop
   function draw(wave: number): void {
-    waves[wave].ctx.clearRect(0, 0, waves[wave].w, waves[wave].h)
-    const gradient = waves[wave].ctx.createLinearGradient(0, 400, 3000, 2000)
-    console.log(waves[wave].colors[0], waves[wave].colors[1])
+    const ctx = waves[wave].ctx
+    ctx.clearRect(0, 0, waves[wave].w, waves[wave].h)
+    const gradient = ctx.createLinearGradient(0, 0, 50, waves[wave].g)
     gradient.addColorStop(0, waves[wave].colors[0])
     gradient.addColorStop(1, waves[wave].colors[1])
-    waves[wave].ctx.fillStyle = gradient
-    waves[wave].ctx.strokeStyle = waves[wave].colors[0]
+    ctx.fillStyle = gradient
+    ctx.strokeStyle = waves[wave].colors[0]
 
-    //draw the liquid
-    waves[wave].ctx.beginPath()
-    waves[wave].ctx.moveTo(
-      waves[wave].w,
-      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
-    )
-    waves[wave].ctx.lineTo(waves[wave].w, waves[wave].h)
-    waves[wave].ctx.lineTo(0, waves[wave].h)
-    waves[wave].ctx.lineTo(
-      0,
-      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
-    )
+    // Draw the liquid
+    ctx.beginPath()
+    ctx.moveTo(0, ((waves[wave].h - 100) * waves[wave].level) / 100 + 50) // Move to the top-left corner
 
     const temp: number = 50 * Math.sin((waves[wave].c * 1 + wave * 40) / 50)
 
-    waves[wave].ctx.bezierCurveTo(
+    ctx.bezierCurveTo(
       waves[wave].w / 3,
-      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50 - temp,
+      ((waves[wave].h - 100) * waves[wave].level) / 100 + 50 + temp,
       (2 * waves[wave].w) / 3,
-      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50 + temp,
+      ((waves[wave].h - 100) * waves[wave].level) / 100 + 50 - temp,
       waves[wave].w,
-      waves[wave].h - ((waves[wave].h - 100) * waves[wave].level) / 100 - 50
+      ((waves[wave].h - 100) * waves[wave].level) / 100 + 50
     )
 
-    waves[wave].ctx.fill()
+    ctx.lineTo(waves[wave].w, 0) // Line to the top-right corner
+    ctx.lineTo(0, 0) // Line back to the top-left corner
+
+    ctx.fill()
 
     update(wave)
     waves[wave].animationId = window.requestAnimationFrame(() => draw(wave))
   }
 
   function update(wave: number): void {
-    waves[wave].c++
+    waves[wave].c = waves[wave].c + 0.4
     if (100 * Math.PI <= waves[wave].c) waves[wave].c = 0
     for (let i = 0; i < 40; i++) {
       waves[wave].particles[i].x = waves[wave].particles[i].x + Math.random() * 2 - 1
