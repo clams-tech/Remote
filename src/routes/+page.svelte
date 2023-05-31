@@ -34,22 +34,22 @@
 
 <svelte:window bind:innerHeight />
 
-<div
-  class="flex flex-col justify-center items-center w-full h-full overflow-hidden p-2 bg-blend-overlay"
->
+<div class="flex flex-col justify-center items-center overflow-hidden p-2 md:p-4 w-full max-w-2xl">
   {#if innerHeight && innerHeight > 700}
-    <div class="w-1/4 max-w-[225px] min-w-[175px] mb-6">
+    <div
+      class="w-1/4 max-w-[225px] min-w-[175px] pb-5 pt-4 pl-4 pr-4 mb-6 rounded-full flex items-center justify-center bg-neutral-50"
+    >
       <ClamsLogo />
     </div>
   {/if}
   <div
-    class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
+    class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto "
   >
     {#each buttons as { key, icon, styles } (key)}
       {@const route = `/${key}`}
       <a
         href={route}
-        class="aspect-square border border-neutral-800/70 dark:border-neutral-200/70 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
+        class="aspect-square border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
       >
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}

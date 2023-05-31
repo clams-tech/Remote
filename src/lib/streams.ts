@@ -1,5 +1,8 @@
 import { BehaviorSubject, defer, Subject, take } from 'rxjs'
 import { onDestroy } from 'svelte'
+import type { Session } from './@types/session.js'
+
+export const session$ = new BehaviorSubject<Session | null>(null)
 
 // when svelte component is destroyed
 export const onDestroy$ = defer(() => {

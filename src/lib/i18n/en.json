@@ -22,7 +22,9 @@
     "/settings/unit": "Unit Settings",
     "/settings/logs": "Debug Logs",
     "/lnurl": "LNURL",
-    "/offer": "Offer"
+    "/offer": "Offer",
+    "/welcome": "Welcome",
+    "/decrypt": "Decrypt"
   },
   "inputs": {
     "destination": {
