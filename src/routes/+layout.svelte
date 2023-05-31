@@ -4,7 +4,6 @@
   import { translate } from '$lib/i18n/translations.js'
   import Background from '$lib/components/background.svelte'
   import clamsIcon from '$lib/icons/clamsIcon.js'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import Background_2 from '$lib/components/background-2.svelte'
 
   let innerHeight: number
