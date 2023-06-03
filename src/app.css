@@ -6,6 +6,10 @@ input {
   @apply rounded;
 }
 
+* {
+  @apply box-border;
+}
+
 html {
   font-family: Helvetica;
   height: -webkit-fill-available;

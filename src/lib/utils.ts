@@ -1,8 +1,11 @@
-import type { DecodedInvoice, FormattedDecodedBolt11 } from './@types/invoices.js'
+import AES from 'crypto-js/aes'
+import encUtf8 from 'crypto-js/enc-utf8'
+import type { DecodedInvoice, FormattedDecodedBolt11, Invoice } from './@types/invoices.js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import { log$ } from './streams.js'
 import type { Offer } from './@types/offers.js'
-import { BitcoinDenomination, FiatDenomination } from './@types/settings.js'
+import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
+import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 
 import type {
   DecodedBolt12Invoice,
@@ -10,6 +13,10 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
+import { BehaviorSubject } from 'rxjs'
+import Big from 'big.js'
+import { formatDistanceToNowStrict, formatRelative } from 'date-fns'
+import { UAParser } from 'ua-parser-js'
 
 /**Will strip the msat suffix from msat values if there */
 export function formatMsat(val: string | number): string {
@@ -153,3 +160,218 @@ export class Particle {
     this.d = Math.random() * 5 + 5
   }
 }
+
+export function showHomeButton(path: string): boolean {
+  switch (path) {
+    case '/decrypt':
+    case '/welcome':
+      return false
+    default:
+      return true
+  }
+}
+
+export const encryptWithAES = (text: string, passphrase: string) => {
+  return AES.encrypt(text, passphrase).toString()
+}
+
+export const decryptWithAES = (ciphertext: string, passphrase: string) => {
+  const bytes = AES.decrypt(ciphertext, passphrase)
+  const originalText = bytes.toString(encUtf8)
+  return originalText
+}
+
+export function createRandomHex(length = 32) {
+  return bytesToHex(randomBytes(length))
+}
+
+// Makes a BehaviourSubject compatible with Svelte stores
+export class SvelteSubject<T> extends BehaviorSubject<T> {
+  set: BehaviorSubject<T>['next']
+  constructor(initialState: T) {
+    super(initialState)
+    this.set = super.next
+  }
+}
+
+export function truncateValue(val: string, length = 9): string {
+  return val.length <= length ? val : `${val.slice(0, length)}...${val.slice(-length)}`
+}
+
+export function supportsNotifications(): boolean {
+  return 'Notification' in window
+}
+
+export function notificationsPermissionsGranted(): boolean {
+  return Notification.permission === 'granted'
+}
+
+export function formatValueForDisplay({
+  value,
+  denomination,
+  commas = false,
+  input = false
+}: {
+  value: string | null
+  denomination: Denomination
+  commas?: boolean
+  input?: boolean
+}): string {
+  if (!value) return ''
+  if (value === 'any') return '0'
+
+  switch (denomination) {
+    case 'btc': {
+      const formatted = value === '0' ? value : Big(value).round(8).toString()
+      return commas ? formatWithCommas(formatted) : formatted
+    }
+
+    case 'sats':
+    case 'msats': {
+      const formatted = Big(value).toString()
+      return commas ? formatWithCommas(formatted) : formatted
+    }
+
+    // fiat
+    default: {
+      let formatted
+
+      // if live input don't round or format just yet
+      if (input) {
+        formatted = value
+      } else if (String(value).includes('.')) {
+        const rounded = Big(value).round(2).toString()
+        const decimalIndex = rounded.indexOf('.')
+        formatted =
+          decimalIndex >= 1 && decimalIndex === rounded.length - 2 ? `${rounded}0` : rounded
+      } else {
+        formatted = value
+      }
+
+      return commas ? formatWithCommas(formatted) : formatted
+    }
+  }
+}
+
+export function isFiatDenomination(denomination: Denomination): boolean {
+  switch (denomination) {
+    case 'btc':
+    case 'sats':
+    case 'msats':
+      return false
+    default:
+      return true
+  }
+}
+
+export function formatWithCommas(val: string, commasAfterDecimal?: boolean) {
+  if (commasAfterDecimal) {
+    return val.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  }
+
+  const parts = val.split('.')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+  return parts.join('.')
+}
+
+export async function getClipboardPermissions(): Promise<boolean> {
+  try {
+    const name = 'clipboard-read' as PermissionName
+    const { state } = await navigator.permissions.query({ name })
+
+    return state === 'granted'
+  } catch (error) {
+    return false
+  }
+}
+
+export async function readClipboardValue(): Promise<string | null> {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    return clipboardText || null
+  } catch (error) {
+    return null
+  }
+}
+
+/**
+ *
+ * @returns boolean indicating if write was successful
+ */
+export async function writeClipboardValue(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+// Svelte action to use when wanting to do something when there is a click outside of element
+export function clickOutside(element: HTMLElement, callbackFunction: () => void) {
+  function onClick(event: MouseEvent) {
+    if (!element.contains(event.target as HTMLElement)) {
+      callbackFunction()
+    }
+  }
+
+  document.body.addEventListener('click', onClick)
+
+  return {
+    update(newCallbackFunction: () => void) {
+      callbackFunction = newCallbackFunction
+    },
+    destroy() {
+      document.body.removeEventListener('click', onClick)
+    }
+  }
+}
+
+// https://github.com/date-fns/date-fns/blob/9bb51691f201c3ec05ab832acbc5d478f2e5c47a/docs/i18nLocales.md
+const locales: Record<string, () => Promise<Locale>> = {
+  'en-GB': () => import('date-fns/esm/locale/en-GB/index.js').then((mod) => mod.default), // British English
+  'en-US': () => import('date-fns/esm/locale/en-US/index.js').then((mod) => mod.default), // American English
+  'zh-CN': () => import('date-fns/esm/locale/zh-CN/index.js').then((mod) => mod.default), // Chinese (mainland)
+  es: () => import('date-fns/esm/locale/es/index.js').then((mod) => mod.default), // Spanish
+  hi: () => import('date-fns/esm/locale/hi/index.js').then((mod) => mod.default), // Hindi
+  ar: () => import('date-fns/esm/locale/ar/index.js').then((mod) => mod.default), // Arabic
+  bn: () => import('date-fns/esm/locale/bn/index.js').then((mod) => mod.default), // Bengali
+  fr: () => import('date-fns/esm/locale/fr/index.js').then((mod) => mod.default), // French
+  pt: () => import('date-fns/esm/locale/pt/index.js').then((mod) => mod.default), // Portuguese
+  ru: () => import('date-fns/esm/locale/ru/index.js').then((mod) => mod.default), // Russian
+  ja: () => import('date-fns/esm/locale/ja/index.js').then((mod) => mod.default), // Japanese
+  id: () => import('date-fns/esm/locale/id/index.js').then((mod) => mod.default), // Indonesian
+  de: () => import('date-fns/esm/locale/de/index.js').then((mod) => mod.default), // German
+  te: () => import('date-fns/esm/locale/te/index.js').then((mod) => mod.default), // Telugu
+  tr: () => import('date-fns/esm/locale/tr/index.js').then((mod) => mod.default), // Turkish
+  ta: () => import('date-fns/esm/locale/ta/index.js').then((mod) => mod.default), // Tamil
+  ko: () => import('date-fns/esm/locale/ko/index.js').then((mod) => mod.default) // Korean
+}
+
+export async function formatDate(options: { date: string; language: string }): Promise<string> {
+  const { date, language } = options
+  const locale = await (locales[language] || locales['en-GB'])()
+
+  return formatRelative(new Date(date), new Date(), { locale })
+}
+
+export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {
+  const { date, language } = options
+
+  const locale = await (locales[language] || locales['en-GB'])()
+
+  return formatDistanceToNowStrict(date, { locale, addSuffix: true })
+}
+
+export function formatDestination(destination: string, type: Invoice['type']): string {
+  switch (type) {
+    case 'bolt11':
+    case 'keysend':
+      return truncateValue(destination)
+    default:
+      return destination
+  }
+}
+
+export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.userAgent) : null

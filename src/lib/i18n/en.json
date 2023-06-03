@@ -1,30 +1,88 @@
 {
-  "titles": {
-    "/": "Home",
-    "/send": "Send",
-    "/receive": "Receive",
-    "/scan": "Scan",
-    "/offers": "Offers",
-    "/payments": "Payments",
-    "/balances": "Balances",
-    "/accounting": "Accounting",
-    "/settings": "Settings",
-    "/connections": "Connections",
-    "/contacts": "Contacts",
-    "/channels": "Channels",
-    "/imports": "Imports",
-    "/payment": "Invoice",
-    "/settings/app": "App Settings",
-    "/settings/help": "Help",
-    "/settings/currency": "Currency Settings",
-    "/settings/connection": "Connection Settings",
-    "/settings/language": "Language Settings",
-    "/settings/unit": "Unit Settings",
-    "/settings/logs": "Debug Logs",
-    "/lnurl": "LNURL",
-    "/offer": "Offer",
-    "/welcome": "Welcome",
-    "/decrypt": "Decrypt"
+  "routes": {
+    "/": {
+      "title": "Home"
+    },
+    "/send": {
+      "title": "Send"
+    },
+    "/receive": {
+      "title": "Receive"
+    },
+    "/scan": {
+      "title": "Scan"
+    },
+    "/offers": {
+      "title": "Offers"
+    },
+    "/payments": {
+      "title": "Payments"
+    },
+    "/balances": {
+      "title": "Balances"
+    },
+    "/accounting": {
+      "title": "Accounting"
+    },
+    "/settings": {
+      "title": "Settings"
+    },
+    "/connections": {
+      "title": "Connections"
+    },
+    "/contacts": {
+      "title": "Contacts"
+    },
+    "/channels": {
+      "title": "Channels"
+    },
+    "/imports": {
+      "title": "Imports"
+    },
+    "/payment": {
+      "title": "Invoice"
+    },
+
+    "/settings/app": {
+      "title": "App Settings"
+    },
+    "/settings/help": {
+      "title": "Help"
+    },
+    "/settings/currency": {
+      "title": "Currency Settings"
+    },
+    "/settings/connection": {
+      "title": "Connection Settings"
+    },
+    "/settings/language": {
+      "title": "Language Settings"
+    },
+    "/settings/unit": {
+      "title": "Unit Settings"
+    },
+    "/settings/logs": {
+      "title": "Debug Logs"
+    },
+    "/lnurl": {
+      "title": "LNURL"
+    },
+    "/offer": {
+      "title": "Offer"
+    },
+    "/welcome": {
+      "title": "Welcome",
+      "subheading": "<b>Welcome</b> to <b class='text-purple-500'>Clams</b>, your unified <b class='text-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your sensitive data. We suggest generating and saving a strong passphrase with a password manager.",
+      "passphrase": {
+        "label": "Passphrase",
+        "weak": "weak 😬",
+        "medium": "medium 🤞",
+        "strong": "strong 💪"
+      }
+    },
+    "/decrypt": {
+      "title": "Decrypt"
+    }
   },
   "inputs": {
     "destination": {

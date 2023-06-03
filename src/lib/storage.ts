@@ -16,6 +16,16 @@ export const getDataFromStorage = (storageKey: string): string | null => {
   }
 }
 
+export const writeDataToStorage = (storageKey: string, data: string): boolean => {
+  try {
+    if (typeof window === 'undefined') return false
+    window.localStorage.setItem(storageKey, data)
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 export const getSession = (): Session | null => {
   const result = getDataFromStorage(storageKeys.session)
   return result && JSON.parse(result)
