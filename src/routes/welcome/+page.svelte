@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import Button from '$lib/elements/Button.svelte'
+  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { storageKeys, writeDataToStorage } from '$lib/storage.js'
+  import { session$ } from '$lib/streams.js'
   import { createRandomHex, encryptWithAES } from '$lib/utils.js'
   import { fade } from 'svelte/transition'
 
@@ -12,6 +15,7 @@
 
   let passphrase: string
   let score: number
+  let errorMsg: string
 
   const hasUppercase = /[A-Z]+/
   const hasLowerCase = /[a-z]+/
@@ -44,17 +48,21 @@
     score = 0
   }
 
-  function encryptAndStoreSecret() {
+  async function encryptAndStoreSecret() {
     const encrypted = encryptWithAES(secret, passphrase)
     const json = JSON.stringify({ secret: encrypted })
     const success = writeDataToStorage(storageKeys.session, json)
 
     if (!success) {
-      // @TODO notification here
+      errorMsg = $translate('app.errors.storage_access')
+
       return
     }
 
-    // @TODO route to home
+    const session = { secret }
+    session$.next(session)
+
+    await goto('/')
   }
 </script>
 
@@ -89,12 +97,19 @@
         name="passphrase"
         type="password"
         bind:value={passphrase}
-        label={$translate(`${translationBase}.passphrase.label`)}
+        label={$translate('app.labels.passphrase')}
       />
     </div>
 
     <div class="mt-4">
-      <Button text="Encrypt" primary disabled={score === 0} />
+      <Button
+        on:click={encryptAndStoreSecret}
+        text={$translate('app.labels.encrypt')}
+        primary
+        disabled={score === 0}
+      />
     </div>
+
+    <ErrorMsg bind:message={errorMsg} />
   </div>
 </section>

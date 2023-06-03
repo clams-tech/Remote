@@ -1,3 +1,12 @@
+import { onDestroy } from 'svelte'
+import type { Invoice } from './@types/invoices.js'
+import type { Session } from './@types/session.js'
+import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
+import type { Notification } from './@types/util.js'
+import { DEFAULT_SETTINGS } from './constants.js'
+import { getDataFromStorage, storageKeys } from './storage.js'
+import { SvelteSubject } from './utils.js'
+
 import {
   BehaviorSubject,
   defer,
@@ -9,15 +18,9 @@ import {
   Subject,
   take
 } from 'rxjs'
-import { onDestroy } from 'svelte'
-import type { Invoice } from './@types/invoices.js'
-import type { Session } from './@types/session.js'
-import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
-import { DEFAULT_SETTINGS } from './constants.js'
-import { getDataFromStorage, storageKeys } from './storage.js'
-import { SvelteSubject } from './utils.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
+export const checkedSession$ = new BehaviorSubject<boolean>(false)
 
 // when svelte component is destroyed
 export const onDestroy$ = defer(() => {

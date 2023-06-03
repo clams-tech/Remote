@@ -34,16 +34,9 @@
 
 <svelte:window bind:innerHeight />
 
-<div class="flex flex-col justify-center items-center overflow-hidden p-2 md:p-4 w-full max-w-2xl">
-  {#if innerHeight && innerHeight > 700}
-    <div
-      class="w-1/4 max-w-[225px] min-w-[175px] pb-5 pt-4 pl-4 pr-4 mb-6 rounded-full flex items-center justify-center bg-neutral-50"
-    >
-      <ClamsLogo />
-    </div>
-  {/if}
+<div class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full">
   <div
-    class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto "
+    class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
   >
     {#each buttons as { key, icon, styles } (key)}
       {@const route = `/${key}`}
@@ -54,7 +47,7 @@
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}
         </div>
-        <div class="text-base font-semi-bold">{$translate(`app.titles.${route}`)}</div>
+        <div class="text-lg font-semi-bold">{$translate(`app.routes.${route}.title`)}</div>
       </a>
     {/each}
   </div>

@@ -4,40 +4,13 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Background from '$lib/components/background.svelte'
-  import { session$ } from '$lib/streams.js'
-  import { browser } from '$app/environment'
-  import { getSession } from '$lib/storage.js'
-  import { goto } from '$app/navigation'
+  import { checkedSession$ } from '$lib/streams.js'
   import { fade } from 'svelte/transition'
-  import { showHomeButton } from '$lib/utils.js'
+  import { routeRequiresSession } from '$lib/utils.js'
+  import { goto } from '$app/navigation'
 
   let innerHeight: number
   let innerWidth: number
-
-  let loaded = false
-
-  // if we have decrypted session in memory, no need to redirect
-  if ($session$) {
-    loaded = true
-  }
-
-  async function checkSession() {
-    const storedSession = getSession()
-
-    if (!storedSession) {
-      // if no stored session, then we start a fresh session
-      await goto('/welcome')
-    } else {
-      // otherwise we need to decrypt the session with a passphrase from the user
-      await goto('/decrypt')
-    }
-
-    loaded = true
-  }
-
-  if (browser && !loaded) {
-    checkSession()
-  }
 </script>
 
 <svelte:head>
@@ -56,13 +29,15 @@
   <header class="flex w-full items-center justify-between">
     <div />
 
-    {#if loaded && showHomeButton($page.url.pathname)}
-      <div class="w-20 p-2">{@html clamsIcon}</div>
+    {#if $checkedSession$ && routeRequiresSession($page.url.pathname)}
+      <button class:pointer={$page.url.pathname !== '/'} on:click={() => goto('/')} class="w-20 p-2"
+        >{@html clamsIcon}</button
+      >
     {/if}
   </header>
 
-  {#if loaded}
-    <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden">
+  {#if $checkedSession$}
+    <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden pb-4">
       <slot />
     </div>
   {/if}

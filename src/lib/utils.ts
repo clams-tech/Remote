@@ -6,6 +6,10 @@ import { log$ } from './streams.js'
 import type { Offer } from './@types/offers.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import { randomBytes, bytesToHex } from '@noble/hashes/utils'
+import { BehaviorSubject } from 'rxjs'
+import Big from 'big.js'
+import { formatDistanceToNowStrict, formatRelative } from 'date-fns'
+import { UAParser } from 'ua-parser-js'
 
 import type {
   DecodedBolt12Invoice,
@@ -13,10 +17,6 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
-import { BehaviorSubject } from 'rxjs'
-import Big from 'big.js'
-import { formatDistanceToNowStrict, formatRelative } from 'date-fns'
-import { UAParser } from 'ua-parser-js'
 
 /**Will strip the msat suffix from msat values if there */
 export function formatMsat(val: string | number): string {
@@ -161,7 +161,7 @@ export class Particle {
   }
 }
 
-export function showHomeButton(path: string): boolean {
+export function routeRequiresSession(path: string): boolean {
   switch (path) {
     case '/decrypt':
     case '/welcome':

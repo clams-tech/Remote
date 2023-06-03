@@ -72,16 +72,16 @@
     },
     "/welcome": {
       "title": "Welcome",
-      "subheading": "<b>Welcome</b> to <b class='text-purple-500'>Clams</b>, your unified <b class='text-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your sensitive data. We suggest generating and saving a strong passphrase with a password manager.",
+      "subheading": "<b>Welcome</b> to <b class='text-purple-500'>Clams</b>, your unified <b class='text-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
       "passphrase": {
-        "label": "Passphrase",
         "weak": "weak 😬",
         "medium": "medium 🤞",
         "strong": "strong 💪"
       }
     },
     "/decrypt": {
-      "title": "Decrypt"
+      "title": "Decrypt",
+      "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='text-purple-500'>Clams</b> session, please enter your passphrase."
     }
   },
   "inputs": {
@@ -108,6 +108,7 @@
     }
   },
   "labels": {
+    "passphrase": "Passphrase",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",
@@ -127,7 +128,8 @@
     "amount": "Amount",
     "help_and_support": "Help & Support",
     "dark_mode": "Dark Mode",
-    "encrypt": "Encrypt Data",
+    "encrypt": "Encrypt",
+    "decrypt": "Decrypt",
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
@@ -223,6 +225,7 @@
     "connection_offer_timeout": "Timed out waiting for a response from the node making the offer.",
     "connection_sign_message_unknown": "Could not sign message.",
     "connection_transaction_not_found": "Could not find transaction hash.",
+    "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
     "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
