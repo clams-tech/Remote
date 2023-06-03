@@ -1,6 +1,6 @@
 <script lang="ts">
+  import Msg from '$lib/elements/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import channels from '$lib/icons/channels.js'
   import contacts from '$lib/icons/contacts.js'
   import feeOutline from '$lib/icons/fee-outline.js'
@@ -13,6 +13,7 @@
   import settingsOutline from '$lib/icons/settings-outline.js'
   import share from '$lib/icons/share.js'
   import wallet from '$lib/icons/wallet.js'
+  import { STORAGE_KEYS, getDataFromStorage, writeDataToStorage } from '$lib/storage.js'
 
   const buttons = [
     { key: 'send', icon: send, styles: '' },
@@ -29,10 +30,12 @@
     { key: 'contacts', icon: contacts, styles: '' }
   ]
 
-  let innerHeight: number
-</script>
+  const showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint)
 
-<svelte:window bind:innerHeight />
+  function handleCloseHint() {
+    writeDataToStorage(STORAGE_KEYS.getStartedHint, 'true')
+  }
+</script>
 
 <div class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full">
   <div
@@ -47,8 +50,19 @@
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}
         </div>
+
         <div class="text-lg font-semi-bold">{$translate(`app.routes.${route}.title`)}</div>
       </a>
     {/each}
   </div>
+
+  {#if showGetStartedHint}
+    <div class="max-w-xl 2xl:max-w-2xl bg-neutral-50/90 rounded-lg mt-6">
+      <Msg
+        on:close={handleCloseHint}
+        message={$translate('app.routes./.get_started_hint')}
+        type="info"
+      />
+    </div>
+  {/if}
 </div>

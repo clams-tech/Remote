@@ -4,7 +4,7 @@ import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
 import type { Notification } from './@types/util.js'
 import { DEFAULT_SETTINGS } from './constants.js'
-import { getDataFromStorage, storageKeys } from './storage.js'
+import { getDataFromStorage, STORAGE_KEYS } from './storage.js'
 import { SvelteSubject } from './utils.js'
 
 import {
@@ -43,7 +43,7 @@ export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | 
 // all payment update events
 export const paymentUpdates$ = new Subject<Invoice>()
 
-const storedSettings = getDataFromStorage(storageKeys.settings)
+const storedSettings = getDataFromStorage(STORAGE_KEYS.settings)
 
 // app settings
 export const settings$ = new SvelteSubject<Settings>({

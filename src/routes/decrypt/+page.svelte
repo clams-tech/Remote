@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'
   import type { Session } from '$lib/@types/session.js'
   import Button from '$lib/elements/Button.svelte'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import Msg from '$lib/elements/Msg.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
@@ -81,6 +81,8 @@
       />
     </div>
 
-    <ErrorMsg bind:message={errorMsg} />
+    <div class="mt-6">
+      <Msg bind:message={errorMsg} type="error" />
+    </div>
   </div>
 </section>

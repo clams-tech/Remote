@@ -1,11 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import Button from '$lib/elements/Button.svelte'
-  import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import Msg from '$lib/elements/Msg.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import { storageKeys, writeDataToStorage } from '$lib/storage.js'
+  import { STORAGE_KEYS, writeDataToStorage } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
   import { createRandomHex, encryptWithAES } from '$lib/utils.js'
   import { fade } from 'svelte/transition'
@@ -51,7 +51,7 @@
   async function encryptAndStoreSecret() {
     const encrypted = encryptWithAES(secret, passphrase)
     const json = JSON.stringify({ secret: encrypted })
-    const success = writeDataToStorage(storageKeys.session, json)
+    const success = writeDataToStorage(STORAGE_KEYS.session, json)
 
     if (!success) {
       errorMsg = $translate('app.errors.storage_access')
@@ -110,6 +110,8 @@
       />
     </div>
 
-    <ErrorMsg bind:message={errorMsg} />
+    <div class="mt-6">
+      <Msg bind:message={errorMsg} type="error" />
+    </div>
   </div>
 </section>

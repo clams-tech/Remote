@@ -2,9 +2,10 @@ import type { Session } from './@types/session.js'
 
 const STORAGE_VERSION = 1
 
-export const storageKeys = {
+export const STORAGE_KEYS = {
   session: `clams:session:${STORAGE_VERSION}`,
-  settings: `clams:settings:${STORAGE_VERSION}`
+  settings: `clams:settings:${STORAGE_VERSION}`,
+  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
 }
 
 export const getDataFromStorage = (storageKey: string): string | null => {
@@ -27,6 +28,6 @@ export const writeDataToStorage = (storageKey: string, data: string): boolean =>
 }
 
 export const getSession = (): Session | null => {
-  const result = getDataFromStorage(storageKeys.session)
+  const result = getDataFromStorage(STORAGE_KEYS.session)
   return result && JSON.parse(result)
 }

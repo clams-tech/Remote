@@ -1,7 +1,8 @@
 {
   "routes": {
     "/": {
-      "title": "Home"
+      "title": "Home",
+      "get_started_hint": "To get started, add a new <b class='text-bitcoin-orange'>Bitcoin</b> <a href='/connections'>connection</a>."
     },
     "/send": {
       "title": "Send"
