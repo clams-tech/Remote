@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { db } from '$lib/db.js'
   import Msg from '$lib/elements/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
@@ -14,6 +15,9 @@
   import share from '$lib/icons/share.js'
   import wallet from '$lib/icons/wallet.js'
   import { STORAGE_KEYS, getDataFromStorage, writeDataToStorage } from '$lib/storage.js'
+  import { liveQuery } from 'dexie'
+  import { pipe } from 'rxjs'
+  import { fade } from 'svelte/transition'
 
   const buttons = [
     { key: 'send', icon: send, styles: '' },
@@ -30,14 +34,20 @@
     { key: 'contacts', icon: contacts, styles: '' }
   ]
 
-  const showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint)
+  const connections$ = liveQuery(() => db.connections.toArray())
+
+  $: showGetStartedHint =
+    !getDataFromStorage(STORAGE_KEYS.getStartedHint) && $connections$ && !$connections$.length
 
   function handleCloseHint() {
     writeDataToStorage(STORAGE_KEYS.getStartedHint, 'true')
   }
 </script>
 
-<div class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full">
+<div
+  in:fade|local={{ duration: 250 }}
+  class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full"
+>
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
   >

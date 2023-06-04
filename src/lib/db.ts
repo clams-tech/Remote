@@ -12,7 +12,7 @@ export class DB extends Dexie {
   connections!: Table<ConnectionInfo>
   nodes!: Table<Node>
   offers!: Table<Offer>
-  payments!: Table<Invoice>
+  invoices!: Table<Invoice>
   transactions!: Table<Transaction>
   utxos!: Table<Utxo>
 
@@ -23,20 +23,11 @@ export class DB extends Dexie {
       connections: 'id, type',
       nodes: 'id, alias, connectionId',
       offers: 'id, nodeId',
-      payments: 'id, nodeId, offerId, value, fee, payIndex',
+      invoices: 'id, nodeId, offerId, value, fee, payIndex',
       transactions: 'hash, nodeId',
       utxos: 'txid, nodeId'
     })
   }
-}
-
-export async function getLastPaymentIndex(): Promise<Invoice['payIndex'] | undefined> {
-  const [payment] = await db.payments.orderBy('payIndex').reverse().limit(1).toArray()
-  return payment?.payIndex
-}
-
-export async function updatePayment(update: Invoice): Promise<void> {
-  return db.payments.put(update)
 }
 
 export const db = new DB()

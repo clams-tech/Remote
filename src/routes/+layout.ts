@@ -6,6 +6,11 @@ import { goto } from '$app/navigation'
 import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
 
+// delayed boolean set
+function setCheckedSession() {
+  setTimeout(() => checkedSession$.next(true), 10)
+}
+
 export const load: LayoutLoad = async ({ url }) => {
   /** LOAD TRANSLATIONS */
   const defaultLocale = 'en'
@@ -22,24 +27,24 @@ export const load: LayoutLoad = async ({ url }) => {
       if (!storedSession) {
         // if no stored session, then we welcome to create a new session
         if (pathname !== '/welcome') {
-          goto('/welcome').then(() => checkedSession$.next(true))
+          goto('/welcome').then(setCheckedSession)
         } else {
-          checkedSession$.next(true)
+          setCheckedSession()
         }
       } else {
         // otherwise we need to decrypt the session with a passphrase from the user
         if (pathname !== '/decrypt') {
-          goto('/decrypt').then(() => checkedSession$.next(true))
+          goto('/decrypt').then(setCheckedSession)
         } else {
-          checkedSession$.next(true)
+          setCheckedSession()
         }
       }
     } else if (!routeRequiresSession(pathname)) {
       // we have a session in memory but they are trying to view a non protected route like welcome
       // so redirect to home
-      goto('/').then(() => checkedSession$.next(true))
+      goto('/').then(setCheckedSession)
     } else {
-      checkedSession$.next(true)
+      setCheckedSession()
     }
   }
 }

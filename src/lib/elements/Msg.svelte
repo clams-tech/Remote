@@ -1,7 +1,7 @@
 <script lang="ts">
   import warning from '$lib/icons/warning'
   import close from '$lib/icons/close'
-  import { slide } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
   import info from '$lib/icons/info.js'
   import { createEventDispatcher } from 'svelte'
 
@@ -51,27 +51,30 @@
 </script>
 
 {#if message}
-  <div
-    transition:slide|local={{ duration: 250 }}
-    class="pl-6 pr-8 w-full py-4 rounded-lg border flex justify-center items-start relative overflow-hidden transition-all {msgValue
-      .colors.main}"
-  >
-    {#if closable}
-      <button
-        on:click={handleClose}
-        class="absolute top-0 right-0 w-7 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
-      >
-        {@html close}
-      </button>
-    {/if}
+  <div in:fade={{ duration: 250, delay: 150 }} out:fade={{ duration: 250 }}>
+    <div
+      in:slide|local={{ duration: 250 }}
+      out:slide|local={{ duration: 250, delay: 150 }}
+      class="pl-6 pr-8 w-full py-4 rounded-lg border flex justify-center items-start relative overflow-hidden transition-all {msgValue
+        .colors.main}"
+    >
+      {#if closable}
+        <button
+          on:click={handleClose}
+          class="absolute top-0 right-0 w-7 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
+        >
+          {@html close}
+        </button>
+      {/if}
 
-    <div class="w-6 flex-shrink-0 mr-4 {msgValue.colors.icon}">
-      {@html msgValue.icon}
+      <div class="w-6 flex-shrink-0 mr-4 {msgValue.colors.icon}">
+        {@html msgValue.icon}
+      </div>
+
+      <span>
+        <!-- text-bitcoin-orange -->
+        {@html message}
+      </span>
     </div>
-
-    <span>
-      <!-- text-bitcoin-orange -->
-      {@html message}
-    </span>
   </div>
 {/if}

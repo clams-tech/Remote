@@ -21,6 +21,10 @@ body {
   min-height: -webkit-fill-available;
 }
 
+a {
+  @apply underline;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 div::-webkit-scrollbar,
 section::-webkit-scrollbar {
