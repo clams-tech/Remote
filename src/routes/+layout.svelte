@@ -9,6 +9,12 @@
   import { routeRequiresSession } from '$lib/utils.js'
   import { goto } from '$app/navigation'
   import { db } from '$lib/db.js'
+  import { browser } from '$app/environment'
+  import { registerSideEffects } from '$lib/side-effects.js'
+
+  if (browser) {
+    registerSideEffects()
+  }
 
   $: if ($session$) {
     initialize()
