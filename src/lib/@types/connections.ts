@@ -4,7 +4,14 @@ export type ConnectionInfo =
   | XPubConnectionInfo
   | MultiSigConnectionInfo
 
-export type ConnectionInfoType = 'coreln' | 'lnd' | 'xpub' | 'multisig' | 'webln' | 'lnbits'
+export type ConnectionInfoType =
+  | 'coreln'
+  | 'lnd'
+  | 'xpub'
+  | 'multisig'
+  | 'webln'
+  | 'electrum'
+  | 'nostr-wallet-connect'
 
 export type ConnectionInfoBase = {
   /** randomly generated id */
@@ -15,6 +22,7 @@ export type ConnectionInfoBase = {
 }
 
 export type CoreLnConnectionInfo = ConnectionInfoBase & {
+  /** data is encrypted with session secret */
   data: {
     /** the node public key */
     publicKey: string
@@ -35,6 +43,7 @@ export type CoreLnConnectionInfo = ConnectionInfoBase & {
 export type LndConnectionInfo = ConnectionInfoBase
 
 export type XPubConnectionInfo = ConnectionInfoBase & {
+  /** data is encrypted with session secret */
   data: {
     xpub: string
     /** the derivation path to use to derive public keys */
@@ -43,8 +52,16 @@ export type XPubConnectionInfo = ConnectionInfoBase & {
 }
 
 export type MultiSigConnectionInfo = ConnectionInfoBase & {
+  /** data is encrypted with session secret */
   data: {
     quorum: `${number}of${number}`
     xpubs: Array<XPubConnectionInfo['data']>
+  }
+}
+
+export type ElectrumConnectionInfo = ConnectionInfoBase & {
+  data: {
+    url: string
+    port: number
   }
 }

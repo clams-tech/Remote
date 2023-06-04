@@ -29,6 +29,7 @@ export interface ConnectionInterface {
   connectionStatus$?: BehaviorSubject<
     'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
   >
+  chainData?: ChainDataInterface
   rpc?: RpcCall
   node?: NodeInterface
   offers?: OffersInterface
@@ -128,6 +129,12 @@ export interface BlocksInterface {
   connection: ConnectionInterface
   /** subscribe to increases in block height */
   blockHeight$: Subject<number>
+}
+
+export interface ChainDataInterface {
+  getUtxos(scriptHash: string): Promise<Utxo[]>
+  getTransactions(scriptHash: string): Promise<Transaction[]>
+  subscribeAddress?(scriptHash: string): Subject<Transaction>
 }
 
 export interface ConnectionError {

@@ -1,10 +1,19 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition'
+  import Section from '$lib/components/Section.svelte'
+
+  /**
+   * 1. Screen for when no connections at all
+   *    - Needs to have a brief explanation of what a connection is
+   *    - Links to to the "new connection" page to get started
+   * 2. Screen listing current connections and a button to add a new connection
+   *    - Each connection needs to display all of the necessary info
+   *    - Need to be able to update info (switch rune, connection details etc)
+   *    - Need to see current connection status
+   *    - Need to be able to refresh data for a connection
+   *    - Need to be able to manage connection (disconnect, connect)
+   */
 </script>
 
-<section
-  in:fade|local={{ duration: 250 }}
-  class="flex flex-col justify-center items-center w-full p-8 bg-neutral-50/95 dark:bg-neutral-900/95"
->
+<Section>
   <!-- @TODO -->
-</section>
+</Section>
