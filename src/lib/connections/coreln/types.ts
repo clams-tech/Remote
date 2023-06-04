@@ -818,6 +818,7 @@ type PeerChannel = {
   total_msat: string
   spendable_msat: string
   receivable_msat: string
+  fee_proportional_millionths: number
   in_payments_offered: number // of incoming payment attempts
   in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
   in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
@@ -909,6 +910,24 @@ export type WithdrawResponse = {
   psbt: string
 }
 
+type Forward = {
+  in_channel: string
+  in_htlc_id: number
+  out_channel: string
+  out_htlc_id: number
+  in_msat: number
+  out_msat: number
+  fee_msat: number
+  status: 'settled' | 'offered' | 'failed' | 'local_failed'
+  style: 'tlv' | 'legacy'
+  received_time: number
+  resolved_time: number
+}
+
+export type ListForwardsResponse = {
+  forwards: Forward[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -933,6 +952,7 @@ export type LNResponse =
   | ListTransactionsResponse
   | NewAddrResponse
   | WithdrawResponse
+  | ListForwardsResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 

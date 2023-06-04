@@ -23,24 +23,12 @@ class Channels implements ChannelsInterface {
       // @TODO - Need to check version as listpeers channel info is deprecated as of 23.11
       const versionNumber = convertVersionNumber(this.connection.info.version)
 
-      const [listPeersResult, bkprChannelsResult, bkprBalancesResult] = await Promise.all([
-        this.connection.rpc({ method: 'listpeers' }),
-        this.connection.rpc({ method: 'bkpr-channelsapy' }),
-        this.connection.rpc({ method: 'bkpr-listbalances' })
-      ])
+      const listPeersResult = await this.connection.rpc({ method: 'listpeers' })
 
       const { peers } = listPeersResult as ListPeersResponse
-      const { channels_apy } = bkprChannelsResult as BkprChannelsAPYResponse
-      const { accounts } = bkprBalancesResult as BkprListBalancesResponse
 
       return peers.flatMap(({ id, channels }) => {
         return channels.map((channel) => {
-          const channelAPYMatch = channels_apy.find(
-            (channelAPY) => channelAPY.account === channel.channel_id
-          )
-
-          const balanceMatch = accounts.find((balance) => balance.account === channel.channel_id)
-
           return {
             opener: channel.opener,
             peerId: id,
@@ -57,14 +45,10 @@ class Channels implements ChannelsInterface {
             balanceSendable: formatMsat(channel.spendable_msat),
             balanceReceivable: formatMsat(channel.receivable_msat),
             feeBase: formatMsat(channel.fee_base_msat.toString()),
-            routingFees: channelAPYMatch?.fees_out_msat.toString() || '0',
-            routedOut: (channelAPYMatch?.routed_out_msat as string) || '0',
-            routedIn: (channelAPYMatch?.routed_in_msat as string) || '0',
-            apy: channelAPYMatch?.apy_out ?? null,
+            feePpm: channel.fee_proportional_millionths,
             closeToAddress: channel.close_to_addr ?? null,
-            closer: channel.closer ?? null,
-            resolved: balanceMatch?.account_resolved ?? null,
-            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null,
+            closeToScriptPubkey: channel.close_to ?? null,
+            closer: channel.closer,
             nodeId: this.connection.info.id
           }
         })

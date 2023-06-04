@@ -13,7 +13,8 @@ export type Transaction = {
   }>
   outputs: Array<{
     index: number
-    amount_msat: string
+    amount: string
+    scriptPubKey: string
   }>
   /** the node this onchain tx is associated with */
   nodeId?: string

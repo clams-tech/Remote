@@ -6,6 +6,7 @@ import type { Invoice } from './@types/invoices.js'
 import type { Channel } from './@types/channels.js'
 import type { Utxo } from './@types/utxos.js'
 import type { Transaction } from './@types/transactions.js'
+import type { Forward } from './@types/forwards.js'
 
 export class DB extends Dexie {
   channels!: Table<Channel>
@@ -15,17 +16,20 @@ export class DB extends Dexie {
   invoices!: Table<Invoice>
   transactions!: Table<Transaction>
   utxos!: Table<Utxo>
+  forwards!: Table<Forward>
 
   constructor() {
     super('Clams')
+
     this.version(1).stores({
-      channels: 'id, nodeId',
-      connections: 'id, type',
-      nodes: 'id, alias, connectionId',
-      offers: 'id, nodeId',
-      invoices: 'id, nodeId, offerId, value, fee, payIndex',
-      transactions: 'hash, nodeId',
-      utxos: 'txid, nodeId'
+      channels: '&id, nodeId, shortId',
+      connections: '&id, type',
+      forwards: ', nodeId, shortIdIn, shortIdOut, fee, status',
+      invoices: '&id, nodeId, offerId, value, fee, payIndex',
+      nodes: '&id, alias, connectionId',
+      offers: '&id, nodeId',
+      transactions: '&hash, nodeId',
+      utxos: '&txid, nodeId'
     })
   }
 }

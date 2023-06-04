@@ -37,22 +37,14 @@ export type Channel = {
   balanceReceivable: string
   /** amount we charge to use the channel (msat) */
   feeBase: string
-  /** Fees earned on routed OUTBOUND (msat) */
-  routingFees: string
-  /** Amount msat routed out from this channel */
-  routedOut: string
-  /** Amount msat routed in from this channel */
-  routedIn: string
-  /** APY for fees earned on OUTBOUND routed payments */
-  apy: string | null
+  /** amount we charge to use the channel in parts-per-million */
+  feePpm: number
   /** The bitcoin address we will close to */
   closeToAddress: string | null
+  /** The bitcoin address we will close to */
+  closeToScriptPubkey: string | null
   /** which side closed this channel */
-  closer: 'local' | 'remote' | null
-  /** has channel been closed and all outputs resolved? */
-  resolved: boolean | null
-  /** block number the channel was resolved at */
-  resolvedAtBlock: number | null
+  closer?: 'local' | 'remote'
   /** node id this channel is associated with */
   nodeId: string
 }

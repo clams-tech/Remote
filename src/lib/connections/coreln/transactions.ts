@@ -37,7 +37,11 @@ class Transactions implements TransactionsInterface {
             version,
             rbfEnabled,
             inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
-            outputs: outputs.map(({ index, amount_msat }) => ({ index, amount_msat })),
+            outputs: outputs.map(({ index, amount_msat, scriptPubKey }) => ({
+              index,
+              amount: amount_msat,
+              scriptPubKey
+            })),
             nodeId: this.connection.info.id
           }
         }
@@ -106,6 +110,7 @@ class Transactions implements TransactionsInterface {
                 context: 'listenForTransactionConfirmation (transactions)'
               }
             }
+
             reject(connectionError)
           } else if (tx.blockheight) {
             stopListening$.next()
