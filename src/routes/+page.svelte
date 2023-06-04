@@ -55,13 +55,13 @@
       {@const route = `/${key}`}
       <a
         href={route}
-        class="aspect-square border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
+        class="aspect-square no-underline border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
       >
         <div class="w-10 xs:w-12 {styles}">
           {@html icon}
         </div>
 
-        <div class="text-lg font-semi-bold">{$translate(`app.routes.${route}.title`)}</div>
+        <div class="font-semi-bold">{$translate(`app.routes.${route}.title`)}</div>
       </a>
     {/each}
   </div>

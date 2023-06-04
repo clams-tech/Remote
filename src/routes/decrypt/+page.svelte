@@ -55,7 +55,7 @@
 
   <div class="max-w-lg">
     <div>
-      <p class="text-neutral-600 dark:text-neutral-300 text-lg">
+      <p class="text-neutral-600 dark:text-neutral-300">
         <!-- text-purple-500 -->
         {@html $translate(`${translationBase}.subheading`)}
       </p>
