@@ -3,7 +3,7 @@
   import { onMount } from 'svelte'
   import { quintInOut, quintOut } from 'svelte/easing'
 
-  export let max = 6
+  export let max = 3
   export let min = 1
   export let disableAnimation = false
 

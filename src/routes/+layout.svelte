@@ -8,16 +8,6 @@
   import { fade } from 'svelte/transition'
   import { routeRequiresSession } from '$lib/utils.js'
   import { goto } from '$app/navigation'
-  import { db } from '$lib/db.js'
-
-  $: if ($session$) {
-    initialize()
-  }
-
-  async function initialize() {
-    console.log('INITIALIZING...')
-    await db.open()
-  }
 </script>
 
 <svelte:head>

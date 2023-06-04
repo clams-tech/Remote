@@ -5,10 +5,11 @@ import { getSession } from '$lib/storage.js'
 import { goto } from '$app/navigation'
 import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
+import { db } from '$lib/db.js'
 
 // delayed boolean set
 function setCheckedSession() {
-  setTimeout(() => checkedSession$.next(true), 10)
+  setTimeout(() => checkedSession$.next(true), 20)
 }
 
 export const load: LayoutLoad = async ({ url }) => {
@@ -18,6 +19,7 @@ export const load: LayoutLoad = async ({ url }) => {
   await loadTranslations(initLocale)
 
   if (browser) {
+    await db.open()
     const { pathname } = url
 
     // no session in memory, so check stored session
