@@ -15,6 +15,7 @@
   import share from '$lib/icons/share.js'
   import wallet from '$lib/icons/wallet.js'
   import { STORAGE_KEYS, getDataFromStorage, writeDataToStorage } from '$lib/storage.js'
+  import { connections$ } from '$lib/streams.js'
   import { liveQuery } from 'dexie'
   import { pipe } from 'rxjs'
   import { fade } from 'svelte/transition'
@@ -34,10 +35,7 @@
     { key: 'contacts', icon: contacts, styles: '' }
   ]
 
-  const connections$ = liveQuery(() => db.connections.toArray())
-
-  $: showGetStartedHint =
-    !getDataFromStorage(STORAGE_KEYS.getStartedHint) && $connections$ && !$connections$.length
+  $: showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint) && !$connections$.length
 
   function handleCloseHint() {
     writeDataToStorage(STORAGE_KEYS.getStartedHint, 'true')

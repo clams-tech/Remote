@@ -1,5 +1,6 @@
 <script lang="ts">
   import Section from '$lib/components/Section.svelte'
+  import { connections$ } from '$lib/streams.js'
 
   /**
    * 1. Screen for when no connections at all
@@ -15,5 +16,9 @@
 </script>
 
 <Section>
-  <!-- @TODO -->
+  {#if !$connections$.length}
+    <!-- @TODO - Render screen for no connections -->
+  {:else}
+    <!-- @TODO - Render current connections -->
+  {/if}
 </Section>
