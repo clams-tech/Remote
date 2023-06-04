@@ -4,12 +4,13 @@ import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
 import type { Notification } from './@types/util.js'
 import { DEFAULT_SETTINGS } from './constants.js'
-import { getDataFromStorage, STORAGE_KEYS } from './storage.js'
-import { SvelteSubject } from './utils.js'
+import { getDataFromStorage, STORAGE_KEYS, writeDataToStorage } from './storage.js'
+import { logger, SvelteSubject } from './utils.js'
 
 import {
   BehaviorSubject,
   defer,
+  filter,
   Observable,
   ReplaySubject,
   scan,
@@ -49,6 +50,16 @@ const storedSettings = getDataFromStorage(STORAGE_KEYS.settings)
 export const settings$ = new SvelteSubject<Settings>({
   ...DEFAULT_SETTINGS,
   ...(storedSettings ? JSON.parse(storedSettings) : {})
+})
+
+// updates settings in storage and handles dark mode toggle
+settings$.pipe(filter((x) => !!x)).subscribe((update) => {
+  try {
+    document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
+    writeDataToStorage(STORAGE_KEYS.settings, JSON.stringify(update))
+  } catch (error) {
+    logger.error('Could not save settings to storage, access to local storage denied')
+  }
 })
 
 export const recentLogs$: Observable<string[]> = log$.pipe(
