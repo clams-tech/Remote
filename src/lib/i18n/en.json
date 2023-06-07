@@ -30,7 +30,12 @@
     },
     "/connections": {
       "title": "Connections",
-      "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will also allow you to <b>interact</b> with your node with <b class='underline decoration-2 decoration-offset-4 decoration-purple-500'>Clams</b>."
+      "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will also allow you to <b>interact</b> with your node with <b class='underline decoration-2 decoration-offset-4 decoration-purple-500'>Clams</b>.",
+      "add_connection": "Add Connection"
+    },
+    "/connections/add": {
+      "title": "Add Connection",
+      "introduction": "Select a connection you would like to add from the following:"
     },
     "/contacts": {
       "title": "Contacts"

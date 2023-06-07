@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Button from '$lib/elements/Button.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
@@ -28,6 +29,10 @@
     <Paragraph>
       {@html $translate(`${translateBase}.introduction`)}
     </Paragraph>
+
+    <a href="/connections/add" class="mt-6 no-underline">
+      <Button text={$translate(`${translateBase}.add_connection`)} />
+    </a>
   {:else}
     <!-- @TODO - Render current connections -->
   {/if}
