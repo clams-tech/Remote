@@ -29,10 +29,10 @@
     { key: 'payments', icon: list, styles: '' },
     { key: 'channels', icon: channels, styles: '' },
     { key: 'accounting', icon: feeOutline, styles: '' },
-    { key: 'imports', icon: share, styles: '' },
+    // { key: 'imports', icon: share, styles: '' },
     { key: 'offers', icon: lightningOutline, styles: '' },
-    { key: 'settings', icon: settingsOutline, styles: '' },
-    { key: 'contacts', icon: contacts, styles: '' }
+    { key: 'contacts', icon: contacts, styles: '' },
+    { key: 'settings', icon: settingsOutline, styles: '' }
   ]
 
   $: showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint) && !$connections$.length

@@ -199,13 +199,7 @@
       n = i.screen.init('liquid', null, !0),
       a = n.ctx
     n.resize(),
-      (t = new e(
-        n.width,
-        n.height,
-        window.innerWidth > 600 ? 6 : 10,
-        'rgb(99, 5, 240)',
-        'rgb(154, 103, 246)'
-      )),
+      (t = new e(n.width, n.height, window.innerWidth > 600 ? 6 : 10, '#A066FF', '#310080')),
       o()
   }
 

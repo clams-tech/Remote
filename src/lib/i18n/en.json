@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <b class='text-bitcoin-orange'>Bitcoin</b> <a href='/connections'>connection</a>."
+      "get_started_hint": "To get started, add a new <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-orange'>Bitcoin</b> <a href='/connections'>connection</a>."
     },
     "/send": {
       "title": "Send"
@@ -29,7 +29,8 @@
       "title": "Settings"
     },
     "/connections": {
-      "title": "Connections"
+      "title": "Connections",
+      "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will also allow you to <b>interact</b> with your node with <b class='underline decoration-2 decoration-offset-4 decoration-purple-500'>Clams</b>."
     },
     "/contacts": {
       "title": "Contacts"
@@ -73,7 +74,7 @@
     },
     "/welcome": {
       "title": "Welcome",
-      "subheading": "<b>Welcome</b> to <b class='text-purple-500'>Clams</b>, your unified <b class='text-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
+      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 decoration-offset-4 decoration-purple-500'>Clams</b>, your unified <b class='underline decoration-2 decoration-offset-4 decoration-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
       "passphrase": {
         "weak": "weak 😬",
         "medium": "medium 🤞",
@@ -82,7 +83,7 @@
     },
     "/decrypt": {
       "title": "Decrypt",
-      "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='text-purple-500'>Clams</b> session, please enter your passphrase."
+      "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='underline decoration-2 decoration-offset-4 decoration-purple-500'>Clams</b> session, please enter your passphrase."
     }
   },
   "inputs": {

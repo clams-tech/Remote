@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import Section from '$lib/components/Section.svelte'
+  import Section from '$lib/elements/Section.svelte'
   import Button from '$lib/elements/Button.svelte'
   import Msg from '$lib/elements/Msg.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
@@ -9,6 +9,7 @@
   import { STORAGE_KEYS, writeDataToStorage } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
   import { createRandomHex, encryptWithAES } from '$lib/utils.js'
+  import Paragraph from '$lib/elements/Paragraph.svelte'
 
   const translationBase = 'app.routes./welcome'
   const secret = createRandomHex()
@@ -73,42 +74,34 @@
     </div>
   </div>
 
-  <div class="max-w-lg">
-    <div>
-      <p class="text-neutral-600 dark:text-neutral-300">
-        <!-- text-purple-500 -->
-        <!-- text-bitcoin-orange -->
-        {@html $translate(`${translationBase}.subheading`)}
-      </p>
-    </div>
+  <Paragraph>
+    {@html $translate(`${translationBase}.subheading`)}
+  </Paragraph>
 
-    <div class="mt-6 w-full">
-      <TextInput
-        hint={score === 0
-          ? ''
-          : $translate(
-              `${translationBase}.passphrase.${
-                score < 3 ? 'weak' : score < 5 ? 'medium' : 'strong'
-              }`
-            )}
-        name="passphrase"
-        type="password"
-        bind:value={passphrase}
-        label={$translate('app.labels.passphrase')}
-      />
-    </div>
+  <div class="mt-6 w-full">
+    <TextInput
+      hint={score === 0
+        ? ''
+        : $translate(
+            `${translationBase}.passphrase.${score < 3 ? 'weak' : score < 5 ? 'medium' : 'strong'}`
+          )}
+      name="passphrase"
+      type="password"
+      bind:value={passphrase}
+      label={$translate('app.labels.passphrase')}
+    />
+  </div>
 
-    <div class="mt-4">
-      <Button
-        on:click={encryptAndStoreSecret}
-        text={$translate('app.labels.encrypt')}
-        primary
-        disabled={score === 0}
-      />
-    </div>
+  <div class="mt-4">
+    <Button
+      on:click={encryptAndStoreSecret}
+      text={$translate('app.labels.encrypt')}
+      primary
+      disabled={score === 0}
+    />
+  </div>
 
-    <div class="mt-6">
-      <Msg bind:message={errorMsg} type="error" />
-    </div>
+  <div class="mt-6">
+    <Msg bind:message={errorMsg} type="error" />
   </div>
 </Section>

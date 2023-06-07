@@ -1,6 +1,12 @@
 <script lang="ts">
-  import Section from '$lib/components/Section.svelte'
+  import Paragraph from '$lib/elements/Paragraph.svelte'
+  import Section from '$lib/elements/Section.svelte'
+  import SectionHeading from '$lib/elements/SectionHeading.svelte'
+  import { translate } from '$lib/i18n/translations.js'
+  import keys from '$lib/icons/keys.js'
   import { connections$ } from '$lib/streams.js'
+
+  const translateBase = 'app.routes./connections'
 
   /**
    * 1. Screen for when no connections at all
@@ -16,8 +22,12 @@
 </script>
 
 <Section>
+  <SectionHeading icon={keys} />
+
   {#if !$connections$.length}
-    <!-- @TODO - Render screen for no connections -->
+    <Paragraph>
+      {@html $translate(`${translateBase}.introduction`)}
+    </Paragraph>
   {:else}
     <!-- @TODO - Render current connections -->
   {/if}
