@@ -21,18 +21,18 @@
   import { fade } from 'svelte/transition'
 
   const buttons = [
-    { key: 'send', icon: send, styles: '' },
-    { key: 'scan', icon: scan, styles: '' },
-    { key: 'receive', icon: receive, styles: '' },
-    { key: 'connections', icon: keys, styles: '' },
-    { key: 'balances', icon: wallet, styles: '' },
-    { key: 'payments', icon: list, styles: '' },
-    { key: 'channels', icon: channels, styles: '' },
-    { key: 'accounting', icon: feeOutline, styles: '' },
+    { key: 'send', icon: send },
+    { key: 'scan', icon: scan },
+    { key: 'receive', icon: receive },
+    { key: 'connections', icon: keys },
+    { key: 'balances', icon: wallet },
+    { key: 'payments', icon: list },
+    { key: 'channels', icon: channels },
+    { key: 'accounting', icon: feeOutline },
     // { key: 'imports', icon: share, styles: '' },
-    { key: 'offers', icon: lightningOutline, styles: '' },
-    { key: 'contacts', icon: contacts, styles: '' },
-    { key: 'settings', icon: settingsOutline, styles: '' }
+    { key: 'offers', icon: lightningOutline },
+    { key: 'contacts', icon: contacts },
+    { key: 'settings', icon: settingsOutline }
   ]
 
   $: showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint) && !$connections$.length
@@ -49,13 +49,13 @@
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
   >
-    {#each buttons as { key, icon, styles } (key)}
+    {#each buttons as { key, icon } (key)}
       {@const route = `/${key}`}
       <a
         href={route}
         class="aspect-square no-underline border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
       >
-        <div class="w-10 xs:w-12 {styles}">
+        <div class="w-10 xs:w-12">
           {@html icon}
         </div>
 
@@ -65,7 +65,7 @@
   </div>
 
   {#if showGetStartedHint}
-    <div class="max-w-xl 2xl:max-w-2xl bg-neutral-50/90 rounded-lg mt-6">
+    <div class="max-w-xl 2xl:max-w-2xl mt-6">
       <Msg
         on:close={handleCloseHint}
         message={$translate('app.routes./.get_started_hint')}

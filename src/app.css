@@ -22,7 +22,11 @@ body {
 }
 
 a {
-  @apply underline;
+  @apply underline decoration-2 transition-all underline-offset-4;
+}
+
+a:hover {
+  @apply decoration-purple-500;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

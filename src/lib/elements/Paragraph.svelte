@@ -3,7 +3,7 @@
 <!-- decoration-bitcoin-yellow -->
 <!-- underline -->
 <!-- decoration-2 -->
-<!-- decoration-offset-4 -->
+<!-- underline-offset-4 -->
 <p class="text-neutral-600 dark:text-neutral-300">
   <slot />
 </p>

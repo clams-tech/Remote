@@ -51,7 +51,11 @@
 </script>
 
 {#if message}
-  <div in:fade={{ duration: 250, delay: 150 }} out:fade={{ duration: 250 }}>
+  <div
+    in:fade|local={{ duration: 250, delay: 150 }}
+    out:fade|local={{ duration: 250 }}
+    class="bg-neutral-50/90 dark:bg-neutral-900/90 rounded-lg"
+  >
     <div
       in:slide|local={{ duration: 250 }}
       out:slide|local={{ duration: 250, delay: 150 }}
