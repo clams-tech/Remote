@@ -63,7 +63,7 @@
 <div class="w-full">
   <div class="flex border rounded-md">
     <label
-      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
+      class="flex items-center justify-center px-2 py-2 rounded-md cursor-pointer w-1/3"
       class:bg-neutral-200={advancedConnectOption === 'default'}
       class:dark:bg-neutral-700={advancedConnectOption === 'default'}
     >

@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ params }) => {
     )
 
     if (info) {
-      return { info, connection }
+      return { id, connection }
     } else {
       throw redirect(307, '/connections')
     }

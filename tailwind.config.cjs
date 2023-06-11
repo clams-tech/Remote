@@ -23,10 +23,10 @@ module.exports = {
           yellow: '#FFF300'
         },
         utility: {
-          // success: '#39F35B',
+          success: '#39F35B',
           // error: '#FF1F39',
           // pending: '#FCBA04'
-          success: '#31FF00',
+          // success: '#31FF00',
           error: '#FF0031',
           pending: '#FFCE00'
         },

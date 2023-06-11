@@ -402,3 +402,7 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
 
   return true
 }
+
+export function simpleDeepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}

@@ -33,13 +33,12 @@
       "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will also allow you to <b>interact</b> with your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
       "add_connection": "Add Connection"
     },
+    "/connections/coreln": {
+      "title": "Core Lightning"
+    },
     "/connections/add": {
       "title": "Add Connection",
       "introduction": "Select a connection you would like to add from the following:"
-    },
-    "/connections/coreln": {
-      "title": "Core Lightning",
-      "introduction": "Add your connection and authentication details below to connect your node. <a href='https://docs.clams.tech/connections/coreln' target='_blank' rel='noreferrer noopener'>Need help?<a/>"
     },
     "/contacts": {
       "title": "Contacts"
@@ -145,7 +144,7 @@
     "language": "Language",
     "local_currency": "Local Currency",
     "bitcoin_unit": "Bitcoin Unit",
-    "connection": "Connection",
+    "configuration": "Configuration",
     "app": "App",
     "discord": "Discord Server",
     "docs": "Documentation",

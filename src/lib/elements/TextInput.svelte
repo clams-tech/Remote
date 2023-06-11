@@ -1,5 +1,6 @@
 <script lang="ts">
   import warning from '$lib/icons/warning'
+  import { slide } from 'svelte/transition'
 
   type InputType = 'text' | 'number' | 'textarea' | 'password' | 'email'
 
@@ -129,12 +130,13 @@
     <slot />
   </div>
 
-  <div
-    class="flex items-center transition-all overflow-hidden text-utility-error {invalid
-      ? 'h-8'
-      : 'h-0'}"
-  >
-    <span class="w-4 mr-2">{@html warning}</span>
-    <span class="text-xs font-medium">{invalid}</span>
-  </div>
+  {#if invalid}
+    <div
+      transition:slide|local={{ duration: 250 }}
+      class="flex items-center text-utility-error pt-2"
+    >
+      <span class="w-4 mr-2">{@html warning}</span>
+      <span class="text-xs font-medium">{invalid}</span>
+    </div>
+  {/if}
 </div>
