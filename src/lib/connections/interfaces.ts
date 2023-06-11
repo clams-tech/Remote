@@ -2,7 +2,7 @@ import type { Channel } from '$lib/@types/channels.js'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
-import type { ConnectionInfoBase, ConnectionInfoType } from '$lib/@types/connections.js'
+import type { ConnectionInfo, ConnectionInfoType } from '$lib/@types/connections.js'
 import type { Forward } from '$lib/@types/forwards.js'
 
 import type {
@@ -22,9 +22,11 @@ import type {
 
 /** the live connection held in memory */
 export type Connection = {
-  id: ConnectionInfoBase['id']
+  id: ConnectionInfo['id']
   interface: ConnectionInterface
 }
+
+export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
 export interface ConnectionInterface {
   info: Info
@@ -32,9 +34,7 @@ export interface ConnectionInterface {
   updateToken?: (token: string) => void
   connect?: () => Promise<Info | null>
   disconnect?: () => void
-  connectionStatus$?: BehaviorSubject<
-    'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
-  >
+  connectionStatus$: BehaviorSubject<ConnectionStatus>
   rpc?: RpcCall
   node?: NodeInterface
   offers?: OffersInterface
@@ -48,7 +48,8 @@ export interface ConnectionInterface {
 
 export type Info = {
   id: string
-  type: ConnectionInfoType
+  /** the connection info this connection is associated with */
+  connectionInfoId: string
   alias?: string
   color?: string
   version?: string

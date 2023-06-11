@@ -28,15 +28,13 @@ export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 
 /** A list of connection info stored in the db */
-export const connectionsInfo$ = from(liveQuery(() => db.connections.toArray())).pipe(
+export const storedConnections$ = from(liveQuery(() => db.connections.toArray())).pipe(
   startWith([]),
   shareReplay(1)
 )
 
 /** A list of interfaces for each initialized connection */
-export const connectionInterfaces$ = new BehaviorSubject<
-  { id: string; interface: ConnectionInterface }[]
->([])
+export const connections$ = new BehaviorSubject<ConnectionInterface[]>([])
 
 // when svelte component is destroyed
 export const onDestroy$ = defer(() => {

@@ -5,7 +5,7 @@
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import { connectionsInfo$ } from '$lib/streams.js'
+  import { storedConnections$ } from '$lib/streams.js'
 
   const translateBase = 'app.routes./connections'
 
@@ -26,7 +26,7 @@
   <SectionHeading icon={keys} />
 
   <!-- NO CONNECTIONS YET -->
-  {#if !$connectionsInfo$.length}
+  {#if !$storedConnections$.length}
     <Paragraph>
       {@html $translate(`${translateBase}.introduction`)}
     </Paragraph>

@@ -3,10 +3,10 @@
   import { WS_PROXY } from '$lib/constants'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
-  import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
+  import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 
   export let invalid = false
-  export let connection: CoreLnConnectionInfo['data']['connection']
+  export let connection: CoreLnConfiguration['connection']
 
   let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' = 'default'
 

@@ -8,7 +8,7 @@ import Transactions from './transactions.js'
 import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
-import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
+import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
@@ -48,10 +48,13 @@ class CoreLightning implements CorelnConnectionInterface {
   blocks: BlocksInterface
   forwards: ForwardsInterface
 
-  constructor(options: CoreLnConnectionInfo, session: Session, logger?: Logger) {
-    const {
-      data: { address, connection, token }
-    } = options as CoreLnConnectionInfo
+  constructor(
+    connectionInfoId: string,
+    configuration: CoreLnConfiguration,
+    session: Session,
+    logger?: Logger
+  ) {
+    const { address, connection, token } = configuration
 
     const { publicKey, port, ip } = parseNodeAddress(address)
     const { secret } = session
@@ -82,7 +85,7 @@ class CoreLightning implements CorelnConnectionInterface {
           method: 'getinfo'
         })) as GetinfoResponse
 
-        this.info = { id, alias, color, version, type: 'coreln' }
+        this.info = { id, alias, color, version, connectionInfoId }
 
         return this.info
       } else {

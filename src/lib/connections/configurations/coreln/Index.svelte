@@ -1,7 +1,6 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations.js'
   import type { CoreLnConfiguration } from '$lib/@types/connections.js'
-  import { WS_PROXY } from '$lib/constants.js'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils'
   import { fade, slide } from 'svelte/transition'
