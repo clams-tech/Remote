@@ -12,12 +12,8 @@
   import scan from '$lib/icons/scan.js'
   import send from '$lib/icons/send.js'
   import settingsOutline from '$lib/icons/settings-outline.js'
-  import share from '$lib/icons/share.js'
   import wallet from '$lib/icons/wallet.js'
   import { STORAGE_KEYS, getDataFromStorage, writeDataToStorage } from '$lib/storage.js'
-  import { connections$ } from '$lib/streams.js'
-  import { liveQuery } from 'dexie'
-  import { pipe } from 'rxjs'
   import { fade } from 'svelte/transition'
 
   const buttons = [
@@ -35,7 +31,14 @@
     { key: 'settings', icon: settingsOutline }
   ]
 
-  $: showGetStartedHint = !getDataFromStorage(STORAGE_KEYS.getStartedHint) && !$connections$.length
+  let showGetStartedHint = false
+
+  !getDataFromStorage(STORAGE_KEYS.getStartedHint) &&
+    db.connections.toArray().then((connections) => {
+      if (!connections.length) {
+        showGetStartedHint = true
+      }
+    })
 
   function handleCloseHint() {
     writeDataToStorage(STORAGE_KEYS.getStartedHint, 'true')

@@ -6,14 +6,11 @@ import type { Notification } from './@types/util.js'
 import { DEFAULT_SETTINGS } from './constants.js'
 import { getDataFromStorage, STORAGE_KEYS, writeDataToStorage } from './storage.js'
 import { logger, SvelteSubject } from './utils.js'
-import { liveQuery } from 'dexie'
-import { db } from './db.js'
 
 import {
   BehaviorSubject,
   defer,
   filter,
-  from,
   Observable,
   ReplaySubject,
   scan,
@@ -22,14 +19,14 @@ import {
   Subject,
   take
 } from 'rxjs'
-
-export const connections$ = from(liveQuery(() => db.connections.toArray())).pipe(
-  startWith([]),
-  shareReplay(1)
-)
+import type { ConnectionInterface } from './connections/interfaces.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
+
+export const connections$ = new BehaviorSubject<{ id: string; interface: ConnectionInterface }[]>(
+  []
+)
 
 // when svelte component is destroyed
 export const onDestroy$ = defer(() => {

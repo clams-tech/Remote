@@ -10,3 +10,9 @@ export type Logger = {
   warn: (msg: string) => void
   error: (msg: string) => void
 }
+
+export type ParsedNodeAddress = {
+  publicKey: string
+  ip: string
+  port?: number
+}

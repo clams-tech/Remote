@@ -39,7 +39,7 @@
     },
     "/connections/coreln": {
       "title": "Core Lightning",
-      "introduction": "To connect"
+      "introduction": "Add your connection and authentication details below to connect your node. <a href='https://docs.clams.tech/connections/coreln' target='_blank' rel='noreferrer noopener'>Need help?<a/>"
     },
     "/contacts": {
       "title": "Contacts"
@@ -120,6 +120,7 @@
   },
   "labels": {
     "passphrase": "Passphrase",
+    "advanced": "Advanced",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

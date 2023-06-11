@@ -24,10 +24,10 @@ export type ConnectionInfoBase = {
 export type CoreLnConnectionInfo = ConnectionInfoBase & {
   /** data is encrypted with session secret */
   data: {
-    /** the node public key */
-    publicKey: string
-    ip: string
-    port: number
+    /** <publicKey>@<ip>:<port> */
+    address: string
+    /** authentication token (rune) */
+    token: string
     connection: {
       type: 'proxy' | 'direct'
       /** if proxy type, then is the proxy url
@@ -35,8 +35,6 @@ export type CoreLnConnectionInfo = ConnectionInfoBase & {
        */
       value: string
     }
-    /** authentication token (rune) */
-    token: string
   }
 }
 

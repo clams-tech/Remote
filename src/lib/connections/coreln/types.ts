@@ -11,7 +11,8 @@ import type {
   InvoicesInterface,
   RpcCall,
   TransactionsInterface,
-  UtxosInterface
+  UtxosInterface,
+  ForwardsInterface
 } from '../interfaces.js'
 
 export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
@@ -26,11 +27,12 @@ export interface CorelnConnectionInterface extends Required<ConnectionInterface>
   rpc: RpcCall
   node: NodeInterface
   offers: OffersInterface
-  payments: InvoicesInterface
+  invoices: InvoicesInterface
   utxos: UtxosInterface
   channels: ChannelsInterface
   transactions: TransactionsInterface
   blocks: BlocksInterface
+  forwards: ForwardsInterface
 }
 
 export interface GetinfoResponse {

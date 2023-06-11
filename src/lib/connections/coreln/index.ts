@@ -13,6 +13,7 @@ import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
+import { parseNodeAddress } from '$lib/utils.js'
 
 import type {
   BlocksInterface,
@@ -26,6 +27,7 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
+import Forwards from './forwards.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   info: Required<Info>
@@ -44,12 +46,14 @@ class CoreLightning implements CorelnConnectionInterface {
   channels: ChannelsInterface
   transactions: TransactionsInterface
   blocks: BlocksInterface
+  forwards: ForwardsInterface
 
   constructor(options: CoreLnConnectionInfo, session: Session, logger?: Logger) {
     const {
-      data: { publicKey, ip, port, connection, token }
+      data: { address, connection, token }
     } = options as CoreLnConnectionInfo
 
+    const { publicKey, port, ip } = parseNodeAddress(address)
     const { secret } = session
 
     const socket = new LnMessage({
@@ -92,6 +96,7 @@ class CoreLightning implements CorelnConnectionInterface {
       socket.disconnect()
       this.destroy$.next()
     }
+
     this.connectionStatus$ = socket.connectionStatus$
 
     this.node = new Node(this)
@@ -101,9 +106,8 @@ class CoreLightning implements CorelnConnectionInterface {
     this.channels = new Channels(this)
     this.transactions = new Transactions(this)
     this.blocks = new Blocks(this)
+    this.forwards = new Forwards(this)
   }
-  payments: InvoicesInterface
-  forwards: ForwardsInterface
 
   updateToken(token: string): void {
     this.rune = token

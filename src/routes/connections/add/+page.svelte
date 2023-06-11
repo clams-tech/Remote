@@ -1,13 +1,26 @@
 <script lang="ts">
-  import { connections } from '$lib/connections/index.js'
-  import Button from '$lib/elements/Button.svelte'
+  import { goto } from '$app/navigation'
+  import type { ConnectionInfo } from '$lib/@types/connections.js'
+  import { connectionOptions } from '$lib/connections/index.js'
+  import { db } from '$lib/db.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
+  import { createRandomHex } from '$lib/utils.js'
 
   const translateBase = 'app.routes./connections/add'
+
+  const addConnection = async (type: ConnectionInfo['type']) => {
+    // add new connection to the db with generic label and random id
+    const id = createRandomHex()
+    const label = 'New Coreln'
+    await db.connections.add({ id, label, type })
+
+    // route to the created connection id
+    await goto(`/connections/${id}`)
+  }
 </script>
 
 <Section>
@@ -17,17 +30,15 @@
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-xl overflow-auto mt-6"
   >
-    {#each connections as { icon, route }}
-      <a
-        href={route}
+    {#each connectionOptions as { icon, type }}
+      <button
+        on:click={() => addConnection(type)}
         class="aspect-square no-underline border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
       >
         <div class="w-full">
-          {#await icon() then svg}
-            {@html svg}
-          {/await}
+          {@html icon}
         </div>
-      </a>
+      </button>
     {/each}
   </div>
 </Section>

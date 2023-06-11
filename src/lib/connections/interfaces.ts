@@ -2,7 +2,7 @@ import type { Channel } from '$lib/@types/channels.js'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
-import type { ConnectionInfoType } from '$lib/@types/connections.js'
+import type { ConnectionInfoBase, ConnectionInfoType } from '$lib/@types/connections.js'
 import type { Forward } from '$lib/@types/forwards.js'
 
 import type {
@@ -20,6 +20,12 @@ import type {
   Invoice
 } from '$lib/@types/invoices.js'
 
+/** the live connection held in memory */
+export type Connection = {
+  id: ConnectionInfoBase['id']
+  interface: ConnectionInterface
+}
+
 export interface ConnectionInterface {
   info: Info
   destroy$: Subject<void>
@@ -29,7 +35,6 @@ export interface ConnectionInterface {
   connectionStatus$?: BehaviorSubject<
     'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
   >
-  chainData?: ChainDataInterface
   rpc?: RpcCall
   node?: NodeInterface
   offers?: OffersInterface
@@ -129,12 +134,6 @@ export interface BlocksInterface {
   connection: ConnectionInterface
   /** subscribe to increases in block height */
   blockHeight$: Subject<number>
-}
-
-export interface ChainDataInterface {
-  getUtxos(scriptHash: string): Promise<Utxo[]>
-  getTransactions(scriptHash: string): Promise<Transaction[]>
-  subscribeAddress?(scriptHash: string): Subject<Transaction>
 }
 
 export interface ConnectionError {

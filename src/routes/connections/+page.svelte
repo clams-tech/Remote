@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { db } from '$lib/db.js'
   import Button from '$lib/elements/Button.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import { connections$ } from '$lib/streams.js'
+  import { liveQuery } from 'dexie'
 
   const translateBase = 'app.routes./connections'
+  const connections$ = liveQuery(() => db.connections.toArray())
 
   /**
    * 1. Screen for when no connections at all
