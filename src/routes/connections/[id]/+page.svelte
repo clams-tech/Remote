@@ -19,5 +19,5 @@
 </script>
 
 <Section>
-  <SectionHeading icon={keys} />
+  <SectionHeading text={$translate('app.routes./connections.title')} icon={keys} />
 </Section>

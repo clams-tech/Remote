@@ -72,13 +72,9 @@
   }
 </script>
 
-<Section>
-  <SectionHeading icon={keys} />
-  <!-- @TODO - Need to ensure docs route is created in docs site (/connections/coreln) -->
-  <Paragraph>{@html $translate(`${translateBase}.introduction`)}</Paragraph>
-
+<div class="w-full mt-4">
   <!-- CONNECTION -->
-  <div class="w-full mt-4">
+  <div>
     <div class="relative w-full flex flex-col">
       <TextInput
         name="address"
@@ -140,4 +136,4 @@
   <div class="w-full mt-4">
     <!-- dsds -->
   </div>
-</Section>
+</div>
