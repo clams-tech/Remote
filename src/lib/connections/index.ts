@@ -1,4 +1,9 @@
-import type { ConnectionInfo } from '$lib/@types/connections.js'
+import type {
+  ConnectionConfiguration,
+  ConnectionInfo,
+  CoreLnConfiguration
+} from '$lib/@types/connections.js'
+import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
@@ -11,15 +16,16 @@ export const connectionOptions: { type: ConnectionInfo['type']; icon: string }[]
   }
 ]
 
-export const connectionTypeToInterface = (
-  type: ConnectionInfo['type']
-): ConnectionInterface['constructor'] => {
-  switch (type) {
+export const connectionInfoToInterface = (
+  info: ConnectionInfo,
+  session: Session
+): ConnectionInterface => {
+  switch (info.type) {
     case 'coreln':
-      return CoreLightning
+      return new CoreLightning(info.id, info.configuration as CoreLnConfiguration, session)
   }
 
-  throw new Error(`Invalid connection type: ${type}`)
+  throw new Error(`Invalid connection type: ${info.type}`)
 }
 
 export const connectionTypeToInitialConfiguration = (

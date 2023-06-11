@@ -11,7 +11,8 @@
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
   import { takeUntil } from 'rxjs'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { onDestroy$, session$ } from '$lib/streams.js'
+  import { connectionInfoToInterface } from '$lib/connections/index.js'
 
   export let data: PageData
 
@@ -32,6 +33,11 @@
       default:
         throw new Error(`No component for connection type: ${type}`)
     }
+  }
+
+  const connect = async () => {
+    connection = connectionInfoToInterface(info!, $session$!)
+    connection.connect && connection.connect()
   }
 
   /**
