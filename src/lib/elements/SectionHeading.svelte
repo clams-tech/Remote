@@ -28,14 +28,15 @@
 
 <svelte:window on:keyup={handleKeyup} />
 
-<div class="flex w-full justify-between items-center">
+<div class="flex w-full justify-start items-center">
   <div class="flex items-center">
     {#if icon}
-      <div class="w-10 mr-2">{@html icon}</div>
+      <div class="w-10 mr-2 flex-shrink-0">{@html icon}</div>
     {/if}
 
     {#if editing}
       <input
+        size={text.length + 1}
         bind:this={input}
         class="text-4xl my-[15.5px] font-bold px-0 py-0 bg-transparent autofill:bg-transparent border-none w-4/5 appearance-none focus:outline-none focus:ring focus:ring-transparent flex"
         type="text"
@@ -49,8 +50,11 @@
   </div>
 
   {#if editable}
-    <button on:click={handleClick} class:text-utility-success={editing} class="w-8 ml-2"
-      >{@html editing ? check : edit}</button
+    <button
+      on:click={handleClick}
+      class:text-utility-success={editing}
+      class:ml-2={!editing}
+      class="w-8">{@html editing ? check : edit}</button
     >
   {/if}
 </div>
