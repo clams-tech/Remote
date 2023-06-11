@@ -1,15 +1,13 @@
 <script lang="ts">
-  import { db } from '$lib/db.js'
   import Button from '$lib/elements/Button.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import { liveQuery } from 'dexie'
+  import { connectionsInfo$ } from '$lib/streams.js'
 
   const translateBase = 'app.routes./connections'
-  const connections$ = liveQuery(() => db.connections.toArray())
 
   /**
    * 1. Screen for when no connections at all
@@ -27,7 +25,8 @@
 <Section>
   <SectionHeading icon={keys} />
 
-  {#if !$connections$.length}
+  <!-- NO CONNECTIONS YET -->
+  {#if !$connectionsInfo$.length}
     <Paragraph>
       {@html $translate(`${translateBase}.introduction`)}
     </Paragraph>

@@ -1,9 +1,3 @@
-export type ConnectionInfo =
-  | CoreLnConnectionInfo
-  | LndConnectionInfo
-  | XPubConnectionInfo
-  | MultiSigConnectionInfo
-
 export type ConnectionInfoType =
   | 'coreln'
   | 'lnd'
@@ -13,53 +7,48 @@ export type ConnectionInfoType =
   | 'electrum'
   | 'nostr-wallet-connect'
 
-export type ConnectionInfoBase = {
+export type ConnectionInfo = {
   /** randomly generated id */
   id: string
   type: ConnectionInfoType
   /** user input label */
   label: string
-}
-
-export type CoreLnConnectionInfo = ConnectionInfoBase & {
   /** data is encrypted with session secret */
-  data: {
-    /** <publicKey>@<ip>:<port> */
-    address: string
-    /** authentication token (rune) */
-    token: string
-    connection: {
-      type: 'proxy' | 'direct'
-      /** if proxy type, then is the proxy url
-       * otherwise if direct then ws type ('wss:' or 'ws:')
-       */
-      value: string
-    }
+  configuration: ConnectionConfiguration | null
+}
+
+export type ConnectionConfiguration =
+  | CoreLnConfiguration
+  | XPubConfiguration
+  | MultiSigConfiguration
+  | ElectrumConfiguration
+
+export type CoreLnConfiguration = {
+  /** <publicKey>@<ip>:<port> */
+  address: string
+  /** authentication token (rune) */
+  token: string
+  connection: {
+    type: 'proxy' | 'direct'
+    /** if proxy type, then is the proxy url
+     * otherwise if direct then ws type ('wss:' or 'ws:')
+     */
+    value: string
   }
 }
 
-export type LndConnectionInfo = ConnectionInfoBase
-
-export type XPubConnectionInfo = ConnectionInfoBase & {
-  /** data is encrypted with session secret */
-  data: {
-    xpub: string
-    /** the derivation path to use to derive public keys */
-    derivationPath: string
-  }
+export type XPubConfiguration = {
+  xpub: string
+  /** the derivation path to use to derive public keys */
+  derivationPath: string
 }
 
-export type MultiSigConnectionInfo = ConnectionInfoBase & {
-  /** data is encrypted with session secret */
-  data: {
-    quorum: `${number}of${number}`
-    xpubs: Array<XPubConnectionInfo['data']>
-  }
+export type MultiSigConfiguration = {
+  quorum: `${number}of${number}`
+  xpubs: Array<XPubConfiguration>
 }
 
-export type ElectrumConnectionInfo = ConnectionInfoBase & {
-  data: {
-    url: string
-    port: number
-  }
+export type ElectrumConfiguration = {
+  url: string
+  port: number
 }

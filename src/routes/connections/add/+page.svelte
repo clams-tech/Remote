@@ -1,7 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import type { ConnectionInfo } from '$lib/@types/connections.js'
-  import { connectionOptions } from '$lib/connections/index.js'
+  import {
+    connectionOptions,
+    connectionTypeToInitialConfiguration
+  } from '$lib/connections/index.js'
   import { db } from '$lib/db.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
@@ -16,7 +19,12 @@
     // add new connection to the db with generic label and random id
     const id = createRandomHex()
     const label = 'New Coreln'
-    await db.connections.add({ id, label, type })
+    await db.connections.add({
+      id,
+      label,
+      type,
+      configuration: connectionTypeToInitialConfiguration(type)
+    })
 
     // route to the created connection id
     await goto(`/connections/${id}`)

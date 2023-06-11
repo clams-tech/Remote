@@ -1,4 +1,5 @@
 import type { ConnectionInfo } from '$lib/@types/connections.js'
+import { WS_PROXY } from '$lib/constants.js'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
@@ -19,4 +20,22 @@ export const connectionTypeToInterface = (
   }
 
   throw new Error(`Invalid connection type: ${type}`)
+}
+
+export const connectionTypeToInitialConfiguration = (
+  type: ConnectionInfo['type']
+): ConnectionInfo['configuration'] => {
+  switch (type) {
+    case 'coreln':
+      return {
+        address: '',
+        connection: {
+          type: 'proxy',
+          value: WS_PROXY
+        },
+        token: ''
+      }
+    default:
+      return null
+  }
 }

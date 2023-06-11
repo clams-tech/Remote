@@ -1,12 +1,7 @@
 <script lang="ts">
-  import Paragraph from '$lib/elements/Paragraph.svelte'
-  import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import keys from '$lib/icons/keys.js'
-  import { writable } from 'svelte/store'
-  import type { CoreLnConnectionInfo } from '$lib/@types/connections.js'
+  import type { CoreLnConfiguration } from '$lib/@types/connections.js'
   import { WS_PROXY } from '$lib/constants.js'
-  import Section from '$lib/elements/Section.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils'
   import { fade, slide } from 'svelte/transition'
@@ -16,25 +11,16 @@
 
   type ConnectStatus = 'idle' | 'connecting' | 'success' | 'fail'
 
-  const translateBase = 'app.routes./connections/coreln'
-
-  const connectionInfo = writable<CoreLnConnectionInfo['data']>({
-    address: '',
-    connection: {
-      type: 'proxy',
-      value: WS_PROXY
-    },
-    token: ''
-  })
+  export let configuration: CoreLnConfiguration
 
   let focusConnectionInput: () => void
   let validAddress = false
   let connectStatus: ConnectStatus = 'idle'
   let expandConnectionSettings = false
 
-  $: if ($connectionInfo.address) {
+  $: if (configuration.address) {
     try {
-      validAddress = validateParsedNodeAddress(parseNodeAddress($connectionInfo.address))
+      validAddress = validateParsedNodeAddress(parseNodeAddress(configuration.address))
     } catch {
       validAddress = false
     }
@@ -72,7 +58,7 @@
   }
 </script>
 
-<div class="w-full mt-4">
+<div class="w-full">
   <!-- CONNECTION -->
   <div>
     <div class="relative w-full flex flex-col">
@@ -80,11 +66,11 @@
         name="address"
         type="text"
         label={$translate('app.inputs.node_connect.label')}
-        invalid={$connectionInfo.address && !validAddress
+        invalid={configuration.address && !validAddress
           ? $translate('app.inputs.node_connect.invalid')
           : ''}
         placeholder={$translate('app.inputs.node_connect.placeholder')}
-        bind:value={$connectionInfo.address}
+        bind:value={configuration.address}
         bind:focus={focusConnectionInput}
         on:focus={resetConnectStatus}
       />
@@ -128,12 +114,12 @@
       class:h-28={!!expandConnectionSettings}
       class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start overflow-y-hidden h-0 transition-all"
     >
-      <AdvancedConnection bind:connection={$connectionInfo.connection} />
+      <AdvancedConnection bind:connection={configuration.connection} />
     </div>
   </div>
 
   <!-- AUTHENTICATION -->
-  <div class="w-full mt-4">
-    <!-- dsds -->
-  </div>
+  <!-- <div class="w-full mt-4"> -->
+  <!-- dsds -->
+  <!-- </div> -->
 </div>
