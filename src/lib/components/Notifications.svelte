@@ -134,7 +134,7 @@
           class="absolute top-0 right-0 w-9 p-1 cursor-pointer"
         >
           {@html close}
-        </but>
+        </button>
 
         <div class="flex items-start w-full">
           <div

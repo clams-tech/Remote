@@ -95,7 +95,7 @@
         editable
       />
 
-      <div class="flex items-center">
+      <div class="flex items-center opacity-70">
         {#if configuration}
           <button
             on:click={() => (showConfiguration = !showConfiguration)}
@@ -112,7 +112,7 @@
 
         <!-- @TODO - Ensure docs links are up for connections help -->
         <a href={`${DOCS_LINK}/connections/coreln`} target="_blank" rel="noopener noreferrer">
-          <div class="ml-1 w-8 flex-shrink-0">
+          <div class="ml-1 w-[26px] flex-shrink-0 border rounded-full border-current">
             {@html info}
           </div>
         </a>

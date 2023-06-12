@@ -13,6 +13,8 @@
 
   export let configuration: CoreLnConfiguration
 
+  const translateBase = 'app.routes./connections/coreln'
+
   /**Clone of the saved configuration to mutate
    * can then compare against the saved configuration
    * and offer option to save or discard changes
@@ -54,11 +56,11 @@
   <TextInput
     name="address"
     type="text"
-    label={$translate('app.inputs.node_connect.label')}
+    label={$translate(`${translateBase}.configuration.address_label`)}
     invalid={configurationUpdate.address && !validAddress
-      ? $translate('app.inputs.node_connect.invalid')
+      ? $translate(`${translateBase}.configuration.address_invalid`)
       : ''}
-    placeholder={$translate('app.inputs.node_connect.placeholder')}
+    placeholder={$translate(`${translateBase}.configuration.address_placeholder`)}
     bind:value={configurationUpdate.address}
     bind:focus={focusConnectionInput}
   />
@@ -88,10 +90,9 @@
   <div class="w-full mt-4">
     <TextInput
       name="token"
-      type="textarea"
-      rows={3}
-      label={$translate('app.inputs.add_rune.label')}
-      placeholder={$translate('app.inputs.add_rune.placeholder')}
+      type="text"
+      label={$translate(`${translateBase}.configuration.rune_label`)}
+      placeholder={$translate(`${translateBase}.configuration.rune_placeholder`)}
       bind:value={configurationUpdate.token}
     />
   </div>

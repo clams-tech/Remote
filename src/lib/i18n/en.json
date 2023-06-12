@@ -34,7 +34,14 @@
       "add_connection": "Add Connection"
     },
     "/connections/coreln": {
-      "title": "Core Lightning"
+      "title": "Core Lightning",
+      "configuration": {
+        "address_label": "Address",
+        "address_placeholder": "publickey@ip:port",
+        "address_invalid": "Invalid address",
+        "rune_label": "Rune",
+        "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA=="
+      }
     },
     "/connections/add": {
       "title": "Add Connection",
@@ -92,29 +99,6 @@
     "/decrypt": {
       "title": "Decrypt",
       "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b> session, please enter your passphrase."
-    }
-  },
-  "inputs": {
-    "destination": {
-      "label": "Pay To",
-      "hint": "{{paymentType; bolt11:Lightning Invoice; bolt12:BOLT12 Offer; keysend:Node Public Key;}}",
-      "error": "Not a valid payment destination",
-      "invalid_invoice": "Invalid Lightning Invoice",
-      "placeholder": "Bolt11 Invoice / Bolt12 Offer / Node Public Key / LNURL / Lightning Address"
-    },
-    "node_connect": {
-      "label": "Address",
-      "placeholder": "02df5ffe895c778e10f7742a6c5b8a0cefbe9465df58b92fadeb883752c8107c8f@35.232.170.67:9735",
-      "invalid": "Invalid address"
-    },
-    "add_rune": {
-      "recipes": "Pre-made rune commands for your session public key (CLN v22.x.x):",
-      "readonly": "Read",
-      "clams": "Clams",
-      "admin": "Admin",
-      "label": "Rune",
-      "placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-      "success": "Connect success"
     }
   },
   "labels": {

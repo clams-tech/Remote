@@ -59,7 +59,7 @@
       on:click={handleClick}
       class:text-utility-success={editing}
       class:ml-2={!editing}
-      class="w-8 flex-shrink-0">{@html editing ? check : edit}</button
+      class="w-8 flex-shrink-0 opacity-60">{@html editing ? check : edit}</button
     >
   {/if}
 </div>
