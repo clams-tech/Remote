@@ -87,7 +87,9 @@
   {#if $connectionInfo$}
     {@const { label, type, configuration } = $connectionInfo$}
 
-    <div class="flex items-center justify-between">
+    <div
+      class="flex items-center justify-between border-b dark:border-b-neutral-700 border-b-neutral-300"
+    >
       <SectionHeading
         on:updated={({ detail }) => handleLabelUpdate(detail)}
         text={label}
@@ -95,28 +97,19 @@
         editable
       />
 
-      <div class="flex items-center opacity-70">
-        {#if configuration}
-          <button
-            on:click={() => (showConfiguration = !showConfiguration)}
-            class="flex items-center"
-          >
-            <div class="w-4 transition-all flex-shrink-0" class:rotate-90={!showConfiguration}>
-              {@html caret}
-            </div>
-            <div class="w-8 flex-shrink-0">
-              {@html settingsOutline}
-            </div>
-          </button>
-        {/if}
-
-        <!-- @TODO - Ensure docs links are up for connections help -->
-        <a href={`${DOCS_LINK}/connections/coreln`} target="_blank" rel="noopener noreferrer">
-          <div class="ml-1 w-[26px] flex-shrink-0 border rounded-full border-current">
-            {@html info}
+      {#if configuration}
+        <button
+          on:click={() => (showConfiguration = !showConfiguration)}
+          class="flex items-center opacity-80"
+        >
+          <div class="w-4 transition-all flex-shrink-0" class:rotate-180={showConfiguration}>
+            {@html caret}
           </div>
-        </a>
-      </div>
+          <div class="w-8 flex-shrink-0">
+            {@html settingsOutline}
+          </div>
+        </button>
+      {/if}
     </div>
 
     <!-- @TODO -->

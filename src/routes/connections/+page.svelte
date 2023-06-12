@@ -31,7 +31,7 @@
       {@html $translate(`${translateBase}.introduction`)}
     </Paragraph>
 
-    <a href="/connections/add" class="mt-6 no-underline">
+    <a href="/connections/add" class="mt-6 no-underline block">
       <Button text={$translate(`${translateBase}.add_connection`)} />
     </a>
   {:else}

@@ -10,6 +10,8 @@
   import Button from '$lib/elements/Button.svelte'
   import check from '$lib/icons/check.js'
   import close from '$lib/icons/close.js'
+  import { DOCS_LINK } from '$lib/constants.js'
+  import info from '$lib/icons/info.js'
 
   export let configuration: CoreLnConfiguration
 
@@ -49,10 +51,24 @@
   }
 </script>
 
-<div class="w-full mt-2">
-  <!-- CONNECTION -->
-  <h4 class="text-lg font-bold mb-3">{$translate('app.labels.configuration')}</h4>
+<div class="w-full py-4">
+  <div class="flex items-center w-full justify-between mb-3">
+    <h4 class="text-lg font-bold">{$translate('app.labels.configuration')}</h4>
+    <!-- @TODO - Ensure docs links are up for connections help -->
+    <a
+      href={`${DOCS_LINK}/connections/coreln`}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="flex items-center ml-2 text-sm dark:text-purple-100 text-purple-800"
+    >
+      Help?
+      <div class="ml-1 w-4 flex justify-center flex-shrink-0 border rounded-full border-current">
+        {@html info}
+      </div>
+    </a>
+  </div>
 
+  <!-- CONNECTION -->
   <TextInput
     name="address"
     type="text"

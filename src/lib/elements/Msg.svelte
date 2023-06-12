@@ -34,7 +34,7 @@
       colors: {
         main: 'border-neutral-600/50 bg-neutral-600/5 text-neutral-600 dark:border-neutral-300/50 dark:bg-neutral-300/5 dark:text-neutral-300',
         button: 'text-neutral-600/50 dark:text-neutral-300/50',
-        icon: 'text-neutral-600 dark:text-neutral-300'
+        icon: 'text-neutral-600 dark:text-neutral-300 border rounded-full border-current'
       },
       icon: info
     }
