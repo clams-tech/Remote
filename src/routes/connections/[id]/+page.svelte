@@ -12,7 +12,7 @@
   import { takeUntil } from 'rxjs'
   import { connections$, onDestroy$, session$ } from '$lib/streams.js'
   import { connectionDetailsToInterface } from '$lib/connections/index.js'
-  import { slide } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import caret from '$lib/icons/caret.js'
   import { liveQuery } from 'dexie'
@@ -20,6 +20,11 @@
   import Msg from '$lib/elements/Msg.svelte'
   import { goto } from '$app/navigation'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import { nowSeconds } from '$lib/utils.js'
+  import ellipsis from '$lib/icons/ellipsis.js'
+  import refresh from '$lib/icons/refresh.js'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
+  import SummaryRow from '$lib/elements/SummaryRow.svelte'
 
   export let data: PageData
 
@@ -74,19 +79,26 @@
 
     try {
       connection = connectionDetailsToInterface($connectionDetails$!, $session$!)
-      connection.connect && connection.connect()
+      connection.connect && (await connection.connect())
       connections$.next([...$connections$, connection])
+
+      // refresh info UI
+      connection = connection
     } catch (error) {
       connectionError = (error as Error).message
     }
   }
 
+  const disconnect = () => {
+    connection && connection.disconnect && connection.disconnect()
+  }
+
   const handleLabelUpdate = async (label: string) => {
-    await db.connections.update(id, { label })
+    await db.connections.update(id, { label, modifiedAt: nowSeconds() })
   }
 
   const handleConfigurationUpdate = async (configuration: ConnectionConfiguration) => {
-    await db.connections.update(id, { configuration })
+    await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
   /**
@@ -137,14 +149,25 @@
       {/if}
     </div>
 
-    <div class="my-4 flex items-center justify-between">
+    <div class="flex items-center justify-between mt-4">
       <div class="w-min">
         {#if !status || status === 'disconnected'}
-          <Button on:click={connect} primary text={$translate('app.labels.connect')} />
+          <div in:fade|local={{ duration: 250 }}>
+            <Button on:click={connect} primary text={$translate('app.labels.connect')} />
+          </div>
+        {/if}
+
+        {#if status && status === 'connected'}
+          <div class="flex gap-x-2" in:fade|local={{ duration: 250 }}>
+            <Button on:click={disconnect} warning text={$translate('app.labels.disconnect')} />
+            <Button on:click={connect} primary text={$translate('app.labels.sync')}>
+              <div class="w-4 ml-2" slot="iconRight">{@html refresh}</div>
+            </Button>
+          </div>
         {/if}
       </div>
 
-      <div class="flex items-center">
+      <div class="flex items-center py-2">
         <div class="flex items-center">
           <span
             class="transition-colors"
@@ -163,8 +186,35 @@
       </div>
     </div>
 
-    <!-- render latest transaction or invoice that was done on this connection -->
-    <!-- if connected, then render any info for the connection (version, alias, shortened id) -->
+    {#if connection && connection.info}
+      {@const { id, alias, version } = connection.info}
+      <div transition:slide|local={{ duration: 250 }} class="w-full my-4">
+        <SummaryRow>
+          <div slot="label">id:</div>
+          <div slot="value">
+            <CopyValue value={id} truncateLength={9} />
+          </div>
+        </SummaryRow>
+
+        {#if alias}
+          <SummaryRow>
+            <div slot="label">alias:</div>
+            <div slot="value">
+              {alias}
+            </div>
+          </SummaryRow>
+        {/if}
+
+        {#if version}
+          <SummaryRow>
+            <div slot="label">version:</div>
+            <div slot="value">
+              {version}
+            </div>
+          </SummaryRow>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Connection Configuration UI -->
     {#if showConfiguration}

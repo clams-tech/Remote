@@ -14,6 +14,8 @@ import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
 import { parseNodeAddress } from '$lib/utils.js'
+import Forwards from './forwards.js'
+import { validateConfiguration } from './validation.js'
 
 import type {
   BlocksInterface,
@@ -27,8 +29,6 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
-import Forwards from './forwards.js'
-import { validateConfiguration } from './validation.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   info: Required<Info>

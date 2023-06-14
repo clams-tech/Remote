@@ -165,6 +165,8 @@
     "summary": "Summary",
     "completed": "Completed",
     "connect": "Connect",
+    "sync": "Sync",
+    "disconnect": "Disconnect",
     "token": "Token",
     "scan": "Scan",
     "note": "Note",
