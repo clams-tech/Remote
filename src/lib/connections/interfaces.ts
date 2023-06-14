@@ -2,7 +2,7 @@ import type { Channel } from '$lib/@types/channels.js'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
-import type { ConnectionInfo, ConnectionInfoType } from '$lib/@types/connections.js'
+import type { ConnectionDetails, ConnectionDetailsType } from '$lib/@types/connections.js'
 import type { Forward } from '$lib/@types/forwards.js'
 
 import type {
@@ -22,7 +22,7 @@ import type {
 
 /** the live connection held in memory */
 export type Connection = {
-  id: ConnectionInfo['id']
+  id: ConnectionDetails['id']
   interface: ConnectionInterface
 }
 
@@ -49,7 +49,7 @@ export interface ConnectionInterface {
 export type Info = {
   id: string
   /** the connection info this connection is associated with */
-  connectionInfoId: string
+  connectionDetailsId: string
   alias?: string
   color?: string
   version?: string

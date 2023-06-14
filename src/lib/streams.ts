@@ -46,7 +46,7 @@ export const onDestroy$ = defer(() => {
 })
 
 // the last url path
-export const lastPath$ = new BehaviorSubject('/')
+export const lastPath$ = new BehaviorSubject('')
 
 // debug logs
 export const log$ = new Subject<string>()

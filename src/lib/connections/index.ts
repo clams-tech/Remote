@@ -1,6 +1,6 @@
 import type {
   ConnectionConfiguration,
-  ConnectionInfo,
+  ConnectionDetails,
   CoreLnConfiguration
 } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
@@ -9,15 +9,15 @@ import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
 
-export const connectionOptions: { type: ConnectionInfo['type']; icon: string }[] = [
+export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
   {
     type: 'coreln',
     icon: coreLnLogo
   }
 ]
 
-export const connectionInfoToInterface = (
-  info: ConnectionInfo,
+export const connectionDetailsToInterface = (
+  info: ConnectionDetails,
   session: Session
 ): ConnectionInterface => {
   switch (info.type) {
@@ -29,8 +29,8 @@ export const connectionInfoToInterface = (
 }
 
 export const connectionTypeToInitialConfiguration = (
-  type: ConnectionInfo['type']
-): ConnectionInfo['configuration'] => {
+  type: ConnectionDetails['type']
+): ConnectionDetails['configuration'] => {
   switch (type) {
     case 'coreln':
       return {

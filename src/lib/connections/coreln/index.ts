@@ -28,6 +28,7 @@ import type {
   ForwardsInterface
 } from '../interfaces.js'
 import Forwards from './forwards.js'
+import { validateConfiguration } from './validation.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   info: Required<Info>
@@ -49,13 +50,14 @@ class CoreLightning implements CorelnConnectionInterface {
   forwards: ForwardsInterface
 
   constructor(
-    connectionInfoId: string,
+    connectionDetailsId: string,
     configuration: CoreLnConfiguration,
     session: Session,
     logger?: Logger
   ) {
-    const { address, connection, token } = configuration
+    validateConfiguration(configuration)
 
+    const { address, connection, token } = configuration
     const { publicKey, port, ip } = parseNodeAddress(address)
     const { secret } = session
 
@@ -85,7 +87,7 @@ class CoreLightning implements CorelnConnectionInterface {
           method: 'getinfo'
         })) as GetinfoResponse
 
-        this.info = { id, alias, color, version, connectionInfoId }
+        this.info = { id, alias, color, version, connectionDetailsId }
 
         return this.info
       } else {

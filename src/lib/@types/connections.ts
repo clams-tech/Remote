@@ -1,4 +1,4 @@
-export type ConnectionInfoType =
+export type ConnectionDetailsType =
   | 'coreln'
   | 'lnd'
   | 'xpub'
@@ -7,12 +7,16 @@ export type ConnectionInfoType =
   | 'electrum'
   | 'nostr-wallet-connect'
 
-export type ConnectionInfo = {
+export type ConnectionDetails = {
   /** randomly generated id */
   id: string
-  type: ConnectionInfoType
+  type: ConnectionDetailsType
   /** user input label */
   label: string
+  /** Unix timestamp seconds this connection was created */
+  createdAt: number | null
+  /** Unix timestamp seconds this connection was last modified */
+  modifiedAt: number | null
   /** data is encrypted with session secret */
   configuration: ConnectionConfiguration | null
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
-  import type { ConnectionConfiguration, ConnectionInfo } from '$lib/@types/connections.js'
+  import type { ConnectionConfiguration, ConnectionDetails } from '$lib/@types/connections.js'
   import Button from '$lib/elements/Button.svelte'
-  import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
@@ -11,30 +10,49 @@
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
   import { takeUntil } from 'rxjs'
-  import { onDestroy$, session$ } from '$lib/streams.js'
-  import { connectionInfoToInterface } from '$lib/connections/index.js'
+  import { connections$, onDestroy$, session$ } from '$lib/streams.js'
+  import { connectionDetailsToInterface } from '$lib/connections/index.js'
   import { slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import caret from '$lib/icons/caret.js'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db.js'
-  import { DOCS_LINK } from '$lib/constants.js'
-  import info from '$lib/icons/info.js'
+  import Msg from '$lib/elements/Msg.svelte'
+  import { goto } from '$app/navigation'
+  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
 
   export let data: PageData
 
-  let { id, connection } = data
+  let { id } = data
+  let connection: ConnectionInterface | undefined
   let status: ConnectionStatus
   let showConfiguration = false
+  let connectionError = ''
 
-  /**if we have not already instantiated a connection
-   * show the configuration options automatically
-   */
-  if (!connection) {
-    showConfiguration = true
+  const checkForConnectionDetails = async () => {
+    const connectionDetails = (await db.connections.get(id)) as ConnectionDetails
+
+    // no record of this connection, so redirect
+    if (!connectionDetails) {
+      console.log('DOESNT EXIST, REDIRECTING')
+      await goto('/connections')
+      return
+    }
+
+    connection = connections$.value.find((connection) => connection.info.connectionDetailsId === id)
+
+    /**if we have not modified from original creation
+     * show the configuration options automatically as it is a
+     * brand new connection
+     */
+    if (!connectionDetails.modifiedAt) {
+      showConfiguration = true
+    }
   }
 
-  const connectionInfo$ = liveQuery(() => db.connections.get(id))
+  checkForConnectionDetails()
+
+  const connectionDetails$ = liveQuery(() => db.connections.get(id))
 
   $: if (connection) {
     connection.connectionStatus$.pipe(takeUntil(onDestroy$)).subscribe((newStatus) => {
@@ -42,7 +60,7 @@
     })
   }
 
-  const typeToConfigurationComponent = (type: ConnectionInfo['type']): ComponentType => {
+  const typeToConfigurationComponent = (type: ConnectionDetails['type']): ComponentType => {
     switch (type) {
       case 'coreln':
         return CoreLn
@@ -52,8 +70,15 @@
   }
 
   const connect = async () => {
-    connection = connectionInfoToInterface($connectionInfo$!, $session$!)
-    connection.connect && connection.connect()
+    connectionError = ''
+
+    try {
+      connection = connectionDetailsToInterface($connectionDetails$!, $session$!)
+      connection.connect && connection.connect()
+      connections$.next([...$connections$, connection])
+    } catch (error) {
+      connectionError = (error as Error).message
+    }
   }
 
   const handleLabelUpdate = async (label: string) => {
@@ -80,12 +105,12 @@
 </script>
 
 <svelte:head>
-  <title>{$translate(`app.routes./connections/${$connectionInfo$?.type}.title`)}</title>
+  <title>{$translate(`app.routes./connections/${$connectionDetails$?.type}.title`)}</title>
 </svelte:head>
 
 <Section>
-  {#if $connectionInfo$}
-    {@const { label, type, configuration } = $connectionInfo$}
+  {#if $connectionDetails$}
+    {@const { label, type, configuration } = $connectionDetails$}
 
     <div
       class="flex items-center justify-between border-b dark:border-b-neutral-700 border-b-neutral-300"
@@ -112,9 +137,31 @@
       {/if}
     </div>
 
-    <!-- @TODO -->
-    <!-- render the current status -->
-    <!-- render a button that says "connect" or "check connection if not status or status is disconnected" -->
+    <div class="my-4 flex items-center justify-between">
+      <div class="w-min">
+        {#if !status || status === 'disconnected'}
+          <Button on:click={connect} primary text={$translate('app.labels.connect')} />
+        {/if}
+      </div>
+
+      <div class="flex items-center">
+        <div class="flex items-center">
+          <span
+            class="transition-colors"
+            class:text-utility-success={status === 'connected'}
+            class:text-utility-pending={status === 'connecting' || status === 'waiting_reconnect'}
+            class:text-utility-error={!status || status === 'disconnected'}
+            >{$translate(`app.labels.${status || 'disconnected'}`)}</span
+          >
+          <div
+            class="w-2 h-2 ml-2 rounded-full transition-colors"
+            class:bg-utility-success={status === 'connected'}
+            class:bg-utility-pending={status === 'connecting' || status === 'waiting_reconnect'}
+            class:bg-utility-error={!status || status === 'disconnected'}
+          />
+        </div>
+      </div>
+    </div>
 
     <!-- render latest transaction or invoice that was done on this connection -->
     <!-- if connected, then render any info for the connection (version, alias, shortened id) -->
@@ -129,5 +176,7 @@
         />
       </div>
     {/if}
+
+    <Msg type="error" bind:message={connectionError} />
   {/if}
 </Section>

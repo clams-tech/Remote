@@ -8,7 +8,7 @@
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { getSession } from '$lib/storage.js'
-  import { session$ } from '$lib/streams.js'
+  import { lastPath$, session$ } from '$lib/streams.js'
   import { decryptWithAES } from '$lib/utils.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
 
@@ -29,7 +29,9 @@
       }
 
       session$.next({ secret: decrypted })
-      await goto('/')
+
+      const lastPath = lastPath$.value
+      await goto(lastPath !== '/decrypt' ? lastPath : '/')
     } catch (error) {
       errorMsg = $translate('app.errors.invalid_passphrase')
     }

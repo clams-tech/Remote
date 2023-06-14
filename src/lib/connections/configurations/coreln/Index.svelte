@@ -51,7 +51,7 @@
   }
 </script>
 
-<div class="w-full py-4">
+<div class="w-full py-2">
   <div class="flex items-center w-full justify-between mb-3">
     <h4 class="text-lg font-bold">{$translate('app.labels.configuration')}</h4>
     <!-- @TODO - Ensure docs links are up for connections help -->

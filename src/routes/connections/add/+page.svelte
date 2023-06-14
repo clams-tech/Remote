@@ -1,28 +1,32 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import type { ConnectionInfo } from '$lib/@types/connections.js'
-  import {
-    connectionOptions,
-    connectionTypeToInitialConfiguration
-  } from '$lib/connections/index.js'
+  import type { ConnectionDetails } from '$lib/@types/connections.js'
   import { db } from '$lib/db.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import { createRandomHex } from '$lib/utils.js'
+  import { createRandomHex, nowSeconds } from '$lib/utils.js'
+
+  import {
+    connectionOptions,
+    connectionTypeToInitialConfiguration
+  } from '$lib/connections/index.js'
 
   const translateBase = 'app.routes./connections/add'
 
-  const addConnection = async (type: ConnectionInfo['type']) => {
+  const addConnection = async (type: ConnectionDetails['type']) => {
     // add new connection to the db with generic label and random id
     const id = createRandomHex()
     const label = 'New Coreln'
+
     await db.connections.add({
       id,
       label,
       type,
+      createdAt: nowSeconds(),
+      modifiedAt: null,
       configuration: connectionTypeToInitialConfiguration(type)
     })
 
