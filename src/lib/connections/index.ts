@@ -5,6 +5,7 @@ import type {
 } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
+import { logger } from '$lib/utils.js'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
@@ -22,7 +23,7 @@ export const connectionDetailsToInterface = (
 ): ConnectionInterface => {
   switch (info.type) {
     case 'coreln':
-      return new CoreLightning(info.id, info.configuration as CoreLnConfiguration, session)
+      return new CoreLightning(info.id, info.configuration as CoreLnConfiguration, session, logger)
   }
 
   throw new Error(`Invalid connection type: ${info.type}`)

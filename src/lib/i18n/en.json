@@ -102,6 +102,7 @@
     }
   },
   "labels": {
+    "alias": "Alias",
     "passphrase": "Passphrase",
     "advanced": "Advanced",
     "connected": "Connected",
@@ -119,7 +120,7 @@
     "created_started_at": "{{direction; receive:Created; send:Started;}} At",
     "description": "Description",
     "fee": "{{feeType; receive:Receive; network:Network;}} Fee",
-    "id": "ID",
+    "id": "Id",
     "hash": "Hash",
     "restrictions": "Restrictions",
     "direction": "{{direction; receive:}}",

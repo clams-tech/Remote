@@ -9,6 +9,7 @@ export type Utxo = {
   status: OutputStatus
   blockheight?: number
   /** the node this utxo is associated with */
+  /**@TODO - connectionId */
   nodeId?: string
   reserved?: boolean
 }

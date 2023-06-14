@@ -21,7 +21,6 @@
   import { goto } from '$app/navigation'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
   import { nowSeconds } from '$lib/utils.js'
-  import ellipsis from '$lib/icons/ellipsis.js'
   import refresh from '$lib/icons/refresh.js'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
@@ -190,7 +189,7 @@
       {@const { id, alias, version } = connection.info}
       <div transition:slide|local={{ duration: 250 }} class="w-full my-4">
         <SummaryRow>
-          <div slot="label">id:</div>
+          <div slot="label">{$translate('app.labels.id')}:</div>
           <div slot="value">
             <CopyValue value={id} truncateLength={9} />
           </div>
@@ -198,7 +197,7 @@
 
         {#if alias}
           <SummaryRow>
-            <div slot="label">alias:</div>
+            <div slot="label">{$translate('app.labels.alias')}:</div>
             <div slot="value">
               {alias}
             </div>

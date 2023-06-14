@@ -51,6 +51,8 @@ export const lastPath$ = new BehaviorSubject('')
 // debug logs
 export const log$ = new Subject<string>()
 
+log$.subscribe(console.log)
+
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 

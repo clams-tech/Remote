@@ -65,7 +65,17 @@
 
     await goto('/')
   }
+
+  let encryptButton: Button
+
+  function handleKeyPress(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      encryptButton.click()
+    }
+  }
 </script>
+
+<svelte:window on:keyup={handleKeyPress} />
 
 <Section>
   <div class="w-full flex justify-center mb-8">
@@ -94,6 +104,7 @@
 
   <div class="mt-4">
     <Button
+      bind:this={encryptButton}
       on:click={encryptAndStoreSecret}
       text={$translate('app.labels.encrypt')}
       primary
