@@ -9,7 +9,7 @@ import { db } from '$lib/db.js'
 
 // delayed boolean set
 function setCheckedSession() {
-  setTimeout(() => checkedSession$.next(true), 20)
+  setTimeout(() => checkedSession$.next(true), 100)
 }
 
 export const load: LayoutLoad = async ({ url }) => {
