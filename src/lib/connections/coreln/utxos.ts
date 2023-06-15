@@ -25,7 +25,7 @@ class Utxos implements UtxosInterface {
           status,
           reserved,
           blockHeight,
-          nodeId: this.connection.info.id
+          connectionId: this.connection.info.connectionId
         })
       )
     } catch (error) {

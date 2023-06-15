@@ -11,9 +11,9 @@ export type Invoice = {
   completedAt: number | null // unix seconds
   expiresAt: number | null // unix seconds
   hash: string
-  nodeId: string
+  connectionId: string
   /** BOLT11 | BOLT12 */
-  request?: string
+  request: string
   description?: string
   preimage?: string
   destination?: string

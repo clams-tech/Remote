@@ -15,7 +15,10 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Invoice['st
   }
 }
 
-export async function invoiceToPayment(invoice: RawInvoice, nodeId: string): Promise<Invoice> {
+export async function invoiceToPayment(
+  invoice: RawInvoice,
+  connectionId: string
+): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
@@ -65,7 +68,7 @@ export async function invoiceToPayment(invoice: RawInvoice, nodeId: string): Pro
 
   return {
     id: label || payment_hash,
-    request: bolt12 || bolt11,
+    request: (bolt12 || bolt11) as string,
     hash: payment_hash,
     direction: 'receive',
     type: bolt12 ? 'bolt12' : 'bolt11',
@@ -80,11 +83,11 @@ export async function invoiceToPayment(invoice: RawInvoice, nodeId: string): Pro
     startedAt: timestamp,
     payIndex: pay_index,
     offer,
-    nodeId
+    connectionId
   }
 }
 
-export async function payToPayment(pay: Pay, nodeId: string): Promise<Invoice> {
+export async function payToPayment(pay: Pay, connectionId: string): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
@@ -133,7 +136,7 @@ export async function payToPayment(pay: Pay, nodeId: string): Promise<Invoice> {
   return {
     id: label || payment_hash,
     destination,
-    request: bolt12 || bolt11,
+    request: (bolt12 || bolt11) as string,
     status,
     startedAt: timestamp,
     hash: payment_hash,
@@ -146,7 +149,7 @@ export async function payToPayment(pay: Pay, nodeId: string): Promise<Invoice> {
     completedAt: timestamp,
     description,
     offer,
-    nodeId
+    connectionId
   }
 }
 

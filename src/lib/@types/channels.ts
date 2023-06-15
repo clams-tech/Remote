@@ -45,6 +45,6 @@ export type Channel = {
   closeToScriptPubkey: string | null
   /** which side closed this channel */
   closer?: 'local' | 'remote'
-  /** node id this channel is associated with */
-  nodeId: string
+  /** the connection this channel is associated with */
+  connectionId: string
 }

@@ -117,12 +117,12 @@
   >
     {#each notificationsToRender as { id, heading, message, type } (id)}
       <div
+        on:swipe={() => removeNotification(id)}
         use:swipe={{
           direction: DIRECTION_UP,
           threshold: 30,
           velocity: 0.2
         }}
-        on:swipe={() => removeNotification(id)}
         use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
         animate:flip={{ duration: 700 }}
         in:fly|local={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}

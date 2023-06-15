@@ -8,6 +8,7 @@ export type Offer = {
   amount: string
   description: string
   nodeId: string
+  connectionId?: string
   used?: boolean
   singleUse?: boolean
   active?: boolean

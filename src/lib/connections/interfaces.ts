@@ -48,8 +48,8 @@ export interface ConnectionInterface {
 
 export type Info = {
   id: string
-  /** the connection info this connection is associated with */
-  connectionDetailsId: string
+  /** the connection details this connection is associated with */
+  connectionId: string
   alias?: string
   color?: string
   version?: string

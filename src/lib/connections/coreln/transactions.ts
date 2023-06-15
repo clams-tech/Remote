@@ -42,7 +42,7 @@ class Transactions implements TransactionsInterface {
               amount: amount_msat,
               scriptPubKey
             })),
-            nodeId: this.connection.info.id
+            connectionId: this.connection.info.connectionId
           }
         }
       )

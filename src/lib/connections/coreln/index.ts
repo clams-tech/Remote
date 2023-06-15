@@ -50,7 +50,7 @@ class CoreLightning implements CorelnConnectionInterface {
   forwards: ForwardsInterface
 
   constructor(
-    connectionDetailsId: string,
+    connectionId: string,
     configuration: CoreLnConfiguration,
     session: Session,
     logger?: Logger
@@ -87,7 +87,7 @@ class CoreLightning implements CorelnConnectionInterface {
           method: 'getinfo'
         })) as GetinfoResponse
 
-        this.info = { id, alias, color, version, connectionDetailsId }
+        this.info = { id, alias, color, version, connectionId }
 
         return this.info
       } else {

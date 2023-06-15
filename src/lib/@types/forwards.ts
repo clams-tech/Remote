@@ -17,5 +17,5 @@ export type Forward = {
   started: number
   /** unix timestamp seconds complete */
   completed?: number
-  nodeId: string
+  connectionId: string
 }

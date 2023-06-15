@@ -16,8 +16,8 @@ export type Transaction = {
     amount: string
     scriptPubKey: string
   }>
-  /** the node this onchain tx is associated with */
-  nodeId?: string
+  /** the connection this onchain tx is associated with */
+  connectionId: string
 }
 
 export type SendTransactionOptions = {

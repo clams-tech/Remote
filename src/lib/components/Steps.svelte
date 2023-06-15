@@ -31,7 +31,7 @@
     step = index
   }
 
-  const handleNext = (e: Event) => {
+  const handleNext = () => {
     if (step === lastStep) {
       dispatch('complete')
     } else {
@@ -61,7 +61,7 @@
       {/if}
 
       <div class="flex items-center justify-center gap-x-2">
-        {#each components as c, index}
+        {#each [...components.keys()] as index}
           {@const completed = index <= step}
           <button
             disabled={!completed}

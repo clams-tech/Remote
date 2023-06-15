@@ -43,7 +43,7 @@
       return
     }
 
-    connection = connections$.value.find((connection) => connection.info.connectionDetailsId === id)
+    connection = connections$.value.find((connection) => connection.info.connectionId === id)
 
     /**if we have not modified from original creation
      * show the configuration options automatically as it is a
@@ -100,18 +100,11 @@
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
-  /**
-   1. Display the details of the connection
-   2. Need to make all details editable
-   3. Show connection status
-   */
-
-  /**What details do we want to show
-   * 1. Connection Status
-   * 2. Connection type
-   * 3. Configuration (if possible)
-   *   3a. Do we update the db as soon as the configuration
-   * 4. Delete connection button
+  /** @TODO
+   * 1. Delete connection button as part of configuration
+   * 2. Errors expander to show recent errors for connection
+   *    2.a Need to add errors$ BehaviorSubject<ConnectionError[]> to connection interface
+   * 3. Sync progress bar once sync functionality is added
    */
 </script>
 

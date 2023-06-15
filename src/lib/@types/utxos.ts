@@ -8,8 +8,7 @@ export type Utxo = {
   address: string
   status: OutputStatus
   blockheight?: number
-  /** the node this utxo is associated with */
-  /**@TODO - connectionId */
-  nodeId?: string
+  /** the connection this utxo is associated with */
+  connectionId: string
   reserved?: boolean
 }

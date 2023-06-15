@@ -41,7 +41,7 @@ class Forwards implements ForwardsInterface {
           style,
           started: received_time,
           completed: resolved_time,
-          nodeId: this.connection.info.id
+          connectionId: this.connection.info.connectionId
         })
       )
     } catch (error) {

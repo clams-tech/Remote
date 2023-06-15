@@ -41,11 +41,11 @@ class Invoices implements InvoicesInterface {
       const { pays } = paysResponse as ListpaysResponse
 
       const invoicePayments: Invoice[] = await Promise.all(
-        invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.id))
+        invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.connectionId))
       )
 
       const sentPayments: Invoice[] = await Promise.all(
-        pays.map((pay) => payToPayment(pay, this.connection.info.id))
+        pays.map((pay) => payToPayment(pay, this.connection.info.connectionId))
       )
 
       return invoicePayments.concat(sentPayments)
@@ -86,7 +86,7 @@ class Invoices implements InvoicesInterface {
         description,
         hash: payment_hash,
         preimage: payment_secret,
-        nodeId: this.connection.info.id
+        connectionId: this.connection.info.connectionId
       }
 
       return payment
@@ -134,7 +134,7 @@ class Invoices implements InvoicesInterface {
         fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
         status,
         request,
-        nodeId: this.connection.info.id
+        connectionId: this.connection.info.connectionId
       }
     } catch (error) {
       const context = 'payInvoice (payments)'
@@ -160,6 +160,16 @@ class Invoices implements InvoicesInterface {
 
       const amountMsat = formatMsat(amount_msat)
 
+      // get the invoice by payment_hash for request parameter of Invoice type
+      const listInvoiceResult = await this.connection.rpc({
+        method: 'listinvoice',
+        params: { payment_hash }
+      })
+
+      const {
+        invoices: [{ bolt11 }]
+      } = listInvoiceResult as ListinvoicesResponse
+
       return {
         id,
         hash: payment_hash,
@@ -173,7 +183,8 @@ class Invoices implements InvoicesInterface {
         startedAt: created_at,
         fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
         status,
-        nodeId: this.connection.info.id
+        connectionId: this.connection.info.connectionId,
+        request: bolt11 as string
       }
     } catch (error) {
       const context = 'payKeysend (payments)'
@@ -219,7 +230,7 @@ class Invoices implements InvoicesInterface {
         reqId
       })
 
-      return invoiceToPayment(response as WaitAnyInvoiceResponse, this.connection.info.id)
+      return invoiceToPayment(response as WaitAnyInvoiceResponse, this.connection.info.connectionId)
     } catch (error) {
       const context = 'listenForAnyInvoicePayment (payments)'
       throw handleError(error as CoreLnError, context)

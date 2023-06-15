@@ -566,7 +566,7 @@ export type BkprChannelsAPYResponse = {
 }
 
 export type ListNode = {
-  nodeid: string
+  connectionId: string
   alias: string
   color: string
   last_timestamp: number

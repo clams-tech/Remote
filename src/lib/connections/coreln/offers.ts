@@ -93,6 +93,7 @@ class Offers implements OffersInterface {
         amount,
         description,
         nodeId: this.connection.info.id,
+        connectionId: this.connection.info.connectionId,
         used,
         singleUse: single_use,
         active,
@@ -142,6 +143,7 @@ class Offers implements OffersInterface {
         amount,
         description,
         nodeId: this.connection.info.id,
+        connectionId: this.connection.info.connectionId,
         used,
         singleUse: single_use,
         active,
@@ -225,9 +227,9 @@ class Offers implements OffersInterface {
         startedAt: createdAt,
         fee: null,
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
-        invoice: bolt12,
+        request: bolt12 as string,
         payIndex: pay_index,
-        nodeId: this.connection.info.id
+        connectionId: this.connection.info.connectionId
       }
     } catch (error) {
       const context = 'sendInvoice (offers)'

@@ -22,14 +22,14 @@ export class DB extends Dexie {
     super('Clams')
 
     this.version(1).stores({
-      channels: '&id, nodeId, shortId',
+      channels: '&id, connectionId, shortId',
       connections: '&id, type',
-      forwards: ', nodeId, shortIdIn, shortIdOut, fee, status',
-      invoices: '&id, nodeId, offerId, value, fee, payIndex',
+      forwards: ', connectionId, shortIdIn, shortIdOut, fee, status',
+      invoices: '&id, connectionId, offerId, value, fee, payIndex',
       nodes: '&id, alias, connectionId',
-      offers: '&id, nodeId',
-      transactions: '&hash, nodeId',
-      utxos: '&txid, nodeId'
+      offers: '&id, connectionId',
+      transactions: '&hash, connectionId',
+      utxos: '&txid, connectionId'
     })
   }
 }

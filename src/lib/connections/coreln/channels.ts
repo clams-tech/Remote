@@ -2,14 +2,7 @@ import type { Channel } from '$lib/@types/channels.js'
 import { convertVersionNumber, formatMsat } from '$lib/utils.js'
 import type { ChannelsInterface } from '../interfaces.js'
 import handleError from './error.js'
-
-import type {
-  BkprChannelsAPYResponse,
-  BkprListBalancesResponse,
-  CorelnConnectionInterface,
-  CoreLnError,
-  ListPeersResponse
-} from './types.js'
+import type { CorelnConnectionInterface, CoreLnError, ListPeersResponse } from './types.js'
 
 class Channels implements ChannelsInterface {
   connection: CorelnConnectionInterface
@@ -49,7 +42,7 @@ class Channels implements ChannelsInterface {
             closeToAddress: channel.close_to_addr ?? null,
             closeToScriptPubkey: channel.close_to ?? null,
             closer: channel.closer,
-            nodeId: this.connection.info.id
+            connectionId: this.connection.info.connectionId
           }
         })
       })

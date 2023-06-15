@@ -12,7 +12,7 @@ declare namespace App {
 
 declare namespace svelteHTML {
   interface HTMLAttributes {
-    onswipe?: (event: string) => void
+    'on:swipe'?: (event: string) => void
   }
 }
 
