@@ -4,6 +4,6 @@
 <!-- underline -->
 <!-- decoration-2 -->
 <!-- underline-offset-4 -->
-<p class="text-neutral-600 dark:text-neutral-300">
+<p class="text-neutral-300">
   <slot />
 </p>

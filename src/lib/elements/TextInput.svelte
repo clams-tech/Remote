@@ -25,9 +25,9 @@
 
   let input: HTMLInputElement | HTMLTextAreaElement
 
-  $: styles = `flex items-center bg-neutral-50 dark:bg-neutral-900 placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium ${
+  $: styles = `flex items-center bg-neutral-900 placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium ${
     micro ? 'px-3 py-2' : 'px-4 py-[14px]'
-  } border border-neutral-200 dark:border-neutral-600 rounded appearance-none focus:outline-none ${
+  } border border-neutral-600 rounded appearance-none focus:outline-none ${
     micro ? 'focus:ring-2' : 'focus:ring'
   } focus:border-white ${invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'} ${
     cursorPointer ? 'cursor-pointer' : ''
@@ -37,9 +37,7 @@
 <div style="width: {width};" class="flex flex-col relative">
   {#if label}
     <label
-      class="{micro
-        ? 'text-xs'
-        : 'text-sm'} w-1/2 text-inherit text-neutral-600 dark:text-neutral-300 mb-2"
+      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-2"
       for={name}>{label}</label
     >
   {/if}

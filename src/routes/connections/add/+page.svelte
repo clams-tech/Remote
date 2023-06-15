@@ -45,7 +45,7 @@
     {#each connectionOptions as { icon, type }}
       <button
         on:click={() => addConnection(type)}
-        class="aspect-square no-underline border border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
+        class="aspect-square no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
       >
         <div class="w-full">
           {@html icon}

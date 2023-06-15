@@ -69,10 +69,7 @@ export const settings$ = new SvelteSubject<Settings>({
 
 // updates settings in storage and handles dark mode toggle
 settings$.pipe(filter((x) => !!x)).subscribe((update) => {
-  if (typeof window === 'undefined') return
-
   try {
-    document.documentElement.classList[update.darkmode ? 'add' : 'remove']('dark')
     writeDataToStorage(STORAGE_KEYS.settings, JSON.stringify(update))
   } catch (error) {
     logger.error('Could not save settings to storage, access to local storage denied')

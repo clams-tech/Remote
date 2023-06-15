@@ -34,7 +34,7 @@
         {@const connectionTypeDetails = connectionOptions.find((c) => c.type === type)}
         <a
           href={`/connections/${id}`}
-          class="aspect-square no-underline border p-4 border-neutral-300 dark:border-neutral-600 rounded flex flex-col justify-center items-center dark:hover:bg-neutral-800/90 hover:bg-neutral-100/90 bg-neutral-50 dark:bg-neutral-900 transition-all"
+          class="aspect-square no-underline border p-4 border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
         >
           {#if connectionTypeDetails}
             <div class="w-full">{@html connectionTypeDetails.icon}</div>

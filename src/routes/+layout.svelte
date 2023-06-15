@@ -15,7 +15,7 @@
 </svelte:head>
 
 <main
-  class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-900 dark:text-neutral-50 bg-transparent overflow-hidden"
+  class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-50 bg-transparent overflow-hidden"
 >
   <div class="-z-10">
     <Background />

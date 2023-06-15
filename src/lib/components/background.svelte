@@ -206,7 +206,4 @@
   onMount(() => start())
 </script>
 
-<canvas
-  class="absolute top-0 left-0 dark:bg-neutral-900 bg-neutral-50 w-screen h-[calc(100dvh)]"
-  bind:this={canvas}
-/>
+<canvas class="absolute top-0 left-0 bg-neutral-900 w-screen h-[calc(100dvh)]" bind:this={canvas} />

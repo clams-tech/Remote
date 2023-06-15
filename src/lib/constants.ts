@@ -33,11 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   invoiceExpiry: DEFAULT_INVOICE_EXPIRY,
   sendMaxFeePercent: 0.5,
   sendTimeoutSeconds: 120,
-  notifications: true,
-  darkmode:
-    typeof window !== 'undefined' &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+  notifications: true
 }
 
 export const SUPPORTED_LOCALES = ['en-US', 'en-GB']

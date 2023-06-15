@@ -59,7 +59,7 @@
       href={`${DOCS_LINK}/connections/coreln`}
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center ml-2 text-sm dark:text-purple-100 text-purple-800"
+      class="flex items-center ml-2 text-sm text-purple-100"
     >
       Help?
       <div class="ml-1 w-4 flex justify-center flex-shrink-0 border rounded-full border-current">

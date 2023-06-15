@@ -8,7 +8,6 @@ export type Settings = {
   sendMaxFeePercent: number
   sendTimeoutSeconds: number
   notifications: boolean
-  darkmode: boolean
 }
 
 // locale => Display language

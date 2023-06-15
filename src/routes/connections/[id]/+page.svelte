@@ -116,9 +116,7 @@
   {#if $connectionDetails$}
     {@const { label, type, configuration } = $connectionDetails$}
 
-    <div
-      class="flex items-center justify-between border-b dark:border-b-neutral-700 border-b-neutral-300"
-    >
+    <div class="flex items-center justify-between border-b border-b-neutral-700">
       <SectionHeading
         on:updated={({ detail }) => handleLabelUpdate(detail)}
         text={label}
