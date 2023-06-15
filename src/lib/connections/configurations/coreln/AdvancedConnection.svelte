@@ -64,8 +64,7 @@
   <div class="flex border rounded-md">
     <label
       class="flex items-center justify-center px-2 py-2 rounded-md cursor-pointer w-1/3"
-      class:bg-neutral-200={advancedConnectOption === 'default'}
-      class:dark:bg-neutral-700={advancedConnectOption === 'default'}
+      class:bg-neutral-700={advancedConnectOption === 'default'}
     >
       <input
         type="radio"
@@ -78,8 +77,7 @@
 
     <label
       class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
-      class:bg-neutral-200={advancedConnectOption === 'customProxy'}
-      class:dark:bg-neutral-700={advancedConnectOption === 'customProxy'}
+      class:bg-neutral-700={advancedConnectOption === 'customProxy'}
     >
       <input
         type="radio"
@@ -92,8 +90,7 @@
 
     <label
       class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
-      class:bg-neutral-200={advancedConnectOption === 'directConnection'}
-      class:dark:bg-neutral-700={advancedConnectOption === 'directConnection'}
+      class:bg-neutral-700={advancedConnectOption === 'directConnection'}
     >
       <input
         type="radio"
@@ -119,7 +116,7 @@
   {:else if advancedConnectOption === 'directConnection'}
     <div in:fade|local={{ duration: 250 }} class="mt-2">
       <div
-        class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 border border-neutral-200 dark:border-neutral-600 rounded"
+        class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 border border-neutral-600 rounded"
       >
         <label class="flex items-center cursor-pointer">
           <input type="radio" bind:group={connection.value} value="wss:" />
