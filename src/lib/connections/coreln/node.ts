@@ -21,7 +21,9 @@ class Node implements NodeInterface {
       return signature
     } catch (error) {
       const context = 'signMessage (node)'
-      throw handleError(error as CoreLnError, context)
+      const connectionError = handleError(error as CoreLnError, context)
+      this.connection.errors$.next(connectionError)
+      throw connectionError
     }
   }
 }

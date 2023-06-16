@@ -4,10 +4,23 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Background from '$lib/components/Background.svelte'
-  import { checkedSession$ } from '$lib/streams.js'
+  import { session$ } from '$lib/streams.js'
   import { fade } from 'svelte/transition'
-  import { routeRequiresSession } from '$lib/utils.js'
   import { goto } from '$app/navigation'
+  import { routeRequiresSession } from '$lib/utils.js'
+  import lock from '$lib/icons/lock.js'
+  import Toggle from '$lib/elements/Toggle.svelte'
+
+  $: path = $page.url.pathname
+
+  const handleLockToggle = () => {
+    console.log('HANDLE', $session$)
+    if ($session$) {
+      session$.next(null)
+    } else {
+      goto('/decrypt')
+    }
+  }
 </script>
 
 <svelte:head>
@@ -22,18 +35,27 @@
   </div>
 
   <header class="flex w-full items-center justify-between">
-    <div />
+    <div class="flex items-center">
+      {#if routeRequiresSession(path)}
+        <div class="p-4">
+          <Toggle large on:change={handleLockToggle} toggled={!$session$}>
+            <div class="w-6 ml-2" slot="right">{@html lock}</div>
+          </Toggle>
+        </div>
+      {/if}
+    </div>
 
-    {#if routeRequiresSession($page.url.pathname) && $checkedSession$}
-      <button class:pointer={$page.url.pathname !== '/'} on:click={() => goto('/')} class="w-20 p-2"
+    <!-- show clams icon in top right if not welcome or decrypt routes -->
+    {#if routeRequiresSession(path)}
+      <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
         >{@html clamsIcon}</button
       >
     {/if}
   </header>
 
-  {#if $checkedSession$}
-    <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden pb-4">
+  <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden pb-4">
+    {#if $session$ || path === '/decrypt'}
       <slot />
-    </div>
-  {/if}
+    {/if}
+  </div>
 </main>

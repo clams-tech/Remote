@@ -1,4 +1,11 @@
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
+import type { TransactionsInterface } from '../interfaces.js'
+import type { AppError } from '$lib/@types/errors.js'
+import Big from 'big.js'
+import { merge, Subject, takeUntil } from 'rxjs'
+import handleError from './error.js'
+import { nowSeconds } from '$lib/utils.js'
+
 import type {
   CorelnConnectionInterface,
   CoreLnError,
@@ -6,11 +13,6 @@ import type {
   NewAddrResponse,
   WithdrawResponse
 } from './types.js'
-import type { ConnectionError, TransactionsInterface } from '../interfaces.js'
-import Big from 'big.js'
-import { merge, Subject, takeUntil } from 'rxjs'
-import handleError from './error.js'
-import { nowSeconds } from '$lib/utils.js'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface
@@ -48,7 +50,9 @@ class Transactions implements TransactionsInterface {
       )
     } catch (error) {
       const context = 'get (transactions)'
-      throw handleError(error as CoreLnError, context)
+      const connectionError = handleError(error as CoreLnError, context)
+      this.connection.errors$.next(connectionError)
+      throw connectionError
     }
   }
 
@@ -60,7 +64,9 @@ class Transactions implements TransactionsInterface {
       return bech32
     } catch (error) {
       const context = 'receive (transactions)'
-      throw handleError(error as CoreLnError, context)
+      const connectionError = handleError(error as CoreLnError, context)
+      this.connection.errors$.next(connectionError)
+      throw connectionError
     }
   }
 
@@ -86,7 +92,9 @@ class Transactions implements TransactionsInterface {
       return transaction as Transaction
     } catch (error) {
       const context = 'send (transactions)'
-      throw handleError(error as CoreLnError, context)
+      const connectionError = handleError(error as CoreLnError, context)
+      this.connection.errors$.next(connectionError)
+      throw connectionError
     }
   }
 
@@ -97,12 +105,16 @@ class Transactions implements TransactionsInterface {
       const complete$ = merge(stopListening$, this.connection.destroy$)
 
       this.connection.blocks.blockHeight$.pipe(takeUntil(complete$)).subscribe(async () => {
+        /** when we get a new block height, we ask for all transactions again to see
+         * if transaction has been included in a block
+         */
         try {
           const transactions = await this.get()
           const tx = transactions.find(({ hash }) => hash === transaction.hash)
 
+          /** can't find transaction, throw error */
           if (!tx) {
-            const connectionError: ConnectionError = {
+            const connectionError: AppError = {
               key: 'connection_transaction_not_found',
               detail: {
                 timestamp: nowSeconds(),
@@ -111,12 +123,23 @@ class Transactions implements TransactionsInterface {
               }
             }
 
+            this.connection.errors$.next(connectionError)
             reject(connectionError)
           } else if (tx.blockheight) {
             stopListening$.next()
             resolve(tx)
           }
         } catch (error) {
+          const connectionError: AppError = {
+            key: 'connection_transactions_get',
+            detail: {
+              timestamp: nowSeconds(),
+              message: (error as CoreLnError).message,
+              context: 'listenForTransactionConfirmation (transactions)'
+            }
+          }
+
+          this.connection.errors$.next(connectionError)
           reject(error)
         }
       })

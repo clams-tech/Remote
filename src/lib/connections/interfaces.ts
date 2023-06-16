@@ -2,8 +2,9 @@ import type { Channel } from '$lib/@types/channels.js'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
-import type { ConnectionDetails, ConnectionDetailsType } from '$lib/@types/connections.js'
+import type { ConnectionDetails } from '$lib/@types/connections.js'
 import type { Forward } from '$lib/@types/forwards.js'
+import type { AppError } from '$lib/@types/errors.js'
 
 import type {
   CreatePayOfferOptions,
@@ -29,12 +30,17 @@ export type Connection = {
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
 export interface ConnectionInterface {
+  /** basic info about the connection including the connection id for looking configuration */
   info: Info
+  /** observable used to clean up all internal subscribers, will fire when connection is destroyed */
   destroy$: Subject<void>
+  /** observable of errors that have occured during this connection */
+  errors$: Subject<AppError>
+  /** the current connection status */
+  connectionStatus$: BehaviorSubject<ConnectionStatus>
   updateToken?: (token: string) => void
   connect?: () => Promise<Info | null>
   disconnect?: () => void
-  connectionStatus$: BehaviorSubject<ConnectionStatus>
   rpc?: RpcCall
   node?: NodeInterface
   offers?: OffersInterface
@@ -135,21 +141,4 @@ export interface BlocksInterface {
   connection: ConnectionInterface
   /** subscribe to increases in block height */
   blockHeight$: Subject<number>
-}
-
-export interface ConnectionError {
-  /** the i18n key that maps to a generic message to display to the user */
-  key: string
-  detail: {
-    /** unix timestamp in seconds */
-    timestamp: number
-    /** the message direct from the implementation that gives
-     * specific details on what went wrong to help with debugging
-     */
-    message: string
-    /** the context the error occured. ie what was the app trying to do
-     * at the time of error?
-     */
-    context: string
-  }
 }

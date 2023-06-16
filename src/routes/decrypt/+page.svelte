@@ -11,6 +11,7 @@
   import { lastPath$, session$ } from '$lib/streams.js'
   import { decryptWithAES } from '$lib/utils.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
+  import { onMount } from 'svelte'
 
   const translationBase = 'app.routes./decrypt'
 
@@ -42,6 +43,10 @@
       decryptButton.click()
     }
   }
+
+  let input: TextInput
+
+  onMount(() => input.focus())
 </script>
 
 <svelte:window on:keyup={handleKeyPress} />
@@ -63,6 +68,7 @@
       name="passphrase"
       type="password"
       bind:value={passphrase}
+      bind:this={input}
       label={$translate('app.labels.passphrase')}
     />
   </div>

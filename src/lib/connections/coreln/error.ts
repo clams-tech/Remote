@@ -1,5 +1,5 @@
 import { nowSeconds } from '$lib/utils.js'
-import type { ConnectionError } from '../interfaces.js'
+import type { AppError } from '$lib/@types/errors.js'
 import type { CoreLnError } from './types.js'
 
 /** a mapping of Coreln error codes -> i18n string error message */
@@ -82,7 +82,7 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
   }
 }
 
-const handleError = (error: CoreLnError, context: string): ConnectionError => {
+const handleError = (error: CoreLnError, context: string): AppError => {
   const key = errorToMessageKey(error)
 
   return {

@@ -32,7 +32,9 @@ class Blocks implements BlocksInterface {
         subscribeToBlockHeight(blockheight + 1)
       } catch (error) {
         const context = 'subscribeToBlockHeight (blocks)'
-        throw handleError(error as CoreLnError, context)
+        const connectionError = handleError(error as CoreLnError, context)
+        this.connection.errors$.next(connectionError)
+        throw connectionError
       }
     }
 
@@ -44,7 +46,9 @@ class Blocks implements BlocksInterface {
         subscribeToBlockHeight(blockheight + 1)
       } catch (error) {
         const context = 'getCurrentBlock (blocks)'
-        throw handleError(error as CoreLnError, context)
+        const connectionError = handleError(error as CoreLnError, context)
+        this.connection.errors$.next(connectionError)
+        throw connectionError
       }
     }
 

@@ -406,3 +406,5 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
 export function simpleDeepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+
+export const noop = () => {}

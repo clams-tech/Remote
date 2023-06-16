@@ -1,8 +1,4 @@
-import type {
-  ConnectionConfiguration,
-  ConnectionDetails,
-  CoreLnConfiguration
-} from '$lib/@types/connections.js'
+import type { ConnectionDetails, CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
 import { logger } from '$lib/utils.js'

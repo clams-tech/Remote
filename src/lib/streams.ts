@@ -9,6 +9,7 @@ import { logger, SvelteSubject } from './utils.js'
 import type { ConnectionInterface } from './connections/interfaces.js'
 import { liveQuery } from 'dexie'
 import { db } from './db.js'
+import type { AppError } from './@types/errors.js'
 
 import {
   BehaviorSubject,
@@ -33,8 +34,39 @@ export const storedConnections$ = from(liveQuery(() => db.connections.toArray())
   shareReplay(1)
 )
 
+export const errors$ = new Subject<AppError>()
+
 /** A list of interfaces for each initialized connection */
 export const connections$ = new BehaviorSubject<ConnectionInterface[]>([])
+
+type ConnectionErrors = Record<ConnectionInterface['info']['connectionId'], AppError[]>
+
+/** A collection of the last 10 errors for each connectionId */
+export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
+  filter((error) => error.key.startsWith('connection_')),
+  scan((acc, value) => {
+    const { connectionId } = value.detail
+
+    if (!connectionId) {
+      logger.warn(`Connection error that does not have a connection id: ${JSON.stringify(value)}`)
+      return acc
+    }
+
+    if (!acc[connectionId]) {
+      acc[connectionId] = []
+    }
+
+    const errors = acc[connectionId]
+    errors.push(value)
+
+    /** keep the last 10 errors only, truncate if longer */
+    errors.length = Math.min(errors.length, 10)
+
+    return acc
+  }, {} as ConnectionErrors),
+  shareReplay(1),
+  startWith({})
+)
 
 // when svelte component is destroyed
 export const onDestroy$ = defer(() => {

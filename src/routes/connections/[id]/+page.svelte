@@ -10,7 +10,7 @@
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
   import { takeUntil } from 'rxjs'
-  import { connections$, onDestroy$, session$ } from '$lib/streams.js'
+  import { connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
   import { connectionDetailsToInterface } from '$lib/connections/index.js'
   import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
@@ -73,13 +73,20 @@
     }
   }
 
+  const listenForConnectionErrors = (connection: ConnectionInterface) => {
+    console.log({ connection })
+    connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
+  }
+
   const connect = async () => {
     connectionError = ''
 
+    /** create a fresh connection*/
     try {
       connection = connectionDetailsToInterface($connectionDetails$!, $session$!)
       connection.connect && (await connection.connect())
       connections$.next([...$connections$, connection])
+      listenForConnectionErrors(connection)
 
       // refresh info UI
       connection = connection
@@ -103,7 +110,7 @@
   /** @TODO
    * 1. Delete connection button as part of configuration
    * 2. Errors expander to show recent errors for connection
-   *    2.a Need to add errors$ BehaviorSubject<ConnectionError[]> to connection interface
+   *    2.a Need to add errors$ BehaviorSubject<AppError[]> to connection interface
    * 3. Sync progress bar once sync functionality is added
    */
 </script>

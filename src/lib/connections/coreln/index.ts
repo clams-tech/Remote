@@ -16,6 +16,7 @@ import { Subject } from 'rxjs'
 import { parseNodeAddress } from '$lib/utils.js'
 import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
+import type { AppError } from '$lib/@types/errors.js'
 
 import type {
   BlocksInterface,
@@ -33,6 +34,7 @@ import type {
 class CoreLightning implements CorelnConnectionInterface {
   info: Required<Info>
   destroy$: Subject<void>
+  errors$: Subject<AppError>
   rune: string
   rpc: RpcCall
   connect: () => Promise<Info | null>
@@ -55,7 +57,7 @@ class CoreLightning implements CorelnConnectionInterface {
     session: Session,
     logger?: Logger
   ) {
-    validateConfiguration(configuration)
+    validateConfiguration(this, configuration)
 
     const { address, connection, token } = configuration
     const { publicKey, port, ip } = parseNodeAddress(address)
@@ -103,6 +105,7 @@ class CoreLightning implements CorelnConnectionInterface {
     }
 
     this.connectionStatus$ = socket.connectionStatus$
+    this.errors$ = new Subject()
 
     this.node = new Node(this)
     this.offers = new Offers(this)
