@@ -2,7 +2,7 @@ import AES from 'crypto-js/aes'
 import encUtf8 from 'crypto-js/enc-utf8'
 import type { DecodedInvoice, FormattedDecodedBolt11, Invoice } from './@types/invoices.js'
 import { decode as bolt11Decoder } from 'light-bolt11-decoder'
-import { log$ } from './streams.js'
+import { log$, settings$ } from './streams.js'
 import type { Offer } from './@types/offers.js'
 import { BitcoinDenomination, FiatDenomination, type Denomination } from './@types/settings.js'
 import { randomBytes, bytesToHex } from '@noble/hashes/utils'
@@ -348,8 +348,8 @@ const locales: Record<string, () => Promise<Locale>> = {
   ko: () => import('date-fns/esm/locale/ko/index.js').then((mod) => mod.default) // Korean
 }
 
-export async function formatDate(options: { date: string; language: string }): Promise<string> {
-  const { date, language } = options
+export async function formatDate(date: number | string): Promise<string> {
+  const { language } = settings$.value
   const locale = await (locales[language] || locales['en-GB'])()
 
   return formatRelative(new Date(date), new Date(), { locale })

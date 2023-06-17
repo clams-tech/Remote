@@ -54,12 +54,12 @@
   <div
     in:fade|local={{ duration: 250, delay: 150 }}
     out:fade|local={{ duration: 250 }}
-    class="bg-neutral-900/90 rounded-lg"
+    class="bg-neutral-900/90 rounded-lg w-full"
   >
     <div
       in:slide|local={{ duration: 250 }}
       out:slide|local={{ duration: 250, delay: 150 }}
-      class="pl-6 pr-8 w-full py-4 rounded-lg border flex justify-center items-start relative overflow-hidden transition-all {msgValue
+      class="pl-6 pr-8 w-full py-4 rounded-lg border flex flex-col justify-center items-start relative overflow-hidden transition-all {msgValue
         .colors.main}"
     >
       {#if closable}
@@ -71,14 +71,18 @@
         </button>
       {/if}
 
-      <div class="w-6 flex-shrink-0 mr-4 {msgValue.colors.icon}">
-        {@html msgValue.icon}
+      <div class="flex items-center">
+        <div class="w-6 flex-shrink-0 mr-2 {msgValue.colors.icon}">
+          {@html msgValue.icon}
+        </div>
+
+        <span class="font-semibold">
+          <!-- text-bitcoin-orange -->
+          {@html message}
+        </span>
       </div>
 
-      <span>
-        <!-- text-bitcoin-orange -->
-        {@html message}
-      </span>
+      <slot />
     </div>
   </div>
 {/if}

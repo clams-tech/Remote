@@ -9,8 +9,8 @@
   import type { PageData } from './$types'
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
-  import { takeUntil } from 'rxjs'
-  import { connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
+  import { BehaviorSubject, map, startWith, takeUntil } from 'rxjs'
+  import { connectionErrors$, connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
   import { connectionDetailsToInterface } from '$lib/connections/index.js'
   import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
@@ -24,6 +24,7 @@
   import refresh from '$lib/icons/refresh.js'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let data: PageData
 
@@ -74,7 +75,6 @@
   }
 
   const listenForConnectionErrors = (connection: ConnectionInterface) => {
-    console.log({ connection })
     connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
   }
 
@@ -107,11 +107,16 @@
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
+  const recentErrors$ = connectionErrors$.pipe(
+    map((err) => err[id]),
+    takeUntil(onDestroy$)
+  )
+
+  let expandRecentErrors = false
+
   /** @TODO
    * 1. Delete connection button as part of configuration
-   * 2. Errors expander to show recent errors for connection
-   *    2.a Need to add errors$ BehaviorSubject<AppError[]> to connection interface
-   * 3. Sync progress bar once sync functionality is added
+   * 2. Sync progress bar once sync functionality is added
    */
 </script>
 
@@ -185,7 +190,7 @@
 
     {#if connection && connection.info}
       {@const { id, alias, version } = connection.info}
-      <div transition:slide|local={{ duration: 250 }} class="w-full my-4">
+      <div transition:slide|local={{ duration: 250 }} class="w-full mt-4">
         <SummaryRow>
           <div slot="label">{$translate('app.labels.id')}:</div>
           <div slot="value">
@@ -213,9 +218,33 @@
       </div>
     {/if}
 
+    {#if $recentErrors$}
+      <button
+        on:click={() => (expandRecentErrors = !expandRecentErrors)}
+        class="mt-4 flex items-center text-sm cursor-pointer w-full"
+      >
+        <div class:-rotate-90={!expandRecentErrors} class="w-3 mr-1 transition-transform">
+          {@html caret}
+        </div>
+
+        <span class="underline">{$translate('app.labels.recent_errors')}</span>
+      </button>
+
+      {#if expandRecentErrors}
+        <div
+          transition:slide|local={{ duration: 250 }}
+          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start w-full"
+        >
+          {#each $recentErrors$ as error}
+            <ErrorDetail {error} />
+          {/each}
+        </div>
+      {/if}
+    {/if}
+
     <!-- Connection Configuration UI -->
     {#if showConfiguration}
-      <div transition:slide|local={{ duration: 250 }} class="w-full">
+      <div transition:slide|local={{ duration: 250 }} class="w-full mt-4">
         <svelte:component
           this={typeToConfigurationComponent(type)}
           {configuration}
