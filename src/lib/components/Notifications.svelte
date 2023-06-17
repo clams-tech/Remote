@@ -19,8 +19,7 @@
   import {
     formatValueForDisplay,
     notificationsPermissionsGranted,
-    supportsNotifications,
-    userAgent
+    supportsNotifications
   } from '$lib/utils'
 
   function elasticOut(t: number): number {
@@ -29,8 +28,6 @@
 
   let notificationsToRender: Notification[] = []
   let containerHeight: number
-
-  const device = userAgent!.getDevice()
 
   // map payment updates to notification
   const paymentUpdateNotifications$: Observable<Notification> = paymentUpdates$.pipe(
@@ -105,15 +102,19 @@
   function removeNotification(id: Notification['id']): void {
     notificationsToRender = notificationsToRender.filter((notification) => notification.id !== id)
   }
+
+  let innerWidth: number
 </script>
+
+<svelte:window bind:innerWidth />
 
 {#if notificationsToRender.length}
   <div
     class="absolute top-0 p-4 max-h-screen overflow-hidden w-full"
-    class:max-w-sm={device.type !== 'mobile'}
+    class:max-w-sm={innerWidth > 450}
     class:overflow-y-auto={containerHeight && containerHeight >= window.innerHeight}
     bind:clientHeight={containerHeight}
-    class:right-0={device.type !== 'mobile'}
+    class:right-0={innerWidth > 450}
   >
     {#each notificationsToRender as { id, heading, message, type } (id)}
       <div

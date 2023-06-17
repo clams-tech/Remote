@@ -109,6 +109,7 @@
     "disconnected": "Disconnected",
     "connecting": "Connecting",
     "waiting_reconnect": "Waiting to reconnect",
+    "unlock": "Unlock",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

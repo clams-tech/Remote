@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import type { Session } from '$lib/@types/session.js'
   import Section from '$lib/elements/Section.svelte'
   import Button from '$lib/elements/Button.svelte'
@@ -8,10 +7,11 @@
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { getSession } from '$lib/storage.js'
-  import { lastPath$, session$ } from '$lib/streams.js'
+  import { session$ } from '$lib/streams.js'
   import { decryptWithAES } from '$lib/utils.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import { onMount } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
 
   const translationBase = 'app.routes./decrypt'
 
@@ -20,6 +20,7 @@
   let decryptButton: Button
 
   const storedSession = getSession() as Session
+  const dispatch = createEventDispatcher()
 
   async function decrypt() {
     try {
@@ -30,9 +31,7 @@
       }
 
       session$.next({ secret: decrypted })
-
-      const lastPath = lastPath$.value
-      await goto(lastPath !== '/decrypt' ? lastPath : '/')
+      dispatch('close')
     } catch (error) {
       errorMsg = $translate('app.errors.invalid_passphrase')
     }

@@ -9,7 +9,7 @@ import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 import { BehaviorSubject } from 'rxjs'
 import Big from 'big.js'
 import { formatDistanceToNowStrict, formatRelative } from 'date-fns'
-import { UAParser } from 'ua-parser-js'
+import type { ParsedNodeAddress } from './@types/util.js'
 
 import type {
   DecodedBolt12Invoice,
@@ -17,7 +17,6 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
-import type { ParsedNodeAddress } from './@types/util.js'
 
 /**Will strip the msat suffix from msat values if there */
 export function formatMsat(val: string | number): string {
@@ -164,7 +163,6 @@ export class Particle {
 
 export function routeRequiresSession(path: string): boolean {
   switch (path) {
-    case '/decrypt':
     case '/welcome':
       return false
     default:
@@ -374,8 +372,6 @@ export function formatDestination(destination: string, type: Invoice['type']): s
       return destination
   }
 }
-
-export const userAgent = typeof window !== 'undefined' ? new UAParser(navigator.userAgent) : null
 
 export function parseNodeAddress(address: string): ParsedNodeAddress {
   const [publicKey, host] = address.split('@')

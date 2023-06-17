@@ -9,18 +9,17 @@
   import { goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
   import lock from '$lib/icons/lock.js'
-  import Toggle from '$lib/elements/Toggle.svelte'
+  import Button from '$lib/elements/Button.svelte'
+  import key from '$lib/icons/key.js'
+  import Modal from '$lib/elements/Modal.svelte'
+  import Decrypt from '$lib/components/Decrypt.svelte'
+  import lockOutline from '$lib/icons/lock-outline.js'
 
   $: path = $page.url.pathname
 
-  const handleLockToggle = () => {
-    console.log('HANDLE', $session$)
-    if ($session$) {
-      session$.next(null)
-    } else {
-      goto('/decrypt')
-    }
-  }
+  const clearSession = () => session$.next(null)
+
+  let showDecryptModal = false
 </script>
 
 <svelte:head>
@@ -37,11 +36,7 @@
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
       {#if routeRequiresSession(path)}
-        <div class="p-4">
-          <Toggle large on:change={handleLockToggle} toggled={!$session$}>
-            <div class="w-6 ml-2" slot="right">{@html lock}</div>
-          </Toggle>
-        </div>
+        <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
       {/if}
     </div>
 
@@ -54,8 +49,20 @@
   </header>
 
   <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden pb-4">
-    {#if $session$ || path === '/decrypt'}
+    {#if $session$ || path === '/welcome'}
       <slot />
+    {:else}
+      <div class="w-min">
+        <Button on:click={() => (showDecryptModal = true)} text={$translate('app.labels.unlock')}>
+          <div slot="iconRight" class="ml-1 w-6">{@html key}</div>
+        </Button>
+      </div>
+    {/if}
+
+    {#if showDecryptModal}
+      <Modal on:close={() => (showDecryptModal = false)}>
+        <Decrypt on:close={() => (showDecryptModal = false)} />
+      </Modal>
     {/if}
   </div>
 </main>

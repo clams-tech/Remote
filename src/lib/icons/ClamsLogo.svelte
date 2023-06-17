@@ -18,7 +18,6 @@
   }
 
   const fadeDuration = (max - min) * 1000
-  const fadeDelay = min * 1000
 </script>
 
 <div class="flex items-center justify-center w-full h-full">
@@ -206,7 +205,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -216,7 +214,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -226,7 +223,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -236,7 +232,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -246,7 +241,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -256,7 +250,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -266,7 +259,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -276,7 +268,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -286,7 +277,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -296,7 +286,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -306,7 +295,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}
@@ -316,7 +304,6 @@
       />
       <path
         in:fade|local={{
-          delay: disableAnimation ? 0 : fadeDelay,
           duration: disableAnimation ? 0 : fadeDuration,
           easing: quintInOut
         }}

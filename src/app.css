@@ -52,7 +52,6 @@ input[type='radio'] {
   @apply accent-purple-500;
 }
 
-/* noUiSlider "Slider" component */
-.noUi-connect {
-  background: rgb(99 5 240 / 1) !important; /* bg-purple-500 */
+button {
+  @apply text-start;
 }
