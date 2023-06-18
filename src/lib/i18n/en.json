@@ -120,6 +120,7 @@
     "timestamp": "Timestamp",
     "details": "Details",
     "delete": "Delete",
+    "locked": "Locked",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

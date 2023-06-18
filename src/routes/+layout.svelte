@@ -8,7 +8,6 @@
   import { fade } from 'svelte/transition'
   import { goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
-  import lock from '$lib/icons/lock.js'
   import Button from '$lib/elements/Button.svelte'
   import key from '$lib/icons/key.js'
   import Modal from '$lib/elements/Modal.svelte'
@@ -23,7 +22,11 @@
 </script>
 
 <svelte:head>
-  <title>{$translate(`app.routes.${$page.url.pathname}.title`)}</title>
+  <title
+    >{$session$
+      ? $translate(`app.routes.${$page.url.pathname}.title`)
+      : $translate('app.labels.locked')}</title
+  >
 </svelte:head>
 
 <main
