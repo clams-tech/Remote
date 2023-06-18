@@ -17,6 +17,8 @@ export type ConnectionDetails = {
   createdAt: number | null
   /** Unix timestamp seconds this connection was last modified */
   modifiedAt: number | null
+  lastSync: number | null
+  syncing: boolean
   /** data is encrypted with session secret */
   configuration: ConnectionConfiguration | null
 }

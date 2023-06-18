@@ -101,9 +101,13 @@ export interface InvoicesInterface {
   payInvoice?(options: PayInvoiceOptions): Promise<Invoice>
   /** Pay to a node public key via Keysend */
   payKeysend?(options: PayKeysendOptions): Promise<Invoice>
-  /** listen for a specific invoice payment */
+  /** listen for a specific invoice payment
+   * must handle disconnection and reconnection logic
+   */
   listenForInvoicePayment?(payment: Invoice): Promise<Invoice>
-  /** listen for any invoice payment after a particular pay index */
+  /** listen for any invoice payment after a particular pay index
+   * must handle disconnection and reconnection logic
+   */
   listenForAnyInvoicePayment?(lastPayIndex?: number, reqId?: string): Promise<Invoice>
 }
 
@@ -127,7 +131,9 @@ export interface TransactionsInterface {
   receive?(): Promise<string>
   /** send to an onchain address */
   send?(options: SendTransactionOptions): Promise<Transaction>
-  /** wait for an unconfirmed transaction to be included in a block */
+  /** wait for an unconfirmed transaction to be included in a block
+   * must handle disconnection and reconnection logic
+   */
   listenForTransactionConfirmation?(transaction: Transaction): Promise<Transaction>
 }
 

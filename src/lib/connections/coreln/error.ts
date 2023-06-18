@@ -77,6 +77,8 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
     /** SIGN MESSAGE ERRORS */
     case '1301':
       return 'connection_sign_message_unknown'
+    case '19537':
+      return 'connection_rate_limited'
     default:
       return 'connection_unknown'
   }

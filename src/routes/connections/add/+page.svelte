@@ -27,7 +27,9 @@
       type,
       createdAt: nowSeconds(),
       modifiedAt: null,
-      configuration: connectionTypeToInitialConfiguration(type)
+      configuration: connectionTypeToInitialConfiguration(type),
+      lastSync: null,
+      syncing: false
     })
 
     // route to the created connection id

@@ -234,6 +234,7 @@ class Invoices implements InvoicesInterface {
     reqId?: string
   ): Promise<Invoice> {
     try {
+      // @TODO - add logs here and test what happens when connection drops
       const response = await this.connection.rpc({
         method: 'waitanyinvoice',
         params: { lastpay_index: lastPayIndex },

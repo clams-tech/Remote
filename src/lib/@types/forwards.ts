@@ -1,4 +1,6 @@
 export type Forward = {
+  /** hash of the whole forward */
+  id: string
   /** the short channel id in */
   shortIdIn: string
   /** the short channel id in */

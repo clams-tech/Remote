@@ -404,3 +404,6 @@ export function simpleDeepClone<T>(obj: T): T {
 }
 
 export const noop = () => {}
+
+export const wait = (time: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, time))

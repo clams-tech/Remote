@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, createLogger } from 'vite'
 import { sveltekit } from '@sveltejs/kit/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { readFileSync } from 'fs'
@@ -26,9 +26,19 @@ const suppressWindowErrorPlugin = {
   }
 }
 
+const logger = createLogger()
+const loggerError = logger.error
+
+logger.error = (msg, options) => {
+  // Ignore empty CSS files warning
+  if (msg.includes('window is not defined')) return
+  loggerError(msg, options)
+}
+
 export default ({ mode }) =>
   defineConfig({
     plugins: [sveltekit(), ...(mode !== 'http' ? [basicSsl()] : []), suppressWindowErrorPlugin],
+    customLogger: logger,
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version)
     },
