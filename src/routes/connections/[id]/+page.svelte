@@ -9,7 +9,7 @@
   import type { PageData } from './$types'
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
-  import { BehaviorSubject, map, startWith, takeUntil } from 'rxjs'
+  import { Observable, filter, map, take, takeUntil } from 'rxjs'
   import { connectionErrors$, connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
   import { connectionDetailsToInterface, syncConnectionData } from '$lib/connections/index.js'
   import { fade, slide } from 'svelte/transition'
@@ -43,7 +43,6 @@
 
     // no record of this connection, so redirect
     if (!connectionDetails) {
-      console.log('DOESNT EXIST, REDIRECTING')
       await goto('/connections')
       return
     }
@@ -111,15 +110,25 @@
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
+  let syncProgress$: Observable<number> | null = null
+
   const sync = async () => {
-    try {
-      await db.connections.update(id, { syncing: true })
-      await syncConnectionData(connection!, $connectionDetails$?.lastSync || null)
-    } catch (error) {
-      console.log({ error })
-    } finally {
-      await db.connections.update(id, { syncing: false })
-    }
+    await db.connections.update(id, { syncing: true })
+    syncProgress$ = syncConnectionData(connection!, $connectionDetails$?.lastSync || null)
+
+    syncProgress$.subscribe(console.error)
+
+    syncProgress$
+      .pipe(
+        filter((x) => x === 100),
+        take(1)
+      )
+      .subscribe({
+        complete: () => {
+          db.connections.update(id, { syncing: false })
+          setTimeout(() => (syncProgress$ = null), 250)
+        }
+      })
   }
 
   const recentErrors$ = connectionErrors$.pipe(
@@ -134,10 +143,6 @@
 
   let expandRecentErrors = false
   let showDeleteModal = false
-
-  /** @TODO
-   * 2. Sync progress bar once sync functionality is added
-   */
 </script>
 
 <svelte:head>
@@ -188,20 +193,32 @@
         {#if status && status === 'connected'}
           <div class="flex gap-x-2" in:fade|local={{ duration: 250 }}>
             <Button on:click={disconnect} text={$translate('app.labels.disconnect')} />
-            <Button
-              disabled={$connectionDetails$.syncing}
-              on:click={sync}
-              primary
-              text={$translate('app.labels.sync')}
-            >
-              <div
-                class:animate-spin={$connectionDetails$.syncing}
-                class="w-4 ml-2"
-                slot="iconRight"
+
+            <div class="relative">
+              <Button
+                disabled={$connectionDetails$.syncing}
+                on:click={sync}
+                primary
+                text={$translate('app.labels.sync')}
               >
-                {@html refresh}
-              </div>
-            </Button>
+                <div
+                  class:animate-spin={$connectionDetails$.syncing}
+                  class="w-4 ml-2"
+                  slot="iconRight"
+                >
+                  {@html refresh}
+                </div>
+              </Button>
+
+              {#if syncProgress$}
+                <div
+                  transition:slide|local={{ duration: 250 }}
+                  style="width: {$syncProgress$}%;"
+                  class:rounded-br={$syncProgress$ === 100}
+                  class="absolute bottom-0 left-0 h-2 rounded-bl p-[2px] transition-all bg-purple-500"
+                />
+              {/if}
+            </div>
           </div>
         {/if}
       </div>

@@ -52,7 +52,7 @@
     {#if $session$ || path === '/welcome'}
       <slot />
     {:else}
-      <div class="w-min">
+      <div in:fade|local={{ duration: 250 }} class="w-min">
         <Button on:click={() => (showDecryptModal = true)} text={$translate('app.labels.unlock')}>
           <div slot="iconRight" class="ml-1 w-6">{@html key}</div>
         </Button>

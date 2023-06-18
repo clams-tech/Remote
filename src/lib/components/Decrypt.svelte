@@ -45,7 +45,7 @@
 
   let input: TextInput
 
-  onMount(() => setTimeout(() => input.focus(), 700))
+  onMount(() => setTimeout(() => input.focus(), 250))
 </script>
 
 <svelte:window on:keyup={handleKeyPress} />
