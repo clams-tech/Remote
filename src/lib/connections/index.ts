@@ -48,7 +48,10 @@ export const connectionTypeToInitialConfiguration = (
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
  * since last sync
  */
-export const syncConnectionData = async (connection: ConnectionInterface, lastSync: number) => {
+export const syncConnectionData = async (
+  connection: ConnectionInterface,
+  lastSync: number | null
+) => {
   // queue of requests to make
   const requestQueue = []
 

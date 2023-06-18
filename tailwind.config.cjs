@@ -24,10 +24,10 @@ module.exports = {
         },
         utility: {
           // success: '#39F35B',
-          // error: '#FF1F39',
+          error: '#FF1F39',
           // pending: '#FCBA04'
           success: '#31FF00',
-          error: '#FF0031',
+          // error: '#FF0031',
           pending: '#FFCE00'
         },
         black: '#000000',

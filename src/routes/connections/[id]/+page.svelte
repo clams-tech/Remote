@@ -11,7 +11,7 @@
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
   import { BehaviorSubject, map, startWith, takeUntil } from 'rxjs'
   import { connectionErrors$, connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
-  import { connectionDetailsToInterface } from '$lib/connections/index.js'
+  import { connectionDetailsToInterface, syncConnectionData } from '$lib/connections/index.js'
   import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import caret from '$lib/icons/caret.js'
@@ -107,6 +107,17 @@
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
+  const sync = async () => {
+    try {
+      await db.connections.update(id, { syncing: true })
+      await syncConnectionData(connection!, $connectionDetails$?.lastSync || null)
+    } catch (error) {
+      console.log({ error })
+    } finally {
+      await db.connections.update(id, { syncing: false })
+    }
+  }
+
   const recentErrors$ = connectionErrors$.pipe(
     map((err) => err[id]),
     takeUntil(onDestroy$)
@@ -162,8 +173,19 @@
         {#if status && status === 'connected'}
           <div class="flex gap-x-2" in:fade|local={{ duration: 250 }}>
             <Button on:click={disconnect} warning text={$translate('app.labels.disconnect')} />
-            <Button on:click={connect} primary text={$translate('app.labels.sync')}>
-              <div class="w-4 ml-2" slot="iconRight">{@html refresh}</div>
+            <Button
+              disabled={$connectionDetails$.syncing}
+              on:click={sync}
+              primary
+              text={$translate('app.labels.sync')}
+            >
+              <div
+                class:animate-spin={$connectionDetails$.syncing}
+                class="w-4 ml-2"
+                slot="iconRight"
+              >
+                {@html refresh}
+              </div>
             </Button>
           </div>
         {/if}

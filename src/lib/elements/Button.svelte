@@ -19,7 +19,7 @@
   bind:this={button}
   on:click
   class="no-underline text-center text-neutral-200 hover:text-white transition-all text-base active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center relative rounded-md px-4 border-2 border-solid border-current font-semibold hover:bg-neutral-800/40"
-  class:opacity-40={disabled}
+  class:opacity-70={disabled}
   class:border-purple-500={primary}
   class:border-utility-error={warning}
   class:px-2={small}

@@ -62,7 +62,11 @@ class Offers implements OffersInterface {
       return Promise.all(formatted)
     } catch (error) {
       const context = 'get (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -106,7 +110,11 @@ class Offers implements OffersInterface {
       }
     } catch (error) {
       const context = 'createPay (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -117,7 +125,11 @@ class Offers implements OffersInterface {
       await this.connection.rpc({ method: 'disableoffer', params: { offer_id: offerId } })
     } catch (error) {
       const context = 'disablePay (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -159,7 +171,11 @@ class Offers implements OffersInterface {
       }
     } catch (error) {
       const context = 'createWithdraw (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -173,7 +189,11 @@ class Offers implements OffersInterface {
       })
     } catch (error) {
       const context = 'disableWithdraw (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
     }
   }
 
@@ -197,7 +217,11 @@ class Offers implements OffersInterface {
       return invoice
     } catch (error) {
       const context = 'fetchInvoice (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -243,7 +267,11 @@ class Offers implements OffersInterface {
       }
     } catch (error) {
       const context = 'sendInvoice (offers)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

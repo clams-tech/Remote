@@ -48,7 +48,11 @@ class Channels implements ChannelsInterface {
       })
     } catch (error) {
       const context = 'get (channels)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

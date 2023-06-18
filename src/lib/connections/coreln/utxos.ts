@@ -30,7 +30,11 @@ class Utxos implements UtxosInterface {
       )
     } catch (error) {
       const context = 'get (utxos)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

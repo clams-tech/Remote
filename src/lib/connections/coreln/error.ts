@@ -79,12 +79,14 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
       return 'connection_sign_message_unknown'
     case '19537':
       return 'connection_rate_limited'
+    case '-32601':
+      return 'connection_not_supported'
     default:
       return 'connection_unknown'
   }
 }
 
-const handleError = (error: CoreLnError, context: string): AppError => {
+const handleError = (error: CoreLnError, context: string, connectionId: string): AppError => {
   const key = errorToMessageKey(error)
 
   return {
@@ -92,7 +94,8 @@ const handleError = (error: CoreLnError, context: string): AppError => {
     detail: {
       timestamp: nowSeconds(),
       message: error.message,
-      context
+      context,
+      connectionId
     }
   }
 }

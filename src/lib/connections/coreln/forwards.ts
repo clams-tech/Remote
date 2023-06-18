@@ -46,7 +46,11 @@ class Forwards implements ForwardsInterface {
       )
     } catch (error) {
       const context = 'get (forwards)'
-      const connectionError = handleError(error as CoreLnError, context)
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

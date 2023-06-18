@@ -236,6 +236,7 @@
     "connection_transactions_get": "Could not get transactions to check for inclusion in a block.",
     "connection_configuration": "There is a problem with the connection configuration.",
     "connection_rate_limited": "Could not make request due to rate limits.",
+    "connection_not_supported": "Could not make request due to feature not being supported on this connection.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
