@@ -35,7 +35,7 @@
 
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
-      {#if routeRequiresSession(path)}
+      {#if routeRequiresSession(path) && $session$}
         <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
       {/if}
     </div>

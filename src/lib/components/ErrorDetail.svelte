@@ -52,7 +52,7 @@
         </SummaryRow>
 
         <SummaryRow>
-          <div slot="label">{$translate('app.labels.connection_error')}:</div>
+          <div slot="label">{$translate('app.labels.error')}:</div>
           <div slot="value">
             {message}
           </div>

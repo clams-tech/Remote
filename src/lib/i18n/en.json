@@ -112,7 +112,7 @@
     "unlock": "Unlock",
     "recent_errors": "Recent errors",
     "context": "Context",
-    "connection_error": "Connection error",
+    "error": "Error",
     "timestamp": "Timestamp",
     "details": "Details",
     "expired": "Expired",

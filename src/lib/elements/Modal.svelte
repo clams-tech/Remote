@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition'
-  import { quintInOut, quintOut } from 'svelte/easing'
+  import { quintInOut } from 'svelte/easing'
   import { swipe, drag } from '$lib/touch'
   import { DIRECTION_DOWN } from 'hammerjs'
   import close from '$lib/icons/close'
@@ -37,7 +37,7 @@
       on:swipe={closeModal}
       bind:this={modal}
       in:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
-      out:fly={{ y: modal.clientHeight, easing: quintOut, duration: 400 }}
+      out:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
       on:click|stopPropagation
       class="{modalStyles} rounded-t-3xl w-full"
     >

@@ -255,7 +255,7 @@
       {#if expandRecentErrors}
         <div
           transition:slide|local={{ duration: 250 }}
-          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start w-full"
+          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start w-full gap-y-2"
         >
           {#each $recentErrors$ as error}
             <ErrorDetail {error} />
