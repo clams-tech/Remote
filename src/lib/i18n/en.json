@@ -31,7 +31,11 @@
     "/connections": {
       "title": "Connections",
       "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will allow you to <b>control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
-      "add_connection": "Add Connection"
+      "add_connection": "Add Connection",
+      "delete_connection_modal": {
+        "heading": "Delete Connection",
+        "paragraph": "Are you sure that you would like to delete this connection?"
+      }
     },
     "/connections/coreln": {
       "title": "Core Lightning",
@@ -115,6 +119,7 @@
     "error": "Error",
     "timestamp": "Timestamp",
     "details": "Details",
+    "delete": "Delete",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

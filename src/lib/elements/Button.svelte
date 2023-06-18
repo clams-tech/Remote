@@ -18,7 +18,7 @@
 <button
   bind:this={button}
   on:click
-  class="no-underline text-center text-neutral-200 hover:text-white transition-all text-base active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center relative rounded-md px-4 border-2 border-solid border-current font-semibold hover:bg-neutral-800/40"
+  class="no-underline text-center text-current hover:text-current transition-all text-base active:shadow-sm shadow-sm hover:shadow-md disabled:bg-disabled disabled:border-disabled w-full flex items-center justify-center relative rounded-md px-4 border-2 border-solid border-current font-semibold hover:bg-neutral-800/40"
   class:opacity-70={disabled}
   class:border-purple-500={primary}
   class:border-utility-error={warning}
@@ -26,7 +26,7 @@
   class:text-xs={small}
   class:hover:shadow-purple-500={primary}
   class:hover:shadow-utility-error={warning}
-  class:hover:hover:shadow-current={!primary && !warning}
+  class:hover:shadow-current={!primary && !warning}
   disabled={disabled || requesting}
 >
   <div class:text-transparent={requesting}>

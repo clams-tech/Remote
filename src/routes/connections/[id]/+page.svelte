@@ -25,6 +25,10 @@
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import trashOutline from '$lib/icons/trash-outline.js'
+  import Modal from '$lib/elements/Modal.svelte'
+  import Paragraph from '$lib/elements/Paragraph.svelte'
+  import warning from '$lib/icons/warning.js'
 
   export let data: PageData
 
@@ -123,10 +127,15 @@
     takeUntil(onDestroy$)
   )
 
+  const deleteConnection = async () => {
+    await db.connections.delete(id)
+    setTimeout(() => goto('/connections'), 250)
+  }
+
   let expandRecentErrors = false
+  let showDeleteModal = false
 
   /** @TODO
-   * 1. Delete connection button as part of configuration
    * 2. Sync progress bar once sync functionality is added
    */
 </script>
@@ -147,19 +156,25 @@
         editable
       />
 
-      {#if configuration}
-        <button
-          on:click={() => (showConfiguration = !showConfiguration)}
-          class="flex items-center opacity-80"
+      <div class="flex items-center opacity-80">
+        {#if configuration}
+          <button
+            on:click={() => (showConfiguration = !showConfiguration)}
+            class="flex items-center"
+          >
+            <div class="w-4 transition-all flex-shrink-0" class:rotate-180={showConfiguration}>
+              {@html caret}
+            </div>
+            <div class="w-8 flex-shrink-0">
+              {@html settingsOutline}
+            </div>
+          </button>
+        {/if}
+
+        <button on:click={() => (showDeleteModal = true)} class="w-8 ml-1 text-utility-error"
+          >{@html trashOutline}</button
         >
-          <div class="w-4 transition-all flex-shrink-0" class:rotate-180={showConfiguration}>
-            {@html caret}
-          </div>
-          <div class="w-8 flex-shrink-0">
-            {@html settingsOutline}
-          </div>
-        </button>
-      {/if}
+      </div>
     </div>
 
     <div class="flex items-center justify-between mt-4">
@@ -172,7 +187,7 @@
 
         {#if status && status === 'connected'}
           <div class="flex gap-x-2" in:fade|local={{ duration: 250 }}>
-            <Button on:click={disconnect} warning text={$translate('app.labels.disconnect')} />
+            <Button on:click={disconnect} text={$translate('app.labels.disconnect')} />
             <Button
               disabled={$connectionDetails$.syncing}
               on:click={sync}
@@ -278,3 +293,22 @@
     <Msg type="error" bind:message={connectionError} />
   {/if}
 </Section>
+
+{#if showDeleteModal}
+  <Modal>
+    <div class="w-full">
+      <SectionHeading
+        text={$translate('app.routes./connections.delete_connection_modal.heading')}
+      />
+      <Paragraph
+        >{$translate('app.routes./connections.delete_connection_modal.paragraph')}</Paragraph
+      >
+    </div>
+
+    <div class="text-utility-error mt-4 w-full">
+      <Button on:click={deleteConnection} warning text={$translate('app.labels.delete')}>
+        <div slot="iconLeft" class="w-6 mr-2">{@html warning}</div>
+      </Button>
+    </div>
+  </Modal>
+{/if}
