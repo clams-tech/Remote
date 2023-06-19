@@ -71,6 +71,7 @@
       const { configuration } = details as ConnectionDetails
       const { token } = configuration as CoreLnConfiguration
 
+      /** decrypt stored token*/
       if (token) {
         ;(configuration as CoreLnConfiguration).token = decryptWithAES(token, $session$?.secret!)
       }
