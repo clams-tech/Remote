@@ -1,4 +1,6 @@
 <script lang="ts">
+  import * as secp256k1 from '@noble/secp256k1'
+  import { bytesToHex } from '@noble/hashes/utils'
   import { goto } from '$app/navigation'
   import Section from '$lib/elements/Section.svelte'
   import Button from '$lib/elements/Button.svelte'
@@ -50,9 +52,12 @@
   }
 
   async function encryptAndStoreSecret() {
+    const publicKey = bytesToHex(secp256k1.getPublicKey(secret, true))
     const encrypted = encryptWithAES(secret, passphrase)
-    const json = JSON.stringify({ secret: encrypted })
-    const success = writeDataToStorage(STORAGE_KEYS.session, json)
+    const success = writeDataToStorage(
+      STORAGE_KEYS.session,
+      JSON.stringify({ secret: encrypted, id: publicKey })
+    )
 
     if (!success) {
       errorMsg = $translate('app.errors.storage_access')
@@ -60,7 +65,7 @@
       return
     }
 
-    const session = { secret }
+    const session = { secret, id: publicKey }
     session$.next(session)
 
     await goto('/')

@@ -44,7 +44,7 @@ export type CoreLnConfiguration = {
 }
 
 export type XPubConfiguration = {
-  xpub: string
+  token: string
   /** the derivation path to use to derive public keys */
   derivationPath: string
 }

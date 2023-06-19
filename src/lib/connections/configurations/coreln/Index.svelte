@@ -12,6 +12,9 @@
   import close from '$lib/icons/close.js'
   import { DOCS_LINK } from '$lib/constants.js'
   import info from '$lib/icons/info.js'
+  import CopyValue from '$lib/elements/CopyValue.svelte'
+  import { session$ } from '$lib/streams.js'
+  import { methods } from '$lib/connections/coreln/index.js'
 
   export let configuration: CoreLnConfiguration
 
@@ -48,6 +51,13 @@
     } catch {
       validAddress = false
     }
+  }
+
+  const getRuneCommand = () => {
+    const { id } = $session$!
+    return `lightning-cli commando-rune restrictions='[["id=${id}"], [${methods.map(
+      (method) => `"method=${method}"`
+    )}], ["rate=120"]]'`
   }
 </script>
 
@@ -111,6 +121,12 @@
       placeholder={$translate(`${translateBase}.configuration.rune_placeholder`)}
       bind:value={configurationUpdate.token}
     />
+
+    <div class="w-min whitespace-nowrap mt-2">
+      <div class="text-xs font-semibold border rounded py-1 pl-2">
+        <CopyValue value={getRuneCommand()} label={$translate('app.labels.rune_cli')} />
+      </div>
+    </div>
   </div>
 
   {#if modified}

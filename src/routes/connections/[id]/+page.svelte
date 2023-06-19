@@ -1,5 +1,9 @@
 <script lang="ts">
-  import type { ConnectionConfiguration, ConnectionDetails } from '$lib/@types/connections.js'
+  import type {
+    ConnectionConfiguration,
+    ConnectionDetails,
+    CoreLnConfiguration
+  } from '$lib/@types/connections.js'
   import Button from '$lib/elements/Button.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
@@ -20,7 +24,7 @@
   import Msg from '$lib/elements/Msg.svelte'
   import { goto } from '$app/navigation'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
-  import { nowSeconds } from '$lib/utils.js'
+  import { decryptWithAES, encryptWithAES, nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
@@ -60,7 +64,23 @@
 
   checkForConnectionDetails()
 
-  const connectionDetails$ = liveQuery(() => db.connections.get(id))
+  const connectionDetails$ = liveQuery(() =>
+    db.connections.get(id).then((details) => {
+      if (!details) return
+
+      const { configuration } = details as ConnectionDetails
+      const { token } = configuration as CoreLnConfiguration
+
+      if (token) {
+        ;(configuration as CoreLnConfiguration).token = decryptWithAES(token, $session$?.secret!)
+      }
+
+      return {
+        ...details,
+        ...(configuration ? { configuration } : {})
+      }
+    })
+  )
 
   $: if (connection) {
     connection.connectionStatus$.pipe(takeUntil(onDestroy$)).subscribe((newStatus) => {
@@ -107,6 +127,13 @@
   }
 
   const handleConfigurationUpdate = async (configuration: ConnectionConfiguration) => {
+    const { token } = configuration as CoreLnConfiguration
+
+    // encrypt token before storing
+    if (token) {
+      ;(configuration as CoreLnConfiguration).token = encryptWithAES(token, $session$?.secret!)
+    }
+
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
   }
 
@@ -116,8 +143,6 @@
     await db.connections.update(id, { syncing: true })
     syncProgress$ = syncConnectionData(connection!, $connectionDetails$?.lastSync || null)
 
-    syncProgress$.subscribe(console.error)
-
     syncProgress$
       .pipe(
         filter((x) => x === 100),
@@ -125,7 +150,7 @@
       )
       .subscribe({
         complete: () => {
-          db.connections.update(id, { syncing: false })
+          db.connections.update(id, { syncing: false, lastSync: nowSeconds() })
           setTimeout(() => (syncProgress$ = null), 250)
         }
       })

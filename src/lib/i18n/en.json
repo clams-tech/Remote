@@ -121,6 +121,7 @@
     "details": "Details",
     "delete": "Delete",
     "locked": "Locked",
+    "rune_cli": "Rune CLI Command",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

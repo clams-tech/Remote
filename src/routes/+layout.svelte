@@ -23,7 +23,7 @@
 
 <svelte:head>
   <title
-    >{$session$
+    >{$session$ || path === '/welcome'
       ? $translate(`app.routes.${$page.url.pathname}.title`)
       : $translate('app.labels.locked')}</title
   >

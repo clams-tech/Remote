@@ -123,4 +123,32 @@ class CoreLightning implements CorelnConnectionInterface {
   }
 }
 
+/** all methods this connection uses for rune creation */
+export const methods = [
+  'waitblockheight',
+  'getinfo',
+  'listpeers',
+  'listforwards',
+  'listinvoices',
+  'listpays',
+  'invoice',
+  'pay',
+  'keysend',
+  'listinvoice',
+  'waitinvoice',
+  'waitanyinvoice',
+  'signmessage',
+  'listoffers',
+  'listinvoicerequests',
+  'offer',
+  'disableoffer',
+  'invoicerequest',
+  'disableinvoicerequest',
+  'fetchinvoice',
+  'listtransactions',
+  'newaddr',
+  'withdraw',
+  'listfunds'
+]
+
 export default CoreLightning

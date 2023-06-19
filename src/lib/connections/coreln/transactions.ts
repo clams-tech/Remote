@@ -50,11 +50,13 @@ class Transactions implements TransactionsInterface {
       )
     } catch (error) {
       const context = 'get (transactions)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -68,11 +70,13 @@ class Transactions implements TransactionsInterface {
       return bech32
     } catch (error) {
       const context = 'receive (transactions)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -100,11 +104,13 @@ class Transactions implements TransactionsInterface {
       return transaction as Transaction
     } catch (error) {
       const context = 'send (transactions)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

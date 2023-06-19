@@ -4,4 +4,6 @@ export type Session = {
    * with a user passphrase
    */
   secret: string
+  /** the secp256k1 derived public key */
+  id: string
 }

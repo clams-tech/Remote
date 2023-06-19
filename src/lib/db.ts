@@ -24,7 +24,7 @@ export class DB extends Dexie {
     this.version(1).stores({
       channels: '&id, connectionId, shortId',
       connections: '&id, type',
-      forwards: ', connectionId, shortIdIn, shortIdOut, fee, status',
+      forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status',
       invoices: '&id, connectionId, offerId, value, fee, payIndex',
       nodes: '&id, alias, connectionId',
       offers: '&id, connectionId',

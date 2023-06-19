@@ -21,11 +21,13 @@ class Node implements NodeInterface {
       return signature
     } catch (error) {
       const context = 'signMessage (node)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

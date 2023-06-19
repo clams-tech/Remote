@@ -51,11 +51,13 @@ class Invoices implements InvoicesInterface {
       return invoicePayments.concat(sentPayments)
     } catch (error) {
       const context = 'get (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -98,11 +100,13 @@ class Invoices implements InvoicesInterface {
       return payment
     } catch (error) {
       const context = 'createInvoice (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -150,11 +154,13 @@ class Invoices implements InvoicesInterface {
       }
     } catch (error) {
       const context = 'payInvoice (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -206,11 +212,13 @@ class Invoices implements InvoicesInterface {
       }
     } catch (error) {
       const context = 'payKeysend (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -239,11 +247,13 @@ class Invoices implements InvoicesInterface {
       }
     } catch (error) {
       const context = 'listenForInvoicePayment (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
@@ -264,11 +274,13 @@ class Invoices implements InvoicesInterface {
       return invoiceToPayment(response as WaitAnyInvoiceResponse, this.connection.info.connectionId)
     } catch (error) {
       const context = 'listenForAnyInvoicePayment (payments)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }
