@@ -8,7 +8,12 @@
   export let invalid = false
   export let connection: CoreLnConfiguration['connection']
 
-  let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' = 'default'
+  let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' =
+    connection.type === 'direct'
+      ? 'directConnection'
+      : connection.value === WS_PROXY
+      ? 'default'
+      : 'customProxy'
 
   let customProxyInput: TextInput
   let customProxyUrlError = ''
@@ -28,7 +33,7 @@
         invalid = false
       }
     } else if (advancedConnectOption === 'directConnection') {
-      connection = { type: 'direct', value: 'wss:' }
+      connection = { type: 'direct', value: connection.value === 'ws:' ? connection.value : 'wss:' }
     } else {
       connection = { type: 'proxy', value: WS_PROXY }
     }
