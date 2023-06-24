@@ -1,8 +1,10 @@
 import Big from 'big.js'
-import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
-import { invoiceToPayment, payToPayment } from './utils.js'
+import { createRandomHex, formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
+import { formatInvoice, payToPayment } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
+import { filter, firstValueFrom, from, map, merge, Observable, take, takeUntil } from 'rxjs'
+import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types.js'
 
 import type {
   CreateInvoiceOptions,
@@ -25,9 +27,15 @@ import type {
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
+  destroyed: boolean
 
   constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
+    this.destroyed = false
+
+    this.connection.destroy$.pipe(take(1)).subscribe(() => {
+      this.destroyed = true
+    })
   }
 
   async get(): Promise<Invoice[]> {
@@ -41,7 +49,7 @@ class Invoices implements InvoicesInterface {
       const { pays } = paysResponse as ListpaysResponse
 
       const invoicePayments: Invoice[] = await Promise.all(
-        invoices.map((invoice) => invoiceToPayment(invoice, this.connection.info.connectionId))
+        invoices.map((invoice) => formatInvoice(invoice, this.connection.info.connectionId))
       )
 
       const sentPayments: Invoice[] = await Promise.all(
@@ -260,19 +268,72 @@ class Invoices implements InvoicesInterface {
   }
 
   async listenForAnyInvoicePayment(
-    lastPayIndex?: number | undefined,
+    onPayment: (invoice: Invoice) => Promise<void>,
+    payIndex?: Invoice['payIndex'],
     reqId?: string
-  ): Promise<Invoice> {
-    try {
-      // @TODO - add logs here and test what happens when connection drops
-      const response = await this.connection.rpc({
-        method: 'waitanyinvoice',
-        params: { lastpay_index: lastPayIndex },
-        reqId
-      })
+  ): Promise<void> {
+    console.warn({ payIndex })
+    let request$: Observable<unknown>
 
-      return invoiceToPayment(response as WaitAnyInvoiceResponse, this.connection.info.connectionId)
+    try {
+      if (reqId) {
+        console.warn('already listening for invoice payment, wait for result')
+        request$ = this.connection.commandoMsgs$.pipe(
+          filter((response) => response.reqId === reqId),
+          map((response) => (response as JsonRpcSuccessResponse).result as Invoice),
+          take(1)
+        )
+      } else {
+        reqId = createRandomHex(8)
+        console.warn('not currently listening so sending new request', reqId)
+
+        request$ = from(
+          this.connection.rpc({
+            method: 'waitanyinvoice',
+            params: { lastpay_index: payIndex },
+            reqId
+          })
+        )
+      }
+
+      const disconnect$ = this.connection.connectionStatus$.pipe(
+        filter((status) => status === 'disconnected'),
+        map(() => ({ disconnected: true }))
+      )
+
+      const response = await firstValueFrom(merge(request$, disconnect$))
+
+      console.warn({ response })
+
+      const { disconnected } = response as { disconnected: boolean }
+
+      // if socket disconnected and not destroyed, relisten for invoice payment
+      if (disconnected) {
+        if (!this.destroyed) {
+          console.warn('disconnected and not destroyed so waiting for reconnection')
+          await firstValueFrom(
+            this.connection.connectionStatus$.pipe(
+              filter((status) => status === 'connected'),
+              takeUntil(this.connection.destroy$)
+            )
+          )
+          console.log('reconnected, so relistening for payment')
+          if (!this.destroyed) {
+            return this.listenForAnyInvoicePayment(onPayment, payIndex, reqId)
+          }
+        }
+      } else {
+        const formattedInvoice = await formatInvoice(
+          response as WaitAnyInvoiceResponse,
+          this.connection.info.connectionId
+        )
+
+        onPayment(formattedInvoice)
+
+        return this.listenForAnyInvoicePayment(onPayment, formattedInvoice.payIndex)
+      }
     } catch (error) {
+      console.error(error)
       const context = 'listenForAnyInvoicePayment (payments)'
 
       const connectionError = handleError(

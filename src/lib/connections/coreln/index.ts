@@ -1,4 +1,8 @@
-import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
+import type {
+  JsonRpcErrorResponse,
+  JsonRpcSuccessResponse,
+  LnWebSocketOptions
+} from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
 import Node from './node.js'
@@ -7,11 +11,11 @@ import Channels from './channels.js'
 import Transactions from './transactions.js'
 import Blocks from './blocks.js'
 import Invoices from './invoices.js'
-import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
+import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
-import type { BehaviorSubject } from 'rxjs'
+import type { BehaviorSubject, Observable } from 'rxjs'
 import { Subject } from 'rxjs'
 import { parseNodeAddress } from '$lib/utils.js'
 import Forwards from './forwards.js'
@@ -37,6 +41,7 @@ class CoreLightning implements CorelnConnectionInterface {
   errors$: Subject<AppError>
   rune: string
   rpc: RpcCall
+  commandoMsgs$: CommandoMsgs
   connect: () => Promise<Info | null>
   disconnect: () => void
   connectionStatus$: BehaviorSubject<
@@ -81,6 +86,8 @@ class CoreLightning implements CorelnConnectionInterface {
     this.rpc = ({ method, params, reqId }: { method: string; params?: unknown; reqId?: string }) =>
       socket.commando({ method, params, rune: this.rune, reqId })
 
+    this.commandoMsgs$ = socket.commandoMsgs$
+
     this.connect = async () => {
       const connected = await socket.connect()
 
@@ -100,8 +107,8 @@ class CoreLightning implements CorelnConnectionInterface {
     this.destroy$ = new Subject()
 
     this.disconnect = () => {
-      socket.disconnect()
       this.destroy$.next()
+      socket.disconnect()
     }
 
     this.connectionStatus$ = socket.connectionStatus$

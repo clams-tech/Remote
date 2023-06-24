@@ -105,6 +105,9 @@
   const connect = async () => {
     connectionError = ''
 
+    // @TODO - Need to validate connection before connecting?
+    // otherwise we need to throw a nicer error
+
     /** create a fresh connection*/
     try {
       connection = connectionDetailsToInterface($connectionDetails$!, $session$!)
@@ -139,6 +142,8 @@
   }
 
   let syncProgress$: Observable<number> | null = null
+
+  // @TODO display last sync timestamp if available
 
   const sync = async () => {
     await db.connections.update(id, { syncing: true })

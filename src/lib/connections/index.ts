@@ -8,6 +8,7 @@ import { Subject, type Observable } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
+import type { Invoice } from '$lib/@types/invoices.js'
 
 export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
   {
@@ -113,7 +114,9 @@ export const syncConnectionData = (
 
   requestQueue.push(offersRequest)
 
-  if (connection.invoices) {
+  if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
+    const updateInvoice = (invoice: Invoice) => db.invoices.put(invoice)
+
     db.invoices
       .orderBy('payIndex')
       .reverse()
@@ -121,7 +124,7 @@ export const syncConnectionData = (
       .first()
       .then((lastPayedInvoice) => {
         if (connection?.invoices?.listenForAnyInvoicePayment) {
-          connection.invoices.listenForAnyInvoicePayment(lastPayedInvoice?.payIndex)
+          connection.invoices.listenForAnyInvoicePayment(updateInvoice, lastPayedInvoice?.payIndex)
         }
       })
   }

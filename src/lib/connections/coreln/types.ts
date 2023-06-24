@@ -1,5 +1,9 @@
-import type { JsonRpcRequest } from 'lnmessage/dist/types'
-import type { BehaviorSubject, Subject } from 'rxjs'
+import type {
+  JsonRpcErrorResponse,
+  JsonRpcRequest,
+  JsonRpcSuccessResponse
+} from 'lnmessage/dist/types'
+import type { BehaviorSubject, Observable, Subject } from 'rxjs'
 
 import type {
   BlocksInterface,
@@ -15,6 +19,12 @@ import type {
   ForwardsInterface
 } from '../interfaces.js'
 
+export type CommandoMsgs = Observable<
+  (JsonRpcSuccessResponse | JsonRpcErrorResponse) & {
+    reqId: string
+  }
+>
+
 export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
   info: Required<Info>
   destroy$: Subject<void>
@@ -24,6 +34,7 @@ export interface CorelnConnectionInterface extends Required<ConnectionInterface>
   connectionStatus$: BehaviorSubject<
     'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
   >
+  commandoMsgs$: CommandoMsgs
   rpc: RpcCall
   node: NodeInterface
   offers: OffersInterface

@@ -104,11 +104,14 @@ export interface InvoicesInterface {
   /** listen for a specific invoice payment
    * must handle disconnection and reconnection logic
    */
-  listenForInvoicePayment?(payment: Invoice): Promise<Invoice>
+  listenForInvoicePayment?(invoice: Invoice): Promise<Invoice>
   /** listen for any invoice payment after a particular pay index
    * must handle disconnection and reconnection logic
    */
-  listenForAnyInvoicePayment?(lastPayIndex?: number, reqId?: string): Promise<Invoice>
+  listenForAnyInvoicePayment?(
+    onPayment: (invoice: Invoice) => Promise<void>,
+    payIndex?: Invoice['payIndex']
+  ): Promise<void>
 }
 
 export interface UtxosInterface {

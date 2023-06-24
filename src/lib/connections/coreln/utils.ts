@@ -15,10 +15,7 @@ export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Invoice['st
   }
 }
 
-export async function invoiceToPayment(
-  invoice: RawInvoice,
-  connectionId: string
-): Promise<Invoice> {
+export async function formatInvoice(invoice: RawInvoice, connectionId: string): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
