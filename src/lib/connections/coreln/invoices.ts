@@ -1,10 +1,9 @@
 import Big from 'big.js'
-import { createRandomHex, formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
+import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
 import { formatInvoice, payToPayment } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
-import { filter, firstValueFrom, from, map, merge, Observable, take, takeUntil } from 'rxjs'
-import type { JsonRpcSuccessResponse } from 'lnmessage/dist/types.js'
+import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
 
 import type {
   CreateInvoiceOptions,
@@ -28,10 +27,12 @@ import type {
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
   destroyed: boolean
+  listeningPayIndex: number | null
 
   constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
     this.destroyed = false
+    this.listeningPayIndex = null
 
     this.connection.destroy$.pipe(take(1)).subscribe(() => {
       this.destroyed = true
@@ -269,32 +270,17 @@ class Invoices implements InvoicesInterface {
 
   async listenForAnyInvoicePayment(
     onPayment: (invoice: Invoice) => Promise<void>,
-    payIndex?: Invoice['payIndex'],
-    reqId?: string
+    payIndex?: Invoice['payIndex']
   ): Promise<void> {
-    console.warn({ payIndex })
-    let request$: Observable<unknown>
-
     try {
-      if (reqId) {
-        console.warn('already listening for invoice payment, wait for result')
-        request$ = this.connection.commandoMsgs$.pipe(
-          filter((response) => response.reqId === reqId),
-          map((response) => (response as JsonRpcSuccessResponse).result as Invoice),
-          take(1)
-        )
-      } else {
-        reqId = createRandomHex(8)
-        console.warn('not currently listening so sending new request', reqId)
+      this.listeningPayIndex = payIndex || null
 
-        request$ = from(
-          this.connection.rpc({
-            method: 'waitanyinvoice',
-            params: { lastpay_index: payIndex },
-            reqId
-          })
-        )
-      }
+      const request$ = from(
+        this.connection.rpc({
+          method: 'waitanyinvoice',
+          params: { lastpay_index: payIndex }
+        })
+      )
 
       const disconnect$ = this.connection.connectionStatus$.pipe(
         filter((status) => status === 'disconnected'),
@@ -303,23 +289,20 @@ class Invoices implements InvoicesInterface {
 
       const response = await firstValueFrom(merge(request$, disconnect$))
 
-      console.warn({ response })
-
       const { disconnected } = response as { disconnected: boolean }
 
       // if socket disconnected and not destroyed, relisten for invoice payment
       if (disconnected) {
         if (!this.destroyed) {
-          console.warn('disconnected and not destroyed so waiting for reconnection')
           await firstValueFrom(
             this.connection.connectionStatus$.pipe(
               filter((status) => status === 'connected'),
               takeUntil(this.connection.destroy$)
             )
           )
-          console.log('reconnected, so relistening for payment')
+
           if (!this.destroyed) {
-            return this.listenForAnyInvoicePayment(onPayment, payIndex, reqId)
+            return this.listenForAnyInvoicePayment(onPayment, payIndex)
           }
         }
       } else {
@@ -330,7 +313,10 @@ class Invoices implements InvoicesInterface {
 
         onPayment(formattedInvoice)
 
-        return this.listenForAnyInvoicePayment(onPayment, formattedInvoice.payIndex)
+        // only listen for next pay index if not already listening
+        if (this.listeningPayIndex !== formattedInvoice.payIndex) {
+          return this.listenForAnyInvoicePayment(onPayment, formattedInvoice.payIndex)
+        }
       }
     } catch (error) {
       console.error(error)
