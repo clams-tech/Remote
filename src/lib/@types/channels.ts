@@ -24,6 +24,8 @@ export type Channel = {
   fundingOutput: number
   /** id of node with which channel is opened */
   peerId: string
+  /** alias of node with which channel is opened */
+  peerAlias: string
   status: ChannelStatus
   /** msat */
   balanceLocal: string
@@ -45,6 +47,4 @@ export type Channel = {
   closeToScriptPubkey: string | null
   /** which side closed this channel */
   closer?: 'local' | 'remote'
-  /** the connection this channel is associated with */
-  connectionId: string
 }
