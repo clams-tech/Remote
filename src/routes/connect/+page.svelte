@@ -71,12 +71,6 @@
     initialized = true
   }
 
-  $: {
-    if (validAddress && decodedRune) {
-      saveRune()
-    }
-  }
-
   let focusConnectionInput: () => void
   let focusRuneInput: () => void
   let blurRuneInput: () => void
