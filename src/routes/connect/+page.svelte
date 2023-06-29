@@ -46,19 +46,21 @@
     const connectionType = data.type || 'proxy' // direct | proxy | undefined
     const connectionValue = data.value || WS_PROXY // proxyUrl | wss: | ws: | undefined
 
+    const update: Partial<Settings> = {}
+
+    // Set connection type
+    if (connectionType === 'proxy') {
+      // @TODO validate custom proxy
+      update.wsProxy = connectionValue
+      update.directConnection = undefined
+    } else if (connectionType === 'direct') {
+      update.directConnection = connectionValue as 'ws:' | 'wss:' | undefined
+    }
+
+    settings$.next({ ...$settings$, ...update })
+
+    // Validate address & rune then save to make connection
     if (validateParsedNodeAddress(parseNodeAddress(address)) && decode(token)) {
-      const update: Partial<Settings> = {}
-
-      if (connectionType === 'proxy') {
-        // @TODO validate custom proxy
-        update.wsProxy = connectionValue
-        update.directConnection = undefined
-      } else if (connectionType === 'direct') {
-        update.directConnection = connectionValue as 'ws:' | 'wss:' | undefined
-      }
-
-      settings$.next({ ...$settings$, ...update })
-
       saveRune().then(() => {
         initialized = true
       })
