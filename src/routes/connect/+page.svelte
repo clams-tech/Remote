@@ -49,12 +49,12 @@
     const update: Partial<Settings> = {}
 
     // Set connection type
-    if (connectionType === 'proxy') {
-      // @TODO validate custom proxy
+    if (connectionType === 'direct') {
+      update.directConnection = connectionValue as 'ws:' | 'wss:' | undefined
+    } else if (connectionType === 'proxy' && connectionValue) {
+      // @TODO validate custom proxy?
       update.wsProxy = connectionValue
       update.directConnection = undefined
-    } else if (connectionType === 'direct') {
-      update.directConnection = connectionValue as 'ws:' | 'wss:' | undefined
     }
 
     settings$.next({ ...$settings$, ...update })
@@ -64,9 +64,9 @@
       saveRune().then(() => {
         initialized = true
       })
+    } else {
+      initialized = true
     }
-
-    initialized = true
   } else {
     initialized = true
   }

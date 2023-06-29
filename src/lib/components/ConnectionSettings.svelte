@@ -51,7 +51,7 @@
 
   let urlValidationTimeout: NodeJS.Timeout
 
-  function validateCustomProxy() {
+  export function validateCustomProxy() {
     customProxyUrlError = ''
     urlValidationTimeout && clearTimeout(urlValidationTimeout)
     customProxyUrlAwaitingValidation = true
