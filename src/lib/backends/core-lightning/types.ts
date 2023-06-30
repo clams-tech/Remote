@@ -222,7 +222,7 @@ export interface GetinfoResponse {
    */
   'lightning-dir': string
   /**
-   * represents the type of network on the node are working (e.g: `bitcoin`, `testnet`, or
+   * represents the type of network on the node are working (e.g: `bitcoin`| `testnet`| or
    * `regtest`)
    */
   network: string
@@ -235,7 +235,7 @@ export interface GetinfoResponse {
    */
   num_inactive_channels: number
   /**
-   * The total count of peers, connected or with channels
+   * The total count of peers| connected or with channels
    */
   num_peers: number
   /**
@@ -327,27 +327,27 @@ export type InvoiceResponse = {
    */
   payment_secret: string
   /**
-   * even using all possible channels, there's not enough incoming capacity to pay this
+   * even using all possible channels| there's not enough incoming capacity to pay this
    * invoice.
    */
   warning_capacity?: string
   /**
-   * there would be enough incoming capacity, but some channels are dead-ends (no other public
-   * channels from those peers), so there isn't.
+   * there would be enough incoming capacity| but some channels are dead-ends (no other public
+   * channels from those peers)| so there isn't.
    */
   warning_deadends?: string
   /**
-   * there is sufficient capacity, but not in a single channel, so the payer will have to use
+   * there is sufficient capacity| but not in a single channel| so the payer will have to use
    * multi-part payments.
    */
   warning_mpp?: string
   /**
-   * there would be enough incoming capacity, but some channels are offline, so there isn't.
+   * there would be enough incoming capacity| but some channels are offline| so there isn't.
    */
   warning_offline?: string
   /**
-   * there would be enough incoming capacity, but some channels are unannounced and
-   * *exposeprivatechannels* is *false*, so there isn't.
+   * there would be enough incoming capacity| but some channels are unannounced and
+   * *exposeprivatechannels* is *false*| so there isn't.
    */
   warning_private_unused?: string
 }
@@ -429,7 +429,7 @@ export type Pay = {
   amount_msat: string | number
   amount_sent_msat: string | number
   /**
-   * the label, if given to sendpay
+   * the label| if given to sendpay
    */
   label?: string
   /**
@@ -512,13 +512,13 @@ export type Channel = {
    */
   peer_id: string
   /**
-   * the channel state, in particular "CHANNELD_NORMAL" means the channel can be used normally
+   * the channel state| in particular "CHANNELD_NORMAL" means the channel can be used normally
    */
   state: State
 }
 
 /**
- * the channel state, in particular "CHANNELD_NORMAL" means the channel can be used normally
+ * the channel state| in particular "CHANNELD_NORMAL" means the channel can be used normally
  */
 export enum State {
   AwaitingUnilateral = 'AWAITING_UNILATERAL',
@@ -548,7 +548,7 @@ export type Output = {
    */
   output: number
   /**
-   * the redeemscript, only if it's p2sh-wrapped
+   * the redeemscript| only if it's p2sh-wrapped
    */
   redeemscript?: string
   /**
@@ -612,7 +612,7 @@ export type Invoice = {
    */
   payment_hash: string
   /**
-   * Whether it's paid, unpaid or unpayable
+   * Whether it's paid| unpaid or unpayable
    */
   status: InvoiceStatus
   amount_received_msat?: string | number
@@ -622,7 +622,7 @@ export type Invoice = {
 }
 
 /**
- * Whether it's paid, unpaid or unpayable
+ * Whether it's paid| unpaid or unpayable
  */
 export enum InvoiceStatus {
   Expired = 'expired',
@@ -641,7 +641,7 @@ export type WaitAnyInvoiceResponse = Invoice
 export type SignMessageResponse = {
   /** (hex): The signature (always 128 characters) */
   signature: string
-  /** (hex): The recovery id (0, 1, 2 or 3) (always 2 characters) */
+  /** (hex): The recovery id (0| 1| 2 or 3) (always 2 characters) */
   recid: string
   /** signature and recid encoded in a style compatible with lnd’s SignMessageRequest */
   zbase: string
@@ -847,11 +847,11 @@ export type FetchInvoiceResponse = {
     description_appended?: string
     /**a completely replaced description field */
     description?: string
-    /**The vendor from the offer, which is missing in the invoice */
+    /**The vendor from the offer| which is missing in the invoice */
     vendor_removed?: string
     /**a completely replaced vendor field */
     vendor?: string
-    /**the amount, if different from the offer amount multiplied by any quantity (or the offer had no amount, or was not in BTC). */
+    /**the amount| if different from the offer amount multiplied by any quantity (or the offer had no amount| or was not in BTC). */
     amount_msat?: string
   }
   /**Only for recurring invoices if the next period is under the recurrence_limit: */
@@ -977,14 +977,138 @@ type PeerChannel = {
   receivable_msat: string
   fee_proportional_millionths: number
   in_payments_offered: number // of incoming payment attempts
-  in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
-  in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
-  in_fulfilled_msat: string //(msat, optional): Total amount of successful incoming payment attempts
-  out_payments_offered: number //  (u64, optional): Number of outgoing payment attempts
-  out_offered_msat: string //  (msat, optional): Total amount of outgoing payment attempts
-  out_payments_fulfilled: number //  (u64, optional): Number of successful outgoing payment attempts
-  out_fulfilled_msat: string // (msat, optional): Total amount of successful outgoing payment attempts
+  in_offered_msat: string //  (msat| optional): Total amount of incoming payment attempts
+  in_payments_fulfilled: number //  (u64| optional): Number of successful incoming payment attempts
+  in_fulfilled_msat: string //(msat| optional): Total amount of successful incoming payment attempts
+  out_payments_offered: number //  (u64| optional): Number of outgoing payment attempts
+  out_offered_msat: string //  (msat| optional): Total amount of outgoing payment attempts
+  out_payments_fulfilled: number //  (u64| optional): Number of successful outgoing payment attempts
+  out_fulfilled_msat: string // (msat| optional): Total amount of successful outgoing payment attempts
 }
+
+type ListPeerChannel = {
+  peer_id: string
+  peer_connected: boolean
+  state: State
+  opener: 'local' | 'remote'
+  features: Array<'option_static_remotekey' | 'option_anchor_outputs' | 'option_zeroconf'>
+  scratch_txid?: string
+  channel_type?: {
+    bits: number[]
+    names: string[]
+  }
+  feerate?: {
+    perkw: number
+    perkb: number
+  }
+  owner?: string
+  short_channel_id?: string
+  channel_id: string
+  funding_txid: string
+  funding_outnum: number
+  initial_feerate?: string
+  last_feerate?: string
+  next_feerate?: string
+  next_fee_step?: number
+  inflight?: Array<{
+    funding_txid: string
+    funding_outnum: number
+    feerate: string
+    total_funding_msat: string
+    our_funding_msat: string
+    scratch_txid: string
+    close_to?: string
+  }>
+  private?: boolean
+  closer?: 'local' | 'remote'
+  funding?: {
+    local_funds_msat: string
+    remote_funds_msat: string
+    pushed_msat?: string
+    fee_paid_msat?: string
+    fee_rcvd_msat?: string
+    to_us_msat?: string
+    min_to_us_msat?: string
+    max_to_us_msat?: string
+    total_msat?: string
+    fee_base_msat?: string
+    fee_proportional_millionths?: number
+    dust_limit_msat?: string
+    max_total_htlc_in_msat?: string
+    their_reserve_msat?: string
+    our_reserve_msat?: string
+  }
+  close_to?: string
+  close_to_addr?: string
+  to_us_msat: string
+  min_to_us_msat?: string
+  max_to_us_msat?: string
+  fee_base_msat?: string
+  total_msat: string
+  spendable_msat: string
+  receivable_msat: string
+  dust_limit_msat?: string
+  max_total_htlc_in_msat?: string
+  their_reserve_msat?: string
+  minimum_htlc_in_msat?: string
+  minimum_htlc_out_msat?: string
+  maximum_htlc_out_msat?: string
+  their_to_self_delay?: number
+  our_to_self_delay?: number
+  our_reserve_msat?: string
+  max_accepted_htlcs?: number
+  state_changes?: {
+    timestamp: string
+    old_state: State
+    new_state: State
+    cause: Cause
+    message: string
+  }[]
+  status: string[]
+  fee_proportional_millionths: number
+  in_payments_offered: number // of incoming payment attempts
+  in_offered_msat: string //  (msat| optional): Total amount of incoming payment attempts
+  in_payments_fulfilled: number //  (u64| optional): Number of successful incoming payment attempts
+  in_fulfilled_msat: string //(msat| optional): Total amount of successful incoming payment attempts
+  out_payments_offered: number //  (u64| optional): Number of outgoing payment attempts
+  out_offered_msat: string //  (msat| optional): Total amount of outgoing payment attempts
+  out_payments_fulfilled: number //  (u64| optional): Number of successful outgoing payment attempts
+  out_fulfilled_msat: string // (msat| optional): Total amount of successful outgoing payment attempts
+  htlcs: HTLC
+}
+
+type HTLC = {
+  direction: 'in' | 'out'
+  id: number
+  amount_msat: string
+  expiry: number
+  payment_hash: string
+  local_trimmed?: boolean
+  state: HTLCState
+}
+
+type HTLCState =
+  | 'SENT_ADD_HTLC'
+  | 'SENT_ADD_COMMIT'
+  | 'RCVD_ADD_REVOCATION'
+  | 'RCVD_ADD_ACK_COMMIT'
+  | 'SENT_ADD_ACK_REVOCATION'
+  | 'RCVD_REMOVE_HTLC'
+  | 'RCVD_REMOVE_COMMIT'
+  | 'SENT_REMOVE_REVOCATION'
+  | 'SENT_REMOVE_ACK_COMMIT'
+  | 'RCVD_REMOVE_ACK_REVOCATION'
+  | 'RCVD_ADD_HTLC'
+  | 'RCVD_ADD_COMMIT'
+  | 'SENT_ADD_REVOCATION'
+  | 'SENT_ADD_ACK_COMMIT'
+  | 'RCVD_ADD_ACK_REVOCATION'
+  | 'SENT_REMOVE_HTLC'
+  | 'SENT_REMOVE_COMMIT'
+  | 'RCVD_REMOVE_REVOCATION'
+  | 'RCVD_REMOVE_ACK_COMMIT'
+  | 'SENT_REMOVE_ACK_REVOCATION'
+type Cause = 'unknown' | 'local' | 'user' | 'remote' | 'protocol' | 'onchain'
 
 type PeerLog =
   | {
@@ -1012,6 +1136,10 @@ type Peer = {
 
 export type ListPeersResponse = {
   peers: Peer[]
+}
+
+export type ListPeerChannelsResponse = {
+  channels: ListPeerChannel[]
 }
 
 type Forward = {

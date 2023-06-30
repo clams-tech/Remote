@@ -255,7 +255,7 @@ export type Channel = {
   /** value receivable (msat) */
   balanceReceivable: string
   /** amount we charge to use the channel (msat) */
-  feeBase: string
+  feeBase: string | null
   /** amount we charge to use the channel in parts-per-million */
   feePpm: number
   /** The bitcoin address we will close to */

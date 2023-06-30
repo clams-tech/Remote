@@ -1,7 +1,12 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
 import type { Auth, Payment, Channel, Forward } from '$lib/types'
-import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import {
+  convertVersionNumber,
+  formatMsat,
+  parseNodeAddress,
+  sortPaymentsMostRecent
+} from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
 import { bytesToHex } from '@noble/hashes/utils'
@@ -42,6 +47,7 @@ import type {
   ListNodesResponse,
   ListOffersResponse,
   ListpaysResponse,
+  ListPeerChannelsResponse,
   ListPeersResponse,
   OfferSummary,
   PayResponse,
@@ -492,42 +498,107 @@ class CoreLn {
   }
 
   public async getChannels(): Promise<Channel[]> {
-    const listPeersResult = await this.connection.commando({ method: 'listpeers', rune: this.rune })
+    const { version } = await this.getInfo()
+    const versionNumber = convertVersionNumber(version)
 
-    const { peers } = listPeersResult as ListPeersResponse
+    if (versionNumber < 2305) {
+      const listPeersResult = await this.connection.commando({
+        method: 'listpeers',
+        rune: this.rune
+      })
+      const { peers } = listPeersResult as ListPeersResponse
 
-    const result = await Promise.all(
-      peers.map(async ({ id, channels }) => {
-        const [peer] = await this.listNodes(id)
+      const result = await Promise.all(
+        peers
+          .filter(({ channels }) => !!channels)
+          .map(async ({ id, channels }) => {
+            const [peer] = await this.listNodes(id)
 
-        return channels.map((channel) => {
+            return channels.map((channel) => {
+              return {
+                opener: channel.opener,
+                peerId: id,
+                peerAlias: peer.alias,
+                fundingTransactionId: channel.funding_txid,
+                fundingOutput: channel.funding_outnum,
+                id: channel.channel_id || null,
+                shortId: channel.short_channel_id || null,
+                status: channel.state,
+                balanceLocal: formatMsat(channel.to_us_msat),
+                balanceRemote: (
+                  BigInt(formatMsat(channel.total_msat)) - BigInt(formatMsat(channel.to_us_msat))
+                ).toString(),
+                balanceTotal: formatMsat(channel.total_msat),
+                balanceSendable: formatMsat(channel.spendable_msat),
+                balanceReceivable: formatMsat(channel.receivable_msat),
+                feeBase: formatMsat(channel.fee_base_msat.toString()),
+                feePpm: channel.fee_proportional_millionths,
+                closeToAddress: channel.close_to_addr ?? null,
+                closeToScriptPubkey: channel.close_to ?? null,
+                closer: channel.closer
+              }
+            })
+          })
+      )
+
+      return result.flat()
+    } else {
+      const listPeerChannelsResult = await this.connection.commando({
+        method: 'listpeerchannels',
+        rune: this.rune
+      })
+      const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
+
+      const result = await Promise.all(
+        channels.map(async (channel) => {
+          const {
+            peer_id,
+            opener,
+            funding_txid,
+            funding_outnum,
+            channel_id,
+            short_channel_id,
+            state,
+            to_us_msat,
+            total_msat,
+            receivable_msat,
+            spendable_msat,
+            fee_base_msat,
+            fee_proportional_millionths,
+            close_to_addr,
+            close_to,
+            closer
+          } = channel
+
+          const [peer] = await this.listNodes(peer_id)
+
           return {
-            opener: channel.opener,
-            peerId: id,
+            opener: opener,
+            peerId: peer_id,
             peerAlias: peer.alias,
-            fundingTransactionId: channel.funding_txid,
-            fundingOutput: channel.funding_outnum,
-            id: channel.channel_id || null,
-            shortId: channel.short_channel_id || null,
-            status: channel.state,
-            balanceLocal: formatMsat(channel.to_us_msat),
+            fundingTransactionId: funding_txid,
+            fundingOutput: funding_outnum,
+            id: channel_id || null,
+            shortId: short_channel_id || null,
+            status: state,
+            balanceLocal: formatMsat(to_us_msat),
             balanceRemote: (
-              BigInt(formatMsat(channel.total_msat)) - BigInt(formatMsat(channel.to_us_msat))
+              BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
             ).toString(),
-            balanceTotal: formatMsat(channel.total_msat),
-            balanceSendable: formatMsat(channel.spendable_msat),
-            balanceReceivable: formatMsat(channel.receivable_msat),
-            feeBase: formatMsat(channel.fee_base_msat.toString()),
-            feePpm: channel.fee_proportional_millionths,
-            closeToAddress: channel.close_to_addr ?? null,
-            closeToScriptPubkey: channel.close_to ?? null,
-            closer: channel.closer
+            balanceTotal: formatMsat(total_msat),
+            balanceSendable: formatMsat(spendable_msat),
+            balanceReceivable: formatMsat(receivable_msat),
+            feeBase: fee_base_msat ? formatMsat(fee_base_msat.toString()) : null,
+            feePpm: fee_proportional_millionths,
+            closeToAddress: close_to_addr ?? null,
+            closeToScriptPubkey: close_to ?? null,
+            closer: closer
           }
         })
-      })
-    )
+      )
 
-    return result.flat()
+      return result
+    }
   }
 }
 
