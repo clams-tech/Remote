@@ -38,6 +38,7 @@
   let validAddress = false
   let token = ''
   let decodedRune: DecodedRune | null = null
+  let sessionPrivateKey: string
 
   // Connect via URL params
   if (data.address && data.rune) {
@@ -51,23 +52,26 @@
     // Set connection type
     if (connectionType === 'direct') {
       update.directConnection = connectionValue as 'ws:' | 'wss:' | undefined
+      // Default to clams proxy
     } else if (connectionType === 'proxy' && connectionValue) {
-      // @TODO validate custom proxy?
       update.wsProxy = connectionValue
       update.directConnection = undefined
     }
 
     settings$.next({ ...$settings$, ...update })
 
-    // Validate address & rune then save to make connection
+    // Validate address & rune
     if (validateParsedNodeAddress(parseNodeAddress(address)) && decode(token)) {
+      // Attempt connection
       saveRune().then(() => {
         initialized = true
       })
     } else {
+      // Show forms that render invalid address or rune errors
       initialized = true
     }
   } else {
+    // Show page if no address & rune query params found
     initialized = true
   }
 
@@ -104,7 +108,6 @@
 
   let connectStatus: ConnectStatus = 'idle'
   let sessionPublicKey: string
-  let sessionPrivateKey: string
   let showDecodedRuneModal = false
   const recipes = ['readonly', 'clams', 'admin'] as const
 
