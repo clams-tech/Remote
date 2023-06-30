@@ -20,7 +20,8 @@
     "/lnurl": "LNURL",
     "/bkpr": "Bkpr",
     "/offers": "Offers",
-    "/offer": "Offer"
+    "/offer": "Offer",
+    "/channels": "Channels"
   },
   "inputs": {
     "destination": {
@@ -220,7 +221,8 @@
     "confirm": "Confirm",
     "summary_complete": "{{paymentType; keysend:Send Payment; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
     "disable": "Disable",
-    "total": "Total"
+    "total": "Total",
+    "open_channel": "Open channel"
   },
   "hints": {
     "unrestricted": "unrestricted!",
@@ -233,7 +235,7 @@
     "any_amount": "To allow any amount, press the Next button.",
     "quantity_max_allow": "Would you like to enable created invoices to specify a quantity of more than one item?",
     "any_quantity": "To allow any quantity, press the Next button.",
-    "no_offers": "You have not created an offer yet, go ahead and get started ☝️"
+    "no_offers": "You have not created any offers yet, create one here ☝️"
   },
   "headings": {
     "summary": "{{paymentType; keysend: Send Payment; bolt11:{{direction; receive:Receive; send:Send;}} Payment; lnurl: LNURL {{direction; receive:Withdraw; send:Pay;}}; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",

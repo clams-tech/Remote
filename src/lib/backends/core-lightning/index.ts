@@ -1,9 +1,11 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Auth, Payment, Channel } from '$lib/types'
+import type { Auth, Payment, Channel, Forward } from '$lib/types'
 import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
+import { bytesToHex } from '@noble/hashes/utils'
+import { sha256 } from '@noble/hashes/sha256'
 
 import {
   formatChannelsAPY,
@@ -33,6 +35,7 @@ import type {
   InvoiceResponse,
   InvoiceStatus,
   KeysendResponse,
+  ListForwardsResponse,
   ListfundsResponse,
   ListInvoiceRequestsResponse,
   ListinvoicesResponse,
@@ -446,93 +449,85 @@ class CoreLn {
     return (result as ListPeersResponse).peers
   }
 
-  async getChannels(): Promise<Channel[]> {
-    const channels: Channel[] = []
-    const peers = await this.listPeers()
-    const channelsAPY = await this.bkprChannelsAPY()
-    const balances = await this.bkprListBalances()
+  async getForwards(): Promise<Forward[]> {
+    const listForwardsResponse = await this.connection.commando({
+      method: 'listforwards',
+      rune: this.rune
+    })
+    const { forwards } = listForwardsResponse as ListForwardsResponse
 
-    function chunkArray<T>(arr: T[], size: number): T[][] {
-      // Create an array to hold the chunks
-      const chunkedArr: T[][] = []
-      // Loop over each item in the array
-      for (const item of arr) {
-        // If the last chunk is full (or doesn't exist), create a new chunk with this item
-        if (!chunkedArr.length || chunkedArr[chunkedArr.length - 1].length === size) {
-          chunkedArr.push([item])
-        } else {
-          // Otherwise, add the item to the last chunk
-          chunkedArr[chunkedArr.length - 1].push(item)
+    return forwards.map(
+      ({
+        in_channel,
+        out_channel,
+        in_htlc_id,
+        out_htlc_id,
+        in_msat,
+        out_msat,
+        fee_msat,
+        status,
+        style,
+        received_time,
+        resolved_time
+      }) => {
+        const forward = {
+          shortIdIn: in_channel,
+          shortIdOut: out_channel,
+          htlcInId: in_htlc_id,
+          htlcOutId: out_htlc_id,
+          in: formatMsat(in_msat),
+          out: formatMsat(out_msat),
+          fee: formatMsat(fee_msat),
+          status,
+          style,
+          started: received_time,
+          completed: resolved_time
         }
+
+        const id = bytesToHex(sha256(JSON.stringify(forward)))
+
+        return { ...forward, id }
       }
-      // Return the array of chunks
-      return chunkedArr
-    }
+    )
+  }
 
-    // msat is appended to some values in later versions of CLN
-    function trimMsat(value: string | number): string {
-      if (value.toString().endsWith('msat')) {
-        return value.toString().slice(0, -4)
-      } else {
-        return value.toString()
-      }
-    }
+  public async getChannels(): Promise<Channel[]> {
+    const listPeersResult = await this.connection.commando({ method: 'listpeers', rune: this.rune })
 
-    // Chunk the peers array into smaller arrays of size 50
-    const peerChunks = chunkArray(peers, 50)
+    const { peers } = listPeersResult as ListPeersResponse
 
-    // Loop over the chunked arrays of peers
-    for (const chunk of peerChunks) {
-      // Make API calls for each chunk of peers in parallel
-      const promises = chunk.map(async (peer) => {
-        const nodes = await this.listNodes(peer.id)
-        const node = nodes[0]
+    const result = await Promise.all(
+      peers.map(async ({ id, channels }) => {
+        const [peer] = await this.listNodes(id)
 
-        peer.channels?.forEach((channel) => {
-          const channelAPYMatch = channelsAPY.find(
-            (channelAPY) => channelAPY.account === channel.channel_id
-          )
-          const balanceMatch = balances.find((balance) => balance.account === channel.channel_id)
-
-          channels.push({
+        return channels.map((channel) => {
+          return {
             opener: channel.opener,
-            peerId: peer.id,
-            peerAlias: node?.alias ?? null,
-            fundingTransactionId: channel.funding_txid ?? null,
-            fundingOutput: channel.funding_outnum ?? null,
-            id: channel.channel_id ?? null,
-            shortId: channel.short_channel_id ?? null,
+            peerId: id,
+            peerAlias: peer.alias,
+            fundingTransactionId: channel.funding_txid,
+            fundingOutput: channel.funding_outnum,
+            id: channel.channel_id || null,
+            shortId: channel.short_channel_id || null,
             status: channel.state,
-            balanceLocal: trimMsat(channel.to_us_msat) ?? null,
-            balanceRemote:
-              (
-                BigInt(trimMsat(channel.total_msat)) - BigInt(trimMsat(channel.to_us_msat))
-              ).toString() ?? null,
-            balanceTotal: trimMsat(channel.total_msat) ?? null,
-            balanceSendable: trimMsat(channel.spendable_msat) ?? null,
-            balanceReceivable: trimMsat(channel.receivable_msat) ?? null,
-            sendsAttempted: channel.out_payments_offered ?? null,
-            sendsComplete: channel.out_payments_fulfilled ?? null,
-            receivesAttempted: channel.in_payments_offered ?? null,
-            receivesComplete: channel.in_payments_fulfilled ?? null,
-            feeBase: trimMsat(channel.fee_base_msat.toString()) ?? null,
-            routingFees: channelAPYMatch?.fees_out_msat.toString() ?? null,
-            apy: channelAPYMatch?.apy_out ?? null,
-            scratchTransactionId: channel.scratch_txid ?? null,
-            closeTo: channel.close_to ?? null,
+            balanceLocal: formatMsat(channel.to_us_msat),
+            balanceRemote: (
+              BigInt(formatMsat(channel.total_msat)) - BigInt(formatMsat(channel.to_us_msat))
+            ).toString(),
+            balanceTotal: formatMsat(channel.total_msat),
+            balanceSendable: formatMsat(channel.spendable_msat),
+            balanceReceivable: formatMsat(channel.receivable_msat),
+            feeBase: formatMsat(channel.fee_base_msat.toString()),
+            feePpm: channel.fee_proportional_millionths,
             closeToAddress: channel.close_to_addr ?? null,
-            closer: channel.closer ?? null,
-            resolved: balanceMatch?.account_resolved ?? null,
-            resolvedAtBlock: balanceMatch?.resolved_at_block ?? null
-          })
+            closeToScriptPubkey: channel.close_to ?? null,
+            closer: channel.closer
+          }
         })
       })
+    )
 
-      // Wait for all API calls for the current chunk to complete before processing the next chunk
-      await Promise.all(promises)
-    }
-
-    return channels
+    return result.flat()
   }
 }
 

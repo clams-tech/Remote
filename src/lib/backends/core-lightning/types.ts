@@ -934,9 +934,9 @@ type PeerChannel = {
   fee_base_msat: number
   owner?: string
   short_channel_id?: string
-  channel_id?: string
-  funding_txid?: string
-  funding_outnum?: number
+  channel_id: string
+  funding_txid: string
+  funding_outnum: number
   initial_feerate?: string
   last_feerate?: string
   next_feerate?: string
@@ -975,6 +975,7 @@ type PeerChannel = {
   total_msat: string
   spendable_msat: string
   receivable_msat: string
+  fee_proportional_millionths: number
   in_payments_offered: number // of incoming payment attempts
   in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
   in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
@@ -1013,6 +1014,24 @@ export type ListPeersResponse = {
   peers: Peer[]
 }
 
+type Forward = {
+  in_channel: string
+  in_htlc_id: number
+  out_channel: string
+  out_htlc_id: number
+  in_msat: number
+  out_msat: number
+  fee_msat: number
+  status: 'settled' | 'offered' | 'failed' | 'local_failed'
+  style: 'tlv' | 'legacy'
+  received_time: number
+  resolved_time: number
+}
+
+export type ListForwardsResponse = {
+  forwards: Forward[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1034,5 +1053,6 @@ export type LNResponse =
   | CreateWithdrawOfferResponse
   | ListNodesResponse
   | ListPeersResponse
+  | ListForwardsResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

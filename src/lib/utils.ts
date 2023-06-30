@@ -257,10 +257,9 @@ export const calculateBalance = (funds: ListfundsResponse): string => {
     return total.add(formatMsat(our_amount_msat))
   }, Big('0'))
 
-  // const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+  const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
 
-  // return offChain.add(onChain).toString()
-  return offChain.toString()
+  return offChain.add(onChain).toString()
 }
 
 export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
@@ -581,4 +580,10 @@ export function formatDecodedOffer(
     nodeId,
     quantityMax
   }
+}
+
+export function convertVersionNumber(version: string): number {
+  const [withoutDash] = version.split('-')
+  const withoutDots = withoutDash.replace('.', '')
+  return Number(withoutDots)
 }

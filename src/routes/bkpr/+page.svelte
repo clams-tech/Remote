@@ -15,6 +15,7 @@
     lightning.updateChannelsAPY() // "net" value required for Routing Performance component
     lightning.updateIncomeEvents()
     lightning.updateChannels()
+    lightning.updateForwards()
   })
 </script>
 

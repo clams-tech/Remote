@@ -36,7 +36,8 @@ import {
   incomeEvents$,
   channelsAPY$,
   balances$,
-  channels$
+  channels$,
+  forwards$
 } from './streams'
 
 class Lightning {
@@ -183,6 +184,28 @@ class Lightning {
     } catch (error) {
       const { message } = error as Error
       channels$.next({ loading: false, data: null, error: message })
+
+      customNotifications$.next({
+        id: createRandomHex(),
+        type: 'error',
+        heading: get(translate)('app.errors.data_request'),
+        message: `${get(translate)('app.errors.update_channels')}: ${message}`
+      })
+    }
+  }
+
+  public async updateForwards() {
+    const lnApi = this.getLn()
+
+    try {
+      forwards$.next({ loading: true, data: forwards$.getValue().data })
+      const forwards = await lnApi.getForwards()
+      forwards$.next({ loading: false, data: forwards })
+
+      return forwards
+    } catch (error) {
+      const { message } = error as Error
+      forwards$.next({ loading: false, data: null, error: message })
 
       customNotifications$.next({
         id: createRandomHex(),
