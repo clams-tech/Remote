@@ -17,7 +17,8 @@ import {
   formatIncomeEvents,
   invoiceStatusToPaymentStatus,
   invoiceToPayment,
-  payToPayment
+  payToPayment,
+  stateToChannelStatus
 } from './utils'
 
 import type {
@@ -515,27 +516,45 @@ class CoreLn {
             const [peer] = await this.listNodes(id)
 
             return channels.map((channel) => {
+              const {
+                opener,
+                funding_txid,
+                funding_outnum,
+                channel_id,
+                short_channel_id,
+                state,
+                to_us_msat,
+                total_msat,
+                receivable_msat,
+                spendable_msat,
+                fee_base_msat,
+                fee_proportional_millionths,
+                close_to_addr,
+                close_to,
+                closer
+              } = channel
+
               return {
-                opener: channel.opener,
+                opener: opener,
                 peerId: id,
                 peerAlias: peer.alias,
-                fundingTransactionId: channel.funding_txid,
-                fundingOutput: channel.funding_outnum,
-                id: channel.channel_id || null,
-                shortId: channel.short_channel_id || null,
-                status: channel.state,
-                balanceLocal: formatMsat(channel.to_us_msat),
+                fundingTransactionId: funding_txid,
+                fundingOutput: funding_outnum,
+                id: channel_id || null,
+                shortId: short_channel_id || null,
+                status: stateToChannelStatus(state),
+                balanceLocal: formatMsat(to_us_msat),
                 balanceRemote: (
-                  BigInt(formatMsat(channel.total_msat)) - BigInt(formatMsat(channel.to_us_msat))
+                  BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
                 ).toString(),
-                balanceTotal: formatMsat(channel.total_msat),
-                balanceSendable: formatMsat(channel.spendable_msat),
-                balanceReceivable: formatMsat(channel.receivable_msat),
-                feeBase: formatMsat(channel.fee_base_msat.toString()),
-                feePpm: channel.fee_proportional_millionths,
-                closeToAddress: channel.close_to_addr ?? null,
-                closeToScriptPubkey: channel.close_to ?? null,
-                closer: channel.closer
+                balanceTotal: formatMsat(total_msat),
+                balanceSendable: formatMsat(spendable_msat),
+                balanceReceivable: formatMsat(receivable_msat),
+                feeBase: formatMsat(fee_base_msat.toString()),
+                feePpm: fee_proportional_millionths,
+                closeToAddress: close_to_addr ?? null,
+                closeToScriptPubkey: close_to ?? null,
+                closer
               }
             })
           })
@@ -580,7 +599,7 @@ class CoreLn {
             fundingOutput: funding_outnum,
             id: channel_id || null,
             shortId: short_channel_id || null,
-            status: state,
+            status: stateToChannelStatus(state),
             balanceLocal: formatMsat(to_us_msat),
             balanceRemote: (
               BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))

@@ -47,9 +47,14 @@
     }
   },
   "labels": {
+    "pending": "Pending",
+    "closing": "Closing",
+    "closed": "Closed",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",
+    "sendable": "Sendable",
+    "receivable": "Receivable",
     "destination": "Destination",
     "status": "Status",
     "issuer": "Issuer",
