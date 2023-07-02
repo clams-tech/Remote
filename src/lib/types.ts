@@ -260,9 +260,42 @@ export type Channel = {
   closeToAddress: string | null
   /** The bitcoin address we will close to */
   closeToScriptPubkey: string | null
+  htlcs: HTLC[]
   /** which side closed this channel */
   closer?: 'local' | 'remote'
 }
+
+type HTLC = {
+  direction: 'in' | 'out'
+  id: number
+  /** msat */
+  amount: string
+  expiry: number
+  paymentHash: string
+  state: HTLCState
+}
+
+type HTLCState =
+  | 'SENT_ADD_HTLC'
+  | 'SENT_ADD_COMMIT'
+  | 'RCVD_ADD_REVOCATION'
+  | 'RCVD_ADD_ACK_COMMIT'
+  | 'SENT_ADD_ACK_REVOCATION'
+  | 'RCVD_REMOVE_HTLC'
+  | 'RCVD_REMOVE_COMMIT'
+  | 'SENT_REMOVE_REVOCATION'
+  | 'SENT_REMOVE_ACK_COMMIT'
+  | 'RCVD_REMOVE_ACK_REVOCATION'
+  | 'RCVD_ADD_HTLC'
+  | 'RCVD_ADD_COMMIT'
+  | 'SENT_ADD_REVOCATION'
+  | 'SENT_ADD_ACK_COMMIT'
+  | 'RCVD_ADD_ACK_REVOCATION'
+  | 'SENT_REMOVE_HTLC'
+  | 'SENT_REMOVE_COMMIT'
+  | 'RCVD_REMOVE_REVOCATION'
+  | 'RCVD_REMOVE_ACK_COMMIT'
+  | 'SENT_REMOVE_ACK_REVOCATION'
 
 export type Forward = {
   /** hash of the whole forward */

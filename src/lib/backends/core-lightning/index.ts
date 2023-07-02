@@ -531,7 +531,8 @@ class CoreLn {
                 fee_proportional_millionths,
                 close_to_addr,
                 close_to,
-                closer
+                closer,
+                htlcs
               } = channel
 
               return {
@@ -553,7 +554,15 @@ class CoreLn {
                 feePpm: fee_proportional_millionths,
                 closeToAddress: close_to_addr ?? null,
                 closeToScriptPubkey: close_to ?? null,
-                closer
+                closer,
+                htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                  id,
+                  direction,
+                  amount: amount_msat,
+                  expiry,
+                  paymentHash: payment_hash,
+                  state
+                }))
               }
             })
           })
@@ -586,7 +595,8 @@ class CoreLn {
             close_to,
             closer,
             our_reserve_msat,
-            their_reserve_msat
+            their_reserve_msat,
+            htlcs
           } = channel
 
           const [peer] = await this.listNodes(peer_id)
@@ -610,7 +620,15 @@ class CoreLn {
             feePpm: fee_proportional_millionths,
             closeToAddress: close_to_addr ?? null,
             closeToScriptPubkey: close_to ?? null,
-            closer: closer
+            closer: closer,
+            htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+              id,
+              direction,
+              amount: amount_msat,
+              expiry,
+              paymentHash: payment_hash,
+              state
+            }))
           }
         })
       )

@@ -986,6 +986,7 @@ type PeerChannel = {
   out_offered_msat: string //  (msat| optional): Total amount of outgoing payment attempts
   out_payments_fulfilled: number //  (u64| optional): Number of successful outgoing payment attempts
   out_fulfilled_msat: string // (msat| optional): Total amount of successful outgoing payment attempts
+  htlcs: HTLC[]
 }
 
 type ListPeerChannel = {
@@ -1076,7 +1077,7 @@ type ListPeerChannel = {
   out_offered_msat: string //  (msat| optional): Total amount of outgoing payment attempts
   out_payments_fulfilled: number //  (u64| optional): Number of successful outgoing payment attempts
   out_fulfilled_msat: string // (msat| optional): Total amount of successful outgoing payment attempts
-  htlcs: HTLC
+  htlcs: HTLC[]
 }
 
 type HTLC = {
@@ -1110,6 +1111,7 @@ type HTLCState =
   | 'RCVD_REMOVE_REVOCATION'
   | 'RCVD_REMOVE_ACK_COMMIT'
   | 'SENT_REMOVE_ACK_REVOCATION'
+
 type Cause = 'unknown' | 'local' | 'user' | 'remote' | 'protocol' | 'onchain'
 
 type PeerLog =

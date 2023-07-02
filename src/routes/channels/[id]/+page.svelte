@@ -13,6 +13,7 @@
   import { formatValueForDisplay } from '$lib/utils.js'
   import { convertValue } from '$lib/conversion.js'
   import { currencySymbols } from '$lib/constants.js'
+  import Big from 'big.js'
 
   export let data: PageData // channel id
 
@@ -55,7 +56,19 @@
   {#if $channels$.loading}
     <Spinner />
   {:else if channel}
-    {@const { peerAlias, peerId, status, balanceLocal, balanceRemote } = channel}
+    {@const {
+      peerAlias,
+      peerId,
+      status,
+      balanceLocal,
+      balanceRemote,
+      reserveLocal,
+      reserveRemote,
+      htlcs,
+      feeBase,
+      feePpm
+    } = channel}
+
     {@const channelStatusLabel = channelStatusTolabel(status)}
     <div class="flex flex-col items-center mb-4">
       <div class="text-lg font-semibold">{peerAlias}</div>
@@ -122,6 +135,97 @@
           denomination: $settings$.primaryDenomination,
           commas: true
         })}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.unsettled')}:
+      </div>
+      <div slot="value" class="flex items-center">
+        <span
+          class="flex justify-center items-center"
+          class:w-4={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {formatValueForDisplay({
+          value: convertValue({
+            value: htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString(),
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          }),
+          denomination: $settings$.primaryDenomination,
+          commas: true
+        })}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.local_reserve')}:
+      </div>
+      <div slot="value" class="flex items-center">
+        <span
+          class="flex justify-center items-center"
+          class:w-4={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {formatValueForDisplay({
+          value: convertValue({
+            value: reserveLocal,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          }),
+          denomination: $settings$.primaryDenomination,
+          commas: true
+        })}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.remote_reserve')}:
+      </div>
+      <div slot="value" class="flex items-center">
+        <span
+          class="flex justify-center items-center"
+          class:w-4={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {formatValueForDisplay({
+          value: convertValue({
+            value: reserveRemote,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          }),
+          denomination: $settings$.primaryDenomination,
+          commas: true
+        })}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.fee_base')}:
+      </div>
+      <div slot="value" class="flex items-center">
+        {formatValueForDisplay({
+          value: feeBase,
+          denomination: BitcoinDenomination.msats,
+          commas: true
+        })}
+
+        {$translate('app.labels.msat')}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.fee_rate')}:
+      </div>
+      <div slot="value" class="flex items-center">
+        {feePpm}
+        {$translate('app.labels.ppm')}
       </div>
     </SummaryRow>
   {/if}
