@@ -525,8 +525,8 @@ class CoreLn {
                 state,
                 to_us_msat,
                 total_msat,
-                receivable_msat,
-                spendable_msat,
+                our_reserve_msat,
+                their_reserve_msat,
                 fee_base_msat,
                 fee_proportional_millionths,
                 close_to_addr,
@@ -547,9 +547,8 @@ class CoreLn {
                 balanceRemote: (
                   BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
                 ).toString(),
-                balanceTotal: formatMsat(total_msat),
-                balanceSendable: formatMsat(spendable_msat),
-                balanceReceivable: formatMsat(receivable_msat),
+                reserveRemote: formatMsat(our_reserve_msat || '0'),
+                reserveLocal: formatMsat(their_reserve_msat || '0'),
                 feeBase: formatMsat(fee_base_msat.toString()),
                 feePpm: fee_proportional_millionths,
                 closeToAddress: close_to_addr ?? null,
@@ -568,8 +567,9 @@ class CoreLn {
       })
       const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
 
-      const result = await Promise.all(
+      return Promise.all(
         channels.map(async (channel) => {
+          console.log({ channel })
           const {
             peer_id,
             opener,
@@ -580,13 +580,13 @@ class CoreLn {
             state,
             to_us_msat,
             total_msat,
-            receivable_msat,
-            spendable_msat,
             fee_base_msat,
             fee_proportional_millionths,
             close_to_addr,
             close_to,
-            closer
+            closer,
+            our_reserve_msat,
+            their_reserve_msat
           } = channel
 
           const [peer] = await this.listNodes(peer_id)
@@ -604,9 +604,8 @@ class CoreLn {
             balanceRemote: (
               BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
             ).toString(),
-            balanceTotal: formatMsat(total_msat),
-            balanceSendable: formatMsat(spendable_msat),
-            balanceReceivable: formatMsat(receivable_msat),
+            reserveRemote: formatMsat(our_reserve_msat || '0'),
+            reserveLocal: formatMsat(their_reserve_msat || '0'),
             feeBase: fee_base_msat ? formatMsat(fee_base_msat.toString()) : null,
             feePpm: fee_proportional_millionths,
             closeToAddress: close_to_addr ?? null,
@@ -615,8 +614,6 @@ class CoreLn {
           }
         })
       )
-
-      return result
     }
   }
 }

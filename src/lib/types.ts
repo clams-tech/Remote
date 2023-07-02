@@ -249,11 +249,9 @@ export type Channel = {
   /** msat */
   balanceRemote: string
   /** msat */
-  balanceTotal: string
-  /** value spendable (msat) */
-  balanceSendable: string
-  /** value receivable (msat) */
-  balanceReceivable: string
+  reserveLocal: string
+  /** msat */
+  reserveRemote: string
   /** amount we charge to use the channel (msat) */
   feeBase: string | null
   /** amount we charge to use the channel in parts-per-million */

@@ -17,14 +17,16 @@
   $: sendableMsat =
     $channels$.data &&
     $channels$.data.reduce(
-      (acc, { balanceSendable }) => Big(acc).add(balanceSendable).toString(),
+      (acc, { balanceLocal, reserveLocal }) =>
+        Big(acc).add(balanceLocal).minus(reserveLocal).toString(),
       '0'
     )
 
   $: receivableMsat =
     $channels$.data &&
     $channels$.data.reduce(
-      (acc, { balanceReceivable }) => Big(acc).add(balanceReceivable).toString(),
+      (acc, { balanceRemote, reserveRemote }) =>
+        Big(acc).add(balanceRemote).minus(reserveRemote).toString(),
       '0'
     )
 </script>
@@ -43,11 +45,7 @@
     </div>
 
     <div>
-      <Button
-        on:click={() => goto('/channels/open')}
-        text={$translate('app.buttons.open_channel')}
-        primary
-      >
+      <Button on:click={() => goto('/channels/open')} text={$translate('app.buttons.open')} primary>
         <div slot="iconLeft" class="w-8 mb-[1px]">
           {@html plus}
         </div>
@@ -62,7 +60,7 @@
       <ErrorMsg message={$channels$.error} />
     {:else if $channels$.data}
       <div class="w-full">
-        <!-- <div class="w-full mb-4">
+        <div class="w-full mb-6">
           <SummaryRow>
             <div slot="label">Channels:</div>
             <div slot="value">{$channels$.data.length}</div>
@@ -97,7 +95,7 @@
               })}
             </div>
           </SummaryRow>
-        </div> -->
+        </div>
 
         <div class="w-full flex-grow overflow-y-auto">
           {#each $channels$.data as channel}

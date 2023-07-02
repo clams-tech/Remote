@@ -952,6 +952,8 @@ type PeerChannel = {
   }>
   private?: boolean
   closer?: 'local' | 'remote'
+  our_reserve_msat: string
+  their_reserve_msat: string
   funding?: {
     local_funds_msat: string
     remote_funds_msat: string

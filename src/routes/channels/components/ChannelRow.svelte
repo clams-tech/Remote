@@ -3,54 +3,35 @@
   import { convertValue } from '$lib/conversion.js'
   import { translate } from '$lib/i18n/translations.js'
   import { settings$ } from '$lib/streams.js'
-  import { BitcoinDenomination, type Channel, type ChannelStatus } from '$lib/types.js'
+  import { BitcoinDenomination, type Channel } from '$lib/types.js'
   import { formatValueForDisplay } from '$lib/utils.js'
   import Big from 'big.js'
+  import { channelStatusTolabel } from '../utils.js'
 
   export let channel: Channel
 
-  const { peerAlias, balanceTotal, balanceRemote, balanceLocal, status } = channel
+  const { peerAlias, balanceRemote, balanceLocal, status } = channel
+  const balanceTotal = Big(balanceLocal).plus(balanceRemote)
   const localPercent = Big(balanceLocal).div(balanceTotal).times(100).toNumber()
   const remotePercent = Big(balanceRemote).div(balanceTotal).times(100).toNumber()
-
-  const channelStatusTolabel = (status: ChannelStatus) => {
-    switch (status) {
-      case 'CHANNEL_NORMAL':
-        return $translate('app.labels.active')
-      case 'CHANNEL_AWAITING_LOCKIN':
-      case 'OPENING':
-      case 'DUALOPEN_AWAITING_LOCKIN':
-      case 'DUALOPEN_OPEN_INIT':
-      case 'FUNDING_SPEND_SEEN':
-      case 'ONCHAIN':
-        return $translate('app.labels.pending')
-      case 'AWAITING_UNILATERAL':
-      case 'CHANNEL_SHUTTING_DOWN':
-      case 'CLOSING_SIGEXCHANGE':
-        return $translate('app.labels.closing')
-      default:
-        return $translate('app.labels.closed')
-    }
-  }
 
   const channelStatusLabel = channelStatusTolabel(status)
 
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
-<div class="w-full py-2 border-y border-neutral-400">
+<a href="/channels/{channel.id}" class="w-full py-2 border-y border-neutral-400 block">
   <div class="flex items-center justify-between mb-1 px-[1px]">
     <div class="text-sm font-semibold">{peerAlias}</div>
     <div
-      class:text-utility-success={channelStatusLabel === $translate('app.labels.active')}
-      class:text-utility-pending={channelStatusLabel === $translate('app.labels.pending')}
-      class:text-utility-error={channelStatusLabel === $translate('app.labels.closing') ||
-        channelStatusLabel === $translate('app.labels.closed')}
+      class:text-utility-success={channelStatusLabel === 'active'}
+      class:text-utility-pending={channelStatusLabel === 'pending'}
+      class:text-utility-error={channelStatusLabel === 'closing' || channelStatusLabel === 'closed'}
       class="text-xs flex items-center"
     >
       <div class="bg-current w-2 h-2 rounded-full mr-1" />
       <div>
-        {channelStatusLabel}
+        {$translate(`app.labels.${channelStatusLabel}`)}
       </div>
     </div>
   </div>
@@ -95,4 +76,4 @@
       })}
     </div>
   </div>
-</div>
+</a>

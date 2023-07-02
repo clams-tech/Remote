@@ -21,7 +21,8 @@
     "/bkpr": "Bkpr",
     "/offers": "Offers",
     "/offer": "Offer",
-    "/channels": "Channels"
+    "/channels": "Channels",
+    "/channel": "Channel"
   },
   "inputs": {
     "destination": {
@@ -58,6 +59,8 @@
     "destination": "Destination",
     "status": "Status",
     "issuer": "Issuer",
+    "outbound": "Outbound",
+    "inbound": "Inbound",
     "offer_type": "Offer type",
     "completed_at": "Completed",
     "created_started_at": "{{direction; receive:Created; send:Started;}} At",
@@ -226,8 +229,7 @@
     "confirm": "Confirm",
     "summary_complete": "{{paymentType; keysend:Send Payment; bolt11:{{direction; send:Send Payment; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Payment;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Payment;}}}}}}",
     "disable": "Disable",
-    "total": "Total",
-    "open_channel": "Open channel"
+    "total": "Total"
   },
   "hints": {
     "unrestricted": "unrestricted!",
