@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
-  import { channels$, lastPath$, settings$ } from '$lib/streams'
+  import { channels$, lastPath$, nodeInfo$, settings$ } from '$lib/streams'
   import { goto } from '$app/navigation'
   import BackButton from '$lib/elements/BackButton.svelte'
   import { loading, translate } from '$lib/i18n/translations'
@@ -14,13 +14,26 @@
   import { convertValue } from '$lib/conversion.js'
   import { currencySymbols } from '$lib/constants.js'
   import Big from 'big.js'
+  import Button from '$lib/elements/Button.svelte'
+  import Modal from '$lib/elements/Modal.svelte'
+  import TextInput from '$lib/elements/TextInput.svelte'
 
   export let data: PageData // channel id
 
-  let channel: Channel | null
+  let channel: Channel
+  let feeBaseUpdate: string
+  let feeRateUpdate: number
 
   $: if ($channels$.data) {
-    channel = $channels$.data.find((p) => p.id === data.id) || null
+    channel = $channels$.data.find((p) => p.id === data.id)!
+
+    if (channel?.feeBase) {
+      feeBaseUpdate = channel.feeBase
+    }
+
+    if (channel?.feePpm) {
+      feeRateUpdate = channel.feePpm
+    }
   }
 
   const backPath = getBackPath()
@@ -41,6 +54,12 @@
   }
 
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
+
+  let showFeeUpdateModal = false
+
+  function updateFees() {
+    // @TODO
+  }
 </script>
 
 <svelte:head>
@@ -66,12 +85,14 @@
       reserveRemote,
       htlcs,
       feeBase,
-      feePpm
+      feePpm,
+      opener
     } = channel}
 
     {@const channelStatusLabel = channelStatusTolabel(status)}
+
     <div class="flex flex-col items-center mb-4">
-      <div class="text-lg font-semibold">{peerAlias}</div>
+      <div class="text-xl font-semibold">{peerAlias}</div>
       <div class="text-sm pl-2">
         <CopyValue value={peerId} truncateLength={8} />
       </div>
@@ -88,9 +109,16 @@
         class:text-utility-error={channelStatusLabel === 'closing' ||
           channelStatusLabel === 'closed'}
       >
-        <div>
-          {$translate(`app.labels.${channelStatusLabel}`)}
-        </div>
+        {$translate(`app.labels.${channelStatusLabel}`)}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.opened_by')}:
+      </div>
+      <div slot="value">
+        {opener === 'local' ? $nodeInfo$.data?.alias || $translate('app.labels.us') : peerAlias}
       </div>
     </SummaryRow>
 
@@ -228,5 +256,42 @@
         {$translate('app.labels.ppm')}
       </div>
     </SummaryRow>
+
+    <div class="mt-4 w-full flex items-center justify-between">
+      <Button
+        on:click={() => (showFeeUpdateModal = true)}
+        text={$translate('app.labels.set_channel_fees')}
+      />
+    </div>
   {/if}
 </section>
+
+{#if showFeeUpdateModal && channel}
+  <Modal on:close={() => (showFeeUpdateModal = false)}>
+    <div class="w-[25rem] max-w-full">
+      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.set_fees')}</h4>
+
+      <div class="my-4">
+        <TextInput
+          type="text"
+          name="base"
+          label={$translate('app.labels.fee_base')}
+          hint={$translate('app.labels.msat')}
+          bind:value={feeBaseUpdate}
+        />
+      </div>
+
+      <TextInput
+        type="number"
+        name="rate"
+        label={$translate('app.labels.fee_rate')}
+        hint={$translate('app.labels.ppm')}
+        bind:value={feeRateUpdate}
+      />
+
+      <div class="mt-6">
+        <Button on:click={updateFees} text={$translate('app.labels.update')} />
+      </div>
+    </div>
+  </Modal>
+{/if}
