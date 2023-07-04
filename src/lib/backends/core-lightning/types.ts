@@ -987,6 +987,8 @@ type PeerChannel = {
   out_payments_fulfilled: number //  (u64| optional): Number of successful outgoing payment attempts
   out_fulfilled_msat: string // (msat| optional): Total amount of successful outgoing payment attempts
   htlcs: HTLC[]
+  minimum_htlc_out_msat?: number
+  maximum_htlc_out_msat?: number
 }
 
 type ListPeerChannel = {
@@ -1054,8 +1056,8 @@ type ListPeerChannel = {
   max_total_htlc_in_msat?: string
   their_reserve_msat?: string
   minimum_htlc_in_msat?: string
-  minimum_htlc_out_msat?: string
-  maximum_htlc_out_msat?: string
+  minimum_htlc_out_msat?: number
+  maximum_htlc_out_msat?: number
   their_to_self_delay?: number
   our_to_self_delay?: number
   our_reserve_msat?: string
@@ -1164,6 +1166,22 @@ export type ListForwardsResponse = {
   forwards: Forward[]
 }
 
+export type SetChannelResponse = {
+  channels: {
+    peer_id: string
+    channel_id: string
+    fee_base_msat: string
+    fee_proportional_millionths: number
+    minimum_htlc_out_msat: string
+    maximum_htlc_out_msat: string
+    short_channel_id: string
+    /** The requested htlcmin was too low for this peer, so we set it to the minimum they will allow */
+    warning_htlcmin_too_low?: boolean
+    /** The requested htlcmax was greater than the channel capacity, so we set it to the channel capacity */
+    warning_htlcmax_too_high?: boolean
+  }[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1186,5 +1204,6 @@ export type LNResponse =
   | ListNodesResponse
   | ListPeersResponse
   | ListForwardsResponse
+  | SetChannelResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

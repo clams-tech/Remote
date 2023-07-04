@@ -54,6 +54,7 @@ import type {
   PayResponse,
   SendInvoiceRequest,
   SendInvoiceResponse,
+  SetChannelResponse,
   SignMessageResponse,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
@@ -532,7 +533,9 @@ class CoreLn {
                 close_to_addr,
                 close_to,
                 closer,
-                htlcs
+                htlcs,
+                minimum_htlc_out_msat,
+                maximum_htlc_out_msat
               } = channel
 
               return {
@@ -541,7 +544,7 @@ class CoreLn {
                 peerAlias: peer.alias,
                 fundingTransactionId: funding_txid,
                 fundingOutput: funding_outnum,
-                id: channel_id || null,
+                id: channel_id,
                 shortId: short_channel_id || null,
                 status: stateToChannelStatus(state),
                 balanceLocal: formatMsat(to_us_msat),
@@ -555,6 +558,8 @@ class CoreLn {
                 closeToAddress: close_to_addr ?? null,
                 closeToScriptPubkey: close_to ?? null,
                 closer,
+                htlcMin: minimum_htlc_out_msat?.toString() || null,
+                htlcMax: maximum_htlc_out_msat?.toString() || null,
                 htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                   id,
                   direction,
@@ -574,11 +579,13 @@ class CoreLn {
         method: 'listpeerchannels',
         rune: this.rune
       })
+
       const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
 
       return Promise.all(
         channels.map(async (channel) => {
           console.log({ channel })
+
           const {
             peer_id,
             opener,
@@ -596,7 +603,9 @@ class CoreLn {
             closer,
             our_reserve_msat,
             their_reserve_msat,
-            htlcs
+            htlcs,
+            minimum_htlc_out_msat,
+            maximum_htlc_out_msat
           } = channel
 
           const [peer] = await this.listNodes(peer_id)
@@ -607,7 +616,7 @@ class CoreLn {
             peerAlias: peer.alias,
             fundingTransactionId: funding_txid,
             fundingOutput: funding_outnum,
-            id: channel_id || null,
+            id: channel_id,
             shortId: short_channel_id || null,
             status: stateToChannelStatus(state),
             balanceLocal: formatMsat(to_us_msat),
@@ -621,6 +630,8 @@ class CoreLn {
             closeToAddress: close_to_addr ?? null,
             closeToScriptPubkey: close_to ?? null,
             closer: closer,
+            htlcMin: minimum_htlc_out_msat?.toString() || null,
+            htlcMax: maximum_htlc_out_msat?.toString() || null,
             htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
               id,
               direction,
@@ -633,6 +644,38 @@ class CoreLn {
         })
       )
     }
+  }
+
+  public async updateChannel(options: {
+    /** node id, channel id, short channel id */
+    id: string
+    /** msat base fee */
+    feeBase?: string
+    /** ppm fee rate */
+    feeRate?: number
+    /** the min size we will forward msat */
+    htlcMin?: string
+    /** the max size we will forward msat */
+    htlcMax?: string
+    /** the delay in seconds before enforcing new fees and htlc settings */
+    enforceDelay?: number
+  }): Promise<SetChannelResponse['channels']['0']> {
+    const { id, feeBase, feeRate, htlcMin, htlcMax, enforceDelay } = options
+
+    const result = await this.connection.commando({
+      method: 'setchannel',
+      rune: this.rune,
+      params: {
+        id,
+        feebase: feeBase,
+        feeppm: feeRate,
+        htlcmin: htlcMin,
+        htlcmax: htlcMax,
+        enforcedelay: enforceDelay
+      }
+    })
+
+    return (result as SetChannelResponse).channels[0]
   }
 }
 

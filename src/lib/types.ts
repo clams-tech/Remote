@@ -230,7 +230,7 @@ export type ChannelStatus =
 
 export type Channel = {
   /** full channel id */
-  id: string | null
+  id: string
   /** short channel id */
   shortId: string | null
   /** which side opened this channel */
@@ -256,6 +256,10 @@ export type Channel = {
   feeBase: string | null
   /** amount we charge to use the channel in parts-per-million */
   feePpm: number
+  /** the min htlc msat size we will forward */
+  htlcMin: string | null
+  /** the max htlc msat size we will forward */
+  htlcMax: string | null
   /** The bitcoin address we will close to */
   closeToAddress: string | null
   /** The bitcoin address we will close to */
