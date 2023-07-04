@@ -277,7 +277,10 @@
             <div class="p-4">
               <div class="flex flex-col gap-2 w-56 h-56 overflow-auto">
                 {#each labels as label}
-                  <div class="flex cursor-pointer" on:click={() => toggleActiveChannel(label.id)}>
+                  <div
+                    class="flex cursor-pointer font-bold"
+                    on:click={() => toggleActiveChannel(label.id)}
+                  >
                     <Toggle
                       handleChange={() => toggleActiveChannel(label.id)}
                       toggled={activeChannelIDs.includes(label.id)}

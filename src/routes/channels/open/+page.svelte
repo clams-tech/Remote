@@ -1,22 +1,33 @@
 <script lang="ts">
   import Scanner from '$lib/components/Scanner.svelte'
+  import BackButton from '$lib/elements/BackButton.svelte'
   import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
+  import Toggle from '$lib/elements/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import scan from '$lib/icons/scan.js'
+  import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
 
   let address: string
   let channelSize: number
   let announce = true
-  let feeRate: number
 
+  let validAddress: boolean
   let opening = false
   let errMsg = ''
 
   let showScanner = false
+
+  $: if (address) {
+    try {
+      validAddress = validateParsedNodeAddress(parseNodeAddress(address))
+    } catch {
+      validAddress = false
+    }
+  }
 
   async function openChannel() {
     // connect to peer
@@ -45,17 +56,37 @@
     <button on:click={() => (showScanner = true)} class="w-10">{@html scan}</button>
   </div>
 
-  <div class="w-full flex flex-col gap-y-4 mt-4">
+  <div class="w-full flex flex-col gap-y-4 mt-6">
     <TextInput
-      type="number"
-      name="rate"
-      label={$translate('app.labels.fee_rate')}
-      hint={$translate('app.labels.ppm')}
-      bind:value={feeRate}
+      name="address"
+      type="textarea"
+      rows={6}
+      label={$translate('app.labels.peer_address')}
+      invalid={address && !validAddress ? $translate('app.inputs.node_connect.invalid') : ''}
+      placeholder={$translate('app.inputs.node_connect.placeholder')}
+      bind:value={address}
     />
 
+    <TextInput
+      name="amount"
+      type="number"
+      rows={6}
+      label={$translate('app.labels.channel_size')}
+      hint={$translate('app.labels.sats')}
+      bind:value={channelSize}
+    />
+
+    <div class="text-sm">
+      <Toggle label={$translate('app.labels.announce_channel')} bind:toggled={announce} />
+    </div>
+
     <div class="mt-2">
-      <Button requesting={opening} on:click={openChannel} text={$translate('app.labels.open')} />
+      <Button
+        disabled={!address || !validAddress || !channelSize}
+        requesting={opening}
+        on:click={openChannel}
+        text={$translate('app.labels.open')}
+      />
     </div>
 
     {#if errMsg}
@@ -68,6 +99,7 @@
 
 {#if showScanner}
   <div class="absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
+    <BackButton on:click={() => (showScanner = false)} />
     <Scanner on:result={({ detail }) => handleScanResult(detail)} />
   </div>
 {/if}

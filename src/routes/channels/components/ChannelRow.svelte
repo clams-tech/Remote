@@ -22,7 +22,7 @@
 
 <a href="/channels/{channel.id}" class="w-full py-2 border-b border-neutral-400 block">
   <div class="flex items-center justify-between mb-1 px-[1px]">
-    <div class="text-sm">{peerAlias}</div>
+    <div class="text-sm font-semibold">{peerAlias}</div>
     <div
       class:text-utility-success={channelStatusLabel === 'active'}
       class:text-utility-pending={channelStatusLabel === 'pending'}

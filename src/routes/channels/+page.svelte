@@ -46,7 +46,7 @@
 
     <div>
       <Button on:click={() => goto('/channels/open')} text={$translate('app.buttons.open')} primary>
-        <div slot="iconLeft" class="w-8 mb-[1px]">
+        <div slot="iconLeft" class="w-8 mb-[1px] -ml-2">
           {@html plus}
         </div>
       </Button>

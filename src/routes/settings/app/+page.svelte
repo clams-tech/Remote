@@ -90,11 +90,9 @@
       <div class="cursor-pointer" on:click={toggleNotifications}>
         <SummaryRow>
           <span slot="label">{$translate('app.labels.notifications')}</span>
-          <Toggle
-            handleChange={requestNotifications}
-            slot="value"
-            bind:toggled={$settings$.notifications}
-          />
+          <div slot="value" class="font-bold">
+            <Toggle handleChange={requestNotifications} bind:toggled={$settings$.notifications} />
+          </div>
         </SummaryRow>
       </div>
     </div>

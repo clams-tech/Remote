@@ -107,7 +107,9 @@
           <div class="cursor-pointer" on:click={toggle}>
             <SummaryRow>
               <span slot="label">{label}</span>
-              <Toggle slot="value" {toggled} handleChange={toggle} />
+              <div slot="value" class="font-bold">
+                <Toggle {toggled} handleChange={toggle} />
+              </div>
             </SummaryRow>
           </div>
         {:else}

@@ -388,7 +388,7 @@
         type="number"
         name="base"
         label={$translate('app.labels.fee_base')}
-        hint={$translate('app.labels.sat')}
+        hint={$translate('app.labels.sats')}
         bind:value={feeBaseUpdate}
       />
 
@@ -404,7 +404,7 @@
         type="number"
         name="min_forward"
         label={$translate('app.labels.min_forward')}
-        hint={$translate('app.labels.sat')}
+        hint={$translate('app.labels.sats')}
         bind:value={minForwardUpdate}
       />
 
@@ -412,7 +412,7 @@
         type="number"
         name="max_forward"
         label={$translate('app.labels.max_forward')}
-        hint={$translate('app.labels.sat')}
+        hint={$translate('app.labels.sats')}
         bind:value={maxForwardUpdate}
       />
 
