@@ -186,7 +186,7 @@
     backText={$translate('app.titles./')}
     direction={slideDirection}
   >
-    <Scanner onResult={handleScanResult} />
+    <Scanner on:result={(res) => handleScanResult(res.detail)} />
   </Slide>
 {/if}
 
