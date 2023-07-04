@@ -8,6 +8,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import scan from '$lib/icons/scan.js'
+  import lightning from '$lib/lightning.js'
   import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
 
@@ -30,8 +31,23 @@
   }
 
   async function openChannel() {
-    // connect to peer
-    // open channel
+    const { ip, publicKey, port } = parseNodeAddress(address)
+    const lnApi = lightning.getLn()
+
+    errMsg = ''
+    opening = true
+
+    try {
+      // connect to peer
+      await lnApi.connectPeer({ id: publicKey, host: ip, port })
+
+      // open channel
+    } catch (error) {
+      const { message } = error as { message: string }
+      errMsg = message
+    } finally {
+      opening = false
+    }
   }
 
   function handleScanResult(res: string) {

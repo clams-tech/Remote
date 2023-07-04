@@ -677,6 +677,20 @@ class CoreLn {
 
     return (result as SetChannelResponse).channels[0]
   }
+
+  public async connectPeer(options: { id: string; host: string; port?: number }): Promise<void> {
+    const { id, host, port = 9735 } = options
+
+    await this.connection.commando({
+      method: 'connect',
+      rune: this.rune,
+      params: {
+        id,
+        host,
+        port
+      }
+    })
+  }
 }
 
 export default CoreLn
