@@ -242,7 +242,7 @@ export type Channel = {
   /** id of node with which channel is opened */
   peerId: string
   /** alias of node with which channel is opened */
-  peerAlias: string
+  peerAlias?: string
   status: ChannelStatus
   /** msat */
   balanceLocal: string

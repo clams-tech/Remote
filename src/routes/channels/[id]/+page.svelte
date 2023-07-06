@@ -148,7 +148,7 @@
     {@const channelStatusLabel = channelStatusTolabel(status)}
 
     <div class="flex flex-col items-center mb-4">
-      <div class="text-xl font-semibold">{peerAlias}</div>
+      <div class="text-xl font-semibold">{peerAlias || $translate('app.labels.channel')}</div>
       <div class="text-sm pl-2">
         <CopyValue value={peerId} truncateLength={8} />
       </div>

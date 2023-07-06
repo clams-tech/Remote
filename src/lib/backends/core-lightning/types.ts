@@ -1182,6 +1182,15 @@ export type SetChannelResponse = {
   }[]
 }
 
+export type FundChannelResponse = {
+  tx: string
+  txid: string
+  outnum: number
+  channel_id: string
+  close_to: string
+  mindepth?: number
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1205,5 +1214,6 @@ export type LNResponse =
   | ListPeersResponse
   | ListForwardsResponse
   | SetChannelResponse
+  | FundChannelResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

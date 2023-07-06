@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import Scanner from '$lib/components/Scanner.svelte'
   import BackButton from '$lib/elements/BackButton.svelte'
   import Button from '$lib/elements/Button.svelte'
@@ -42,6 +43,17 @@
       await lnApi.connectPeer({ id: publicKey, host: ip, port })
 
       // open channel
+      const { channelId } = await lnApi.openChannel({
+        id: publicKey,
+        amount: channelSize.toString(),
+        announce
+      })
+
+      // get updated channel info
+      await lightning.updateChannels()
+
+      // route to channel detail page
+      await goto(`/channels/${channelId}`)
     } catch (error) {
       const { message } = error as { message: string }
       errMsg = message

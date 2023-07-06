@@ -34,6 +34,7 @@ import type {
   DisableOfferRequest,
   FetchInvoiceRequest,
   FetchInvoiceResponse,
+  FundChannelResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
@@ -541,7 +542,7 @@ class CoreLn {
               return {
                 opener: opener,
                 peerId: id,
-                peerAlias: peer.alias,
+                peerAlias: peer?.alias,
                 fundingTransactionId: funding_txid,
                 fundingOutput: funding_outnum,
                 id: channel_id,
@@ -613,7 +614,7 @@ class CoreLn {
           return {
             opener: opener,
             peerId: peer_id,
-            peerAlias: peer.alias,
+            peerAlias: peer?.alias,
             fundingTransactionId: funding_txid,
             fundingOutput: funding_outnum,
             id: channel_id,
@@ -690,6 +691,24 @@ class CoreLn {
         port
       }
     })
+  }
+
+  public async openChannel(options: {
+    id: string
+    amount: string
+    announce: boolean
+  }): Promise<{ txid: string; channelId: string }> {
+    const { id, amount, announce } = options
+
+    const result = await this.connection.commando({
+      rune: this.rune,
+      method: 'fundchannel',
+      params: { id, amount, announce }
+    })
+
+    const { txid, channel_id } = result as FundChannelResponse
+
+    return { txid, channelId: channel_id }
   }
 }
 
