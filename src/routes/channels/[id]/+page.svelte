@@ -1,9 +1,9 @@
 <script lang="ts">
   import { fade, slide } from 'svelte/transition'
-  import { channels$, lastPath$, nodeInfo$, settings$ } from '$lib/streams'
+  import { channels$, lastPath$, nodeInfo$, onDestroy$, settings$ } from '$lib/streams'
   import { goto } from '$app/navigation'
   import BackButton from '$lib/elements/BackButton.svelte'
-  import { loading, translate } from '$lib/i18n/translations'
+  import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
@@ -20,6 +20,8 @@
   import edit from '$lib/icons/edit.js'
   import lightning from '$lib/lightning.js'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import { filter, map, pluck, switchMap, takeUntil, timer } from 'rxjs'
+  import connect from '$lib/icons/connect.js'
 
   export let data: PageData // channel id
 
@@ -58,6 +60,19 @@
     }
   }
 
+  const lnApi = lightning.getLn()
+
+  timer(5000, 10000)
+    .pipe(
+      filter(() => !!channel),
+      switchMap(() => lnApi.getChannels(channel.peerId, channel.id)),
+      map(([update]) => update),
+      takeUntil(onDestroy$)
+    )
+    .subscribe((channelUpdate) => {
+      channel = channelUpdate
+    })
+
   const backPath = getBackPath()
 
   function back() {
@@ -84,7 +99,6 @@
   async function updateFees() {
     errMsg = ''
     updating = true
-    const lnApi = lightning.getLn()
 
     try {
       const feeBase = Big(feeBaseUpdate).times(1000).toString()
@@ -114,6 +128,21 @@
       updating = false
     }
   }
+
+  let connecting = false
+
+  async function connectPeer() {
+    connecting = true
+
+    try {
+      await lnApi.connectPeer({ id: channel.peerId })
+      channel.peerConnected = true
+    } catch (error) {
+      // @TODO - Could display error here?
+    } finally {
+      connecting = false
+    }
+  }
 </script>
 
 <svelte:head>
@@ -132,6 +161,7 @@
     {@const {
       peerAlias,
       peerId,
+      peerConnected,
       status,
       balanceLocal,
       balanceRemote,
@@ -156,7 +186,7 @@
 
     <SummaryRow>
       <div slot="label">
-        {$translate('app.labels.status')}:
+        {$translate('app.labels.state')}:
       </div>
       <div
         slot="value"
@@ -166,6 +196,33 @@
           channelStatusLabel === 'closed'}
       >
         {$translate(`app.labels.${channelStatusLabel}`)}
+      </div>
+    </SummaryRow>
+
+    <SummaryRow>
+      <div slot="label">
+        {$translate('app.labels.peer_connection')}:
+      </div>
+      <div
+        class="flex items-center"
+        slot="value"
+        class:text-utility-success={peerConnected}
+        class:text-utility-error={!peerConnected}
+        class:text-utility-pending={connecting}
+      >
+        {$translate(
+          `app.labels.${connecting ? 'connecting' : peerConnected ? 'connected' : 'disconnected'}`
+        )}
+
+        {#if !peerConnected}
+          <div class="ml-2">
+            {#if !connecting}
+              <button on:click={connectPeer} class="w-6 block">{@html connect}</button>
+            {:else}
+              <Spinner size="1rem" />
+            {/if}
+          </div>
+        {/if}
       </div>
     </SummaryRow>
 

@@ -500,21 +500,22 @@ class CoreLn {
     )
   }
 
-  public async getChannels(): Promise<Channel[]> {
+  public async getChannels(nodeId?: string, channelId?: string): Promise<Channel[]> {
     const { version } = await this.getInfo()
     const versionNumber = convertVersionNumber(version)
 
     if (versionNumber < 2305) {
       const listPeersResult = await this.connection.commando({
         method: 'listpeers',
-        rune: this.rune
+        rune: this.rune,
+        params: nodeId ? { id: nodeId } : undefined
       })
       const { peers } = listPeersResult as ListPeersResponse
 
       const result = await Promise.all(
         peers
           .filter(({ channels }) => !!channels)
-          .map(async ({ id, channels }) => {
+          .map(async ({ id, channels, connected }) => {
             const [peer] = await this.listNodes(id)
 
             return channels.map((channel) => {
@@ -542,6 +543,7 @@ class CoreLn {
               return {
                 opener: opener,
                 peerId: id,
+                peerConnected: connected,
                 peerAlias: peer?.alias,
                 fundingTransactionId: funding_txid,
                 fundingOutput: funding_outnum,
@@ -574,21 +576,23 @@ class CoreLn {
           })
       )
 
-      return result.flat()
+      const flattened = result.flat()
+
+      return channelId ? flattened.filter(({ id }) => id === channelId) : flattened
     } else {
       const listPeerChannelsResult = await this.connection.commando({
         method: 'listpeerchannels',
-        rune: this.rune
+        rune: this.rune,
+        params: nodeId ? { id: nodeId } : undefined
       })
 
       const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
 
-      return Promise.all(
+      const formattedChannels = await Promise.all(
         channels.map(async (channel) => {
-          console.log({ channel })
-
           const {
             peer_id,
+            peer_connected,
             opener,
             funding_txid,
             funding_outnum,
@@ -614,6 +618,7 @@ class CoreLn {
           return {
             opener: opener,
             peerId: peer_id,
+            peerConnected: peer_connected,
             peerAlias: peer?.alias,
             fundingTransactionId: funding_txid,
             fundingOutput: funding_outnum,
@@ -644,6 +649,8 @@ class CoreLn {
           }
         })
       )
+
+      return channelId ? formattedChannels.filter(({ id }) => id === channelId) : formattedChannels
     }
   }
 
@@ -679,8 +686,8 @@ class CoreLn {
     return (result as SetChannelResponse).channels[0]
   }
 
-  public async connectPeer(options: { id: string; host: string; port?: number }): Promise<void> {
-    const { id, host, port = 9735 } = options
+  public async connectPeer(options: { id: string; host?: string; port?: number }): Promise<void> {
+    const { id, host, port } = options
 
     await this.connection.commando({
       method: 'connect',
@@ -688,7 +695,7 @@ class CoreLn {
       params: {
         id,
         host,
-        port
+        port: port || host ? 9735 : undefined
       }
     })
   }
