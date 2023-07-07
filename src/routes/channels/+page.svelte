@@ -101,17 +101,19 @@
           </SummaryRow>
         </div>
 
-        <div class="w-full flex flex-col flex-grow overflow-hidden">
-          <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Open channels</h2>
+        {#if $channels$.data.length}
+          <div class="w-full flex flex-col flex-grow overflow-hidden">
+            <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Open channels</h2>
 
-          <div class="flex flex-col h-full overflow-hidden">
-            <div class="w-full flex flex-col h-full gap-y-4 overflow-auto">
-              {#each $channels$.data as channel}
-                <ChannelRow {channel} />
-              {/each}
+            <div class="flex flex-col h-full overflow-hidden">
+              <div class="w-full flex flex-col h-full gap-y-4 overflow-auto">
+                {#each $channels$.data as channel}
+                  <ChannelRow {channel} />
+                {/each}
+              </div>
             </div>
           </div>
-        </div>
+        {/if}
       </div>
     {/if}
   </div>
