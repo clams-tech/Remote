@@ -695,7 +695,7 @@ class CoreLn {
       params: {
         id,
         host,
-        port: port || host ? 9735 : undefined
+        port: port || (host ? 9735 : undefined)
       }
     })
   }
