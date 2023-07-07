@@ -4,13 +4,13 @@
   import { translate } from '$lib/i18n/translations.js'
   import { settings$ } from '$lib/streams.js'
   import { BitcoinDenomination, type Channel } from '$lib/types.js'
-  import { formatValueForDisplay } from '$lib/utils.js'
+  import { formatValueForDisplay, truncateValue } from '$lib/utils.js'
   import Big from 'big.js'
   import { channelStatusTolabel } from '../utils.js'
 
   export let channel: Channel
 
-  const { peerAlias, balanceRemote, balanceLocal, status } = channel
+  const { peerAlias, peerId, balanceRemote, balanceLocal, status } = channel
   const balanceTotal = Big(balanceLocal).plus(balanceRemote)
   const localPercent = Big(balanceLocal).div(balanceTotal).times(100).toNumber()
   const remotePercent = Big(balanceRemote).div(balanceTotal).times(100).toNumber()
@@ -22,7 +22,7 @@
 
 <a href="/channels/{channel.id}" class="w-full py-2 border-b border-neutral-400 block">
   <div class="flex items-center justify-between mb-1 px-[1px]">
-    <div class="text-sm font-semibold">{peerAlias}</div>
+    <div class="text-sm font-semibold">{peerAlias || truncateValue(peerId, 6)}</div>
     <div
       class:text-utility-success={channelStatusLabel === 'active'}
       class:text-utility-pending={channelStatusLabel === 'pending'}
