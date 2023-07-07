@@ -20,7 +20,7 @@
   import edit from '$lib/icons/edit.js'
   import lightning from '$lib/lightning.js'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
-  import { filter, map, pluck, switchMap, takeUntil, timer } from 'rxjs'
+  import { filter, map, switchMap, takeUntil, timer } from 'rxjs'
   import connect from '$lib/icons/connect.js'
 
   export let data: PageData // channel id
