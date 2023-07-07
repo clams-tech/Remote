@@ -257,7 +257,7 @@ export const calculateBalance = (funds: ListfundsResponse): string => {
     return total.add(formatMsat(our_amount_msat))
   }, Big('0'))
 
-  const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+  const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(formatMsat(amount_msat)), Big('0'))
 
   return offChain.add(onChain).toString()
 }
@@ -584,6 +584,7 @@ export function formatDecodedOffer(
 
 export function convertVersionNumber(version: string): number {
   const [withoutDash] = version.split('-')
-  const withoutDots = withoutDash.replace('.', '')
+  const withoutV = withoutDash.replace(/^v/, '') // Trim "v" from start of the string
+  const withoutDots = withoutV.replace('.', '')
   return Number(withoutDots)
 }
