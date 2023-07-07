@@ -10,19 +10,18 @@
 
   export let channel: Channel
 
-  const { peerAlias, peerId, balanceRemote, balanceLocal, status } = channel
-  const balanceTotal = Big(balanceLocal).plus(balanceRemote)
-  const localPercent = Big(balanceLocal).div(balanceTotal).times(100).toNumber()
-  const remotePercent = Big(balanceRemote).div(balanceTotal).times(100).toNumber()
+  $: balanceTotal = Big(channel.balanceLocal).plus(channel.balanceRemote)
+  $: localPercent = Big(channel.balanceLocal).div(balanceTotal).times(100).toNumber()
+  $: remotePercent = Big(channel.balanceRemote).div(balanceTotal).times(100).toNumber()
 
-  const channelStatusLabel = channelStatusTolabel(status)
+  const channelStatusLabel = channelStatusTolabel(channel.status)
 
   $: primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
 <a href="/channels/{channel.id}" class="w-full py-2 border-b border-neutral-400 block">
   <div class="flex items-center justify-between mb-1 px-[1px]">
-    <div class="text-sm font-semibold">{peerAlias || truncateValue(peerId, 6)}</div>
+    <div class="text-sm font-semibold">{channel.peerAlias || truncateValue(channel.peerId, 6)}</div>
     <div
       class:text-utility-success={channelStatusLabel === 'active'}
       class:text-utility-pending={channelStatusLabel === 'pending'}
@@ -50,7 +49,7 @@
       >
       {formatValueForDisplay({
         value: convertValue({
-          value: balanceLocal,
+          value: channel.balanceLocal,
           from: BitcoinDenomination.msats,
           to: $settings$.primaryDenomination
         }),
@@ -67,7 +66,7 @@
       >
       {formatValueForDisplay({
         value: convertValue({
-          value: balanceRemote,
+          value: channel.balanceRemote,
           from: BitcoinDenomination.msats,
           to: $settings$.primaryDenomination
         }),
