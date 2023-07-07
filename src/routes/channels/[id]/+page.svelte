@@ -237,7 +237,9 @@
             {$translate('app.labels.opened_by')}:
           </div>
           <div slot="value">
-            {opener === 'local' ? $nodeInfo$.data?.alias || $translate('app.labels.us') : peerAlias}
+            {opener === 'local'
+              ? $nodeInfo$.data?.alias || $translate('app.labels.us')
+              : peerAlias || $translate('app.labels.remote')}
           </div>
         </SummaryRow>
 
