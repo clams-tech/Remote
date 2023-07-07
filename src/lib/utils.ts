@@ -584,6 +584,7 @@ export function formatDecodedOffer(
 
 export function convertVersionNumber(version: string): number {
   const [withoutDash] = version.split('-')
-  const withoutDots = withoutDash.replace('.', '')
+  const withoutV = withoutDash.replace(/^v/, '') // Trim "v" from start of the string
+  const withoutDots = withoutV.replace('.', '')
   return Number(withoutDots)
 }
