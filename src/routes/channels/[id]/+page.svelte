@@ -151,9 +151,11 @@
 
 <section
   in:fade|local={{ duration: 250 }}
-  class="flex flex-col justify-center items-center h-full w-full max-w-lg"
+  class="flex flex-col justify-center items-center h-full w-full max-w-lg p-4 overflow-hidden xs:pb-8"
 >
   <BackButton on:click={back} text={$translate(`app.titles.${backPath}`)} />
+
+  <div class="h-12" />
 
   {#if $channels$.loading}
     <Spinner />
@@ -184,246 +186,252 @@
       </div>
     </div>
 
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.state')}:
-      </div>
-      <div
-        slot="value"
-        class:text-utility-success={channelStatusLabel === 'active'}
-        class:text-utility-pending={channelStatusLabel === 'pending'}
-        class:text-utility-error={channelStatusLabel === 'closing' ||
-          channelStatusLabel === 'closed'}
-      >
-        {$translate(`app.labels.${channelStatusLabel}`)}
-      </div>
-    </SummaryRow>
+    <div class="flex flex-col w-full overflow-hidden">
+      <div class="flex flex-col w-full flex-grow overflow-auto">
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.state')}:
+          </div>
+          <div
+            slot="value"
+            class:text-utility-success={channelStatusLabel === 'active'}
+            class:text-utility-pending={channelStatusLabel === 'pending'}
+            class:text-utility-error={channelStatusLabel === 'closing' ||
+              channelStatusLabel === 'closed'}
+          >
+            {$translate(`app.labels.${channelStatusLabel}`)}
+          </div>
+        </SummaryRow>
 
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.peer_connection')}:
-      </div>
-      <div
-        class="flex items-center"
-        slot="value"
-        class:text-utility-success={peerConnected}
-        class:text-utility-error={!peerConnected}
-        class:text-utility-pending={connecting}
-      >
-        {$translate(
-          `app.labels.${connecting ? 'connecting' : peerConnected ? 'connected' : 'disconnected'}`
-        )}
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.peer_connection')}:
+          </div>
+          <div
+            class="flex items-center"
+            slot="value"
+            class:text-utility-success={peerConnected}
+            class:text-utility-error={!peerConnected}
+            class:text-utility-pending={connecting}
+          >
+            {$translate(
+              `app.labels.${
+                connecting ? 'connecting' : peerConnected ? 'connected' : 'disconnected'
+              }`
+            )}
 
-        {#if !peerConnected}
-          <div class="ml-2">
-            {#if !connecting}
-              <button on:click={connectPeer} class="w-6 block">{@html connect}</button>
-            {:else}
-              <Spinner size="1rem" />
+            {#if !peerConnected}
+              <div class="ml-2">
+                {#if !connecting}
+                  <button on:click={connectPeer} class="w-6 block">{@html connect}</button>
+                {:else}
+                  <Spinner size="1rem" />
+                {/if}
+              </div>
             {/if}
           </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.opened_by')}:
+          </div>
+          <div slot="value">
+            {opener === 'local' ? $nodeInfo$.data?.alias || $translate('app.labels.us') : peerAlias}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.outbound')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: balanceLocal,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.inbound')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: balanceRemote,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.unsettled')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString(),
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.local_reserve')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: reserveLocal,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.remote_reserve')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: reserveRemote,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.fee_base')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            <span
+              class="flex justify-center items-center"
+              class:w-4={primarySymbol.startsWith('<')}
+              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+            >
+            {formatValueForDisplay({
+              value: convertValue({
+                value: feeBase,
+                from: BitcoinDenomination.msats,
+                to: $settings$.primaryDenomination
+              }),
+              denomination: $settings$.primaryDenomination,
+              commas: true
+            })}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">
+            {$translate('app.labels.fee_rate')}:
+          </div>
+          <div slot="value" class="flex items-center">
+            {feePpm}
+            {$translate('app.labels.ppm')}
+          </div>
+        </SummaryRow>
+
+        {#if htlcMin}
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.min_forward')}:
+            </div>
+            <div slot="value" class="flex items-center">
+              <span
+                class="flex justify-center items-center"
+                class:w-4={primarySymbol.startsWith('<')}
+                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+              >
+              {formatValueForDisplay({
+                value: convertValue({
+                  value: htlcMin,
+                  from: BitcoinDenomination.msats,
+                  to: $settings$.primaryDenomination
+                }),
+                denomination: $settings$.primaryDenomination,
+                commas: true
+              })}
+            </div>
+          </SummaryRow>
+        {/if}
+
+        {#if htlcMax}
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.max_forward')}:
+            </div>
+            <div slot="value" class="flex items-center">
+              <span
+                class="flex justify-center items-center"
+                class:w-4={primarySymbol.startsWith('<')}
+                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+              >
+              {formatValueForDisplay({
+                value: convertValue({
+                  value: htlcMax,
+                  from: BitcoinDenomination.msats,
+                  to: $settings$.primaryDenomination
+                }),
+                denomination: $settings$.primaryDenomination,
+                commas: true
+              })}
+            </div>
+          </SummaryRow>
         {/if}
       </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.opened_by')}:
-      </div>
-      <div slot="value">
-        {opener === 'local' ? $nodeInfo$.data?.alias || $translate('app.labels.us') : peerAlias}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.outbound')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: balanceLocal,
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.inbound')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: balanceRemote,
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.unsettled')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString(),
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.local_reserve')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: reserveLocal,
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.remote_reserve')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: reserveRemote,
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.fee_base')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        <span
-          class="flex justify-center items-center"
-          class:w-4={primarySymbol.startsWith('<')}
-          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-        >
-        {formatValueForDisplay({
-          value: convertValue({
-            value: feeBase,
-            from: BitcoinDenomination.msats,
-            to: $settings$.primaryDenomination
-          }),
-          denomination: $settings$.primaryDenomination,
-          commas: true
-        })}
-      </div>
-    </SummaryRow>
-
-    <SummaryRow>
-      <div slot="label">
-        {$translate('app.labels.fee_rate')}:
-      </div>
-      <div slot="value" class="flex items-center">
-        {feePpm}
-        {$translate('app.labels.ppm')}
-      </div>
-    </SummaryRow>
-
-    {#if htlcMin}
-      <SummaryRow>
-        <div slot="label">
-          {$translate('app.labels.min_forward')}:
-        </div>
-        <div slot="value" class="flex items-center">
-          <span
-            class="flex justify-center items-center"
-            class:w-4={primarySymbol.startsWith('<')}
-            class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-          >
-          {formatValueForDisplay({
-            value: convertValue({
-              value: htlcMin,
-              from: BitcoinDenomination.msats,
-              to: $settings$.primaryDenomination
-            }),
-            denomination: $settings$.primaryDenomination,
-            commas: true
-          })}
-        </div>
-      </SummaryRow>
-    {/if}
-
-    {#if htlcMax}
-      <SummaryRow>
-        <div slot="label">
-          {$translate('app.labels.max_forward')}:
-        </div>
-        <div slot="value" class="flex items-center">
-          <span
-            class="flex justify-center items-center"
-            class:w-4={primarySymbol.startsWith('<')}
-            class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-          >
-          {formatValueForDisplay({
-            value: convertValue({
-              value: htlcMax,
-              from: BitcoinDenomination.msats,
-              to: $settings$.primaryDenomination
-            }),
-            denomination: $settings$.primaryDenomination,
-            commas: true
-          })}
-        </div>
-      </SummaryRow>
-    {/if}
+    </div>
 
     <div class="mt-4 w-full flex items-center justify-between">
       <Button
@@ -438,40 +446,42 @@
 
 {#if showFeeUpdateModal && channel}
   <Modal on:close={() => (showFeeUpdateModal = false)}>
-    <div class="w-[25rem] max-w-full gap-y-4 flex flex-col">
+    <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>
 
-      <TextInput
-        type="number"
-        name="base"
-        label={$translate('app.labels.fee_base')}
-        hint={$translate('app.labels.sats')}
-        bind:value={feeBaseUpdate}
-      />
+      <div class="flex flex-col flex-grow overflow-auto">
+        <TextInput
+          type="number"
+          name="base"
+          label={$translate('app.labels.fee_base')}
+          hint={$translate('app.labels.sats')}
+          bind:value={feeBaseUpdate}
+        />
 
-      <TextInput
-        type="number"
-        name="rate"
-        label={$translate('app.labels.fee_rate')}
-        hint={$translate('app.labels.ppm')}
-        bind:value={feeRateUpdate}
-      />
+        <TextInput
+          type="number"
+          name="rate"
+          label={$translate('app.labels.fee_rate')}
+          hint={$translate('app.labels.ppm')}
+          bind:value={feeRateUpdate}
+        />
 
-      <TextInput
-        type="number"
-        name="min_forward"
-        label={$translate('app.labels.min_forward')}
-        hint={$translate('app.labels.sats')}
-        bind:value={minForwardUpdate}
-      />
+        <TextInput
+          type="number"
+          name="min_forward"
+          label={$translate('app.labels.min_forward')}
+          hint={$translate('app.labels.sats')}
+          bind:value={minForwardUpdate}
+        />
 
-      <TextInput
-        type="number"
-        name="max_forward"
-        label={$translate('app.labels.max_forward')}
-        hint={$translate('app.labels.sats')}
-        bind:value={maxForwardUpdate}
-      />
+        <TextInput
+          type="number"
+          name="max_forward"
+          label={$translate('app.labels.max_forward')}
+          hint={$translate('app.labels.sats')}
+          bind:value={maxForwardUpdate}
+        />
+      </div>
 
       <div class="mt-2">
         <Button

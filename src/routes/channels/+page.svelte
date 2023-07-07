@@ -35,8 +35,10 @@
   <title>{$translate('app.titles./channels')}</title>
 </svelte:head>
 
-<section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
-  <div class="flex items-center justify-between mb-6 mt-12 w-full">
+<section
+  class="flex flex-col justify-center items-center w-full p-4 max-w-lg h-full overflow-hidden"
+>
+  <div class="flex items-center justify-between mb-4 mt-12 w-full">
     <div class="flex items-center">
       <div class="w-10 mr-2">{@html channels}</div>
       <h1 class="text-4xl font-bold">
@@ -53,14 +55,14 @@
     </div>
   </div>
 
-  <div class="w-full flex justify-center">
+  <div class="w-full overflow-hidden xs:pb-8">
     {#if $channels$.loading}
       <Spinner />
     {:else if $channels$.error}
       <ErrorMsg message={$channels$.error} />
     {:else if $channels$.data}
-      <div class="w-full">
-        <div class="w-full mb-6">
+      <div class="w-full flex flex-col h-full overflow-hidden">
+        <div class="w-full mb-4">
           <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Summary</h2>
 
           <SummaryRow>
@@ -99,13 +101,15 @@
           </SummaryRow>
         </div>
 
-        <div class="w-full">
+        <div class="w-full flex flex-col flex-grow overflow-hidden">
           <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Open channels</h2>
 
-          <div class="w-full flex-grow overflow-y-auto gap-y-4">
-            {#each $channels$.data as channel}
-              <ChannelRow {channel} />
-            {/each}
+          <div class="flex flex-col h-full overflow-hidden">
+            <div class="w-full flex flex-col h-full gap-y-4 overflow-auto">
+              {#each $channels$.data as channel}
+                <ChannelRow {channel} />
+              {/each}
+            </div>
           </div>
         </div>
       </div>
