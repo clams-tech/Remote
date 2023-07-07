@@ -75,7 +75,7 @@
             <div slot="value">
               {formatValueForDisplay({
                 value: convertValue({
-                  value: sendableMsat,
+                  value: sendableMsat && Big(sendableMsat).gt('0') ? sendableMsat : '0',
                   from: BitcoinDenomination.msats,
                   to: $settings$.primaryDenomination
                 }),
@@ -90,7 +90,7 @@
             <div slot="value">
               {formatValueForDisplay({
                 value: convertValue({
-                  value: receivableMsat,
+                  value: receivableMsat && Big(receivableMsat).gt('0') ? receivableMsat : '0',
                   from: BitcoinDenomination.msats,
                   to: $settings$.primaryDenomination
                 }),
