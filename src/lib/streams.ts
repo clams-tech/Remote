@@ -20,7 +20,8 @@ import type {
   Auth,
   Settings,
   FormattedDecodedOffer,
-  Channel
+  Channel,
+  Forward
 } from './types'
 import { logger } from './utils'
 
@@ -137,6 +138,12 @@ export const payments$ = new BehaviorSubject<{
 
 export const channels$ = new BehaviorSubject<{
   data: Channel[] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const forwards$ = new BehaviorSubject<{
+  data: Forward[] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

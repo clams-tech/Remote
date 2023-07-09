@@ -1,6 +1,7 @@
 import Big from 'big.js'
-import type { Payment } from '$lib/types'
+import type { ChannelStatus, Payment } from '$lib/types'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
+import { State } from './types.js'
 
 import type {
   InvoiceStatus,
@@ -8,7 +9,8 @@ import type {
   Pay,
   ChannelAPY,
   IncomeEvent,
-  DecodedBolt12Invoice
+  DecodedBolt12Invoice,
+  Channel
 } from './types'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
@@ -191,4 +193,31 @@ export function formatChannelsAPY(channels: ChannelAPY[]): ChannelAPY[] {
       fees_in_msat: formatMsat(fees_in_msat)
     })
   )
+}
+
+export function stateToChannelStatus(state: State): ChannelStatus {
+  switch (state) {
+    case State.Openingd:
+      return 'OPENING'
+    case State.ChanneldAwaitingLockin:
+      return 'CHANNEL_AWAITING_LOCKIN'
+    case State.ChanneldNormal:
+      return 'CHANNEL_NORMAL'
+    case State.ChanneldShuttingDown:
+      return 'CHANNEL_SHUTTING_DOWN'
+    case State.ClosingdSigexchange:
+      return 'CLOSING_SIGEXCHANGE'
+    case State.ClosingdComplete:
+      return 'CLOSING_COMPLETE'
+    case State.AwaitingUnilateral:
+      return 'AWAITING_UNILATERAL'
+    case State.FundingSpendSeen:
+      return 'FUNDING_SPEND_SEEN'
+    case State.Onchain:
+      return 'ONCHAIN'
+    case State.DualopendOpenInit:
+      return 'DUALOPEN_OPEN_INIT'
+    case State.DualopendAwaitingLockin:
+      return 'DUALOPEN_AWAITING_LOCKIN'
+  }
 }

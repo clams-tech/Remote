@@ -1,11 +1,15 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'
+  import { createEventDispatcher, onDestroy, onMount } from 'svelte'
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations'
   import { createRandomHex, userAgent } from '$lib/utils'
   import { customNotifications$ } from '$lib/streams'
 
-  export let onResult
+  const dispatch = createEventDispatcher()
+
+  function onResult(result: string) {
+    dispatch('result', result)
+  }
 
   const debouncedOnResult = debounce(onResult, 200)
   const device = userAgent!.getDevice()
@@ -73,7 +77,6 @@
 
       const { default: QrWorker } = await import('$lib/qr.worker?worker')
       qrWorker = new QrWorker()
-
       qrWorker.addEventListener('message', handleMessage)
 
       tick()
@@ -89,7 +92,8 @@
     }
   })
 
-  function handleMessage({ data }: MessageEvent) {
+  function handleMessage(message: MessageEvent) {
+    const { data } = message
     if (data && data.data) {
       debouncedOnResult(data.data)
     }

@@ -34,7 +34,7 @@
       <p class="text-neutral-600 dark:text-neutral-400 italic mt-4">
         {$translate('app.hints.quantity_max_allow')}
       </p>
-      <div class="mt-4">
+      <div class="mt-4 font-bold">
         <Toggle bind:toggled={allowQuantity} label="Enable" />
       </div>
     {/if}

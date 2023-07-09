@@ -5,6 +5,7 @@ import settingsOutlineIcon from '$lib/icons/settings-outline'
 import { BitcoinDenomination, FiatDenomination, Language, type Settings } from './types'
 import graphIcon from './icons/graph'
 import { translate } from './i18n/translations'
+import channels from './icons/channels.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -70,6 +71,11 @@ export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
 export let NAV_LINKS = [
+  {
+    title: '',
+    icon: channels,
+    route: '/channels'
+  },
   {
     title: '',
     icon: lightningOutlineIcon,

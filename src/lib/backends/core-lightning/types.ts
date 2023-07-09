@@ -934,9 +934,83 @@ type PeerChannel = {
   fee_base_msat: number
   owner?: string
   short_channel_id?: string
-  channel_id?: string
-  funding_txid?: string
-  funding_outnum?: number
+  channel_id: string
+  funding_txid: string
+  funding_outnum: number
+  initial_feerate?: string
+  last_feerate?: string
+  next_feerate?: string
+  next_fee_step?: number
+  inflight?: Array<{
+    funding_txid: string
+    funding_outnum: number
+    feerate: string
+    total_funding_msat: string
+    our_funding_msat: string
+    scratch_txid: string
+    close_to?: string
+  }>
+  private?: boolean
+  closer?: 'local' | 'remote'
+  our_reserve_msat: string
+  their_reserve_msat: string
+  funding?: {
+    local_funds_msat: string
+    remote_funds_msat: string
+    pushed_msat?: string
+    fee_paid_msat?: string
+    fee_rcvd_msat?: string
+    to_us_msat?: string
+    min_to_us_msat?: string
+    max_to_us_msat?: string
+    total_msat?: string
+    fee_base_msat?: string
+    fee_proportional_millionths?: number
+    dust_limit_msat?: string
+    max_total_htlc_in_msat?: string
+    their_reserve_msat?: string
+    our_reserve_msat?: string
+  }
+  close_to?: string
+  close_to_addr?: string
+  to_us_msat: string
+  total_msat: string
+  spendable_msat: string
+  receivable_msat: string
+  fee_proportional_millionths: number
+  in_payments_offered: number // of incoming payment attempts
+  in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
+  in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
+  in_fulfilled_msat: string //(msat, optional): Total amount of successful incoming payment attempts
+  out_payments_offered: number //  (u64, optional): Number of outgoing payment attempts
+  out_offered_msat: string //  (msat, optional): Total amount of outgoing payment attempts
+  out_payments_fulfilled: number //  (u64, optional): Number of successful outgoing payment attempts
+  out_fulfilled_msat: string // (msat, optional): Total amount of successful outgoing payment attempts
+  htlcs: HTLC[]
+  minimum_htlc_out_msat?: number
+  maximum_htlc_out_msat?: number
+}
+
+type ListPeerChannel = {
+  peer_id: string
+  peer_connected: boolean
+  state: State
+  opener: 'local' | 'remote'
+  features: Array<'option_static_remotekey' | 'option_anchor_outputs' | 'option_zeroconf'>
+  scratch_txid?: string
+  channel_type?: {
+    bits: number[]
+    names: string[]
+  }
+  feerate?: {
+    perkw: number
+    perkb: number
+  }
+  owner?: string
+  short_channel_id?: string
+  channel_id: string
+  funding_txid: string
+  funding_outnum: number
   initial_feerate?: string
   last_feerate?: string
   next_feerate?: string
@@ -972,9 +1046,31 @@ type PeerChannel = {
   close_to?: string
   close_to_addr?: string
   to_us_msat: string
+  min_to_us_msat?: string
+  max_to_us_msat?: string
+  fee_base_msat?: string
   total_msat: string
   spendable_msat: string
   receivable_msat: string
+  dust_limit_msat?: string
+  max_total_htlc_in_msat?: string
+  their_reserve_msat?: string
+  minimum_htlc_in_msat?: string
+  minimum_htlc_out_msat?: number
+  maximum_htlc_out_msat?: number
+  their_to_self_delay?: number
+  our_to_self_delay?: number
+  our_reserve_msat?: string
+  max_accepted_htlcs?: number
+  state_changes?: {
+    timestamp: string
+    old_state: State
+    new_state: State
+    cause: Cause
+    message: string
+  }[]
+  status: string[]
+  fee_proportional_millionths: number
   in_payments_offered: number // of incoming payment attempts
   in_offered_msat: string //  (msat, optional): Total amount of incoming payment attempts
   in_payments_fulfilled: number //  (u64, optional): Number of successful incoming payment attempts
@@ -983,7 +1079,42 @@ type PeerChannel = {
   out_offered_msat: string //  (msat, optional): Total amount of outgoing payment attempts
   out_payments_fulfilled: number //  (u64, optional): Number of successful outgoing payment attempts
   out_fulfilled_msat: string // (msat, optional): Total amount of successful outgoing payment attempts
+  htlcs: HTLC[]
 }
+
+type HTLC = {
+  direction: 'in' | 'out'
+  id: number
+  amount_msat: string
+  expiry: number
+  payment_hash: string
+  local_trimmed?: boolean
+  state: HTLCState
+}
+
+type HTLCState =
+  | 'SENT_ADD_HTLC'
+  | 'SENT_ADD_COMMIT'
+  | 'RCVD_ADD_REVOCATION'
+  | 'RCVD_ADD_ACK_COMMIT'
+  | 'SENT_ADD_ACK_REVOCATION'
+  | 'RCVD_REMOVE_HTLC'
+  | 'RCVD_REMOVE_COMMIT'
+  | 'SENT_REMOVE_REVOCATION'
+  | 'SENT_REMOVE_ACK_COMMIT'
+  | 'RCVD_REMOVE_ACK_REVOCATION'
+  | 'RCVD_ADD_HTLC'
+  | 'RCVD_ADD_COMMIT'
+  | 'SENT_ADD_REVOCATION'
+  | 'SENT_ADD_ACK_COMMIT'
+  | 'RCVD_ADD_ACK_REVOCATION'
+  | 'SENT_REMOVE_HTLC'
+  | 'SENT_REMOVE_COMMIT'
+  | 'RCVD_REMOVE_REVOCATION'
+  | 'RCVD_REMOVE_ACK_COMMIT'
+  | 'SENT_REMOVE_ACK_REVOCATION'
+
+type Cause = 'unknown' | 'local' | 'user' | 'remote' | 'protocol' | 'onchain'
 
 type PeerLog =
   | {
@@ -1013,6 +1144,53 @@ export type ListPeersResponse = {
   peers: Peer[]
 }
 
+export type ListPeerChannelsResponse = {
+  channels: ListPeerChannel[]
+}
+
+type Forward = {
+  in_channel: string
+  in_htlc_id: number
+  out_channel: string
+  out_htlc_id: number
+  in_msat: number
+  out_msat: number
+  fee_msat: number
+  status: 'settled' | 'offered' | 'failed' | 'local_failed'
+  style: 'tlv' | 'legacy'
+  received_time: number
+  resolved_time: number
+}
+
+export type ListForwardsResponse = {
+  forwards: Forward[]
+}
+
+export type SetChannelResponse = {
+  channels: {
+    peer_id: string
+    channel_id: string
+    fee_base_msat: string
+    fee_proportional_millionths: number
+    minimum_htlc_out_msat: string
+    maximum_htlc_out_msat: string
+    short_channel_id: string
+    /** The requested htlcmin was too low for this peer, so we set it to the minimum they will allow */
+    warning_htlcmin_too_low?: boolean
+    /** The requested htlcmax was greater than the channel capacity, so we set it to the channel capacity */
+    warning_htlcmax_too_high?: boolean
+  }[]
+}
+
+export type FundChannelResponse = {
+  tx: string
+  txid: string
+  outnum: number
+  channel_id: string
+  close_to: string
+  mindepth?: number
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1034,5 +1212,8 @@ export type LNResponse =
   | CreateWithdrawOfferResponse
   | ListNodesResponse
   | ListPeersResponse
+  | ListForwardsResponse
+  | SetChannelResponse
+  | FundChannelResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>

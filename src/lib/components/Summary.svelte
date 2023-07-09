@@ -244,7 +244,7 @@
       <div class="cursor-pointer">
         <SummaryRow on:click={() => (singleUse = !singleUse)}>
           <span slot="label">{$translate('app.labels.single_use')}:</span>
-          <div slot="value">
+          <div class="font-bold" slot="value">
             <Toggle bind:toggled={singleUse} />
           </div>
         </SummaryRow>

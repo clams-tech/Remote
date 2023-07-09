@@ -26,7 +26,7 @@
 
 {#if device.type === 'mobile'}
   <div
-    transition:fade|local={{ easing: quintInOut, duration: 600 }}
+    transition:fade={{ easing: quintInOut, duration: 600 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-end"
   >
@@ -35,8 +35,8 @@
       use:drag={{ direction: DIRECTION_DOWN, threshold: 0, maxDrag: 50 }}
       on:swipe={closeModal}
       bind:this={modal}
-      in:fly|local={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
-      out:fly|local={{ y: modal.clientHeight, easing: quintOut, duration: 400 }}
+      in:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
+      out:fly={{ y: modal.clientHeight, easing: quintOut, duration: 400 }}
       on:click|stopPropagation
       class="{modalStyles} rounded-t-3xl w-full"
     >
@@ -49,7 +49,7 @@
   </div>
 {:else}
   <div
-    transition:fade|local={{ easing: quintInOut, duration: 600 }}
+    transition:fade={{ easing: quintInOut, duration: 600 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center"
   >

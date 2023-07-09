@@ -30,6 +30,9 @@ module.exports = {
         white: '#ffffff',
         transparent: 'transparent'
       },
+      fontWeight: {
+        inherit: 'inherit'
+      },
       screens: {
         tall: { raw: '(min-height: 750px) and (min-width: 1000px)' },
         xs: '420px'

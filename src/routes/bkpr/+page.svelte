@@ -2,7 +2,7 @@
   import BackButton from '$lib/elements/BackButton.svelte'
   import RoutingPerformance from './components/RoutingPerformance.svelte'
   import RoutingFeesHistory from './components/RoutingFeesHistory.svelte'
-  import ChannelInsights from './components/ChannelInsights.svelte'
+  // import ChannelInsights from './components/ChannelInsights.svelte'
   import AccountingExports from './components/AccountingExports.svelte'
   import { translate } from '$lib/i18n/translations'
   import { goto } from '$app/navigation'
@@ -15,6 +15,7 @@
     lightning.updateChannelsAPY() // "net" value required for Routing Performance component
     lightning.updateIncomeEvents()
     lightning.updateChannels()
+    lightning.updateForwards()
   })
 </script>
 
@@ -36,7 +37,7 @@
       class="grid gap-4 overflow-auto auto-cols-min auto-rows-min md:grid-cols-2 grid-cols-1 md:grid-flow-col-dense p-1 w-full max-w-3xl"
     >
       <RoutingPerformance />
-      <ChannelInsights />
+      <!-- <ChannelInsights /> -->
       <AccountingExports />
     </div>
     <div class="mt-2 p-1 w-full max-w-3xl">

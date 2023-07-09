@@ -216,43 +216,112 @@ export type FormattedDecodedOffer = {
 }
 
 export type ChannelStatus =
-  | 'OPENINGD'
-  | 'CHANNELD_AWAITING_LOCKIN'
-  | 'CHANNELD_NORMAL'
-  | 'CHANNELD_SHUTTING_DOWN'
-  | 'CLOSINGD_SIGEXCHANGE'
-  | 'CLOSINGD_COMPLETE'
+  | 'OPENING'
+  | 'CHANNEL_AWAITING_LOCKIN'
+  | 'CHANNEL_NORMAL'
+  | 'CHANNEL_SHUTTING_DOWN'
+  | 'CLOSING_SIGEXCHANGE'
+  | 'CLOSING_COMPLETE'
   | 'AWAITING_UNILATERAL'
   | 'FUNDING_SPEND_SEEN'
   | 'ONCHAIN'
-  | 'DUALOPEND_OPEN_INIT'
-  | 'DUALOPEND_AWAITING_LOCKIN'
+  | 'DUALOPEN_OPEN_INIT'
+  | 'DUALOPEN_AWAITING_LOCKIN'
 
 export type Channel = {
-  opener: 'local' | 'remote' // which side opened this channel
-  fundingTransactionId: string | null // funding transaction id
-  fundingOutput: number | null // 0-based index of the output in the funding transaction
-  id: string | null // full channel id
-  shortId: string | null // short channel id
-  peerId: string // id of node with which channel is opened
-  peerAlias: string | null // alias of node with which channel is opened
+  /** full channel id */
+  id: string
+  /** short channel id */
+  shortId: string | null
+  /** which side opened this channel */
+  opener: 'local' | 'remote'
+  /** funding transaction id */
+  fundingTransactionId: string
+  /** 0-based index of the output in the funding transaction */
+  fundingOutput: number
+  /** id of node with which channel is opened */
+  peerId: string
+  /** alias of node with which channel is opened */
+  peerAlias?: string
+  /** currently connected to peer */
+  peerConnected: boolean
   status: ChannelStatus
-  balanceLocal: string | null // msat
-  balanceRemote: string | null // msat
-  balanceTotal: string | null // msat
-  balanceSendable: string | null // value spendable (msat)
-  balanceReceivable: string | null // value receivable (msat)
-  sendsAttempted: number | null // number of send attempts
-  sendsComplete: number | null // number of successful send
-  receivesAttempted: number | null // number of receives attempts
-  receivesComplete: number | null // number of successful receives
-  feeBase: string | null // amount we charge to use the channel (msat)
-  routingFees: string | null // Fees earned on routed OUTBOUND (msat)
-  apy: string | null // APY for fees earned on OUTBOUND routed payments
-  scratchTransactionId: string | null // id to sign and send to chain if the channel were to fail
-  closeTo: string | null // The raw scriptPubKey indicated in fundchannel_start
-  closeToAddress: string | null // The bitcoin address we will close to
-  closer: 'local' | 'remote' | null // which side closed this channel
-  resolved: boolean | null // has channel been closed and all outputs resolved?
-  resolvedAtBlock: number | null // block number the channel was resolved at
+  /** msat */
+  balanceLocal: string
+  /** msat */
+  balanceRemote: string
+  /** msat */
+  reserveLocal: string
+  /** msat */
+  reserveRemote: string
+  /** amount we charge to use the channel (msat) */
+  feeBase: string | null
+  /** amount we charge to use the channel in parts-per-million */
+  feePpm: number
+  /** the min htlc msat size we will forward */
+  htlcMin: string | null
+  /** the max htlc msat size we will forward */
+  htlcMax: string | null
+  /** The bitcoin address we will close to */
+  closeToAddress: string | null
+  /** The bitcoin address we will close to */
+  closeToScriptPubkey: string | null
+  htlcs: HTLC[]
+  /** which side closed this channel */
+  closer?: 'local' | 'remote'
+}
+
+type HTLC = {
+  direction: 'in' | 'out'
+  id: number
+  /** msat */
+  amount: string
+  expiry: number
+  paymentHash: string
+  state: HTLCState
+}
+
+type HTLCState =
+  | 'SENT_ADD_HTLC'
+  | 'SENT_ADD_COMMIT'
+  | 'RCVD_ADD_REVOCATION'
+  | 'RCVD_ADD_ACK_COMMIT'
+  | 'SENT_ADD_ACK_REVOCATION'
+  | 'RCVD_REMOVE_HTLC'
+  | 'RCVD_REMOVE_COMMIT'
+  | 'SENT_REMOVE_REVOCATION'
+  | 'SENT_REMOVE_ACK_COMMIT'
+  | 'RCVD_REMOVE_ACK_REVOCATION'
+  | 'RCVD_ADD_HTLC'
+  | 'RCVD_ADD_COMMIT'
+  | 'SENT_ADD_REVOCATION'
+  | 'SENT_ADD_ACK_COMMIT'
+  | 'RCVD_ADD_ACK_REVOCATION'
+  | 'SENT_REMOVE_HTLC'
+  | 'SENT_REMOVE_COMMIT'
+  | 'RCVD_REMOVE_REVOCATION'
+  | 'RCVD_REMOVE_ACK_COMMIT'
+  | 'SENT_REMOVE_ACK_REVOCATION'
+
+export type Forward = {
+  /** hash of the whole forward */
+  id: string
+  /** the short channel id in */
+  shortIdIn: string
+  /** the short channel id in */
+  shortIdOut: string
+  htlcInId: number
+  htlcOutId: number
+  /** amount msat in */
+  in: string | number
+  /** amount msat out */
+  out: string | number
+  /** fee amount msat */
+  fee: string | number
+  status: 'settled' | 'offered' | 'failed' | 'local_failed'
+  style: 'tlv' | 'legacy'
+  /** unix timestamp seconds start */
+  started: number
+  /** unix timestamp seconds complete */
+  completed?: number
 }

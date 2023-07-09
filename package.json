@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "1.7.0-1.7.2",
+  "version": "1.7.0-0.1.2",
   "scripts": {
     "dev": "vite dev",
     "dev-http": "vite dev --mode http",
@@ -59,7 +59,7 @@
     "js-lnurl": "^0.5.1",
     "jsqr": "^1.4.0",
     "light-bolt11-decoder": "^3.0.0",
-    "lnmessage": "^0.2.1",
+    "lnmessage": "^0.2.2",
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",
     "nouislider": "^15.7.0",
