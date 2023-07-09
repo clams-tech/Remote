@@ -15,9 +15,9 @@
   import scan from '$lib/icons/scan'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import key from '$lib/icons/key.js'
-  import qr from '$lib/icons/qr.js'
   import Modal from '$lib/elements/Modal.svelte'
   import Qr from '$lib/components/QR.svelte'
+  import info from '$lib/icons/info.js'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -76,12 +76,11 @@
         <div class="ml-2 mt-[2px] flex items-center">
           <b>{$nodeInfo$.data.alias}</b>
 
-          <div class="ml-1 mb-1">
-            <CopyValue value={$nodeInfo$.data.id} hideValue truncateLength={6} icon={key} />
-          </div>
-
-          <button on:click={() => (showNodeInfoModal = true)} class="block w-6 ml-1 mb-1">
-            {@html qr}
+          <button
+            on:click={() => (showNodeInfoModal = true)}
+            class="w-6 ml-2 mb-[2px] border-2 border-current rounded-full flex items-center justify-center"
+          >
+            {@html info}
           </button>
         </div>
       </div>
@@ -117,11 +116,15 @@
 
 {#if showNodeInfoModal && $auth$}
   <Modal on:close={() => (showNodeInfoModal = false)}>
-    <h4 class="font-semibold mb-4 w-full text-2xl">
+    <h4 class="font-semibold mb-2 w-full text-3xl">
       {$nodeInfo$.data?.alias}
     </h4>
 
-    <div class="mb-6">
+    <div class="mb-4 w-full flex justify-start font-semibold">
+      <CopyValue value={$nodeInfo$.data?.id || ''} truncateLength={12} icon={key} />
+    </div>
+
+    <div class="mb-8">
       <Qr value={$auth$.address} />
     </div>
   </Modal>
