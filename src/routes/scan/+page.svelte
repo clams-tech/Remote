@@ -11,7 +11,13 @@
   import { convertValue } from '$lib/conversion'
   import lightning from '$lib/lightning'
   import Amount from '$lib/components/Amount.svelte'
-  import { createRandomHex, decodeBolt11, parseBitcoinUrl } from '$lib/utils'
+  import {
+    createRandomHex,
+    decodeBolt11,
+    parseBitcoinUrl,
+    parseNodeAddress,
+    validateParsedNodeAddress
+  } from '$lib/utils'
 
   import {
     BitcoinDenomination,
@@ -33,6 +39,12 @@
   let value = ''
 
   async function handleScanResult(scanResult: string) {
+    // node address to open channel to
+    if (validateParsedNodeAddress(parseNodeAddress(scanResult))) {
+      await goto(`/channels/open?address=${scanResult}`)
+      return
+    }
+
     const parsed = parseBitcoinUrl(scanResult)
     const { error } = parsed as ParsedBitcoinStringError
 
@@ -50,13 +62,13 @@
 
     // lnurl
     if (type === 'lnurl') {
-      goto(`/lnurl?lnurl=${parsedValue}`)
+      await goto(`/lnurl?lnurl=${parsedValue}`)
       return
     }
 
     // Bolt 12 Offers
     if (type === 'bolt12') {
-      goto(`/offers/bolt12/${parsedValue}`)
+      await goto(`/offers/bolt12/${parsedValue}`)
       return
     }
 
