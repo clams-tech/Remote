@@ -1,4 +1,10 @@
-import type { Channel } from '$lib/@types/channels.js'
+import type {
+  Channel,
+  ConnectPeerOptions,
+  OpenChannelOptions,
+  OpenChannelResult,
+  UpdateChannelOptions
+} from '$lib/@types/channels.js'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Subject } from 'rxjs'
@@ -124,6 +130,12 @@ export interface ChannelsInterface {
   connection: ConnectionInterface
   /** get all channels for this node */
   get(): Promise<Channel[]>
+  /** update a channel fees and htlc settings */
+  update?(options: UpdateChannelOptions): Promise<void>
+  /** open a new channel */
+  open?(options: OpenChannelOptions): Promise<OpenChannelResult>
+  /** connect to a peer node */
+  connect?(options: ConnectPeerOptions): Promise<void>
 }
 
 export interface TransactionsInterface {

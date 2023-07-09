@@ -1,11 +1,21 @@
-import type { Channel } from '$lib/@types/channels.js'
+import type {
+  Channel,
+  ConnectPeerOptions,
+  OpenChannelOptions,
+  OpenChannelResult,
+  UpdateChannelOptions
+} from '$lib/@types/channels.js'
 import { convertVersionNumber, formatMsat } from '$lib/utils.js'
 import type { ChannelsInterface } from '../interfaces.js'
 import handleError from './error.js'
+import { stateToChannelStatus } from './utils.js'
+
 import type {
   CorelnConnectionInterface,
   CoreLnError,
+  FundChannelResponse,
   ListNodesResponse,
+  ListPeerChannelsResponse,
   ListPeersResponse
 } from './types.js'
 
@@ -16,61 +26,261 @@ class Channels implements ChannelsInterface {
     this.connection = connection
   }
 
-  async get(): Promise<Channel[]> {
+  public async get(nodeId?: string, channelId?: string): Promise<Channel[]> {
     try {
-      // @TODO - Need to check version as listpeers channel info is deprecated as of 23.11
-      const versionNumber = convertVersionNumber(this.connection.info.version)
+      const { version } = await this.connection.info
+      const versionNumber = convertVersionNumber(version)
 
-      const listPeersResult = await this.connection.rpc({ method: 'listpeers' })
+      if (versionNumber < 2305) {
+        const listPeersResult = await this.connection.rpc({
+          method: 'listpeers',
+          params: nodeId ? { id: nodeId } : undefined
+        })
+        const { peers } = listPeersResult as ListPeersResponse
 
-      const { peers } = listPeersResult as ListPeersResponse
+        const result = await Promise.all(
+          peers
+            .filter(({ channels }) => !!channels)
+            .map(async ({ id, channels, connected }) => {
+              const {
+                nodes: [peer]
+              } = (await this.connection.rpc({
+                method: 'listnodes',
+                params: { id }
+              })) as ListNodesResponse
 
-      const result = await Promise.all(
-        peers.map(async ({ id, channels }) => {
-          const listNodesResponse = await this.connection.rpc({
-            method: 'listnodes',
-            params: { id }
-          })
+              return channels.map((channel) => {
+                const {
+                  opener,
+                  funding_txid,
+                  funding_outnum,
+                  channel_id,
+                  short_channel_id,
+                  state,
+                  to_us_msat,
+                  total_msat,
+                  our_reserve_msat,
+                  their_reserve_msat,
+                  fee_base_msat,
+                  fee_proportional_millionths,
+                  close_to_addr,
+                  close_to,
+                  closer,
+                  htlcs,
+                  minimum_htlc_out_msat,
+                  maximum_htlc_out_msat
+                } = channel
 
-          const {
-            nodes: [peer]
-          } = listNodesResponse as ListNodesResponse
+                return {
+                  opener: opener,
+                  peerId: id,
+                  peerConnected: connected,
+                  peerAlias: peer?.alias,
+                  fundingTransactionId: funding_txid,
+                  fundingOutput: funding_outnum,
+                  id: channel_id,
+                  shortId: short_channel_id || null,
+                  status: stateToChannelStatus(state),
+                  balanceLocal: formatMsat(to_us_msat),
+                  balanceRemote: (
+                    BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
+                  ).toString(),
+                  reserveRemote: formatMsat(our_reserve_msat || '0'),
+                  reserveLocal: formatMsat(their_reserve_msat || '0'),
+                  feeBase: formatMsat(fee_base_msat.toString()),
+                  feePpm: fee_proportional_millionths,
+                  closeToAddress: close_to_addr ?? null,
+                  closeToScriptPubkey: close_to ?? null,
+                  closer,
+                  htlcMin: minimum_htlc_out_msat?.toString() || null,
+                  htlcMax: maximum_htlc_out_msat?.toString() || null,
+                  htlcs: htlcs.map(
+                    ({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                      id,
+                      direction,
+                      amount: amount_msat,
+                      expiry,
+                      paymentHash: payment_hash,
+                      state
+                    })
+                  )
+                }
+              })
+            })
+        )
 
-          return channels.map((channel) => {
+        const flattened = result.flat()
+
+        return channelId ? flattened.filter(({ id }) => id === channelId) : flattened
+      } else {
+        const listPeerChannelsResult = await this.connection.rpc({
+          method: 'listpeerchannels',
+          params: nodeId ? { id: nodeId } : undefined
+        })
+
+        const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
+
+        const formattedChannels = await Promise.all(
+          channels.map(async (channel) => {
+            const {
+              peer_id,
+              peer_connected,
+              opener,
+              funding_txid,
+              funding_outnum,
+              channel_id,
+              short_channel_id,
+              state,
+              to_us_msat,
+              total_msat,
+              fee_base_msat,
+              fee_proportional_millionths,
+              close_to_addr,
+              close_to,
+              closer,
+              our_reserve_msat,
+              their_reserve_msat,
+              htlcs,
+              minimum_htlc_out_msat,
+              maximum_htlc_out_msat
+            } = channel
+
+            const {
+              nodes: [peer]
+            } = (await this.connection.rpc({
+              method: 'listnodes',
+              params: { id: peer_id }
+            })) as ListNodesResponse
+
             return {
-              opener: channel.opener,
-              peerId: id,
-              peerAlias: peer.alias,
-              fundingTransactionId: channel.funding_txid,
-              fundingOutput: channel.funding_outnum,
-              id: channel.channel_id || null,
-              shortId: channel.short_channel_id || null,
-              status: channel.state,
-              balanceLocal: formatMsat(channel.to_us_msat),
+              opener: opener,
+              peerId: peer_id,
+              peerConnected: peer_connected,
+              peerAlias: peer?.alias,
+              fundingTransactionId: funding_txid,
+              fundingOutput: funding_outnum,
+              id: channel_id,
+              shortId: short_channel_id || null,
+              status: stateToChannelStatus(state),
+              balanceLocal: formatMsat(to_us_msat),
               balanceRemote: (
-                BigInt(formatMsat(channel.total_msat)) - BigInt(formatMsat(channel.to_us_msat))
+                BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
               ).toString(),
-              balanceTotal: formatMsat(channel.total_msat),
-              balanceSendable: formatMsat(channel.spendable_msat),
-              balanceReceivable: formatMsat(channel.receivable_msat),
-              feeBase: formatMsat(channel.fee_base_msat.toString()),
-              feePpm: channel.fee_proportional_millionths,
-              closeToAddress: channel.close_to_addr ?? null,
-              closeToScriptPubkey: channel.close_to ?? null,
-              closer: channel.closer
+              reserveRemote: formatMsat(our_reserve_msat || '0'),
+              reserveLocal: formatMsat(their_reserve_msat || '0'),
+              feeBase: fee_base_msat ? formatMsat(fee_base_msat.toString()) : null,
+              feePpm: fee_proportional_millionths,
+              closeToAddress: close_to_addr ?? null,
+              closeToScriptPubkey: close_to ?? null,
+              closer: closer,
+              htlcMin: minimum_htlc_out_msat?.toString() || null,
+              htlcMax: maximum_htlc_out_msat?.toString() || null,
+              htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                id,
+                direction,
+                amount: amount_msat,
+                expiry,
+                paymentHash: payment_hash,
+                state
+              }))
             }
           })
-        })
-      )
+        )
 
-      return result.flat()
+        return channelId
+          ? formattedChannels.filter(({ id }) => id === channelId)
+          : formattedChannels
+      }
     } catch (error) {
       const context = 'get (channels)'
+
       const connectionError = handleError(
         error as CoreLnError,
         context,
         this.connection.info.connectionId
       )
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+
+  public async update(options: UpdateChannelOptions): Promise<void> {
+    try {
+      const { id, feeBase, feeRate, htlcMin, htlcMax, enforceDelay } = options
+
+      await this.connection.rpc({
+        method: 'setchannel',
+        params: {
+          id,
+          feebase: feeBase,
+          feeppm: feeRate,
+          htlcmin: htlcMin,
+          htlcmax: htlcMax,
+          enforcedelay: enforceDelay
+        }
+      })
+    } catch (error) {
+      const context = 'update (channels)'
+
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+
+  public async connect(options: ConnectPeerOptions): Promise<void> {
+    try {
+      const { id, host, port } = options
+
+      await this.connection.rpc({
+        method: 'connect',
+        params: {
+          id,
+          host,
+          port: port || (host ? 9735 : undefined)
+        }
+      })
+    } catch (error) {
+      const context = 'connect (channels)'
+
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+
+  public async open(options: OpenChannelOptions): Promise<OpenChannelResult> {
+    try {
+      const { id, amount, announce } = options
+
+      const result = await this.connection.rpc({
+        method: 'fundchannel',
+        params: { id, amount, announce }
+      })
+
+      const { tx, txid, outnum, channel_id } = result as FundChannelResponse
+
+      return { tx, txid, txout: outnum, id: channel_id }
+    } catch (error) {
+      const context = 'open (channels)'
+
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.info.connectionId
+      )
+
       this.connection.errors$.next(connectionError)
       throw connectionError
     }

@@ -1,8 +1,10 @@
 import Big from 'big.js'
 import type { Invoice } from '$lib/@types/invoices.js'
 import { decodeBolt11, formatMsat, logger } from '$lib/utils'
-import type { InvoiceStatus, Pay, ChannelAPY, IncomeEvent, RawInvoice } from './types'
+import type { InvoiceStatus, Pay, RawInvoice } from './types'
+import { State } from './types'
 import type { DecodedBolt12Invoice } from 'bolt12-decoder/@types/types.js'
+import type { ChannelStatus } from '$lib/@types/channels.js'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Invoice['status'] {
   switch (status) {
@@ -150,40 +152,29 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
   }
 }
 
-export function formatIncomeEvents(events: IncomeEvent[]): IncomeEvent[] {
-  return events.map(({ credit_msat, debit_msat, ...rest }) => ({
-    ...rest,
-    credit_msat: formatMsat(credit_msat),
-    debit_msat: formatMsat(debit_msat)
-  }))
-}
-
-export function formatChannelsAPY(channels: ChannelAPY[]): ChannelAPY[] {
-  return channels.map(
-    ({
-      routed_out_msat,
-      routed_in_msat,
-      lease_fee_paid_msat,
-      lease_fee_earned_msat,
-      pushed_out_msat,
-      pushed_in_msat,
-      our_start_balance_msat,
-      channel_start_balance_msat,
-      fees_out_msat,
-      fees_in_msat,
-      ...rest
-    }) => ({
-      ...rest,
-      routed_out_msat: formatMsat(routed_out_msat),
-      routed_in_msat: formatMsat(routed_in_msat),
-      lease_fee_paid_msat: formatMsat(lease_fee_paid_msat),
-      lease_fee_earned_msat: formatMsat(lease_fee_earned_msat),
-      pushed_out_msat: formatMsat(pushed_out_msat),
-      pushed_in_msat: formatMsat(pushed_in_msat),
-      our_start_balance_msat: formatMsat(our_start_balance_msat),
-      channel_start_balance_msat: formatMsat(channel_start_balance_msat),
-      fees_out_msat: formatMsat(fees_out_msat),
-      fees_in_msat: formatMsat(fees_in_msat)
-    })
-  )
+export function stateToChannelStatus(state: State): ChannelStatus {
+  switch (state) {
+    case State.Openingd:
+      return 'OPENING'
+    case State.ChanneldAwaitingLockin:
+      return 'CHANNEL_AWAITING_LOCKIN'
+    case State.ChanneldNormal:
+      return 'CHANNEL_NORMAL'
+    case State.ChanneldShuttingDown:
+      return 'CHANNEL_SHUTTING_DOWN'
+    case State.ClosingdSigexchange:
+      return 'CLOSING_SIGEXCHANGE'
+    case State.ClosingdComplete:
+      return 'CLOSING_COMPLETE'
+    case State.AwaitingUnilateral:
+      return 'AWAITING_UNILATERAL'
+    case State.FundingSpendSeen:
+      return 'FUNDING_SPEND_SEEN'
+    case State.Onchain:
+      return 'ONCHAIN'
+    case State.DualopendOpenInit:
+      return 'DUALOPEN_OPEN_INIT'
+    case State.DualopendAwaitingLockin:
+      return 'DUALOPEN_AWAITING_LOCKIN'
+  }
 }
