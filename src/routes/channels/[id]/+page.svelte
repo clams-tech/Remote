@@ -451,7 +451,7 @@
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>
 
-      <div class="flex flex-col flex-grow overflow-auto">
+      <div class="flex flex-col flex-grow overflow-auto p-1">
         <TextInput
           type="number"
           name="base"

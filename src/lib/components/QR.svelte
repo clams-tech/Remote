@@ -26,7 +26,7 @@
       width: size,
       height: size,
       type: 'svg',
-      data: `lightning:${value}`.toUpperCase(),
+      data: value.toUpperCase(),
       imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',

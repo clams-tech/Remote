@@ -12,6 +12,9 @@
   import lightning from '$lib/lightning.js'
   import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
+  import type { PageData } from './$types.js'
+
+  export let data: PageData
 
   let address: string
   let channelSize: number
@@ -22,6 +25,10 @@
   let errMsg = ''
 
   let showScanner = false
+
+  if (data.address) {
+    address = data.address
+  }
 
   $: if (address) {
     try {
