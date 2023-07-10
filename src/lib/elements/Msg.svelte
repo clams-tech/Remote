@@ -52,13 +52,13 @@
 
 {#if message}
   <div
-    in:fade|local={{ duration: 250, delay: 150 }}
-    out:fade|local={{ duration: 250 }}
+    in:fade={{ duration: 250, delay: 150 }}
+    out:fade={{ duration: 250 }}
     class="bg-neutral-900/90 rounded-lg w-full"
   >
     <div
-      in:slide|local={{ duration: 250 }}
-      out:slide|local={{ duration: 250, delay: 150 }}
+      in:slide={{ duration: 250 }}
+      out:slide={{ duration: 250, delay: 150 }}
       class="pl-6 pr-8 w-full py-4 rounded-lg border flex flex-col justify-center items-start relative overflow-hidden transition-all {msgValue
         .colors.main}"
     >

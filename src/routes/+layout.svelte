@@ -3,7 +3,7 @@
   import { page } from '$app/stores'
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
-  import Background from '$lib/components/Background.svelte'
+  import Lava from '$lib/components/Lava.svelte'
   import { session$ } from '$lib/streams.js'
   import { fade } from 'svelte/transition'
   import { goto } from '$app/navigation'
@@ -33,7 +33,7 @@
   class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-50 bg-transparent overflow-hidden"
 >
   <div class="-z-10">
-    <Background />
+    <Lava />
   </div>
 
   <header class="flex w-full items-center justify-between">
@@ -55,7 +55,7 @@
     {#if $session$ || path === '/welcome'}
       <slot />
     {:else}
-      <div in:fade|local={{ duration: 250 }} class="w-min">
+      <div in:fade={{ duration: 250 }} class="w-min">
         <Button on:click={() => (showDecryptModal = true)} text={$translate('app.labels.unlock')}>
           <div slot="iconRight" class="ml-1 w-6">{@html key}</div>
         </Button>

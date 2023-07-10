@@ -1,6 +1,5 @@
-import { defineConfig, createLogger } from 'vite'
+import { createLogger } from 'vite'
 import { sveltekit } from '@sveltejs/kit/vite'
-import basicSsl from '@vitejs/plugin-basic-ssl'
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 
@@ -35,21 +34,20 @@ logger.error = (msg, options) => {
   loggerError(msg, options)
 }
 
-export default ({ mode }) =>
-  defineConfig({
-    plugins: [sveltekit(), ...(mode !== 'http' ? [basicSsl()] : []), suppressWindowErrorPlugin],
-    customLogger: logger,
-    define: {
-      __APP_VERSION__: JSON.stringify(pkg.version)
-    },
-    build: {
-      target: 'esnext'
-    },
-    optimizeDeps: {
-      esbuildOptions: {
-        supported: {
-          bigint: true
-        }
+export default {
+  plugins: [sveltekit(), suppressWindowErrorPlugin],
+  customLogger: logger,
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version)
+  },
+  build: {
+    target: 'esnext'
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      supported: {
+        bigint: true
       }
     }
-  })
+  }
+}

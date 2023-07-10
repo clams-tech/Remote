@@ -46,7 +46,7 @@
   <slot />
 
   {#if activeComponent}
-    <div in:fly|local={{ x, duration: 250 }} class="w-full">
+    <div in:fly={{ x, duration: 250 }} class="w-full">
       <svelte:component this={activeComponent} on:next={handleNext} {context} />
     </div>
   {/if}

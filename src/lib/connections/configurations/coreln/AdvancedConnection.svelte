@@ -108,7 +108,7 @@
   </div>
 
   {#if advancedConnectOption === 'customProxy'}
-    <div in:fade|local={{ duration: 250 }} class="mt-2">
+    <div in:fade={{ duration: 250 }} class="mt-2">
       <TextInput
         bind:this={customProxyInput}
         bind:value={connection.value}
@@ -119,7 +119,7 @@
       />
     </div>
   {:else if advancedConnectOption === 'directConnection'}
-    <div in:fade|local={{ duration: 250 }} class="mt-2">
+    <div in:fade={{ duration: 250 }} class="mt-2">
       <div
         class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 border border-neutral-600 rounded"
       >
@@ -135,7 +135,7 @@
       </div>
     </div>
   {:else}
-    <div in:fade|local={{ duration: 250 }} class="mt-2 w-full">
+    <div in:fade={{ duration: 250 }} class="mt-2 w-full">
       <TextInput value={WS_PROXY} name={advancedConnectOption} micro readonly />
     </div>
   {/if}

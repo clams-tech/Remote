@@ -46,7 +46,7 @@
 </script>
 
 <div
-  in:fade|local={{ duration: 250 }}
+  in:fade={{ duration: 250 }}
   class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full"
 >
   <div

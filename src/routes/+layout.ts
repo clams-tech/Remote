@@ -7,6 +7,9 @@ import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
 import { db } from '$lib/db.js'
 
+export const prerender = true
+export const ssr = false
+
 export const load: LayoutLoad = async ({ url }) => {
   /** LOAD TRANSLATIONS */
   const defaultLocale = 'en'

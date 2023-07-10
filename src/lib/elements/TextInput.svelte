@@ -129,10 +129,7 @@
   </div>
 
   {#if invalid}
-    <div
-      transition:slide|local={{ duration: 250 }}
-      class="flex items-center text-utility-error pt-2"
-    >
+    <div transition:slide={{ duration: 250 }} class="flex items-center text-utility-error pt-2">
       <span class="w-4 mr-2">{@html warning}</span>
       <span class="text-xs font-medium">{invalid}</span>
     </div>

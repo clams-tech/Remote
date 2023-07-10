@@ -27,7 +27,7 @@
 
 {#if innerWidth < 450}
   <button
-    transition:fade={{ easing: quintInOut, duration: 600 }}
+    in:fade|global={{ easing: quintInOut, duration: 600 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-end"
   >
@@ -36,8 +36,8 @@
       use:drag={{ direction: DIRECTION_DOWN, threshold: 0, maxDrag: 50 }}
       on:swipe={closeModal}
       bind:this={modal}
-      in:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
-      out:fly={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
+      in:fly|global={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
+      out:fly|global={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
       on:click|stopPropagation
       class="{modalStyles} rounded-t-3xl w-full"
     >
@@ -50,7 +50,7 @@
   </button>
 {:else}
   <button
-    transition:fade={{ easing: quintInOut }}
+    in:fade|global={{ duration: 250 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center block"
   >

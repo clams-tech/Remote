@@ -32,7 +32,7 @@
 
     {#if showDetail}
       <div
-        transition:slide|local={{ duration: 250 }}
+        transition:slide={{ duration: 250 }}
         class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start"
       >
         <SummaryRow>

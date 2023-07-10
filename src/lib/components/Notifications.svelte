@@ -126,8 +126,8 @@
         }}
         use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
         animate:flip={{ duration: 700 }}
-        in:fly|local={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
-        out:fade|local={{ duration: 500, easing: quintOut }}
+        in:fly={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
+        out:fade={{ duration: 500, easing: quintOut }}
         class="w-full cursor-grab bg-neutral-900 shadow-md shadow-neutral-600 border border-neutral-400 z-20 p-4 relative rounded-lg mb-2"
       >
         <button

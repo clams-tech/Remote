@@ -105,7 +105,7 @@
   <!-- ADVANCED SETTINGS -->
   {#if expandConnectionSettings}
     <div
-      transition:slide|local={{ duration: 250 }}
+      transition:slide={{ duration: 250 }}
       class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start"
     >
       <AdvancedConnection bind:connection={configurationUpdate.connection} />
@@ -130,7 +130,7 @@
   </div>
 
   {#if modified}
-    <div transition:slide|local={{ duration: 250 }} class="flex items-center w-full mt-4 gap-x-2">
+    <div transition:slide={{ duration: 250 }} class="flex items-center w-full mt-4 gap-x-2">
       <Button on:click={resetConfigurationUpdate} text="Cancel">
         <div slot="iconRight" class="w-6 ml-1">{@html close}</div>
       </Button>

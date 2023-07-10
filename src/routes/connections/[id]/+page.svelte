@@ -216,13 +216,13 @@
     <div class="flex items-center justify-between mt-4">
       <div class="w-min">
         {#if !status || status === 'disconnected'}
-          <div in:fade|local={{ duration: 250 }}>
+          <div in:fade={{ duration: 250 }}>
             <Button on:click={connect} primary text={$translate('app.labels.connect')} />
           </div>
         {/if}
 
         {#if status && status === 'connected'}
-          <div class="flex gap-x-2" in:fade|local={{ duration: 250 }}>
+          <div class="flex gap-x-2" in:fade={{ duration: 250 }}>
             <Button on:click={disconnect} text={$translate('app.labels.disconnect')} />
 
             <div class="relative">
@@ -243,7 +243,7 @@
 
               {#if syncProgress$}
                 <div
-                  transition:slide|local={{ duration: 250 }}
+                  transition:slide={{ duration: 250 }}
                   style="width: {$syncProgress$}%;"
                   class:rounded-br={$syncProgress$ === 100}
                   class="absolute bottom-0 left-0 h-2 rounded-bl p-[2px] transition-all bg-purple-500"
@@ -275,7 +275,7 @@
 
     {#if connection && connection.info}
       {@const { id, alias, version } = connection.info}
-      <div transition:slide|local={{ duration: 250 }} class="w-full mt-4">
+      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
         <SummaryRow>
           <div slot="label">{$translate('app.labels.id')}:</div>
           <div slot="value">
@@ -317,7 +317,7 @@
 
       {#if expandRecentErrors}
         <div
-          transition:slide|local={{ duration: 250 }}
+          transition:slide={{ duration: 250 }}
           class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start w-full gap-y-2"
         >
           {#each $recentErrors$ as error}
@@ -329,7 +329,7 @@
 
     <!-- Connection Configuration UI -->
     {#if showConfiguration}
-      <div transition:slide|local={{ duration: 250 }} class="w-full mt-4">
+      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
         <svelte:component
           this={typeToConfigurationComponent(type)}
           {configuration}

@@ -12,6 +12,8 @@
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import { onMount } from 'svelte'
   import { createEventDispatcher } from 'svelte'
+  import { bytesToHex } from '@noble/hashes/utils'
+  import * as secp256k1 from '@noble/secp256k1'
 
   const translationBase = 'app.routes./decrypt'
 
@@ -30,7 +32,7 @@
         throw new Error('Could not decrypt.')
       }
 
-      session$.next({ secret: decrypted })
+      session$.next({ secret: decrypted, id: bytesToHex(secp256k1.getPublicKey(decrypted, true)) })
       dispatch('close')
     } catch (error) {
       errorMsg = $translate('app.errors.invalid_passphrase')
