@@ -133,7 +133,9 @@
 </section>
 
 {#if showScanner}
-  <div class="absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
+  <div
+    class="absolute top-0 left-0 w-screen h-screen flex items-center justify-center dark:bg-neutral-900 bg-neutral-50"
+  >
     <BackButton on:click={() => (showScanner = false)} />
     <Scanner on:result={({ detail }) => handleScanResult(detail)} />
   </div>
