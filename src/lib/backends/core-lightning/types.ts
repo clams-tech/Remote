@@ -192,7 +192,7 @@ export interface GetinfoResponse {
   /**
    * The addresses we announce to the world
    */
-  address?: Address[]
+  address: Address[]
   /**
    * The fun alias this node will advertize
    */
@@ -265,6 +265,7 @@ export type Address = {
    * Type of connection
    */
   type: AddressType
+  address: string
 }
 
 /**

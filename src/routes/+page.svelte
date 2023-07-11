@@ -53,6 +53,18 @@
   }
 
   let showNodeInfoModal = false
+
+  let nodeAddress: string
+
+  $: if ($nodeInfo$.data && $nodeInfo$.data.address[0]) {
+    const {
+      id,
+      address: [{ address, port }]
+    } = $nodeInfo$.data
+    nodeAddress = `${id}@${address}:${port}`
+  } else {
+    nodeAddress = $auth$!.address
+  }
 </script>
 
 <svelte:head>
@@ -114,18 +126,21 @@
   <RecentPayment />
 </div>
 
-{#if showNodeInfoModal && $auth$}
+{#if showNodeInfoModal && $nodeInfo$.data}
+  {@const {
+    data: { id, address }
+  } = $nodeInfo$}
   <Modal on:close={() => (showNodeInfoModal = false)}>
     <h4 class="font-semibold mb-2 w-full text-3xl">
       {$nodeInfo$.data?.alias}
     </h4>
 
     <div class="mb-4 w-full flex justify-start font-semibold">
-      <CopyValue value={$nodeInfo$.data?.id || ''} truncateLength={12} icon={key} />
+      <CopyValue value={id} truncateLength={12} icon={key} />
     </div>
 
     <div class="mb-8">
-      <Qr value={$auth$.address} />
+      <Qr value={nodeAddress} />
     </div>
   </Modal>
 {/if}
