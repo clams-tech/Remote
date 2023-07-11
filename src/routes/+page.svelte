@@ -53,7 +53,6 @@
   }
 
   let showNodeInfoModal = false
-
   let nodeAddress: string
 
   $: if ($nodeInfo$.data && $nodeInfo$.data.address[0]) {
