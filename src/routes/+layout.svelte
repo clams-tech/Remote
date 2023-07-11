@@ -13,7 +13,6 @@
   import Modal from '$lib/elements/Modal.svelte'
   import Decrypt from '$lib/components/Decrypt.svelte'
   import lockOutline from '$lib/icons/lock-outline.js'
-  import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
 
   $: path = $page.url.pathname
 

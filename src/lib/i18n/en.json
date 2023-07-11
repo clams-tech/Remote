@@ -112,6 +112,7 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "connecting": "Connecting",
+    "info": "Info",
     "waiting_reconnect": "Waiting to reconnect",
     "unlock": "Unlock",
     "recent_errors": "Recent errors",

@@ -34,6 +34,10 @@
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import warning from '$lib/icons/warning.js'
   import { decryptWithAES, encryptWithAES } from '$lib/crypto.js'
+  import qr from '$lib/icons/qr.js'
+  import close from '$lib/icons/close.js'
+  import key from '$lib/icons/key.js'
+  import Qr from '$lib/elements/QR.svelte'
 
   export let data: PageData
 
@@ -175,6 +179,7 @@
 
   let expandRecentErrors = false
   let showDeleteModal = false
+  let showInfoModal = false
 </script>
 
 <svelte:head>
@@ -215,18 +220,16 @@
     </div>
 
     <div class="flex items-center justify-between mt-4">
-      <div class="w-min">
+      <div class="flex w-full">
         {#if !status || status === 'disconnected'}
-          <div in:fade={{ duration: 250 }}>
+          <div class="w-min" in:fade={{ duration: 250 }}>
             <Button on:click={connect} primary text={$translate('app.labels.connect')} />
           </div>
         {/if}
 
         {#if status && status === 'connected'}
-          <div class="flex gap-x-2" in:fade={{ duration: 250 }}>
-            <Button on:click={disconnect} text={$translate('app.labels.disconnect')} />
-
-            <div class="relative">
+          <div class="flex flex-wrap gap-x-2 gap-y-2" in:fade={{ duration: 250 }}>
+            <div class="relative w-min">
               <Button
                 disabled={$connectionDetails$.syncing}
                 on:click={sync}
@@ -251,6 +254,12 @@
                 />
               {/if}
             </div>
+
+            <div class="w-min">
+              <Button on:click={() => (showInfoModal = true)} text={$translate('app.labels.info')}>
+                <div slot="iconRight" class="w-5 ml-2">{@html qr}</div>
+              </Button>
+            </div>
           </div>
         {/if}
       </div>
@@ -258,51 +267,30 @@
       <div class="flex items-center py-2">
         <div class="flex items-center">
           <span
-            class="transition-colors"
+            class="transition-colors whitespace-nowrap"
             class:text-utility-success={status === 'connected'}
             class:text-utility-pending={status === 'connecting' || status === 'waiting_reconnect'}
             class:text-utility-error={!status || status === 'disconnected'}
             >{$translate(`app.labels.${status || 'disconnected'}`)}</span
           >
+
           <div
-            class="w-2 h-2 ml-2 rounded-full transition-colors"
+            class="w-2.5 h-2.5 ml-2 rounded-full transition-colors"
             class:bg-utility-success={status === 'connected'}
             class:bg-utility-pending={status === 'connecting' || status === 'waiting_reconnect'}
             class:bg-utility-error={!status || status === 'disconnected'}
           />
+
+          {#if status === 'connected'}
+            <div class="w-min ml-2">
+              <button on:click={disconnect} class="block w-4">
+                {@html close}
+              </button>
+            </div>
+          {/if}
         </div>
       </div>
     </div>
-
-    {#if connection && connection.info}
-      {@const { id, alias, version } = connection.info}
-      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
-        <SummaryRow>
-          <div slot="label">{$translate('app.labels.id')}:</div>
-          <div slot="value">
-            <CopyValue value={id} truncateLength={9} />
-          </div>
-        </SummaryRow>
-
-        {#if alias}
-          <SummaryRow>
-            <div slot="label">{$translate('app.labels.alias')}:</div>
-            <div slot="value">
-              {alias}
-            </div>
-          </SummaryRow>
-        {/if}
-
-        {#if version}
-          <SummaryRow>
-            <div slot="label">version:</div>
-            <div slot="value">
-              {version}
-            </div>
-          </SummaryRow>
-        {/if}
-      </div>
-    {/if}
 
     {#if $recentErrors$}
       <button
@@ -345,8 +333,35 @@
   {/if}
 </Section>
 
+{#if showInfoModal && connection}
+  {@const { id, alias, version, host, port } = connection.info}
+  <Modal on:close={() => (showInfoModal = false)}>
+    <div class="w-full">
+      {#if alias}
+        <div class="w-full flex items-baseline mb-2">
+          <h4 class="font-semibold text-3xl">
+            {alias}
+          </h4>
+
+          {#if version}
+            <div class="ml-2">{version}</div>
+          {/if}
+        </div>
+      {/if}
+
+      <div class="w-full flex justify-start font-semibold">
+        <CopyValue value={id} truncateLength={12} icon={key} />
+      </div>
+
+      <div class="mb-8 mt-6">
+        <Qr value={host && port ? `${id}@${host}:${port}` : id} />
+      </div>
+    </div>
+  </Modal>
+{/if}
+
 {#if showDeleteModal}
-  <Modal>
+  <Modal on:close={() => (showDeleteModal = false)}>
     <div class="w-full">
       <SectionHeading
         text={$translate('app.routes./connections.delete_connection_modal.heading')}

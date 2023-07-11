@@ -1,7 +1,7 @@
 import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
-import NodeInstance from './node.js'
+import Node from './node.js'
 import Utxos from './utxos.js'
 import Channels from './channels.js'
 import Transactions from './transactions.js'
@@ -9,7 +9,6 @@ import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
-import type { Node } from '$lib/@types/nodes.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
@@ -33,7 +32,7 @@ import type {
 } from '../interfaces.js'
 
 class CoreLightning implements CorelnConnectionInterface {
-  info: Node
+  info: Info
   destroy$: Subject<void>
   errors$: Subject<AppError>
   rune: string
@@ -113,7 +112,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.connectionStatus$ = socket.connectionStatus$
     this.errors$ = new Subject()
 
-    this.node = new NodeInstance(this)
+    this.node = new Node(this)
     this.offers = new Offers(this)
     this.invoices = new Invoices(this)
     this.utxos = new Utxos(this)

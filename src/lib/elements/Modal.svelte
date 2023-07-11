@@ -1,8 +1,6 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition'
   import { quintInOut } from 'svelte/easing'
-  import { swipe, drag } from '$lib/touch'
-  import { DIRECTION_DOWN } from 'hammerjs'
   import close from '$lib/icons/close'
   import { createEventDispatcher } from 'svelte'
 
@@ -32,8 +30,6 @@
     class="{backgroundStyles} justify-end"
   >
     <button
-      use:swipe={{ direction: DIRECTION_DOWN, threshold: 50, velocity: 0.4 }}
-      use:drag={{ direction: DIRECTION_DOWN, threshold: 0, maxDrag: 50 }}
       on:swipe={closeModal}
       bind:this={modal}
       in:fly|global={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
@@ -42,10 +38,19 @@
       class="{modalStyles} rounded-t-3xl w-full"
     >
       <div class="bg-neutral-300 w-8 h-1 rounded-full mt-2 top-0 absolute" />
+
       <div class="my-4 w-full h-full overflow-auto">
         <slot />
       </div>
+
       <div class="bg-neutral-300 w-24 h-1 rounded-full mb-2 bottom-0 absolute" />
+
+      <button
+        on:click={closeModal}
+        class="absolute top-2 right-2 w-6 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-400"
+      >
+        {@html close}
+      </button>
     </button>
   </button>
 {:else}
@@ -60,7 +65,7 @@
     >
       <button
         on:click={closeModal}
-        class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-400"
+        class="absolute top-2 right-2 w-6 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-400"
       >
         {@html close}
       </button>
