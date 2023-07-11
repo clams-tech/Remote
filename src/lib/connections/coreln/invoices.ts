@@ -1,6 +1,6 @@
 import Big from 'big.js'
-import { formatMsat, isBolt12Invoice, nowSeconds } from '$lib/utils.js'
-import { formatInvoice, payToPayment } from './utils.js'
+import { nowSeconds } from '$lib/utils.js'
+import { formatInvoice, payToPayment, stripMsatSuffix } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
@@ -23,6 +23,7 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
+import { isBolt12Invoice } from '$lib/invoices.js'
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
@@ -152,11 +153,11 @@ class Invoices implements InvoicesInterface {
         destination,
         type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
         direction: 'send',
-        value: formatMsat(amount_msat),
+        value: stripMsatSuffix(amount_msat),
         completedAt: nowSeconds(),
         expiresAt: null,
         startedAt: created_at,
-        fee: Big(formatMsat(amount_sent_msat)).minus(formatMsat(amount_msat)).toString(),
+        fee: Big(stripMsatSuffix(amount_sent_msat)).minus(stripMsatSuffix(amount_msat)).toString(),
         status,
         request,
         connectionId: this.connection.info.connectionId
@@ -191,7 +192,7 @@ class Invoices implements InvoicesInterface {
       const { payment_hash, payment_preimage, created_at, amount_msat, amount_sent_msat, status } =
         result as KeysendResponse
 
-      const amountMsat = formatMsat(amount_msat)
+      const amountMsat = stripMsatSuffix(amount_msat)
 
       // get the invoice by payment_hash for request parameter of Invoice type
       const listInvoiceResult = await this.connection.rpc({
@@ -214,7 +215,7 @@ class Invoices implements InvoicesInterface {
         completedAt: nowSeconds(),
         expiresAt: null,
         startedAt: created_at,
-        fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
+        fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
         status,
         connectionId: this.connection.info.connectionId,
         request: bolt11 as string
@@ -250,7 +251,7 @@ class Invoices implements InvoicesInterface {
       return {
         ...payment,
         status: status === 'paid' ? 'complete' : 'expired',
-        value: formatMsat(amount_received_msat || payment.value),
+        value: stripMsatSuffix(amount_received_msat || payment.value),
         completedAt: paid_at as number,
         preimage: payment_preimage
       }

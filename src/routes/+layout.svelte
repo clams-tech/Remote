@@ -3,7 +3,7 @@
   import { page } from '$app/stores'
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
-  import Lava from '$lib/components/Lava.svelte'
+  import Lava from '$lib/elements/Lava.svelte'
   import { session$ } from '$lib/streams.js'
   import { fade } from 'svelte/transition'
   import { goto } from '$app/navigation'

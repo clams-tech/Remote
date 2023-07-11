@@ -711,10 +711,10 @@ bitcoin-address-validation@^2.2.1:
     bech32 "^2.0.0"
     sha256-uint8array "^0.10.3"
 
-bolt12-decoder@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.7.tgz#1d4742b2324f376db02d4787a7f413c61df01a3a"
-  integrity sha512-rS6k7YvBic1uwepz/1y5HSonmx0zUvb3TA8iAoPROgM9Y+hX9VCYyAOUKaaM8cX97BwrKNJh/JdCM06AONIFuA==
+bolt12-decoder@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.8.tgz#89c9cac2762fa112031aeae0aac7c8f4538aa7c4"
+  integrity sha512-p0El5kRieN38K9JcB0aoooLwIeLKgGHUuSi58WpuWvtjlnaF58kP+Fujywt218fq7TDLaAwIHhtEc2vp9wXW2A==
   dependencies:
     "@noble/hashes" "^1.2.0"
     buffer "^6.0.3"

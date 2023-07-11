@@ -1,10 +1,10 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex } from '@noble/hashes/utils'
 import type { Forward } from '$lib/@types/forwards.js'
-import { formatMsat } from '$lib/utils.js'
 import type { ForwardsInterface } from '../interfaces.js'
 import handleError from './error.js'
 import type { CorelnConnectionInterface, CoreLnError, ListForwardsResponse } from './types.js'
+import { stripMsatSuffix } from './utils.js'
 
 class Forwards implements ForwardsInterface {
   connection: CorelnConnectionInterface
@@ -37,9 +37,9 @@ class Forwards implements ForwardsInterface {
             shortIdOut: out_channel,
             htlcInId: in_htlc_id,
             htlcOutId: out_htlc_id,
-            in: formatMsat(in_msat),
-            out: formatMsat(out_msat),
-            fee: formatMsat(fee_msat),
+            in: stripMsatSuffix(in_msat),
+            out: stripMsatSuffix(out_msat),
+            fee: stripMsatSuffix(fee_msat),
             status,
             style,
             started: received_time,

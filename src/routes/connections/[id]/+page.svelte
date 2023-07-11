@@ -24,7 +24,7 @@
   import Msg from '$lib/elements/Msg.svelte'
   import { goto } from '$app/navigation'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
-  import { decryptWithAES, encryptWithAES, nowSeconds } from '$lib/utils.js'
+  import { nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
@@ -33,6 +33,7 @@
   import Modal from '$lib/elements/Modal.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import warning from '$lib/icons/warning.js'
+  import { decryptWithAES, encryptWithAES } from '$lib/crypto.js'
 
   export let data: PageData
 

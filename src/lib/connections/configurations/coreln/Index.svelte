@@ -2,7 +2,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import type { CoreLnConfiguration } from '$lib/@types/connections.js'
   import TextInput from '$lib/elements/TextInput.svelte'
-  import { parseNodeAddress, simpleDeepClone, validateParsedNodeAddress } from '$lib/utils'
+  import { simpleDeepClone } from '$lib/utils'
   import { slide } from 'svelte/transition'
   import caret from '$lib/icons/caret.js'
   import AdvancedConnection from './AdvancedConnection.svelte'
@@ -15,6 +15,7 @@
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import { session$ } from '$lib/streams.js'
   import { methods } from '$lib/connections/coreln/index.js'
+  import { validateNodeAddress } from '$lib/address.js'
 
   export let configuration: CoreLnConfiguration
 
@@ -47,7 +48,7 @@
 
   $: if (configurationUpdate.address) {
     try {
-      validAddress = validateParsedNodeAddress(parseNodeAddress(configurationUpdate.address))
+      validAddress = validateNodeAddress(configurationUpdate.address)
     } catch {
       validAddress = false
     }

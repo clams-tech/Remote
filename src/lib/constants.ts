@@ -26,14 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
     : navigator?.languages
     ? navigator.languages[0]
     : navigator.language) as Language,
-  fiatDenomination: FiatDenomination.usd,
-  bitcoinDenomination: BitcoinDenomination.sats,
-  primaryDenomination: BitcoinDenomination.sats,
-  secondaryDenomination: FiatDenomination.usd,
-  invoiceExpiry: DEFAULT_INVOICE_EXPIRY,
-  sendMaxFeePercent: 0.5,
-  sendTimeoutSeconds: 120,
-  notifications: true
+  fiatDenomination: FiatDenomination.usd
 }
 
 export const SUPPORTED_LOCALES = ['en-US']

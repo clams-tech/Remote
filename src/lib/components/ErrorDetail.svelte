@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { AppError } from '$lib/@types/errors.js'
+  import { formatDate } from '$lib/dates.js'
   import Msg from '$lib/elements/Msg.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
-  import { formatDate } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
 
   export let error: AppError

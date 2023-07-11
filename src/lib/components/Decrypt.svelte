@@ -8,12 +8,12 @@
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { getSession } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
-  import { decryptWithAES } from '$lib/utils.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import { onMount } from 'svelte'
   import { createEventDispatcher } from 'svelte'
   import { bytesToHex } from '@noble/hashes/utils'
   import * as secp256k1 from '@noble/secp256k1'
+  import { decryptWithAES } from '$lib/crypto.js'
 
   const translationBase = 'app.routes./decrypt'
 

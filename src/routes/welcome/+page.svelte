@@ -10,8 +10,8 @@
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { STORAGE_KEYS, writeDataToStorage } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
-  import { createRandomHex, encryptWithAES } from '$lib/utils.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
+  import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
 
   const translationBase = 'app.routes./welcome'
   const secret = createRandomHex()

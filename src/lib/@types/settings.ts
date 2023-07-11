@@ -1,13 +1,6 @@
 export type Settings = {
   language: Language
   fiatDenomination: FiatDenomination
-  bitcoinDenomination: BitcoinDenomination
-  primaryDenomination: Denomination
-  secondaryDenomination: Denomination
-  invoiceExpiry: number
-  sendMaxFeePercent: number
-  sendTimeoutSeconds: number
-  notifications: boolean
 }
 
 // locale => Display language

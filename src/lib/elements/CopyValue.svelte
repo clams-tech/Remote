@@ -1,7 +1,8 @@
 <script lang="ts">
   import check from '$lib/icons/check'
   import copy from '$lib/icons/copy'
-  import { truncateValue, writeClipboardValue } from '$lib/utils'
+  import { clipboard } from '$lib/services.js'
+  import { truncateValue } from '$lib/utils'
   import { onDestroy } from 'svelte'
   import { fade } from 'svelte/transition'
 
@@ -15,7 +16,7 @@
   let copyAnimationTimeout: NodeJS.Timeout
 
   async function copyValue() {
-    copySuccess = await writeClipboardValue(value)
+    copySuccess = await clipboard.write(value)
 
     if (copySuccess) {
       copyAnimationTimeout = setTimeout(() => (copySuccess = false), 3000)

@@ -1,3 +1,8 @@
+import { convertVersionNumber, stripMsatSuffix } from './utils.js'
+import type { ChannelsInterface } from '../interfaces.js'
+import handleError from './error.js'
+import { stateToChannelStatus } from './utils.js'
+
 import type {
   Channel,
   ConnectPeerOptions,
@@ -5,10 +10,6 @@ import type {
   OpenChannelResult,
   UpdateChannelOptions
 } from '$lib/@types/channels.js'
-import { convertVersionNumber, formatMsat } from '$lib/utils.js'
-import type { ChannelsInterface } from '../interfaces.js'
-import handleError from './error.js'
-import { stateToChannelStatus } from './utils.js'
 
 import type {
   CorelnConnectionInterface,
@@ -81,13 +82,13 @@ class Channels implements ChannelsInterface {
                   id: channel_id,
                   shortId: short_channel_id || null,
                   status: stateToChannelStatus(state),
-                  balanceLocal: formatMsat(to_us_msat),
+                  balanceLocal: stripMsatSuffix(to_us_msat),
                   balanceRemote: (
-                    BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
+                    BigInt(stripMsatSuffix(total_msat)) - BigInt(stripMsatSuffix(to_us_msat))
                   ).toString(),
-                  reserveRemote: formatMsat(our_reserve_msat || '0'),
-                  reserveLocal: formatMsat(their_reserve_msat || '0'),
-                  feeBase: formatMsat(fee_base_msat.toString()),
+                  reserveRemote: stripMsatSuffix(our_reserve_msat || '0'),
+                  reserveLocal: stripMsatSuffix(their_reserve_msat || '0'),
+                  feeBase: stripMsatSuffix(fee_base_msat.toString()),
                   feePpm: fee_proportional_millionths,
                   closeToAddress: close_to_addr ?? null,
                   closeToScriptPubkey: close_to ?? null,
@@ -162,13 +163,13 @@ class Channels implements ChannelsInterface {
               id: channel_id,
               shortId: short_channel_id || null,
               status: stateToChannelStatus(state),
-              balanceLocal: formatMsat(to_us_msat),
+              balanceLocal: stripMsatSuffix(to_us_msat),
               balanceRemote: (
-                BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
+                BigInt(stripMsatSuffix(total_msat)) - BigInt(stripMsatSuffix(to_us_msat))
               ).toString(),
-              reserveRemote: formatMsat(our_reserve_msat || '0'),
-              reserveLocal: formatMsat(their_reserve_msat || '0'),
-              feeBase: fee_base_msat ? formatMsat(fee_base_msat.toString()) : null,
+              reserveRemote: stripMsatSuffix(our_reserve_msat || '0'),
+              reserveLocal: stripMsatSuffix(their_reserve_msat || '0'),
+              feeBase: fee_base_msat ? stripMsatSuffix(fee_base_msat.toString()) : null,
               feePpm: fee_proportional_millionths,
               closeToAddress: close_to_addr ?? null,
               closeToScriptPubkey: close_to ?? null,

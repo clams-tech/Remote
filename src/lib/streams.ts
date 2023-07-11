@@ -2,10 +2,8 @@ import { onDestroy } from 'svelte'
 import type { Invoice } from './@types/invoices.js'
 import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
-import type { Notification } from './@types/util.js'
 import { DEFAULT_SETTINGS } from './constants.js'
 import { getDataFromStorage, STORAGE_KEYS, writeDataToStorage } from './storage.js'
-import { logger, SvelteSubject } from './utils.js'
 import type { ConnectionInterface } from './connections/interfaces.js'
 import { liveQuery } from 'dexie'
 import { db } from './db.js'
@@ -17,13 +15,14 @@ import {
   filter,
   from,
   Observable,
-  ReplaySubject,
   scan,
   shareReplay,
   startWith,
   Subject,
   take
 } from 'rxjs'
+import { log$, logger } from './logs.js'
+import { SvelteSubject } from './svelte.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
@@ -80,11 +79,6 @@ export const onDestroy$ = defer(() => {
 // the last url path
 export const lastPath$ = new BehaviorSubject('')
 
-// debug logs
-export const log$ = new Subject<string>()
-
-log$.subscribe(console.log)
-
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 
@@ -126,6 +120,3 @@ export const recentLogs$: Observable<string[]> = log$.pipe(
 
 // subscribe to ensure that we start collecting logs
 recentLogs$.subscribe()
-
-// for all custom notifications such as errors and hints
-export const customNotifications$ = new ReplaySubject<Notification>(10, 10000)

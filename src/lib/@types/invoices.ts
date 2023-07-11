@@ -1,4 +1,4 @@
-import type { DecodedBolt12Invoice, DecodedBolt12Offer } from '$lib/connections/coreln/types.js'
+import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
 
 export type Invoice = {
   id: string

@@ -3,12 +3,13 @@ import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
 import { db } from '$lib/db.js'
-import { logger, wait } from '$lib/utils.js'
+import { wait } from '$lib/utils.js'
 import { Subject, type Observable } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
 import type { Invoice } from '$lib/@types/invoices.js'
+import { logger } from '$lib/logs.js'
 
 export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
   {

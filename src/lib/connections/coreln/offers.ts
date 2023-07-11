@@ -1,6 +1,6 @@
-import { bolt12ToOffer, formatMsat, nowSeconds } from '$lib/utils.js'
+import { nowSeconds } from '$lib/utils.js'
 import type { Invoice } from '$lib/@types/invoices.js'
-import { invoiceStatusToPaymentStatus } from './utils.js'
+import { invoiceStatusToPaymentStatus, stripMsatSuffix } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
@@ -26,6 +26,7 @@ import type {
   OfferSummary,
   SendInvoiceResponse
 } from './types.js'
+import { bolt12ToOffer } from '$lib/invoices.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -269,7 +270,7 @@ class Offers implements OffersInterface {
         preimage: payment_preimage,
         type: 'bolt12',
         direction: 'receive',
-        value: formatMsat((amount_received_msat || amount) as string),
+        value: stripMsatSuffix((amount_received_msat || amount) as string),
         completedAt: paid_at ? paid_at : nowSeconds(),
         expiresAt: expires_at,
         startedAt: createdAt,

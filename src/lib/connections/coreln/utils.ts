@@ -1,10 +1,17 @@
 import Big from 'big.js'
 import type { Invoice } from '$lib/@types/invoices.js'
-import { decodeBolt11, formatMsat, logger } from '$lib/utils'
 import type { InvoiceStatus, Pay, RawInvoice } from './types'
 import { State } from './types'
 import type { DecodedBolt12Invoice } from 'bolt12-decoder/@types/types.js'
 import type { ChannelStatus } from '$lib/@types/channels.js'
+import { decodeBolt11 } from '$lib/invoices.js'
+import { logger } from '$lib/logs.js'
+
+/**Will strip the msat suffix from msat values if there */
+export function stripMsatSuffix(val: string | number): string {
+  if (!val) return '0'
+  return typeof val === 'string' ? val.replace('msat', '') : val.toString()
+}
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Invoice['status'] {
   switch (status) {
@@ -72,7 +79,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     direction: 'receive',
     type: bolt12 ? 'bolt12' : 'bolt11',
     preimage: payment_preimage,
-    value: formatMsat(amount_received_msat || amount_msat || 'any'),
+    value: stripMsatSuffix(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
     completedAt: paid_at ? paid_at : null,
     expiresAt: expires_at,
@@ -130,7 +137,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     }
   }
 
-  const amountMsat = formatMsat(amount_msat)
+  const amountMsat = stripMsatSuffix(amount_msat)
 
   return {
     id: label || payment_hash,
@@ -141,7 +148,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     hash: payment_hash,
     preimage,
     value: amountMsat,
-    fee: Big(formatMsat(amount_sent_msat)).minus(amountMsat).toString(),
+    fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
     direction: 'send',
     type: bolt11 ? 'bolt11' : 'keysend',
     expiresAt: null,
@@ -177,4 +184,10 @@ export function stateToChannelStatus(state: State): ChannelStatus {
     case State.DualopendAwaitingLockin:
       return 'DUALOPEN_AWAITING_LOCKIN'
   }
+}
+
+export function convertVersionNumber(version: string): number {
+  const [withoutDash] = version.split('-')
+  const withoutDots = withoutDash.replace('.', '')
+  return Number(withoutDots)
 }

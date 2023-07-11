@@ -1,8 +1,4 @@
-import type {
-  JsonRpcErrorResponse,
-  JsonRpcSuccessResponse,
-  LnWebSocketOptions
-} from 'lnmessage/dist/types.js'
+import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
 import Node from './node.js'
@@ -15,9 +11,8 @@ import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from '.
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
-import type { BehaviorSubject, Observable } from 'rxjs'
+import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
-import { parseNodeAddress } from '$lib/utils.js'
 import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
 import type { AppError } from '$lib/@types/errors.js'
@@ -34,6 +29,7 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
+import { parseNodeAddress } from '$lib/address.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   info: Required<Info>

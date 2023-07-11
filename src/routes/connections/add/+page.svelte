@@ -7,12 +7,13 @@
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import { createRandomHex, nowSeconds } from '$lib/utils.js'
+  import { nowSeconds } from '$lib/utils.js'
 
   import {
     connectionOptions,
     connectionTypeToInitialConfiguration
   } from '$lib/connections/index.js'
+  import { createRandomHex } from '$lib/crypto.js'
 
   const translateBase = 'app.routes./connections/add'
 
