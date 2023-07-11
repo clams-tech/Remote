@@ -61,10 +61,10 @@
       ])
 
       copySuccess = true
-
       copyTimeout = setTimeout(() => (copySuccess = false), 3000)
     } catch (error) {
-      logger.error(JSON.stringify(error))
+      const { message } = error as Error
+      logger.error(message)
     }
   }
 
