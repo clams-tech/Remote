@@ -213,7 +213,7 @@
         <!-- QR AND EXPIRY COUNTDOWN -->
         {#if status === 'active'}
           <div class="my-4 flex flex-col items-center justify-center">
-            <Qr value={`lightning:${bolt12}`} />
+            <Qr value={`lightning:${bolt12}`.toUpperCase()} />
             {#if offerExpiry}
               <div class="mt-2">
                 <ExpiryCountdown

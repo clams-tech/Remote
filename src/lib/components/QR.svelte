@@ -26,7 +26,7 @@
       width: size,
       height: size,
       type: 'svg',
-      data: value.toUpperCase(),
+      data: value,
       imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
