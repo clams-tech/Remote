@@ -135,7 +135,7 @@
   <!-- QR AND EXPIRY COUNTDOWN -->
   {#if payment.direction === 'receive' && payment.status === 'pending'}
     <div class="my-4 flex flex-col items-center justify-center">
-      <Qr value={`lightning:${payment.invoice}` || null} />
+      <Qr value={`lightning:${payment.invoice}`.toUpperCase() || null} />
       {#if payment.expiresAt}
         <div class="mt-2">
           <ExpiryCountdown on:expired={handlePaymentExpire} expiry={new Date(payment.expiresAt)} />

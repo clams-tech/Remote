@@ -26,7 +26,7 @@
       width: size,
       height: size,
       type: 'svg',
-      data: value.toUpperCase(),
+      data: value,
       imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
@@ -42,17 +42,11 @@
       },
       backgroundOptions: { color: '#ffffff' },
       cornersSquareOptions: { type: 'extra-rounded', color: '#6305f0' },
-      cornersDotOptions: { type: 'dot', color: '#000000' }
+      cornersDotOptions: { type: 'dot', color: '#000000' },
+      image: '/icons/512x512.png'
     })
 
     qrCode.append(node)
-  }
-
-  $: if (qrCode) {
-    fetch('/icons/512x512.png').then(() => {
-      qrCode.update({ image: '/icons/512x512.png' })
-      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
-    })
   }
 
   let copySuccess = false
@@ -67,10 +61,10 @@
       ])
 
       copySuccess = true
-
       copyTimeout = setTimeout(() => (copySuccess = false), 3000)
     } catch (error) {
-      logger.error(JSON.stringify(error))
+      const { message } = error as Error
+      logger.error(message)
     }
   }
 
@@ -80,7 +74,6 @@
 </script>
 
 <div
-  in:fade|local={{ duration: 250 }}
   class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
 >
   <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
