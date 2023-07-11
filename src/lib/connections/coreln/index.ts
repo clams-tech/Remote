@@ -1,7 +1,7 @@
 import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
-import Node from './node.js'
+import NodeInstance from './node.js'
 import Utxos from './utxos.js'
 import Channels from './channels.js'
 import Transactions from './transactions.js'
@@ -9,6 +9,7 @@ import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
+import type { Node } from '$lib/@types/nodes.js'
 import type { Session } from '$lib/@types/session.js'
 import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
@@ -16,6 +17,7 @@ import { Subject } from 'rxjs'
 import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
 import type { AppError } from '$lib/@types/errors.js'
+import { parseNodeAddress } from '$lib/address.js'
 
 import type {
   BlocksInterface,
@@ -29,10 +31,9 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
-import { parseNodeAddress } from '$lib/address.js'
 
 class CoreLightning implements CorelnConnectionInterface {
-  info: Required<Info>
+  info: Node
   destroy$: Subject<void>
   errors$: Subject<AppError>
   rune: string
@@ -88,11 +89,13 @@ class CoreLightning implements CorelnConnectionInterface {
       const connected = await socket.connect()
 
       if (connected) {
-        const { id, alias, color, version } = (await this.rpc({
+        const { id, alias, color, version, address } = (await this.rpc({
           method: 'getinfo'
         })) as GetinfoResponse
 
-        this.info = { id, alias, color, version, connectionId }
+        const { address: host, port: connectionPort } = address[0] || { address: ip, port }
+
+        this.info = { id, host, port: connectionPort, alias, color, version, connectionId }
 
         return this.info
       } else {
@@ -110,7 +113,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.connectionStatus$ = socket.connectionStatus$
     this.errors$ = new Subject()
 
-    this.node = new Node(this)
+    this.node = new NodeInstance(this)
     this.offers = new Offers(this)
     this.invoices = new Invoices(this)
     this.utxos = new Utxos(this)

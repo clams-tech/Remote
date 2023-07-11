@@ -26,6 +26,7 @@ import type {
   PayKeysendOptions,
   Invoice
 } from '$lib/@types/invoices.js'
+import type { Node } from '$lib/@types/nodes.js'
 
 /** the live connection held in memory */
 export type Connection = {
@@ -58,14 +59,13 @@ export interface ConnectionInterface {
   blocks?: BlocksInterface
 }
 
-export type Info = {
-  id: string
-  /** the connection details this connection is associated with */
-  connectionId: string
-  alias?: string
-  color?: string
-  version?: string
-}
+export type Info =
+  | Node
+  | {
+      id: string
+      /** the connection details this connection is associated with */
+      connectionId: string
+    }
 
 export type RpcCall = (options: {
   method: string

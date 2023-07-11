@@ -1,4 +1,5 @@
 import type { BehaviorSubject, Observable, Subject } from 'rxjs'
+import type { Node } from '$lib/@types/nodes.js'
 
 import type {
   JsonRpcErrorResponse,
@@ -27,7 +28,7 @@ export type CommandoMsgs = Observable<
 >
 
 export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
-  info: Required<Info>
+  info: Node
   destroy$: Subject<void>
   updateToken: (token: string) => void
   connect: () => Promise<Info | null>
@@ -51,7 +52,7 @@ export interface GetinfoResponse {
   /**
    * The addresses we announce to the world
    */
-  address?: Address[]
+  address: Address[]
   /**
    * The fun alias this node will advertize
    */
@@ -130,6 +131,7 @@ export type Address = {
    * Type of connection
    */
   type: AddressType
+  address: string
 }
 
 /**
