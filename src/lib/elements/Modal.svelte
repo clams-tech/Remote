@@ -49,7 +49,7 @@
   </div>
 {:else}
   <div
-    transition:fade={{ easing: quintInOut, duration: 600 }}
+    transition:fade={{ easing: quintInOut }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center"
   >

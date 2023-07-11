@@ -42,17 +42,11 @@
       },
       backgroundOptions: { color: '#ffffff' },
       cornersSquareOptions: { type: 'extra-rounded', color: '#6305f0' },
-      cornersDotOptions: { type: 'dot', color: '#000000' }
+      cornersDotOptions: { type: 'dot', color: '#000000' },
+      image: '/icons/512x512.png'
     })
 
     qrCode.append(node)
-  }
-
-  $: if (qrCode) {
-    fetch('/icons/512x512.png').then(() => {
-      qrCode.update({ image: '/icons/512x512.png' })
-      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
-    })
   }
 
   let copySuccess = false
@@ -80,7 +74,6 @@
 </script>
 
 <div
-  in:fade|local={{ duration: 250 }}
   class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
 >
   <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
