@@ -36,7 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true
 }
 
-export const SUPPORTED_LOCALES = ['en-US', 'en-GB']
+export const SUPPORTED_LOCALES = ['en-US']
 export const DOCS_LINK = 'https://docs.clams.tech'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'

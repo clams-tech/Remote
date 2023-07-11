@@ -54,6 +54,7 @@
   async function encryptAndStoreSecret() {
     const publicKey = bytesToHex(secp256k1.getPublicKey(secret, true))
     const encrypted = encryptWithAES(secret, passphrase)
+
     const success = writeDataToStorage(
       STORAGE_KEYS.session,
       JSON.stringify({ secret: encrypted, id: publicKey })

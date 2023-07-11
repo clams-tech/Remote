@@ -8,7 +8,7 @@ import type { Utxo } from './@types/utxos.js'
 import type { Transaction } from './@types/transactions.js'
 import type { Forward } from './@types/forwards.js'
 
-export class DB extends Dexie {
+class DB extends Dexie {
   channels!: Table<Channel>
   connections!: Table<ConnectionDetails>
   nodes!: Table<Node>
