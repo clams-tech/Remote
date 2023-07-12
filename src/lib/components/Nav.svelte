@@ -4,7 +4,7 @@
   import clamsIcon from '$lib/icons/clamsIcon'
   import lightning from '$lib/lightning'
   import { onDestroy } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
 
   const lnAPI = lightning.getLn()
   const { connectionStatus$ } = lnAPI.connection
@@ -30,22 +30,22 @@
       {@html clamsIcon}
     </div>
 
-    <div
-      in:fade|local={{ duration: 250 }}
-      class:w-0={!showConnectionStatus}
-      class:w-28={showConnectionStatus}
-      class="ml-2 overflow-hidden transition-all text-sm flex items-center dark:text-neutral-50/60 text-neutral-900/60"
-    >
-      {$translate('app.labels.connection_status', { status: $connectionStatus$ })}
+    {#if showConnectionStatus}
       <div
-        class:bg-utility-success={$connectionStatus$ === 'connected'}
-        class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
-          $connectionStatus$ === 'waiting_reconnect' ||
-          !$connectionStatus$}
-        class:bg-utility-error={$connectionStatus$ === 'disconnected'}
-        class="w-3 h-3 rounded-full ml-1 transition-colors"
-      />
-    </div>
+        transition:slide|local={{ duration: 250, axis: 'x' }}
+        class="ml-2 overflow-hidden transition-all text-sm flex items-center dark:text-neutral-50/60 text-neutral-900/60"
+      >
+        {$translate('app.labels.connection_status', { status: $connectionStatus$ })}
+        <div
+          class:bg-utility-success={$connectionStatus$ === 'connected'}
+          class:bg-utility-pending={$connectionStatus$ === 'connecting' ||
+            $connectionStatus$ === 'waiting_reconnect' ||
+            !$connectionStatus$}
+          class:bg-utility-error={$connectionStatus$ === 'disconnected'}
+          class="w-3 h-3 rounded-full ml-1 transition-colors"
+        />
+      </div>
+    {/if}
   </div>
 
   <div
