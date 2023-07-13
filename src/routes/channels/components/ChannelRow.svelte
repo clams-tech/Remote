@@ -20,7 +20,7 @@
 </script>
 
 <a href="/channels/{channel.id}" class="w-full py-2 border-b border-neutral-400 block">
-  <div class="flex items-center justify-between mb-1 px-[1px]">
+  <div class="flex items-center justify-between mb-1.5 px-[1px]">
     <div class="text-sm font-semibold">{channel.peerAlias || truncateValue(channel.peerId, 6)}</div>
     <div
       class:text-utility-success={channelStatusLabel === 'active'}
@@ -35,44 +35,52 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-x-1">
-    <div style="width: {localPercent}%;" class="h-2 rounded-full bg-purple-500" />
+  <div
+  class:gap-x-1={localPercent && remotePercent}
+   class="flex items-center">
+    <div style="width: {localPercent}%;" class="h-2 rounded-full bg-purple-400" />
     <div style="width: {remotePercent}%;" class="h-2 rounded-full bg-purple-200" />
   </div>
 
-  <div class="w-full flex items-center justify-between text-sm mt-1 px-[1px]">
-    <div class="flex items-center">
-      <span
-        class="flex justify-center items-center"
-        class:w-4={primarySymbol.startsWith('<')}
-        class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-      >
-      {formatValueForDisplay({
-        value: convertValue({
-          value: channel.balanceLocal,
-          from: BitcoinDenomination.msats,
-          to: $settings$.primaryDenomination
-        }),
-        denomination: $settings$.primaryDenomination,
-        commas: true
-      })}
+  <div class="w-full flex items-center justify-between text-sm mt-2 px-[1px]">
+    <div class="flex flex-col items-baseline">
+      <div class="flex items-center font-semibold">
+        <span
+          class="flex justify-center items-center -ml-1"
+          class:w-4={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {formatValueForDisplay({
+          value: convertValue({
+            value: channel.balanceLocal,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          }),
+          denomination: $settings$.primaryDenomination,
+          commas: true
+        })}
+      </div>
+      <div class="text-xs dark:text-neutral-300 text-neutral-600">{$translate('app.labels.local')}</div>
     </div>
 
-    <div class="flex items-center">
-      <span
-        class="flex justify-center items-center"
-        class:w-4={primarySymbol.startsWith('<')}
-        class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-      >
-      {formatValueForDisplay({
-        value: convertValue({
-          value: channel.balanceRemote,
-          from: BitcoinDenomination.msats,
-          to: $settings$.primaryDenomination
-        }),
-        denomination: $settings$.primaryDenomination,
-        commas: true
-      })}
+    <div class="flex flex-col items-end">
+      <div class="flex items-center font-semibold">
+        <span
+          class="flex justify-center items-center"
+          class:w-4={primarySymbol.startsWith('<')}
+          class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+        >
+        {formatValueForDisplay({
+          value: convertValue({
+            value: channel.balanceRemote,
+            from: BitcoinDenomination.msats,
+            to: $settings$.primaryDenomination
+          }),
+          denomination: $settings$.primaryDenomination,
+          commas: true
+        })}
+      </div>
+      <div class="text-xs dark:text-neutral-300 text-neutral-600">{$translate('app.labels.remote')}</div>
     </div>
   </div>
 </a>

@@ -63,8 +63,6 @@
     {:else if $channels$.data}
       <div class="w-full flex flex-col h-full overflow-hidden">
         <div class="w-full mb-4">
-          <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Summary</h2>
-
           <SummaryRow>
             <div slot="label">Channels:</div>
             <div slot="value">{$channels$.data.length}</div>
@@ -103,8 +101,6 @@
 
         {#if $channels$.data.length}
           <div class="w-full flex flex-col flex-grow overflow-hidden">
-            <h2 class="font-bold text-lg underline underline-offset-2 mb-2">Open channels</h2>
-
             <div class="flex flex-col h-full overflow-hidden">
               <div class="w-full flex flex-col h-full gap-y-4 overflow-auto">
                 {#each $channels$.data as channel}
