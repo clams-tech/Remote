@@ -130,16 +130,15 @@
     data: { id, address }
   } = $nodeInfo$}
   <Modal on:close={() => (showNodeInfoModal = false)}>
-    <h4 class="font-semibold mb-2 w-full text-3xl">
+    <h4 class="font-semibold mb-6 w-full text-3xl">
       {$nodeInfo$.data?.alias}
     </h4>
 
-    <div class="mb-4 w-full flex justify-start font-semibold">
-      <CopyValue value={id} truncateLength={12} icon={key} />
-    </div>
-
-    <div class="mb-8">
-      <Qr value={nodeAddress} />
-    </div>
+    <Qr
+      values={[
+        { label: $translate('app.labels.connection_address'), value: nodeAddress },
+        { label: $translate('app.labels.public_key'), value: id }
+      ]}
+    />
   </Modal>
 {/if}
