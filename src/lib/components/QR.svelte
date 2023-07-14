@@ -124,63 +124,60 @@
   })
 </script>
 
-<div class="w-full overflow-hidden">
-  <div class="flex items-center justify-between">
+<div class="w-full flex flex-col items-center justify-center overflow-hidden">
+  <div style="min-width: {size}px;">
+    <div class="flex items-center justify-start w-full">
+      <div
+        class="flex items-center text-xs font-semibold rounded-t-lg border-t-2 border-x-2 border-neutral-400 overflow-hidden"
+      >
+        {#each values as { label }, index}
+          <button
+            on:click={() => (selectedValueIndex = index)}
+            class="px-3 py-1 block"
+            class:dark:text-neutral-900={index === selectedValueIndex}
+            class:dark:bg-neutral-50={index === selectedValueIndex}
+            class:text-neutral-50={index === selectedValueIndex}
+            class:bg-neutral-900={index === selectedValueIndex}
+          >
+            {label}
+          </button>
+        {/each}
+      </div>
+    </div>
+
     <div
-      class="flex items-center text-xs font-semibold rounded-t-lg border-t-2 border-x-2 border-neutral-400 overflow-hidden"
+      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center overflow-hidden w-min"
     >
-      {#each values as { label }, index}
-        <button
-          on:click={() => (selectedValueIndex = index)}
-          class="px-3 py-1 block"
-          class:dark:text-neutral-900={index === selectedValueIndex}
-          class:dark:bg-neutral-50={index === selectedValueIndex}
-          class:text-neutral-50={index === selectedValueIndex}
-          class:bg-neutral-900={index === selectedValueIndex}
-        >
-          {label}
+      <button on:click={copyText} class="rounded overflow-hidden" bind:this={node} />
+    </div>
+
+    <div class="w-full flex items-center justify-between px-2.5 overflow-hidden">
+      <div class="text-sm overflow-hidden max-w-xs flex-grow">
+        {#if message}
+          <div transition:slide={{ axis: 'x' }} class="flex items-center">
+            <div class="w-3.5 border border-current rounded-full mr-1 flex-shrink-0">
+              {@html info}
+            </div>
+            <div class="truncate">
+              {message.value}
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="flex items-center gap-x-1 -mr-1.5 justify-end">
+        <button on:click={copyText} class="flex items-center">
+          <div class="w-8">{@html copy}</div>
         </button>
-      {/each}
-    </div>
-  </div>
 
-  <div
-    style="min-width: {size}px;"
-    class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center box-content"
-  >
-    <button
-      on:click={copyText}
-      class="rounded overflow-hidden w-full flex items-center justify-center"
-      bind:this={node}
-    />
-  </div>
+        <button on:click={copyImage} class="flex items-center">
+          <div class="w-8">{@html photo}</div>
+        </button>
 
-  <div class="w-full flex items-center justify-between px-2.5 overflow-hidden">
-    <div class="text-sm overflow-hidden max-w-xs flex-grow">
-      {#if message}
-        <div transition:slide={{ axis: 'x' }} class="flex items-center">
-          <div class="w-3.5 border border-current rounded-full mr-1 flex-shrink-0">
-            {@html info}
-          </div>
-          <div class="truncate">
-            {message.value}
-          </div>
-        </div>
-      {/if}
-    </div>
-
-    <div class="flex items-center gap-x-1 -mr-1.5 justify-end">
-      <button on:click={copyText} class="flex items-center">
-        <div class="w-8">{@html copy}</div>
-      </button>
-
-      <button on:click={copyImage} class="flex items-center">
-        <div class="w-8">{@html photo}</div>
-      </button>
-
-      <button on:click={downloadImage} class="flex items-center">
-        <div class="w-8">{@html save}</div>
-      </button>
+        <button on:click={downloadImage} class="flex items-center">
+          <div class="w-8">{@html save}</div>
+        </button>
+      </div>
     </div>
   </div>
 </div>
