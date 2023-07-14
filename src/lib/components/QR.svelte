@@ -146,7 +146,7 @@
     </div>
 
     <div
-      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center overflow-hidden w-min"
+      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min"
     >
       <button on:click={copyText} class="rounded overflow-hidden" bind:this={node} />
     </div>
