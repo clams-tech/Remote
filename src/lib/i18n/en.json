@@ -78,7 +78,7 @@
     "channel_size": "Channel size",
     "update_channel_settings": "Update channel settings",
     "opened_by": "Opened by",
-    "connection_address": "Connection address",
+    "address": "Address",
     "public_key": "Public key",
     "image_copied": "Image copied",
     "image_downloaded": "Image downloaded",

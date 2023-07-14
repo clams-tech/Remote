@@ -130,13 +130,13 @@
     data: { id, address }
   } = $nodeInfo$}
   <Modal on:close={() => (showNodeInfoModal = false)}>
-    <h4 class="font-semibold mb-6 w-full text-3xl">
+    <h4 class="font-semibold mb-4 w-full text-3xl">
       {$nodeInfo$.data?.alias}
     </h4>
 
     <Qr
       values={[
-        { label: $translate('app.labels.connection_address'), value: nodeAddress },
+        { label: $translate('app.labels.address'), value: nodeAddress },
         { label: $translate('app.labels.public_key'), value: id }
       ]}
     />

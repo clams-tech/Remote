@@ -17,7 +17,7 @@
     'w-full h-full fixed top-0 left-0 backdrop-blur-sm dark:bg:neutral-50 bg-neutral-900/40 flex flex-col items-center z-50'
 
   const modalStyles =
-    'bg-neutral-50 dark:bg-neutral-800 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[85%] overflow-y-auto'
+    'bg-neutral-50 dark:bg-neutral-800 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[90%] overflow-y-auto'
 
   function closeModal() {
     dispatch('close')
@@ -53,7 +53,10 @@
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center"
   >
-    <div on:click|stopPropagation class="{modalStyles} rounded-3xl max-w-lg pl-10 pr-12 pt-8 pb-10">
+    <div
+      on:click|stopPropagation
+      class="{modalStyles} rounded-3xl max-w-lg overflow-hidden pl-10 pr-12 pt-8 pb-10"
+    >
       <div
         on:click={closeModal}
         class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors text-neutral-400"

@@ -8,6 +8,8 @@
   import { truncateValue } from '$lib/utils'
   import { translate } from '$lib/i18n/translations.js'
   import close from '$lib/icons/close.js'
+  import info from '$lib/icons/info.js'
+  import save from '$lib/icons/save.js'
 
   export let values: { label: string; value: string }[]
   export let size = Math.min(window.innerWidth - 72, 400)
@@ -24,14 +26,13 @@
   let node: HTMLButtonElement
   let qrCode: QRCodeStyling
   let rawData: Blob
-  let actionMessage = ''
 
   $: if (node) {
     qrCode = new QRCodeStyling({
       width: size,
       height: size,
       type: 'svg',
-      imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
+      imageOptions: { hideBackgroundDots: true, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
         color: '#6a1a4c',
@@ -54,40 +55,29 @@
   }
 
   $: if (qrCode) {
+    fetch('/icons/512x512.png').then(() => {
+      qrCode.update({ image: '/icons/512x512.png' })
+      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+    })
+
     qrCode.update({ data: selectedValue.value })
   }
 
-  type ActionType = 'copyImage' | 'copyText' | 'downloadImage'
-
-  type Action = {
-    result: 'success' | 'failed' | null
-    message: string
+  type Message = {
+    value: string
     timeout: NodeJS.Timeout | null
   }
 
-  const actions: Record<ActionType, Action> = {
-    copyImage: {
-      result: null,
-      message: '',
-      timeout: null
-    },
-    copyText: {
-      result: null,
-      message: '',
-      timeout: null
-    },
-    downloadImage: {
-      result: null,
-      message: '',
-      timeout: null
-    }
-  }
+  let message: Message | null = null
 
-  function clearMessage(type: ActionType) {
-    actions[type].timeout = setTimeout(() => {
-      actions[type].message = ''
-      actions[type].result = null
-    }, 2000)
+  function setMessage(value: string) {
+    // clear current timeout
+    message?.timeout && clearTimeout(message.timeout)
+
+    message = {
+      value,
+      timeout: setTimeout(() => (message = null), 4000)
+    }
   }
 
   async function copyImage() {
@@ -98,55 +88,43 @@
         })
       ])
 
-      actions.copyImage.message = $translate('app.labels.image_copied')
-      actions.copyImage.result = 'success'
+      setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
-      actions.copyImage.message = message
-      actions.copyImage.result = 'failed'
-    } finally {
-      clearMessage('copyImage')
+      setMessage(message)
     }
   }
 
   async function downloadImage() {
     try {
-      qrCode.download({
+      await qrCode.download({
         extension: 'png',
         name: `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}`
       })
 
-      actions.downloadImage.message = $translate('app.labels.image_downloaded')
-      actions.downloadImage.result = 'success'
+      setMessage($translate('app.labels.image_downloaded'))
     } catch (error) {
       const { message } = error as Error
-      actions.downloadImage.message = message
-      actions.downloadImage.result = 'failed'
-    } finally {
-      clearMessage('downloadImage')
+      setMessage(message)
     }
   }
 
   async function copyText() {
     try {
       await navigator.clipboard.writeText(selectedValue.value)
-      actions.copyText.message = $translate('app.labels.text_copied')
-      actions.copyText.result = 'success'
+      setMessage($translate('app.labels.text_copied'))
     } catch (error) {
       const { message } = error as Error
-      actions.copyText.message = message
-      actions.copyText.result = 'failed'
-    } finally {
-      clearMessage('copyText')
+      setMessage(message)
     }
   }
 
   onDestroy(() => {
-    Object.values(actions).forEach(({ timeout }) => timeout && clearTimeout(timeout))
+    message?.timeout && clearTimeout(message.timeout)
   })
 </script>
 
-<div>
+<div class="w-full overflow-hidden">
   <div class="flex items-center justify-between">
     <div
       class="flex items-center text-xs font-semibold rounded-t-lg border-t-2 border-x-2 border-neutral-400 overflow-hidden"
@@ -165,6 +143,7 @@
       {/each}
     </div>
   </div>
+
   <div
     style="min-width: {size}px;"
     class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center box-content"
@@ -176,42 +155,31 @@
     />
   </div>
 
-  <div class="w-full flex justify-between">
-    <div>
-      {#if actionMessage}
-        <div class="text-sm" in:slide={{ axis: 'x' }}>{actionMessage}</div>
+  <div class="w-full flex items-center justify-between px-2.5 overflow-hidden">
+    <div class="text-sm overflow-hidden max-w-xs flex-grow">
+      {#if message}
+        <div transition:slide={{ axis: 'x' }} class="flex items-center">
+          <div class="w-3.5 border border-current rounded-full mr-1 flex-shrink-0">
+            {@html info}
+          </div>
+          <div class="truncate">
+            {message.value}
+          </div>
+        </div>
       {/if}
     </div>
 
-    <div class="flex items-center gap-x-1">
+    <div class="flex items-center gap-x-1 -mr-1.5 justify-end">
+      <button on:click={copyText} class="flex items-center">
+        <div class="w-8">{@html copy}</div>
+      </button>
+
       <button on:click={copyImage} class="flex items-center">
-        {#if actions.copyImage.result}
-          <div
-            in:fade|local={{ duration: 250 }}
-            class="w-8"
-            class:text-utility-success={actions.copyImage.result === 'success'}
-            class:text-utility-error={actions.copyImage.result === 'failed'}
-          >
-            {@html actions.copyImage.result === 'success' ? check : close}
-          </div>
-        {:else}
-          <div in:fade|local={{ duration: 250 }} class="w-8">{@html copy}</div>
-        {/if}
+        <div class="w-8">{@html photo}</div>
       </button>
 
       <button on:click={downloadImage} class="flex items-center">
-        {#if actions.downloadImage.result}
-          <div
-            in:fade|local={{ duration: 250 }}
-            class="w-8"
-            class:text-utility-success={actions.downloadImage.result === 'success'}
-            class:text-utility-error={actions.downloadImage.result === 'failed'}
-          >
-            {@html actions.downloadImage.result === 'success' ? check : close}
-          </div>
-        {:else}
-          <div in:fade|local={{ duration: 250 }} class="w-8">{@html photo}</div>
-        {/if}
+        <div class="w-8">{@html save}</div>
       </button>
     </div>
   </div>
