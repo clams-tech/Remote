@@ -412,6 +412,7 @@ const hostRegex =
 
 export function decodeLightningAddress(val: string): { username: string; domain: string } | null {
   const [username, domain] = val.split('@')
+  if (!username || !domain) return null
 
   // check valid username && valid domain
   if (!usernameRegex.test(username) || !hostRegex.test(domain)) {
@@ -505,7 +506,6 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
   try {
     const { pathname, searchParams } = new URL(input)
     const lightningParam = searchParams.get('lightning')
-
     const details = getPaymentDetails(pathname.toLowerCase())
 
     if ((details as ParsedBitcoinStringError).error) {
@@ -524,6 +524,7 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
 
     return { type, value, ...lightning }
   } catch (error) {
+    console.log({ error })
     return getPaymentDetails(input)
   }
 }
