@@ -311,7 +311,7 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
 
   if (!publicKey.match(nodePublicKeyRegex)) return false
 
-  if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
+  if (!ip.match(ipRegex) && !ip.match(hostRegex) && ip !== 'localhost') return false
 
   return true
 }
@@ -407,14 +407,14 @@ export function mainDomain(host: string): string {
 
 const usernameRegex = /^[a-z0-9-_.]+$/
 
-const domainRegex =
-  /^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/
+const hostRegex =
+  /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/
 
 export function decodeLightningAddress(val: string): { username: string; domain: string } | null {
   const [username, domain] = val.split('@')
 
   // check valid username && valid domain
-  if (!usernameRegex.test(username) || !domainRegex.test(domain)) {
+  if (!usernameRegex.test(username) || !hostRegex.test(domain)) {
     return null
   }
 
