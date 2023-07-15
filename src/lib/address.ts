@@ -11,8 +11,8 @@ export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
 export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
-const domainRegex =
-  /^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/
+const hostRegex =
+  /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/
 
 export function validateNodeAddress(address: string): boolean {
   try {
@@ -23,7 +23,7 @@ export function validateNodeAddress(address: string): boolean {
 
     if (!publicKey.match(nodePublicKeyRegex)) return false
 
-    if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
+    if (!ip.match(ipRegex) && !ip.match(hostRegex) && ip !== 'localhost') return false
 
     return true
   } catch (error) {
