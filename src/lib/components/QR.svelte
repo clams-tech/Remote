@@ -1,33 +1,38 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
   import QRCodeStyling from 'qr-code-styling'
   import copy from '$lib/icons/copy'
   import photo from '$lib/icons/photo'
   import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
-  import { logger, truncateValue } from '$lib/utils'
+  import { truncateValue } from '$lib/utils'
+  import { translate } from '$lib/i18n/translations.js'
+  import close from '$lib/icons/close.js'
+  import info from '$lib/icons/info.js'
+  import save from '$lib/icons/save.js'
 
-  export let value: string | null
-  export let size = Math.min(window.innerWidth - 50, 400)
+  export let values: { label: string; value: string }[]
+  export let size = Math.min(window.innerWidth - 72, 400)
 
   export function getQrImage() {
     return canvas?.toDataURL()
   }
 
-  const truncated = truncateValue(value as string)
+  let selectedValueIndex = 0
+
+  $: selectedValue = values[selectedValueIndex]
 
   let canvas: HTMLCanvasElement | null = null
-  let node: HTMLDivElement
+  let node: HTMLButtonElement
   let qrCode: QRCodeStyling
   let rawData: Blob
 
-  $: if (value && node) {
+  $: if (node) {
     qrCode = new QRCodeStyling({
       width: size,
       height: size,
       type: 'svg',
-      data: value,
-      imageOptions: { hideBackgroundDots: false, imageSize: 0.25, margin: 0 },
+      imageOptions: { hideBackgroundDots: true, imageSize: 0.25, margin: 0 },
       dotsOptions: {
         type: 'dots',
         color: '#6a1a4c',
@@ -49,8 +54,31 @@
     qrCode.append(node)
   }
 
-  let copySuccess = false
-  let copyTimeout: NodeJS.Timeout
+  $: if (qrCode) {
+    fetch('/icons/512x512.png').then(() => {
+      qrCode.update({ image: '/icons/512x512.png' })
+      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
+    })
+
+    qrCode.update({ data: selectedValue.value })
+  }
+
+  type Message = {
+    value: string
+    timeout: NodeJS.Timeout | null
+  }
+
+  let message: Message | null = null
+
+  function setMessage(value: string) {
+    // clear current timeout
+    message?.timeout && clearTimeout(message.timeout)
+
+    message = {
+      value,
+      timeout: setTimeout(() => (message = null), 4000)
+    }
+  }
 
   async function copyImage() {
     try {
@@ -60,36 +88,96 @@
         })
       ])
 
-      copySuccess = true
-      copyTimeout = setTimeout(() => (copySuccess = false), 3000)
+      setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
-      logger.error(message)
+      setMessage(message)
+    }
+  }
+
+  async function downloadImage() {
+    try {
+      await qrCode.download({
+        extension: 'png',
+        name: `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}`
+      })
+
+      setMessage($translate('app.labels.image_downloaded'))
+    } catch (error) {
+      const { message } = error as Error
+      setMessage(message)
+    }
+  }
+
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(selectedValue.value)
+      setMessage($translate('app.labels.text_copied'))
+    } catch (error) {
+      const { message } = error as Error
+      setMessage(message)
     }
   }
 
   onDestroy(() => {
-    copyTimeout && clearTimeout(copyTimeout)
+    message?.timeout && clearTimeout(message.timeout)
   })
 </script>
 
-<div
-  class="border-2 border-neutral-400 rounded-lg shadow-md max-w-full p-2 md:p-4 flex flex-col justify-center items-center relative"
->
-  <div class="rounded overflow-hidden transition-opacity" bind:this={node} />
-  <div class="absolute -bottom-9 right-0 mt-2 flex items-center gap-x-2">
-    <button on:click={copyImage} class="flex items-center">
-      {#if copySuccess}
-        <div in:fade|local={{ duration: 250 }} class="w-8 text-utility-success">{@html check}</div>
-      {:else}
-        <div in:fade|local={{ duration: 250 }} class="w-8">{@html copy}</div>
-      {/if}
-    </button>
-    <button
-      on:click={() => qrCode.download({ extension: 'png', name: truncated })}
-      class="flex items-center"
+<div class="w-full flex flex-col items-center justify-center overflow-hidden">
+  <div style="min-width: {size}px;">
+    <div class="flex items-center justify-start w-full">
+      <div
+        class="flex items-center text-xs font-semibold rounded-t-lg border-t-2 border-x-2 border-neutral-400 overflow-hidden"
+      >
+        {#each values as { label }, index}
+          <button
+            on:click={() => (selectedValueIndex = index)}
+            class="px-3 py-1 block"
+            class:dark:text-neutral-900={index === selectedValueIndex}
+            class:dark:bg-neutral-50={index === selectedValueIndex}
+            class:text-neutral-50={index === selectedValueIndex}
+            class:bg-neutral-900={index === selectedValueIndex}
+          >
+            {label}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <div
+      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min"
     >
-      <div class="w-8">{@html photo}</div>
-    </button>
+      <button on:click={copyText} class="rounded overflow-hidden" bind:this={node} />
+    </div>
+
+    <div class="w-full flex items-center justify-between px-2.5 overflow-hidden">
+      <div class="text-sm overflow-hidden max-w-xs flex-grow">
+        {#if message}
+          <div transition:slide={{ axis: 'x' }} class="flex items-center">
+            <div class="w-3.5 border border-current rounded-full mr-1 flex-shrink-0">
+              {@html info}
+            </div>
+            <div class="truncate">
+              {message.value}
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="flex items-center gap-x-1 -mr-1.5 justify-end">
+        <button on:click={copyText} class="flex items-center">
+          <div class="w-8">{@html copy}</div>
+        </button>
+
+        <button on:click={copyImage} class="flex items-center">
+          <div class="w-8">{@html photo}</div>
+        </button>
+
+        <button on:click={downloadImage} class="flex items-center">
+          <div class="w-8">{@html save}</div>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

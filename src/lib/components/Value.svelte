@@ -91,12 +91,12 @@
 </script>
 
 <div class="flex items-center w-full justify-center">
-  <div class="flex flex-col items-end w-full">
+  <div class="flex flex-col items-end w-full overflow-hidden">
     <div
       on:click={focus}
-      class="flex items-center border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
+      class="flex items-baseline justify-between border-b-4 border-b-purple-500 pt-4 pb-2 rounded w-full relative"
     >
-      <div class="flex items-center w-full">
+      <div class="flex items-center flex-grow overflow-hidden">
         <span
           class="text-4xl flex justify-center items-center font-semibold flex-shrink-0"
           class:w-9={primarySymbol.startsWith('<')}
@@ -104,8 +104,8 @@
         >
           {@html primarySymbol}
         </span>
-        <div class="relative">
-          <div class="text-4xl font-semibold cursor-pointer font-mono">
+
+          <div class="text-4xl font-semibold cursor-pointer font-mono truncate">
             {#if primary !== null}
               {#if readonly}
                 <span
@@ -134,11 +134,11 @@
               </div>
             {/if}
           </div>
-        </div>
       </div>
+
       <div
         on:click|stopPropagation={switchDenomination}
-        class="w-6 ml-6 p-1 absolute right-0 box-content text-neutral-400 hover:text-neutral-600 hover:border-neutral-600 transition-all rotate-90 cursor-pointer"
+        class="w-6 p-1 box-content flex-shrink-0 text-neutral-400 hover:text-neutral-600 hover:border-neutral-600 transition-all rotate-90 cursor-pointer"
       >
         {@html exchange}
       </div>

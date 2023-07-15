@@ -10,9 +10,9 @@ declare namespace App {
   // interface Stuff {}
 }
 
-declare namespace svelte.JSX {
-  interface HTMLAttributes<T> {
-    onswipe?: (event: string) => void
+declare namespace svelteHTML {
+  interface HTMLAttributes {
+    'on:swipe'?: (event: string) => void
   }
 }
 

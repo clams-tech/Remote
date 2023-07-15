@@ -62,7 +62,7 @@
 >
   <section
     in:fade|local={{ duration: 250 }}
-    class="flex flex-col justify-start w-full p-4 max-w-lg"
+    class="flex flex-col h-full justify-center w-full p-4 max-w-lg"
   >
     <div class="flex items-center mb-6 mt-12">
       <div class="w-10 mr-2">{@html list}</div>

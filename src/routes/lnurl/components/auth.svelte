@@ -4,8 +4,7 @@
   import Button from '$lib/elements/Button.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
   import check from '$lib/icons/check'
-  import { firstLetterUpperCase, mainDomain } from '$lib/utils'
-  import { noop } from 'svelte/internal'
+  import { firstLetterUpperCase, mainDomain, noop } from '$lib/utils'
   import { getAuthSigner } from '../utils'
 
   export let action: string

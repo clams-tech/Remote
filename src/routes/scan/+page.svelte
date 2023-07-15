@@ -40,9 +40,13 @@
 
   async function handleScanResult(scanResult: string) {
     // node address to open channel to
-    if (validateParsedNodeAddress(parseNodeAddress(scanResult))) {
-      await goto(`/channels/open?address=${scanResult}`)
-      return
+    try {
+      if (validateParsedNodeAddress(parseNodeAddress(scanResult))) {
+        await goto(`/channels/open?address=${scanResult}`)
+        return
+      }
+    } catch (error) {
+      // not a node address, so continue
     }
 
     const parsed = parseBitcoinUrl(scanResult)

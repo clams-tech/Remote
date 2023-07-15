@@ -151,11 +151,11 @@
 
 <section
   in:fade|local={{ duration: 250 }}
-  class="flex flex-col justify-center items-center h-full w-full max-w-lg p-4 overflow-hidden xs:pb-8"
+  class="flex flex-col justify-center items-center w-full max-w-lg p-4 overflow-hidden xs:pb-8"
 >
   <BackButton on:click={back} text={$translate(`app.titles.${backPath}`)} />
 
-  <div class="h-12" />
+  <div class="h-16" />
 
   {#if $channels$.loading}
     <Spinner />
@@ -186,7 +186,7 @@
       </div>
     </div>
 
-    <div class="flex flex-col w-full overflow-hidden">
+    <div class="flex flex-col w-full overflow-hidden flex-grow">
       <div class="flex flex-col w-full flex-grow overflow-auto">
         <SummaryRow>
           <div slot="label">
