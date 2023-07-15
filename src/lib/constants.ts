@@ -36,10 +36,7 @@ export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
-export const currencySymbols = {
-  btc: bitcoin,
-  sats: lightningIcon,
-  msats: lightningIcon,
+export const CURRENCY_SYMBOLS = {
   usd: '$',
   eur: '€',
   gbp: '£',
@@ -60,4 +57,12 @@ export const currencySymbols = {
   nzd: '$',
   mxn: '$',
   rub: '₽'
+}
+
+const STORAGE_VERSION = 1
+
+export const STORAGE_KEYS = {
+  session: `clams:session:${STORAGE_VERSION}`,
+  settings: `clams:settings:${STORAGE_VERSION}`,
+  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
 }

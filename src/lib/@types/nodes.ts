@@ -9,3 +9,9 @@ export type Node = {
   color: string
   version: string
 }
+
+export type ParsedNodeAddress = {
+  publicKey: string
+  ip: string
+  port?: number
+}

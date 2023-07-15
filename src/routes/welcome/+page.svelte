@@ -8,10 +8,11 @@
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import { STORAGE_KEYS, writeDataToStorage } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
+  import { storage } from '$lib/services.js'
+  import { STORAGE_KEYS } from '$lib/constants.js'
 
   const translationBase = 'app.routes./welcome'
   const secret = createRandomHex()
@@ -55,14 +56,10 @@
     const publicKey = bytesToHex(secp256k1.getPublicKey(secret, true))
     const encrypted = encryptWithAES(secret, passphrase)
 
-    const success = writeDataToStorage(
-      STORAGE_KEYS.session,
-      JSON.stringify({ secret: encrypted, id: publicKey })
-    )
-
-    if (!success) {
+    try {
+      storage.write(STORAGE_KEYS.session, JSON.stringify({ secret: encrypted, id: publicKey }))
+    } catch (error) {
       errorMsg = $translate('app.errors.storage_access')
-
       return
     }
 

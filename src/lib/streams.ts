@@ -2,12 +2,13 @@ import { onDestroy } from 'svelte'
 import type { Invoice } from './@types/invoices.js'
 import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
-import { DEFAULT_SETTINGS } from './constants.js'
-import { getDataFromStorage, STORAGE_KEYS, writeDataToStorage } from './storage.js'
+import { DEFAULT_SETTINGS, STORAGE_KEYS } from './constants.js'
 import type { ConnectionInterface } from './connections/interfaces.js'
 import { liveQuery } from 'dexie'
 import { db } from './db.js'
 import type { AppError } from './@types/errors.js'
+import { SvelteSubject } from './svelte.js'
+import { log, storage } from './services.js'
 
 import {
   BehaviorSubject,
@@ -17,12 +18,11 @@ import {
   Observable,
   scan,
   shareReplay,
+  skip,
   startWith,
   Subject,
   take
 } from 'rxjs'
-import { log$, logger } from './logs.js'
-import { SvelteSubject } from './svelte.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
@@ -47,7 +47,7 @@ export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
     const { connectionId } = value.detail
 
     if (!connectionId) {
-      logger.warn(`Connection error that does not have a connection id: ${JSON.stringify(value)}`)
+      log.warn(`Connection error that does not have a connection id: ${JSON.stringify(value)}`)
       return acc
     }
 
@@ -85,7 +85,7 @@ export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | 
 // all payment update events
 export const paymentUpdates$ = new Subject<Invoice>()
 
-const storedSettings = getDataFromStorage(STORAGE_KEYS.settings)
+const storedSettings = typeof window !== 'undefined' && storage.get(STORAGE_KEYS.settings)
 
 // app settings
 export const settings$ = new SvelteSubject<Settings>({
@@ -94,29 +94,15 @@ export const settings$ = new SvelteSubject<Settings>({
 })
 
 // updates settings in storage and handles dark mode toggle
-settings$.pipe(filter((x) => !!x)).subscribe((update) => {
-  try {
-    writeDataToStorage(STORAGE_KEYS.settings, JSON.stringify(update))
-  } catch (error) {
-    logger.error('Could not save settings to storage, access to local storage denied')
-  }
-})
-
-export const recentLogs$: Observable<string[]> = log$.pipe(
-  scan((allLogs, newLog) => {
-    if (newLog === 'CLEAR_ALL_LOGS') return []
-
-    allLogs.push(newLog)
-
-    while (allLogs.length > 50) {
-      allLogs.shift()
+settings$
+  .pipe(
+    skip(1),
+    filter((x) => !!x)
+  )
+  .subscribe((update) => {
+    try {
+      storage.write(STORAGE_KEYS.settings, JSON.stringify(update))
+    } catch (error) {
+      log.error('Access to local storage is blocked. Could not write settings to storage')
     }
-
-    return allLogs
-  }, [] as string[]),
-  shareReplay(1),
-  startWith([])
-)
-
-// subscribe to ensure that we start collecting logs
-recentLogs$.subscribe()
+  })

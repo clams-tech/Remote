@@ -9,7 +9,6 @@ import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
 import type { Invoice } from '$lib/@types/invoices.js'
-import { logger } from '$lib/logs.js'
 
 export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
   {
@@ -24,7 +23,7 @@ export const connectionDetailsToInterface = (
 ): ConnectionInterface => {
   switch (info.type) {
     case 'coreln':
-      return new CoreLightning(info.id, info.configuration as CoreLnConfiguration, session, logger)
+      return new CoreLightning(info.id, info.configuration as CoreLnConfiguration, session)
   }
 
   throw new Error(`Invalid connection type: ${info.type}`)

@@ -1,3 +1,5 @@
+import type { Session } from './@types/session.js'
+
 export const clipboard = {
   permission: async (name: PermissionName): Promise<boolean> => {
     try {
@@ -58,5 +60,26 @@ export const file = {
       link.click()
       document.body.removeChild(link)
     }
+  }
+}
+
+export const storage = {
+  get: (storageKey: string): string | null => {
+    return window.localStorage.getItem(storageKey)
+  },
+  write: (storageKey: string, data: string): void => {
+    window.localStorage.setItem(storageKey, data)
+  }
+}
+
+export const log = {
+  info: (msg: string) => {
+    console.log(msg)
+  },
+  warn: (msg: string) => {
+    console.warn(msg)
+  },
+  error: (msg: string) => {
+    console.error(msg)
   }
 }

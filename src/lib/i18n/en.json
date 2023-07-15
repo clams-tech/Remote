@@ -19,8 +19,8 @@
     "/payments": {
       "title": "Payments"
     },
-    "/balances": {
-      "title": "Balances"
+    "/utxos": {
+      "title": "UTXOs"
     },
     "/accounting": {
       "title": "Accounting"

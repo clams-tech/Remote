@@ -1,4 +1,4 @@
-import type { LnWebSocketOptions } from 'lnmessage/dist/types.js'
+import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
 import Node from './node.js'
@@ -10,7 +10,6 @@ import Invoices from './invoices.js'
 import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
-import type { Logger } from '$lib/@types/util.js'
 import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
 import Forwards from './forwards.js'
@@ -32,7 +31,7 @@ import type {
 } from '../interfaces.js'
 
 class CoreLightning implements CorelnConnectionInterface {
-  info: Info
+  info: Required<Info>
   destroy$: Subject<void>
   errors$: Subject<AppError>
   rune: string

@@ -1,4 +1,4 @@
-import type { ParsedNodeAddress } from './@types/util.js'
+import type { ParsedNodeAddress } from './@types/nodes.js'
 
 export function parseNodeAddress(address: string): ParsedNodeAddress {
   const [publicKey, host] = address.split('@')

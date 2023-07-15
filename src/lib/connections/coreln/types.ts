@@ -27,7 +27,7 @@ export type CommandoMsgs = Observable<
 >
 
 export interface CorelnConnectionInterface extends Required<ConnectionInterface> {
-  info: Info
+  info: Required<Info>
   destroy$: Subject<void>
   updateToken: (token: string) => void
   connect: () => Promise<Info | null>

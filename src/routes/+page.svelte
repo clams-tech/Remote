@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { STORAGE_KEYS } from '$lib/constants.js'
   import { db } from '$lib/db.js'
   import Msg from '$lib/elements/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
@@ -13,7 +14,7 @@
   import send from '$lib/icons/send.js'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import wallet from '$lib/icons/wallet.js'
-  import { STORAGE_KEYS, getDataFromStorage, writeDataToStorage } from '$lib/storage.js'
+  import { storage } from '$lib/services.js'
   import { fade } from 'svelte/transition'
 
   const buttons = [
@@ -21,27 +22,28 @@
     { key: 'scan', icon: scan },
     { key: 'receive', icon: receive },
     { key: 'connections', icon: keys },
-    { key: 'balances', icon: wallet },
     { key: 'payments', icon: list },
+    { key: 'utxos', icon: wallet },
     { key: 'channels', icon: channels },
-    { key: 'accounting', icon: feeOutline },
-    // { key: 'imports', icon: share, styles: '' },
     { key: 'offers', icon: lightningOutline },
+    { key: 'accounting', icon: feeOutline },
     { key: 'contacts', icon: contacts },
     { key: 'settings', icon: settingsOutline }
   ]
 
   let showGetStartedHint = false
+  const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
 
-  !getDataFromStorage(STORAGE_KEYS.getStartedHint) &&
+  if (!getStartedDismissed) {
     db.connections.toArray().then((connections) => {
       if (!connections.length) {
         showGetStartedHint = true
       }
     })
+  }
 
   function handleCloseHint() {
-    writeDataToStorage(STORAGE_KEYS.getStartedHint, 'true')
+    storage.write(STORAGE_KEYS.getStartedHint, 'true')
   }
 </script>
 

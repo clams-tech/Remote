@@ -5,7 +5,7 @@ import { State } from './types'
 import type { DecodedBolt12Invoice } from 'bolt12-decoder/@types/types.js'
 import type { ChannelStatus } from '$lib/@types/channels.js'
 import { decodeBolt11 } from '$lib/invoices.js'
-import { logger } from '$lib/logs.js'
+import { log } from '$lib/services.js'
 
 /**Will strip the msat suffix from msat values if there */
 export function stripMsatSuffix(val: string | number): string {
@@ -51,7 +51,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     if (decoded) {
       timestamp = decoded.timestamp
     } else {
-      logger.error(`Unable to decode bolt11: ${bolt11}`)
+      log.error(`Unable to decode bolt11: ${bolt11}`)
     }
   }
 
@@ -118,7 +118,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     if (decoded) {
       description = decoded.description
     } else {
-      logger.error(`Unable to decode bolt11: ${bolt11}`)
+      log.error(`Unable to decode bolt11: ${bolt11}`)
     }
   }
 

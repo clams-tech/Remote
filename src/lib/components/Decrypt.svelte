@@ -6,7 +6,6 @@
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import { getSession } from '$lib/storage.js'
   import { session$ } from '$lib/streams.js'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import { onMount } from 'svelte'
@@ -14,6 +13,8 @@
   import { bytesToHex } from '@noble/hashes/utils'
   import * as secp256k1 from '@noble/secp256k1'
   import { decryptWithAES } from '$lib/crypto.js'
+  import { storage } from '$lib/services.js'
+  import { STORAGE_KEYS } from '$lib/constants.js'
 
   const translationBase = 'app.routes./decrypt'
 
@@ -21,12 +22,13 @@
   let errorMsg: string
   let decryptButton: Button
 
-  const storedSession = getSession() as Session
   const dispatch = createEventDispatcher()
 
   async function decrypt() {
     try {
-      const decrypted = decryptWithAES(storedSession.secret, passphrase)
+      const storedSession = storage.get(STORAGE_KEYS.session)
+      const session = JSON.parse(storedSession!) as Session
+      const decrypted = decryptWithAES(session.secret, passphrase)
 
       if (!decrypted) {
         throw new Error('Could not decrypt.')
