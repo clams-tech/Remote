@@ -121,6 +121,7 @@
     "timestamp": "Timestamp",
     "details": "Details",
     "address": "Address",
+    "pubkey": "Pubkey",
     "delete": "Delete",
     "locked": "Locked",
     "rune_cli": "Rune CLI Command",

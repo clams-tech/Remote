@@ -348,10 +348,10 @@
 
     <Qr
       values={[
-        { label: $translate('app.labels.id'), value: id },
         ...(host
-          ? [{ label: $translate('app.labels.address'), value: `${id}@${host}:${port}` }]
-          : [])
+          ? [{ label: $translate('app.labels.connect'), value: `${id}@${host}:${port}` }]
+          : []),
+        { label: $translate('app.labels.pubkey'), value: id }
       ]}
     />
   </Modal>

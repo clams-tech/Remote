@@ -9,7 +9,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import info from '$lib/icons/info.js'
   import save from '$lib/icons/save.js'
-  import { file } from '$lib/services.js'
+  import { clipboard, file } from '$lib/services.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
 
   export let values: { label: string; value: string }[]
@@ -54,12 +54,7 @@
 
   async function copyImage() {
     try {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': rawData
-        })
-      ])
-
+      await clipboard.writeImage(rawData)
       setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
@@ -80,7 +75,7 @@
 
   async function copyText() {
     try {
-      await navigator.clipboard.writeText(selectedValue.value)
+      await clipboard.write(selectedValue.value)
       setMessage($translate('app.labels.text_copied'))
     } catch (error) {
       const { message } = error as Error

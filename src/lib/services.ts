@@ -1,5 +1,3 @@
-import type { Session } from './@types/session.js'
-
 export const clipboard = {
   permission: async (name: PermissionName): Promise<boolean> => {
     try {
@@ -16,6 +14,13 @@ export const clipboard = {
   },
   write: async (text: string): Promise<void> => {
     await navigator.clipboard.writeText(text)
+  },
+  writeImage: async (image: Blob): Promise<void> => {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': image
+      })
+    ])
   }
 }
 
