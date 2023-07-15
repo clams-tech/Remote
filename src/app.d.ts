@@ -16,4 +16,8 @@ declare namespace svelteHTML {
   }
 }
 
+declare interface Window {
+  __TAURI__: boolean
+}
+
 declare module 'light-bolt11-decoder'

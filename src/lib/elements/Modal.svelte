@@ -61,7 +61,7 @@
   >
     <button
       on:click|stopPropagation
-      class="{modalStyles} rounded-3xl max-w-lg pl-10 pr-12 pt-8 pb-10"
+      class="{modalStyles} rounded-3xl max-w-lg overflow-hidden pl-10 pr-12 pt-8 pb-10"
     >
       <button
         on:click={closeModal}

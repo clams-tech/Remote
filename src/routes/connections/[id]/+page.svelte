@@ -1,9 +1,4 @@
 <script lang="ts">
-  import type {
-    ConnectionConfiguration,
-    ConnectionDetails,
-    CoreLnConfiguration
-  } from '$lib/@types/connections.js'
   import Button from '$lib/elements/Button.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
@@ -26,8 +21,6 @@
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
   import { nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
-  import CopyValue from '$lib/elements/CopyValue.svelte'
-  import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import trashOutline from '$lib/icons/trash-outline.js'
   import Modal from '$lib/elements/Modal.svelte'
@@ -36,8 +29,13 @@
   import { decryptWithAES, encryptWithAES } from '$lib/crypto.js'
   import qr from '$lib/icons/qr.js'
   import close from '$lib/icons/close.js'
-  import key from '$lib/icons/key.js'
-  import Qr from '$lib/elements/QR.svelte'
+  import Qr from '$lib/elements/Qr.svelte'
+
+  import type {
+    ConnectionConfiguration,
+    ConnectionDetails,
+    CoreLnConfiguration
+  } from '$lib/@types/connections.js'
 
   export let data: PageData
 
@@ -336,27 +334,26 @@
 {#if showInfoModal && connection}
   {@const { id, alias, version, host, port } = connection.info}
   <Modal on:close={() => (showInfoModal = false)}>
-    <div class="w-full">
-      {#if alias}
-        <div class="w-full flex items-baseline mb-2">
-          <h4 class="font-semibold text-3xl">
-            {alias}
-          </h4>
+    {#if alias}
+      <div class="w-full flex items-baseline mb-4">
+        <h4 class="font-semibold text-3xl">
+          {alias}
+        </h4>
 
-          {#if version}
-            <div class="ml-2">{version}</div>
-          {/if}
-        </div>
-      {/if}
-
-      <div class="w-full flex justify-start font-semibold">
-        <CopyValue value={id} truncateLength={12} icon={key} />
+        {#if version}
+          <div class="ml-2">{version}</div>
+        {/if}
       </div>
+    {/if}
 
-      <div class="mb-8 mt-6">
-        <Qr value={host && port ? `${id}@${host}:${port}` : id} />
-      </div>
-    </div>
+    <Qr
+      values={[
+        { label: $translate('app.labels.id'), value: id },
+        ...(host
+          ? [{ label: $translate('app.labels.address'), value: `${id}@${host}:${port}` }]
+          : [])
+      ]}
+    />
   </Modal>
 {/if}
 
