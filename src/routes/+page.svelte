@@ -127,17 +127,17 @@
 
 {#if showNodeInfoModal && $nodeInfo$.data}
   {@const {
-    data: { id, address }
+    data: { id, alias }
   } = $nodeInfo$}
   <Modal on:close={() => (showNodeInfoModal = false)}>
     <h4 class="font-semibold mb-4 w-full text-3xl">
-      {$nodeInfo$.data?.alias}
+      {alias}
     </h4>
 
     <Qr
       values={[
-        { label: $translate('app.labels.address'), value: nodeAddress },
-        { label: $translate('app.labels.public_key'), value: id }
+        { label: $translate('app.labels.connect'), value: nodeAddress },
+        { label: $translate('app.labels.pubkey'), value: id }
       ]}
     />
   </Modal>
