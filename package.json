@@ -65,7 +65,6 @@
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",
     "nouislider": "^15.7.0",
-    "qr-code-styling": "^1.6.0-rc.1",
     "qrcode": "^1.5.3",
     "rune-decoder": "0.0.1",
     "rxjs": "^7.5.7",
