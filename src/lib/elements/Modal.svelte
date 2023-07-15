@@ -55,7 +55,7 @@
   </button>
 {:else}
   <button
-    in:fade|global={{ duration: 250 }}
+    in:fade|global={{ easing: quintInOut }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center block"
   >

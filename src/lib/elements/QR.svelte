@@ -25,7 +25,6 @@
 
   let canvas: HTMLCanvasElement | null = null
   let qrElement: HTMLButtonElement
-  let rawData: Blob
 
   type Message = {
     value: string
@@ -33,14 +32,6 @@
   }
 
   let message: Message | null = null
-
-  $: if (qrElement) {
-    toBlob(qrElement).then((blob) => {
-      if (blob) {
-        rawData = blob
-      }
-    })
-  }
 
   function setMessage(value: string) {
     // clear current timeout
@@ -54,7 +45,7 @@
 
   async function copyImage() {
     try {
-      await clipboard.writeImage(rawData)
+      await clipboard.writeImage(toBlob(qrElement) as Promise<Blob>)
       setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
@@ -64,6 +55,7 @@
 
   async function saveImage() {
     try {
+      const rawData = (await toBlob(qrElement)) as Blob
       await file.save(rawData, `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}`)
 
       setMessage($translate('app.labels.image_saved'))
