@@ -524,7 +524,6 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
 
     return { type, value, ...lightning }
   } catch (error) {
-    console.log({ error })
     return getPaymentDetails(input)
   }
 }
