@@ -1,15 +1,15 @@
 <script lang="ts">
+  import { toBlob } from 'html-to-image'
   import { fade, slide } from 'svelte/transition'
-  import QRCodeStyling from 'qr-code-styling'
+  import { QrCodeUtil } from '$lib/qr.js'
   import copy from '$lib/icons/copy'
   import photo from '$lib/icons/photo'
-  import check from '$lib/icons/check'
   import { onDestroy } from 'svelte'
   import { truncateValue } from '$lib/utils'
   import { translate } from '$lib/i18n/translations.js'
-  import close from '$lib/icons/close.js'
   import info from '$lib/icons/info.js'
   import save from '$lib/icons/save.js'
+  import clamsIcon from '$lib/icons/clamsIcon.js'
 
   export let values: { label: string; value: string }[]
   export let size = Math.min(window.innerWidth - 72, 400)
@@ -23,45 +23,8 @@
   $: selectedValue = values[selectedValueIndex]
 
   let canvas: HTMLCanvasElement | null = null
-  let node: HTMLButtonElement
-  let qrCode: QRCodeStyling
+  let qrElement: HTMLButtonElement
   let rawData: Blob
-
-  $: if (node) {
-    qrCode = new QRCodeStyling({
-      width: size,
-      height: size,
-      type: 'svg',
-      imageOptions: { hideBackgroundDots: true, imageSize: 0.25, margin: 0 },
-      dotsOptions: {
-        type: 'dots',
-        color: '#6a1a4c',
-        gradient: {
-          type: 'radial',
-          rotation: 0.017453292519943295,
-          colorStops: [
-            { offset: 0, color: '#8236f3' },
-            { offset: 1, color: '#3b0390' }
-          ]
-        }
-      },
-      backgroundOptions: { color: '#ffffff' },
-      cornersSquareOptions: { type: 'extra-rounded', color: '#6305f0' },
-      cornersDotOptions: { type: 'dot', color: '#000000' },
-      image: '/icons/512x512.png'
-    })
-
-    qrCode.append(node)
-  }
-
-  $: if (qrCode) {
-    fetch('/icons/512x512.png').then(() => {
-      qrCode.update({ image: '/icons/512x512.png' })
-      qrCode.getRawData('png').then((data) => (rawData = data as Blob))
-    })
-
-    qrCode.update({ data: selectedValue.value })
-  }
 
   type Message = {
     value: string
@@ -84,7 +47,7 @@
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': rawData
+          'image/png': rawData || toBlob(qrElement)
         })
       ])
 
@@ -95,14 +58,18 @@
     }
   }
 
-  async function downloadImage() {
+  async function saveImage() {
     try {
-      await qrCode.download({
-        extension: 'png',
-        name: `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}`
-      })
+      rawData = rawData || (await toBlob(qrElement))
+      const fileUrl = URL.createObjectURL(rawData)
+      const link = document.createElement('a')
+      link.href = fileUrl
+      link.download = `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
 
-      setMessage($translate('app.labels.image_downloaded'))
+      setMessage($translate('app.labels.image_saved'))
     } catch (error) {
       const { message } = error as Error
       setMessage(message)
@@ -148,7 +115,28 @@
     <div
       class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min"
     >
-      <button on:click={copyText} class="rounded overflow-hidden" bind:this={node} />
+      <button
+        bind:this={qrElement}
+        on:click={copyText}
+        class="rounded overflow-hidden flex items-center justify-center relative bg-white dark:bg-black"
+      >
+        <svg in:fade|global width={size} height={size}>
+          <defs>
+            <linearGradient id="purple" x1="25%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#C099FF" stop-opacity="1" />
+              <stop offset="100%" stop-color="#904DFF" stop-opacity="1" />
+            </linearGradient>
+          </defs>
+          {@html QrCodeUtil.generate(selectedValue.value, size, size / 4)}
+        </svg>
+
+        <div
+          class="absolute dark:text-neutral-50"
+          style="width: {size / 4}px; height: {size / 4}px;"
+        >
+          {@html clamsIcon}
+        </div>
+      </button>
     </div>
 
     <div class="w-full flex items-center justify-between px-2.5 overflow-hidden">
@@ -174,7 +162,7 @@
           <div class="w-8">{@html photo}</div>
         </button>
 
-        <button on:click={downloadImage} class="flex items-center">
+        <button on:click={saveImage} class="flex items-center">
           <div class="w-8">{@html save}</div>
         </button>
       </div>

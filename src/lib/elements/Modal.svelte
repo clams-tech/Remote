@@ -26,7 +26,7 @@
 
 {#if device.type === 'mobile'}
   <div
-    transition:fade={{ easing: quintInOut, duration: 600 }}
+    transition:fade|global={{ easing: quintInOut, duration: 600 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-end"
   >
@@ -49,7 +49,7 @@
   </div>
 {:else}
   <div
-    transition:fade={{ easing: quintInOut }}
+    transition:fade|global={{ easing: quintInOut }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center"
   >
