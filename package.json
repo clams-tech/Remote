@@ -3,9 +3,11 @@
   "version": "2.0.0-beta.2",
   "scripts": {
     "dev": "vite dev",
-    "dev-http": "vite dev --mode http",
+    "dev-https": "vite dev --mode https",
+    "dev-native": "tauri dev",
     "build": "vite build",
     "build-staging": "vite build --mode staging",
+    "build-native": "tauri build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -15,6 +17,7 @@
     "check-unused-exports": "./node_modules/.bin/ts-unused-exports ./tsconfig.json"
   },
   "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@sveltejs/adapter-static": "^2.0.2",
     "@sveltejs/kit": "^1.22.1",
     "@tailwindcss/forms": "^0.5.3",
@@ -33,6 +36,7 @@
     "postcss": "^8.4.24",
     "prettier": "^2.8.8",
     "prettier-plugin-svelte": "^2.10.1",
+    "rollup-plugin-polyfill-node": "^0.12.0",
     "svelte": "^4.0.5",
     "svelte-check": "^3.4.5",
     "svelte-preprocess": "^5.0.4",
@@ -60,7 +64,6 @@
     "html-to-image": "^1.11.11",
     "js-lnurl": "^0.6.0",
     "jsqr": "^1.4.0",
-    "light-bolt11-decoder": "^3.0.0",
     "lnmessage": "^0.2.2",
     "nouislider": "^15.7.1",
     "qrcode": "^1.5.3",

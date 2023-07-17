@@ -13,12 +13,19 @@
   import Modal from '$lib/elements/Modal.svelte'
   import Decrypt from '$lib/components/Decrypt.svelte'
   import lockOutline from '$lib/icons/lock-outline.js'
+  import decode from '$lib/bolt11.js'
 
   $: path = $page.url.pathname
 
   const clearSession = () => session$.next(null)
 
   let showDecryptModal = false
+
+  console.log(
+    decode(
+      'lnbcrt500u1pjtfnrmsp5el9xj8vcjal6vpxjuc88huxyxxcmjqu3566zn5hfzff22r9x2l6spp54n8edvdn2hts4fkpjq7cdeq0swrsgcswvyqr4ya76pp9u0pjp29sdp92phkcctjypykuan0d93k2grxdaezqcmpwfhkcxqyjw5qcqp29qxpqysgq0xls579hrkxwsqrdygflmztmcrrr2wys8c8g6kpuq32g22he7l4nzqs3yken0pdugdnvkwqp0j66fcpupp5wlglpy4ek4g8mung407sqseea3u'
+    )
+  )
 </script>
 
 <svelte:head>

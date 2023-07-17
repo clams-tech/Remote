@@ -1,7 +1,7 @@
 import { BitcoinDenomination, FiatDenomination } from './@types/settings.js'
-import type { DecodedInvoice, FormattedDecodedBolt11 } from './@types/invoices.js'
-import { decode as bolt11Decoder } from 'light-bolt11-decoder'
 import type { Offer } from './@types/offers.js'
+import decode from './bolt11.js'
+import type { DecodedBolt11Invoice } from './@types/invoices.js'
 
 import type {
   DecodedBolt12Invoice,
@@ -10,24 +10,16 @@ import type {
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
 
-export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11: string }) | null {
+export function decodeBolt11(bolt11: string): (DecodedBolt11Invoice & { bolt11: string }) | null {
   // Remove prepended string if found
   if (bolt11.includes('lightning:')) {
     bolt11 = bolt11.replace('lightning:', '')
   }
 
   try {
-    const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
+    const decoded = decode(bolt11)
 
-    const formatted = sections.reduce((acc, { name, value }) => {
-      if (name && value) {
-        acc[name] = value
-      }
-
-      return acc
-    }, {} as FormattedDecodedBolt11)
-
-    return { bolt11, ...formatted }
+    return { bolt11, ...decoded }
   } catch (error) {
     return null
   }

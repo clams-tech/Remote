@@ -8,7 +8,7 @@
   import type { PageData } from './$types'
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
   import type { ConnectionStatus } from 'lnmessage/dist/types.js'
-  import { Observable, filter, map, take, takeUntil } from 'rxjs'
+  import { type Observable, filter, map, take, takeUntil } from 'rxjs'
   import { connectionErrors$, connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
   import { connectionDetailsToInterface, syncConnectionData } from '$lib/connections/index.js'
   import { fade, slide } from 'svelte/transition'

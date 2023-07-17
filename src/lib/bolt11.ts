@@ -1,11 +1,10 @@
-'use strict'
-
 import { sha256 } from '@noble/hashes/sha256'
 import { bech32 } from 'bech32'
-import secp256k1 from '@noble/secp256k1'
+import * as secp256k1 from '@noble/secp256k1'
 import Big from 'big.js'
 import { Buffer } from 'buffer'
 import { address as bitcoinjsAddress } from 'bitcoinjs-lib'
+import type { DecodedBolt11Invoice } from './@types/invoices.js'
 
 type Network = {
   bech32: string
@@ -41,20 +40,7 @@ const SIMNETWORK = {
   validWitnessVersions: [0, 1]
 }
 
-const FEATUREBIT_ORDER = [
-  'option_data_loss_protect',
-  'initial_routing_sync',
-  'option_upfront_shutdown_script',
-  'gossip_queries',
-  'var_onion_optin',
-  'gossip_queries_ex',
-  'option_static_remotekey',
-  'payment_secret',
-  'basic_mpp',
-  'option_support_large_channel'
-]
-
-const DIVISORS = {
+const DIVISORS: Record<string, Big> = {
   m: Big(1e3),
   u: Big(1e6),
   n: Big(1e9),
@@ -101,9 +87,7 @@ const TAGPARSERS: Record<
   23: (words: number[]) => wordsToBuffer(words, true).toString('hex'), // 256 bits
   6: wordsToIntBE, // default: 3600 (1 hour)
   24: wordsToIntBE, // default: 9
-  9: fallbackAddressParser,
-  3: routingInfoParser, // for extra routing info (private etc.)
-  5: featureBitsParser // keep feature bits as array of 5 bit words
+  9: fallbackAddressParser
 }
 
 const unknownTagName = 'unknownTag'
@@ -185,83 +169,13 @@ function fallbackAddressParser(words: number[], network: Network) {
   }
 }
 
-// first convert from words to buffer, trimming padding where necessary
-// parse in 51 byte chunks. See encoder for details.
-function routingInfoParser(words: number[]) {
-  const routes = []
-  let pubkey, shortChannelId, feeBaseMSats, feeProportionalMillionths, cltvExpiryDelta
-  let routesBuffer = wordsToBuffer(words, true)
-  while (routesBuffer.length > 0) {
-    pubkey = routesBuffer.subarray(0, 33).toString('hex') // 33 bytes
-    shortChannelId = routesBuffer.subarray(33, 41).toString('hex') // 8 bytes
-    feeBaseMSats = parseInt(routesBuffer.subarray(41, 45).toString('hex'), 16) // 4 bytes
-    feeProportionalMillionths = parseInt(routesBuffer.subarray(45, 49).toString('hex'), 16) // 4 bytes
-    cltvExpiryDelta = parseInt(routesBuffer.subarray(49, 51).toString('hex'), 16) // 2 bytes
-
-    routesBuffer = routesBuffer.subarray(51)
-
-    routes.push({
-      pubkey,
-      short_channel_id: shortChannelId,
-      fee_base_msat: feeBaseMSats,
-      fee_proportional_millionths: feeProportionalMillionths,
-      cltv_expiry_delta: cltvExpiryDelta
-    })
-  }
-  return routes
-}
-
-function featureBitsParser(words: number[]) {
-  const bools = words
-    .slice()
-    .reverse()
-    .map((word) => [
-      !!(word & 0b1),
-      !!(word & 0b10),
-      !!(word & 0b100),
-      !!(word & 0b1000),
-      !!(word & 0b10000)
-    ])
-    .reduce((finalArr, itemArr) => finalArr.concat(itemArr), [])
-  while (bools.length < FEATUREBIT_ORDER.length * 2) {
-    bools.push(false)
-  }
-  const featureBits = {
-    word_length: words.length
-  }
-  FEATUREBIT_ORDER.forEach((featureName, index) => {
-    featureBits[featureName] = {
-      required: bools[index * 2],
-      supported: bools[index * 2 + 1]
-    }
-  })
-  if (bools.length > FEATUREBIT_ORDER.length * 2) {
-    const extraBits = bools.slice(FEATUREBIT_ORDER.length * 2)
-    featureBits.extra_bits = {
-      start_bit: FEATUREBIT_ORDER.length * 2,
-      bits: extraBits,
-      has_required: extraBits.reduce(
-        (result, bit, index) => (index % 2 !== 0 ? result || false : result || bit),
-        false
-      )
-    }
-  } else {
-    featureBits.extra_bits = {
-      start_bit: FEATUREBIT_ORDER.length * 2,
-      bits: [],
-      has_required: false
-    }
-  }
-  return featureBits
-}
-
-function tagsItems(tags, tagName) {
+function tagsItems(tags: { tagName: string; data: unknown }[], tagName: string) {
   const tag = tags.filter((item) => item.tagName === tagName)
   const data = tag.length > 0 ? tag[0].data : null
   return data
 }
 
-function tagsContainItem(tags, tagName) {
+function tagsContainItem(tags: { tagName: string; data: unknown }[], tagName: string) {
   return tagsItems(tags, tagName) !== null
 }
 
@@ -291,7 +205,7 @@ function hrpToMillisat(hrpString: string, outputString: boolean) {
   return outputString ? millisatoshisBN.toString() : millisatoshisBN
 }
 
-function decode(paymentRequest: string) {
+function decode(paymentRequest: string): DecodedBolt11Invoice {
   if (typeof paymentRequest !== 'string')
     throw new Error('Lightning Payment Request must be string')
 
@@ -359,14 +273,7 @@ function decode(paymentRequest: string) {
 
   const value = prefixMatches[2]
 
-  let millisatoshis
-
-  if (value) {
-    const divisor = prefixMatches[3]
-    millisatoshis = hrpToMillisat(value + divisor, true)
-  } else {
-    millisatoshis = null
-  }
+  const msat = value ? (hrpToMillisat(value + prefixMatches[3], true) as string) : 'any'
 
   // reminder: left padded 0 bits
   const timestamp = wordsToIntBE(words.slice(0, 7))
@@ -397,57 +304,34 @@ function decode(paymentRequest: string) {
     })
   }
 
-  let timeExpireDate, timeExpireDateString
-  // be kind and provide an absolute expiration date.
-  // good for logs
-  if (tagsContainItem(tags, TAGNAMES['6'])) {
-    timeExpireDate = timestamp + tagsItems(tags, TAGNAMES['6'])
-    timeExpireDateString = new Date(timeExpireDate * 1000).toISOString()
-  }
+  const expiry =
+    (tagsContainItem(tags, TAGNAMES['6']) && (tagsItems(tags, TAGNAMES['6']) as number)) || 3600
+  const expiresAt = timestamp + expiry
 
   const toSign = Buffer.concat([
     Buffer.from(prefix, 'utf8'),
     Buffer.from(convert(wordsNoSig, 5, 8))
   ])
+
   const payReqHash = hash(toSign)
-  const sig = secp256k1.Signature.fromCompact(sigBuffer.toString('hex'))
-  const sigPubkey = Buffer.from(sig.recoverPublicKey(payReqHash).toRawBytes())
-  // const sigPubkey = Buffer.from(secp256k1.ecdsaRecover(sigBuffer, recoveryFlag, payReqHash, true))
-  if (
-    tagsContainItem(tags, TAGNAMES['19']) &&
-    tagsItems(tags, TAGNAMES['19']) !== sigPubkey.toString('hex')
-  ) {
+
+  const pubKey = secp256k1.Signature.fromCompact(sigBuffer)
+    .addRecoveryBit(recoveryFlag)
+    .recoverPublicKey(payReqHash)
+    .toHex()
+
+  if (tagsContainItem(tags, TAGNAMES['19']) && tagsItems(tags, TAGNAMES['19']) !== pubKey) {
     throw new Error('Lightning Payment Request signature pubkey does not match payee pubkey')
   }
 
-  let finalResult = {
-    msat: millisatoshis,
-    timestamp,
-    payeeNodeKey: sigPubkey.toString('hex'),
-    tags
+  return {
+    nodeId: pubKey,
+    value: msat,
+    startedAt: timestamp,
+    expiresAt,
+    description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || '',
+    hash: tags.find(({ tagName }) => tagName === 'payment_hash')?.data as string
   }
-
-  if (timeExpireDate) {
-    finalResult = Object.assign(finalResult, { timeExpireDate, timeExpireDateString })
-  }
-
-  return finalResult
-}
-
-function getTagsObject(tags) {
-  const result = {}
-  tags.forEach((tag) => {
-    if (tag.tagName === unknownTagName) {
-      if (!result.unknownTags) {
-        result.unknownTags = []
-      }
-      result.unknownTags.push(tag.data)
-    } else {
-      result[tag.tagName] = tag.data
-    }
-  })
-
-  return result
 }
 
 export default decode
