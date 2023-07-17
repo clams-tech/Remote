@@ -10,9 +10,10 @@
   import channels from '$lib/icons/channels.js'
   import scan from '$lib/icons/scan.js'
   import lightning from '$lib/lightning.js'
-  import { parseNodeAddress, validateParsedNodeAddress } from '$lib/utils.js'
+  import { formatValueForDisplay, parseNodeAddress, validateParsedNodeAddress } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import type { PageData } from './$types.js'
+  import { BitcoinDenomination } from '$lib/types.js'
 
   export let data: PageData
 
@@ -107,7 +108,15 @@
       type="number"
       rows={6}
       label={$translate('app.labels.channel_size')}
-      hint={$translate('app.labels.sats')}
+      hint={`${
+        channelSize
+          ? `${formatValueForDisplay({
+              value: channelSize.toString(),
+              denomination: BitcoinDenomination.sats,
+              commas: true
+            })} `
+          : ''
+      }${$translate('app.labels.sats')}`}
       bind:value={channelSize}
     />
 
