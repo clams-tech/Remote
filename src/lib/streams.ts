@@ -15,7 +15,7 @@ import {
   defer,
   filter,
   from,
-  Observable,
+  type Observable,
   scan,
   shareReplay,
   skip,

@@ -234,7 +234,7 @@ export type PayResponse = {
   /**
    * the final destination of the payment
    */
-  destination?: string
+  destination: string
   /**
    * how many attempts this took
    */

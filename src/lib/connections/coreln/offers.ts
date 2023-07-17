@@ -270,6 +270,7 @@ class Offers implements OffersInterface {
         preimage: payment_preimage,
         type: 'bolt12',
         direction: 'receive',
+        nodeId: this.connection.info.id,
         value: stripMsatSuffix((amount_received_msat || amount) as string),
         completedAt: paid_at ? paid_at : nowSeconds(),
         expiresAt: expires_at,

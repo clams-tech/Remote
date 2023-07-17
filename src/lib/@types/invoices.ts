@@ -14,9 +14,9 @@ export type Invoice = {
   connectionId: string
   /** BOLT11 | BOLT12 */
   request: string
+  nodeId: string
   description?: string
   preimage?: string
-  destination?: string
   payIndex?: number
   offer?: {
     id?: string
@@ -68,19 +68,13 @@ type PaymentDirection = 'receive' | 'send'
 
 export type PaymentStatus = 'pending' | 'complete' | 'expired' | 'failed'
 
-/** Formatted decoded sections of invoice */
-export type FormattedDecodedBolt11 = {
-  expiry: number
-  description?: string
-  description_hash?: Buffer
-  amount: string
-  timestamp: number
-  [key: string]: string | number | undefined | Buffer
-}
-
-export type DecodedInvoice = {
-  paymentRequest: string
-  sections: { name: string; value?: string | number }[]
+export type DecodedBolt11Invoice = {
+  nodeId: string
+  startedAt: number
+  expiresAt: number
+  value: string
+  hash: string
+  description: string
 }
 
 export type ParsedOnchainString = {
