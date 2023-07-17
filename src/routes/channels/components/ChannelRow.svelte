@@ -35,9 +35,7 @@
     </div>
   </div>
 
-  <div
-  class:gap-x-1={localPercent && remotePercent}
-   class="flex items-center">
+  <div class:gap-x-1={localPercent && remotePercent} class="flex items-center">
     <div style="width: {localPercent}%;" class="h-2 rounded-full bg-purple-400" />
     <div style="width: {remotePercent}%;" class="h-2 rounded-full bg-purple-200" />
   </div>
@@ -46,7 +44,8 @@
     <div class="flex flex-col items-baseline">
       <div class="flex items-center font-semibold">
         <span
-          class="flex justify-center items-center -ml-1"
+          class="flex justify-center items-center"
+          class:-ml-1={primarySymbol.startsWith('<')}
           class:w-4={primarySymbol.startsWith('<')}
           class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
         >
@@ -60,7 +59,9 @@
           commas: true
         })}
       </div>
-      <div class="text-xs dark:text-neutral-300 text-neutral-600">{$translate('app.labels.local')}</div>
+      <div class="text-xs dark:text-neutral-300 text-neutral-600">
+        {$translate('app.labels.local')}
+      </div>
     </div>
 
     <div class="flex flex-col items-end">
@@ -80,7 +81,9 @@
           commas: true
         })}
       </div>
-      <div class="text-xs dark:text-neutral-300 text-neutral-600">{$translate('app.labels.remote')}</div>
+      <div class="text-xs dark:text-neutral-300 text-neutral-600">
+        {$translate('app.labels.remote')}
+      </div>
     </div>
   </div>
 </a>

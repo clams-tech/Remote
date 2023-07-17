@@ -217,7 +217,7 @@
     {/if}
 
     <!-- DESCRIPTION -->
-    {#if payment.description}
+    {#if payment.description && !payment.offer?.description}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.description')}:</span>
         <span slot="value">{payment.description}</span>
