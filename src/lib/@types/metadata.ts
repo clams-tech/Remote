@@ -12,5 +12,13 @@ export type Metadata = {
 export enum MetadataType {
   tag = 'tag',
   historicalExchangeRate = 'historicalExchangeRate',
-  contactName = 'contactName'
+  contact = 'contact'
 }
+
+/** All values are stored as a string in the db
+ * but below are there types to be converted when going
+ * to or from the db
+ */
+export type Tag = string
+export type HistoricalExchangeRate = number
+export type Contact = { label: string; npub?: string }
