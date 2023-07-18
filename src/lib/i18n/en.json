@@ -305,7 +305,7 @@
   "subheadings": {
     "summary": "Confirm {{paymentType; keysend:keysend payment; bolt11:payment; lnurl: {{direction; send:payment; receive:withdrawal;}}; bolt12:offer {{offerDirection; pay:payment; withdraw:withdrawal;}};}} details.",
     "amount": "How much would you like to {{paymentType; bolt12:{{direction; receive:receive; send:make withdrawable;}}; default:{{direction; receive:receive; send:send;}}}}?",
-    "description": "What is this payment for?",
+    "description": "{{paymentType; bolt12:{{direction; send:What is the purpose of this withdraw?; receive:What is this pay for?;}}; default: What is this payment for?;}}",
     "note": "Add a note for the receiver of this payment.",
     "destination": "Where would you like to send a payment?",
     "connect": "Enter your node connection details.",

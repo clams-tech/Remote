@@ -230,6 +230,7 @@
       label="description"
       {next}
       hint={$translate('app.labels.optional')}
+      context={{ paymentType: 'bolt12', direction: offerType === 'pay' ? 'receive' : 'send' }}
     />
   </Slide>
 {/if}
