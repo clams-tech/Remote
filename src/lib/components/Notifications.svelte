@@ -14,9 +14,11 @@
   import alert from '$lib/icons/alert'
   import close from '$lib/icons/close'
   import { drag, swipe } from '$lib/touch'
+  import { goto } from '$app/navigation'
 
   import {
     formatValueForDisplay,
+    noop,
     notificationsPermissionsGranted,
     supportsNotifications,
     userAgent
@@ -36,7 +38,7 @@
     filter(({ status }) => status !== 'pending'),
     withLatestFrom(settings$),
     map(([payment, settings]) => {
-      const { status, direction, value, description, hash } = payment
+      const { status, direction, value, description, hash, id } = payment
       const { primaryDenomination } = settings
 
       const convertedValue = convertValue({
@@ -56,10 +58,14 @@
       const type = status === 'expired' || status === 'failed' ? 'error' : 'success'
 
       return {
-        id: hash,
+        id,
         type,
         heading: $translate('app.titles./payment'),
-        message
+        message,
+        onclick: () => {
+          goto(`/payments/${id}`)
+          removeNotification(id)
+        }
       }
     })
   )
@@ -114,8 +120,8 @@
     bind:clientHeight={containerHeight}
     class:right-0={device.type !== 'mobile'}
   >
-    {#each notificationsToRender as { id, heading, message, type } (id)}
-      <div
+    {#each notificationsToRender as { id, heading, message, type, onclick = noop } (id)}
+      <button
         use:swipe={{
           direction: DIRECTION_UP,
           threshold: 30,
@@ -123,17 +129,18 @@
         }}
         on:swipe={() => removeNotification(id)}
         use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
+        on:click={onclick}
         animate:flip={{ duration: 700 }}
         in:fly|local={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
         out:fade|local={{ duration: 500, easing: quintOut }}
-        class="w-full cursor-grab bg-white dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 border border-neutral-100 dark:border-neutral-400 z-20 p-4 relative rounded-lg mb-2"
+        class="w-full cursor-grab bg-white dark:bg-neutral-900 shadow-md dark:shadow-neutral-600 border border-neutral-100 dark:border-neutral-400 z-20 p-4 relative rounded-lg mb-2 block text-start"
       >
-        <div
-          on:click={() => removeNotification(id)}
+        <button
+          on:click|stopPropagation={() => removeNotification(id)}
           class="absolute top-0 right-0 w-9 p-1 cursor-pointer"
         >
           {@html close}
-        </div>
+        </button>
 
         <div class="flex items-start w-full">
           <div
@@ -155,7 +162,7 @@
             <p class="text-sm break-words">{message}</p>
           </div>
         </div>
-      </div>
+      </button>
     {/each}
   </div>
 {/if}

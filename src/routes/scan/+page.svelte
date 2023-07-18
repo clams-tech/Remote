@@ -232,7 +232,7 @@
       {description}
       {timestamp}
       direction="send"
-      expiry={expiry || 600}
+      {expiry}
       on:complete={sendPayment}
       {requesting}
     />

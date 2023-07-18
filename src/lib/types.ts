@@ -131,6 +131,7 @@ export type Notification = {
   type: 'error' | 'hint' | 'success'
   heading: string
   message: string
+  onclick?: () => void | Promise<void>
 }
 
 /** Formatted decoded sections of invoice */
