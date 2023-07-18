@@ -41,6 +41,12 @@
       class="{modalStyles} rounded-t-3xl w-full"
     >
       <div class="bg-neutral-300 w-8 h-1 rounded-full mt-2 top-0 absolute" />
+      <div
+        on:click={closeModal}
+        class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors text-neutral-400"
+      >
+        {@html close}
+      </div>
       <div class="my-4 w-full h-full overflow-auto">
         <slot />
       </div>
