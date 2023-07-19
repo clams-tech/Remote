@@ -505,7 +505,7 @@ class CoreLn {
     const { version } = await this.getInfo()
     const versionNumber = convertVersionNumber(version)
 
-    if (versionNumber < 2305) {
+    if (versionNumber < 2302) {
       const listPeersResult = await this.connection.commando({
         method: 'listpeers',
         rune: this.rune,
