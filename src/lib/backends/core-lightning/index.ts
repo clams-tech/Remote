@@ -562,8 +562,12 @@ class CoreLn {
                 closeToAddress: close_to_addr ?? null,
                 closeToScriptPubkey: close_to ?? null,
                 closer,
-                htlcMin: minimum_htlc_out_msat?.toString() || null,
-                htlcMax: maximum_htlc_out_msat?.toString() || null,
+                htlcMin: minimum_htlc_out_msat
+                  ? formatMsat(minimum_htlc_out_msat.toString())
+                  : null,
+                htlcMax: maximum_htlc_out_msat
+                  ? formatMsat(maximum_htlc_out_msat.toString())
+                  : null,
                 htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                   id,
                   direction,
@@ -637,8 +641,8 @@ class CoreLn {
             closeToAddress: close_to_addr ?? null,
             closeToScriptPubkey: close_to ?? null,
             closer: closer,
-            htlcMin: minimum_htlc_out_msat?.toString() || null,
-            htlcMax: maximum_htlc_out_msat?.toString() || null,
+            htlcMin: minimum_htlc_out_msat ? formatMsat(minimum_htlc_out_msat.toString()) : null,
+            htlcMax: maximum_htlc_out_msat ? formatMsat(maximum_htlc_out_msat.toString()) : null,
             htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
               id,
               direction,
