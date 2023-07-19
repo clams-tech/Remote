@@ -988,8 +988,8 @@ type PeerChannel = {
   out_payments_fulfilled: number //  (u64, optional): Number of successful outgoing payment attempts
   out_fulfilled_msat: string // (msat, optional): Total amount of successful outgoing payment attempts
   htlcs: HTLC[]
-  minimum_htlc_out_msat?: number
-  maximum_htlc_out_msat?: number
+  minimum_htlc_out_msat?: number | string
+  maximum_htlc_out_msat?: number | string
 }
 
 type ListPeerChannel = {
@@ -1057,8 +1057,8 @@ type ListPeerChannel = {
   max_total_htlc_in_msat?: string
   their_reserve_msat?: string
   minimum_htlc_in_msat?: string
-  minimum_htlc_out_msat?: number
-  maximum_htlc_out_msat?: number
+  minimum_htlc_out_msat?: number | string
+  maximum_htlc_out_msat?: number | string
   their_to_self_delay?: number
   our_to_self_delay?: number
   our_reserve_msat?: string
