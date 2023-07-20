@@ -33,7 +33,7 @@
     info: {
       colors: {
         main: 'border-neutral-300/50 bg-neutral-300/5 text-neutral-300',
-        button: 'text-neutral-300/50',
+        button: 'text-neutral-50/50',
         icon: 'text-neutral-300 border rounded-full border-current'
       },
       icon: info
@@ -65,18 +65,18 @@
       {#if closable}
         <button
           on:click={handleClose}
-          class="absolute top-0 right-0 w-7 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
+          class="absolute top-1 right-1 w-4 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
         >
           {@html close}
         </button>
       {/if}
 
       <div class="flex items-center">
-        <div class="w-6 flex-shrink-0 mr-2 {msgValue.colors.icon}">
+        <div class="w-4 flex-shrink-0 mr-2 {msgValue.colors.icon}">
           {@html msgValue.icon}
         </div>
 
-        <span class="font-semibold">
+        <span class="font-semibold text-sm">
           <!-- text-bitcoin-orange -->
           {@html message}
         </span>

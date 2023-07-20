@@ -8,7 +8,7 @@ Big.DP = 8
 export function msatsToBtc(msats: string): string {
   return Big(msats === 'any' ? '0' : msats)
     .div(1e11)
-    .toString()
+    .toFixed(8)
 }
 
 export function msatsToFiat(msats: string, denomination: FiatDenomination): string | null {

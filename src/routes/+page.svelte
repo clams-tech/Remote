@@ -49,7 +49,7 @@
 
 <div
   in:fade={{ duration: 250 }}
-  class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full"
+  class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full relative"
 >
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
@@ -68,14 +68,15 @@
       </a>
     {/each}
   </div>
-
-  {#if showGetStartedHint}
-    <div class="max-w-xl 2xl:max-w-2xl mt-6">
-      <Msg
-        on:close={handleCloseHint}
-        message={$translate('app.routes./.get_started_hint')}
-        type="info"
-      />
-    </div>
-  {/if}
 </div>
+{#if showGetStartedHint}
+  <div
+    class="max-w-xl 2xl:max-w-2xl absolute bottom-0 p-2 w-full flex justify-center items-center bg-neutral-900"
+  >
+    <Msg
+      on:close={handleCloseHint}
+      message={$translate('app.routes./.get_started_hint')}
+      type="info"
+    />
+  </div>
+{/if}

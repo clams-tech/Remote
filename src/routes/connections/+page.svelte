@@ -33,7 +33,7 @@
           {@const connectionTypeDetails = connectionOptions.find((c) => c.type === type)}
           <a
             href={`/connections/${id}`}
-            class="no-underline border p-4 border-neutral-600 rounded w-full flex justify-between items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
+            class="no-underline border border-neutral-600 rounded w-full flex justify-between items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
           >
             <span class="font-semibold text-lg px-4 py-1 truncate">{label}</span>
             {#if connectionTypeDetails}

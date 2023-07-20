@@ -325,9 +325,11 @@
       </div>
     {/if}
 
-    <div class="mt-4">
-      <Msg type="error" bind:message={connectionError} />
-    </div>
+    {#if connectionError}
+      <div class="mt-4">
+        <Msg type="error" bind:message={connectionError} />
+      </div>
+    {/if}
   {/if}
 </Section>
 

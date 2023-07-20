@@ -33,11 +33,10 @@ module.exports = {
         black: '#000000',
         white: '#ffffff',
         transparent: 'transparent'
+      },
+      screens: {
+        xs: '420px'
       }
-      // screens: {
-      //   tall: { raw: '(min-height: 750px) and (min-width: 1000px)' },
-      //   xs: '420px'
-      // }
     }
   },
   variants: {

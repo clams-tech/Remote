@@ -13,6 +13,7 @@ input {
 html {
   font-family: Helvetica;
   height: -webkit-fill-available;
+  @apply bg-neutral-900;
 }
 
 body {
@@ -43,9 +44,13 @@ section {
 }
 
 /* Hide arrows on Firefox number input  */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button,
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 input[type='radio'] {

@@ -1,12 +1,14 @@
 <script lang="ts">
   import warning from '$lib/icons/warning'
   import { slide } from 'svelte/transition'
+  import BitcoinAmount from './BitcoinAmount.svelte'
 
   type InputType = 'text' | 'number' | 'textarea' | 'password' | 'email'
 
   export let type: InputType = 'text'
   export let value: string | number
   export let label = ''
+  export let msat = ''
   export let name: string
   export let invalid = ''
   export let placeholder = ''
@@ -37,17 +39,24 @@
 <div style="width: {width};" class="flex flex-col relative">
   {#if label}
     <label
-      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-2"
-      for={name}>{label}</label
+      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-1 font-semibold"
+      for={name}
     >
+      {label}
+    </label>
   {/if}
 
   <div class="relative flex items-center">
-    {#if hint}
+    {#if hint || msat}
       <span
-        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-xs w-1/2 cursor-default font-medium"
-        >{@html hint}</span
+        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-sm w-1/2 cursor-default"
       >
+        {#if msat}
+          <BitcoinAmount {msat} />
+        {:else}
+          {@html hint}
+        {/if}
+      </span>
     {/if}
 
     {#if type === 'text'}

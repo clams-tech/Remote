@@ -1,7 +1,7 @@
 export type Metadata = {
   /** unique id for this metadata */
   id: string
-  /** the id that this metadata is associated with (payment.id, channel.id, utxo.txid) */
+  /** the id that this metadata is associated with (payment.id, channel.id, utxo.txid, metadata.id) */
   dataId: string
   /** the type of metadata which defines how the value is interpreted */
   type: MetadataType
@@ -12,13 +12,13 @@ export type Metadata = {
 export enum MetadataType {
   tag = 'tag',
   historicalExchangeRate = 'historicalExchangeRate',
-  contact = 'contact'
+  contact = 'contact',
+  note = 'note',
+  npub = 'npub'
 }
 
-/** All values are stored as a string in the db
- * but below are there types to be converted when going
- * to or from the db
- */
 export type Tag = string
-export type HistoricalExchangeRate = number
-export type Contact = { label: string; npub?: string }
+export type HistoricalExchangeRate = string
+export type Note = string
+export type Contact = string
+export type Npub = string
