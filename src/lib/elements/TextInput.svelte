@@ -39,7 +39,7 @@
 <div style="width: {width};" class="flex flex-col relative">
   {#if label}
     <label
-      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-1 font-semibold"
+      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-2 font-semibold"
       for={name}
     >
       {label}
@@ -49,7 +49,7 @@
   <div class="relative flex items-center">
     {#if hint || msat}
       <span
-        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-sm w-1/2 cursor-default"
+        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-xs w-1/2 cursor-default"
       >
         {#if msat}
           <BitcoinAmount {msat} />

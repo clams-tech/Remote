@@ -9,19 +9,19 @@
 
   let selectedConnection: Connection['id']
   let amount = 0
+
+  // @TODO - Auto select the connection that had the most recent receive
 </script>
 
 <Section>
   <SectionHeading />
 
-  <div class="mb-4 mt-2">
-    <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-1 font-semibold">
+  <div class="mb-5 mt-1">
+    <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
       {$translate('app.labels.connection')}
     </div>
 
-    <div
-      class="flex w-full flex-wrap gap-2 bg-neutral-900 border border-neutral-600 rounded font-medium px-4 py-[14px]"
-    >
+    <div class="flex w-full flex-wrap gap-2 rounded font-medium">
       {#each $storedConnections$ as { label, id }}
         <button
           class:border-purple-500={selectedConnection === id}
