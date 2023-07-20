@@ -446,7 +446,7 @@ export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11
 }
 
 export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
-export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
+export const bolt11Regex = /^(lnbcrt|lnbc|lntbs|lntb)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinString {
