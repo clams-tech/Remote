@@ -150,30 +150,30 @@ function registerSideEffects() {
     .subscribe(bitcoinExchangeRates$)
 
   // manage connection based on app visibility
-  appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
-    const auth = auth$.getValue()
-    if (!auth || !auth.token) return
-    const lnApi = lightning.getLn()
+  // appVisible$.pipe(skip(1), distinctUntilChanged()).subscribe(async (visible) => {
+  //   const auth = auth$.getValue()
+  //   if (!auth || !auth.token) return
+  //   const lnApi = lightning.getLn()
 
-    if (visible) {
-      logger.info('App is visible, reconnecting to node')
-      // reconnect
-      lnApi.connect()
-      const payments = payments$.getValue().data
-      if (payments) {
-        // start listening for payment updates again
-        const lastPayIndex = deriveLastPayIndex(payments)
-        lightning.listenForAllInvoiceUpdates(lastPayIndex)
-      }
-    } else {
-      logger.info(
-        'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
-      )
-      // disconnect
-      lnApi.disconnect()
-      disconnect$.next()
-    }
-  })
+  //   if (visible) {
+  //     logger.info('App is visible, reconnecting to node')
+  //     // reconnect
+  //     lnApi.connect()
+  //     const payments = payments$.getValue().data
+  //     if (payments) {
+  //       // start listening for payment updates again
+  //       const lastPayIndex = deriveLastPayIndex(payments)
+  //       lightning.listenForAllInvoiceUpdates(lastPayIndex)
+  //     }
+  //   } else {
+  //     logger.info(
+  //       'App is hidden, disconnecting from node and cancelling listening for any invoice updates'
+  //     )
+  //     // disconnect
+  //     lnApi.disconnect()
+  //     disconnect$.next()
+  //   }
+  // })
 }
 
 export default registerSideEffects
