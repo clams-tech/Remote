@@ -63,9 +63,7 @@
     // Validate address & rune
     if (validateParsedNodeAddress(parseNodeAddress(address)) && decode(token)) {
       // Attempt connection
-      saveRune().then(() => {
-        initialized = true
-      })
+      saveRune()
     } else {
       // Show forms that render invalid address or rune errors
       initialized = true
@@ -81,7 +79,7 @@
 
   onMount(async () => {
     // wait for animation to complete to focus
-    setTimeout(focusConnectionInput, 500)
+    setTimeout(() => focusConnectionInput(), 500)
   })
 
   type Slides = typeof slides
@@ -170,7 +168,7 @@
     lnApi.setToken(token)
 
     lightning.initialiseData()
-    goto('/')
+    await goto('/')
   }
 
   let connectButton: Button
