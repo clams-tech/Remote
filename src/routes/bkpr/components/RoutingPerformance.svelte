@@ -6,9 +6,9 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/elements/Spinner.svelte'
   import ErrorMsg from '$lib/elements/ErrorMsg.svelte'
+  import info from '$lib/icons/info.js'
 
   $: net = $channelsAPY$.data?.filter((item) => item.account === 'net')[0]
-
   // Format value or fees
   function formatValue(value: number | string) {
     return formatValueForDisplay({
@@ -45,20 +45,27 @@
   {:else if net}
     <div class="mt-6 flex justify-between flex-wrap gap-4 uppercase">
       <div>
-        <p class="text-2xl font-bold">{formatValue(net.routed_in_msat)}</p>
+        <p class="text-2xl font-bold">{formatValue(net.routed_out_msat)}</p>
         <p class="text-neutral-400">
-          {$translate('app.labels.value')} ({$settings$.bitcoinDenomination})
+          {$translate('app.labels.routed')} ({$settings$.bitcoinDenomination})
         </p>
       </div>
       <div>
-        <p class="text-2xl font-bold">{formatValue(net.fees_in_msat)}</p>
+        <p class="text-2xl font-bold">{formatValue(net.fees_out_msat)}</p>
         <p class="text-neutral-400">
           {$translate('app.labels.fees')} ({$settings$.bitcoinDenomination})
         </p>
       </div>
       <div>
-        <p class="text-2xl font-bold">{formatAPY(net.apy_in)}</p>
+        <p class="text-2xl font-bold">{formatAPY(net.apy_out)}</p>
         <p class="text-neutral-400">{$translate('app.labels.apy')} (%)</p>
+      </div>
+    </div>
+  {:else}
+    <div class="flex items-center w-full">
+      <div class="text-utility-pending p-2 border border-current rounded flex items-start mt-6">
+        <div class="w-6 mr-2 border border-current rounded-full">{@html info}</div>
+        <span class="text-sm">{$translate('app.hints.no_routing_fees')}</span>
       </div>
     </div>
   {/if}

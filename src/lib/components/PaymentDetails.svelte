@@ -134,10 +134,17 @@
 
   <!-- QR AND EXPIRY COUNTDOWN -->
   {#if payment.direction === 'receive' && payment.status === 'pending'}
-    <div class="my-4 flex flex-col items-center justify-center">
-      <Qr value={payment.invoice || null} />
+    <div class="my-4 flex flex-col items-center justify-center w-full">
+      <Qr
+        values={[
+          {
+            label: $translate('app.labels.invoice'),
+            value: `lightning:${payment.invoice}`.toUpperCase()
+          }
+        ]}
+      />
       {#if payment.expiresAt}
-        <div class="mt-2">
+        <div class="">
           <ExpiryCountdown on:expired={handlePaymentExpire} expiry={new Date(payment.expiresAt)} />
         </div>
       {/if}
@@ -145,7 +152,7 @@
   {/if}
 
   <!--------------- DETAILS ----------------------->
-  <div class="mt-8">
+  <div class="mt-2">
     <!-- INVOICE -->
     {#if payment.invoice}
       <SummaryRow>
@@ -210,7 +217,7 @@
     {/if}
 
     <!-- DESCRIPTION -->
-    {#if payment.description}
+    {#if payment.description && !payment.offer?.description}
       <SummaryRow>
         <span slot="label">{$translate('app.labels.description')}:</span>
         <span slot="value">{payment.description}</span>

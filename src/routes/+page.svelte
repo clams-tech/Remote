@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations'
-  import { funds$, nodeInfo$, settings$ } from '$lib/streams'
+  import { auth$, funds$, nodeInfo$, settings$ } from '$lib/streams'
   import { calculateBalance, isPWA, logger } from '$lib/utils'
   import Spinner from '$lib/elements/Spinner.svelte'
   import Value from '$lib/components/Value.svelte'
@@ -15,6 +15,9 @@
   import scan from '$lib/icons/scan'
   import CopyValue from '$lib/elements/CopyValue.svelte'
   import key from '$lib/icons/key.js'
+  import Modal from '$lib/elements/Modal.svelte'
+  import Qr from '$lib/components/QR.svelte'
+  import info from '$lib/icons/info.js'
 
   const buttons = [
     { key: 'send', icon: arrow, styles: 'rotate-180' },
@@ -48,6 +51,19 @@
       logger.warn('Could not register bitcoin protocol handler')
     }
   }
+
+  let showNodeInfoModal = false
+  let nodeAddress: string
+
+  $: if ($nodeInfo$.data && $nodeInfo$.data.address[0]) {
+    const {
+      id,
+      address: [{ address, port }]
+    } = $nodeInfo$.data
+    nodeAddress = `${id}@${address}:${port}`
+  } else {
+    nodeAddress = $auth$!.address
+  }
 </script>
 
 <svelte:head>
@@ -67,11 +83,16 @@
         class="flex items-center w-full justify-center text-xl p-4"
       >
         <Refresh />
+
         <div class="ml-2 mt-[2px] flex items-center">
           <b>{$nodeInfo$.data.alias}</b>
-          <div class="ml-1 mb-1">
-            <CopyValue value={$nodeInfo$.data.id} hideValue truncateLength={6} icon={key} />
-          </div>
+
+          <button
+            on:click={() => (showNodeInfoModal = true)}
+            class="w-6 ml-2 mb-[2px] border-2 border-current rounded-full flex items-center justify-center"
+          >
+            {@html info}
+          </button>
         </div>
       </div>
     {/if}
@@ -103,3 +124,21 @@
 
   <RecentPayment />
 </div>
+
+{#if showNodeInfoModal && $nodeInfo$.data}
+  {@const {
+    data: { id, alias }
+  } = $nodeInfo$}
+  <Modal on:close={() => (showNodeInfoModal = false)}>
+    <h4 class="font-semibold mb-4 w-full text-3xl">
+      {alias}
+    </h4>
+
+    <Qr
+      values={[
+        { label: $translate('app.labels.connect'), value: nodeAddress },
+        { label: $translate('app.labels.pubkey'), value: id }
+      ]}
+    />
+  </Modal>
+{/if}

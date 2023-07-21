@@ -257,10 +257,12 @@ export const calculateBalance = (funds: ListfundsResponse): string => {
     return total.add(formatMsat(our_amount_msat))
   }, Big('0'))
 
-  // const onChain = funds.outputs.reduce((total, { amount_msat }) => total.add(amount_msat), Big('0'))
+  const onChain = funds.outputs.reduce(
+    (total, { amount_msat }) => total.add(formatMsat(amount_msat)),
+    Big('0')
+  )
 
-  // return offChain.add(onChain).toString()
-  return offChain.toString()
+  return offChain.add(onChain).toString()
 }
 
 export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
@@ -309,7 +311,7 @@ export function validateParsedNodeAddress({ publicKey, ip, port }: ParsedNodeAdd
 
   if (!publicKey.match(nodePublicKeyRegex)) return false
 
-  if (!ip.match(ipRegex) && !ip.match(domainRegex) && ip !== 'localhost') return false
+  if (!ip.match(ipRegex) && !ip.match(hostRegex) && ip !== 'localhost') return false
 
   return true
 }
@@ -405,14 +407,15 @@ export function mainDomain(host: string): string {
 
 const usernameRegex = /^[a-z0-9-_.]+$/
 
-const domainRegex =
-  /^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/
+const hostRegex =
+  /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/
 
 export function decodeLightningAddress(val: string): { username: string; domain: string } | null {
   const [username, domain] = val.split('@')
+  if (!username || !domain) return null
 
   // check valid username && valid domain
-  if (!usernameRegex.test(username) || !domainRegex.test(domain)) {
+  if (!usernameRegex.test(username) || !hostRegex.test(domain)) {
     return null
   }
 
@@ -420,6 +423,11 @@ export function decodeLightningAddress(val: string): { username: string; domain:
 }
 
 export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11: string }) | null {
+  // Remove prepended string if found
+  if (bolt11.includes('lightning:')) {
+    bolt11 = bolt11.replace('lightning:', '')
+  }
+
   try {
     const { sections } = bolt11Decoder(bolt11) as DecodedInvoice
 
@@ -438,7 +446,7 @@ export function decodeBolt11(bolt11: string): (FormattedDecodedBolt11 & { bolt11
 }
 
 export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/
-export const bolt11Regex = /^(lnbcrt|lnbc)[a-zA-HJ-NP-Z0-9]{1,}$/
+export const bolt11Regex = /^(lnbcrt|lnbc|lntbs|lntb)[a-zA-HJ-NP-Z0-9]{1,}$/
 const ipRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/
 
 export function getPaymentDetails(destination: string, protocol = ''): ParsedBitcoinString {
@@ -498,7 +506,6 @@ export function parseBitcoinUrl(input: string): ParsedBitcoinString {
   try {
     const { pathname, searchParams } = new URL(input)
     const lightningParam = searchParams.get('lightning')
-
     const details = getPaymentDetails(pathname.toLowerCase())
 
     if ((details as ParsedBitcoinStringError).error) {
@@ -576,4 +583,11 @@ export function formatDecodedOffer(
     nodeId,
     quantityMax
   }
+}
+
+export function convertVersionNumber(version: string): number {
+  const [withoutDash] = version.split('-')
+  const withoutV = withoutDash.replace(/^v/, '') // Trim "v" from start of the string
+  const withoutDots = withoutV.replace('.', '')
+  return Number(withoutDots)
 }

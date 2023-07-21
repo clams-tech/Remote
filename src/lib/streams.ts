@@ -19,12 +19,15 @@ import type {
   Payment,
   Auth,
   Settings,
-  FormattedDecodedOffer
+  FormattedDecodedOffer,
+  Channel,
+  Forward
 } from './types'
 import { logger } from './utils'
 
 import type {
   BkprChannelsAPYResponse,
+  BkprListBalancesResponse,
   BkprListIncomeResponse,
   FormattedOfferSummary,
   GetinfoResponse,
@@ -133,6 +136,18 @@ export const payments$ = new BehaviorSubject<{
   error?: string
 }>({ loading: true, data: null })
 
+export const channels$ = new BehaviorSubject<{
+  data: Channel[] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const forwards$ = new BehaviorSubject<{
+  data: Forward[] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
 export const funds$ = new BehaviorSubject<{
   data: ListfundsResponse | null
   loading?: boolean
@@ -141,6 +156,12 @@ export const funds$ = new BehaviorSubject<{
 
 export const incomeEvents$ = new BehaviorSubject<{
   data: BkprListIncomeResponse['income_events'] | null
+  loading?: boolean
+  error?: string
+}>({ loading: true, data: null })
+
+export const balances$ = new BehaviorSubject<{
+  data: BkprListBalancesResponse['accounts'] | null
   loading?: boolean
   error?: string
 }>({ loading: true, data: null })

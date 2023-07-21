@@ -79,7 +79,7 @@
 
       {#if !$offers$.data.length}
         <div class="flex items-start px-2.5 py-2 rounded border text-neutral-400 mt-2">
-          <div class="w-6 mr-2 mt-1 border rounded-full border-current">
+          <div class="w-6 mr-2 border rounded-full border-current">
             {@html info}
           </div>
           <div>{$translate('app.hints.no_offers')}</div>

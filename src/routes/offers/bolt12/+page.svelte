@@ -21,7 +21,7 @@
   let value = ''
   let description = ''
   let expiry = 0
-  let singleUse = false
+  let singleUse: boolean | undefined = undefined
   let issuer = ''
   let label = ''
   let quantityMax = 0
@@ -171,7 +171,7 @@
     backText={$translate('app.titles./offers')}
     direction={slideDirection}
   >
-    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg ">
+    <section class="flex flex-col justify-center items-start w-full p-4 max-w-lg">
       <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.offer_type')}</h1>
       <p class="text-neutral-600 dark:text-neutral-400 italic">
         {$translate('app.subheadings.offer_type')}
@@ -181,6 +181,7 @@
         <button
           on:click={() => {
             offerType = 'pay'
+            singleUse = false
             next()
           }}
           class:border-utility-success={offerType === 'pay'}
@@ -194,7 +195,6 @@
         <button
           on:click={() => {
             offerType = 'withdraw'
-            singleUse = true
             next()
           }}
           class:border-purple-300={offerType === 'withdraw'}
@@ -217,6 +217,7 @@
       required={offerType === 'withdraw'}
       {next}
       direction={offerType === 'withdraw' ? 'send' : 'receive'}
+      type="bolt12"
       hint={offerType === 'pay' ? $translate('app.hints.any_amount') : ''}
     />
   </Slide>
@@ -229,6 +230,7 @@
       label="description"
       {next}
       hint={$translate('app.labels.optional')}
+      context={{ paymentType: 'bolt12', direction: offerType === 'pay' ? 'receive' : 'send' }}
     />
   </Slide>
 {/if}

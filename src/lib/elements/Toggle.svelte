@@ -3,12 +3,13 @@
 
   export let label = ''
   export let toggled = false
+  export let labelPosition: 'left' | 'right' = 'left'
 
   export let handleChange = noop
 </script>
 
 <div class="cursor-pointer flex items-center">
-  {#if label}<span class="mr-2 font-bold">{label}</span>{/if}
+  {#if label && labelPosition === 'left'}<span class="mr-2 font-inherit">{label}</span>{/if}
 
   <button on:click|stopPropagation class="flex items-center">
     <label class="relative inline-block m-0 w-8 h-4">
@@ -23,4 +24,6 @@
       />
     </label>
   </button>
+
+  {#if label && labelPosition === 'right'}<span class="ml-2 font-inherit">{label}</span>{/if}
 </div>

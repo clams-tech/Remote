@@ -213,7 +213,14 @@
         <!-- QR AND EXPIRY COUNTDOWN -->
         {#if status === 'active'}
           <div class="my-4 flex flex-col items-center justify-center">
-            <Qr value={bolt12} />
+            <Qr
+              values={[
+                {
+                  label: $translate('app.labels.bolt12'),
+                  value: `lightning:${bolt12}`.toUpperCase()
+                }
+              ]}
+            />
             {#if offerExpiry}
               <div class="mt-2">
                 <ExpiryCountdown
@@ -226,7 +233,7 @@
         {/if}
 
         <!--------------- DETAILS ----------------------->
-        <div class="mt-8">
+        <div>
           <!-- STATUS -->
           <SummaryRow>
             <span slot="label">{$translate('app.labels.status')}:</span>

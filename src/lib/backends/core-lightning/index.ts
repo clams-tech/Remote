@@ -1,20 +1,30 @@
 import LnMessage from 'lnmessage'
 import Big from 'big.js'
-import type { Auth, Payment } from '$lib/types'
-import { formatMsat, parseNodeAddress, sortPaymentsMostRecent } from '$lib/utils'
+import type { Auth, Payment, Channel, Forward } from '$lib/types'
 import type { Logger } from 'lnmessage/dist/types'
 import { settings$ } from '$lib/streams'
+import { bytesToHex } from '@noble/hashes/utils'
+import { sha256 } from '@noble/hashes/sha256'
+
+import {
+  convertVersionNumber,
+  formatMsat,
+  parseNodeAddress,
+  sortPaymentsMostRecent
+} from '$lib/utils'
 
 import {
   formatChannelsAPY,
   formatIncomeEvents,
   invoiceStatusToPaymentStatus,
   invoiceToPayment,
-  payToPayment
+  payToPayment,
+  stateToChannelStatus
 } from './utils'
 
 import type {
   BkprChannelsAPYResponse,
+  BkprListBalancesResponse,
   BkprListIncomeResponse,
   ChannelAPY,
   CreatePayOfferRequest,
@@ -25,6 +35,7 @@ import type {
   DisableOfferRequest,
   FetchInvoiceRequest,
   FetchInvoiceResponse,
+  FundChannelResponse,
   GetinfoResponse,
   IncomeEvent,
   InvoiceRequest,
@@ -32,15 +43,20 @@ import type {
   InvoiceResponse,
   InvoiceStatus,
   KeysendResponse,
+  ListForwardsResponse,
   ListfundsResponse,
   ListInvoiceRequestsResponse,
   ListinvoicesResponse,
+  ListNodesResponse,
   ListOffersResponse,
   ListpaysResponse,
+  ListPeerChannelsResponse,
+  ListPeersResponse,
   OfferSummary,
   PayResponse,
   SendInvoiceRequest,
   SendInvoiceResponse,
+  SetChannelResponse,
   SignMessageResponse,
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
@@ -386,6 +402,15 @@ class CoreLn {
     return formatted
   }
 
+  async bkprListBalances(): Promise<BkprListBalancesResponse['accounts']> {
+    const result = await this.connection.commando({
+      method: 'bkpr-listbalances',
+      rune: this.rune
+    })
+
+    return (result as BkprListBalancesResponse).accounts
+  }
+
   async bkprChannelsAPY(): Promise<ChannelAPY[]> {
     const result = (await this.connection.commando({
       method: 'bkpr-channelsapy',
@@ -413,6 +438,289 @@ class CoreLn {
     })
 
     return (result as ListInvoiceRequestsResponse).invoicerequests
+  }
+
+  async listNodes(id: string): Promise<ListNodesResponse['nodes']> {
+    const result = (await this.connection.commando({
+      method: 'listnodes',
+      rune: this.rune,
+      params: { id }
+    })) as ListNodesResponse
+
+    return (result as ListNodesResponse).nodes
+  }
+
+  async listPeers(): Promise<ListPeersResponse['peers']> {
+    const result = await this.connection.commando({
+      method: 'listpeers',
+      rune: this.rune
+    })
+
+    return (result as ListPeersResponse).peers
+  }
+
+  async getForwards(): Promise<Forward[]> {
+    const listForwardsResponse = await this.connection.commando({
+      method: 'listforwards',
+      rune: this.rune
+    })
+    const { forwards } = listForwardsResponse as ListForwardsResponse
+
+    return forwards.map(
+      ({
+        in_channel,
+        out_channel,
+        in_htlc_id,
+        out_htlc_id,
+        in_msat,
+        out_msat,
+        fee_msat,
+        status,
+        style,
+        received_time,
+        resolved_time
+      }) => {
+        const forward = {
+          shortIdIn: in_channel,
+          shortIdOut: out_channel,
+          htlcInId: in_htlc_id,
+          htlcOutId: out_htlc_id,
+          in: formatMsat(in_msat),
+          out: formatMsat(out_msat),
+          fee: formatMsat(fee_msat),
+          status,
+          style,
+          started: received_time,
+          completed: resolved_time
+        }
+
+        const id = bytesToHex(sha256(JSON.stringify(forward)))
+
+        return { ...forward, id }
+      }
+    )
+  }
+
+  public async getChannels(nodeId?: string, channelId?: string): Promise<Channel[]> {
+    const { version } = await this.getInfo()
+    const versionNumber = convertVersionNumber(version)
+
+    if (versionNumber < 2302) {
+      const listPeersResult = await this.connection.commando({
+        method: 'listpeers',
+        rune: this.rune,
+        params: nodeId ? { id: nodeId } : undefined
+      })
+      const { peers } = listPeersResult as ListPeersResponse
+
+      const result = await Promise.all(
+        peers
+          .filter(({ channels }) => !!channels)
+          .map(async ({ id, channels, connected }) => {
+            const [peer] = await this.listNodes(id)
+
+            return channels.map((channel) => {
+              const {
+                opener,
+                funding_txid,
+                funding_outnum,
+                channel_id,
+                short_channel_id,
+                state,
+                to_us_msat,
+                total_msat,
+                our_reserve_msat,
+                their_reserve_msat,
+                fee_base_msat,
+                fee_proportional_millionths,
+                close_to_addr,
+                close_to,
+                closer,
+                htlcs,
+                minimum_htlc_out_msat,
+                maximum_htlc_out_msat
+              } = channel
+
+              return {
+                opener: opener,
+                peerId: id,
+                peerConnected: connected,
+                peerAlias: peer?.alias,
+                fundingTransactionId: funding_txid,
+                fundingOutput: funding_outnum,
+                id: channel_id,
+                shortId: short_channel_id || null,
+                status: stateToChannelStatus(state),
+                balanceLocal: formatMsat(to_us_msat),
+                balanceRemote: (
+                  BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
+                ).toString(),
+                reserveRemote: formatMsat(our_reserve_msat || '0'),
+                reserveLocal: formatMsat(their_reserve_msat || '0'),
+                feeBase: formatMsat(fee_base_msat.toString()),
+                feePpm: fee_proportional_millionths,
+                closeToAddress: close_to_addr ?? null,
+                closeToScriptPubkey: close_to ?? null,
+                closer,
+                htlcMin: minimum_htlc_out_msat
+                  ? formatMsat(minimum_htlc_out_msat.toString())
+                  : null,
+                htlcMax: maximum_htlc_out_msat
+                  ? formatMsat(maximum_htlc_out_msat.toString())
+                  : null,
+                htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                  id,
+                  direction,
+                  amount: amount_msat,
+                  expiry,
+                  paymentHash: payment_hash,
+                  state
+                }))
+              }
+            })
+          })
+      )
+
+      const flattened = result.flat()
+
+      return channelId ? flattened.filter(({ id }) => id === channelId) : flattened
+    } else {
+      const listPeerChannelsResult = await this.connection.commando({
+        method: 'listpeerchannels',
+        rune: this.rune,
+        params: nodeId ? { id: nodeId } : undefined
+      })
+
+      const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
+
+      const formattedChannels = await Promise.all(
+        channels.map(async (channel) => {
+          const {
+            peer_id,
+            peer_connected,
+            opener,
+            funding_txid,
+            funding_outnum,
+            channel_id,
+            short_channel_id,
+            state,
+            to_us_msat,
+            total_msat,
+            fee_base_msat,
+            fee_proportional_millionths,
+            close_to_addr,
+            close_to,
+            closer,
+            our_reserve_msat,
+            their_reserve_msat,
+            htlcs,
+            minimum_htlc_out_msat,
+            maximum_htlc_out_msat
+          } = channel
+
+          const [peer] = await this.listNodes(peer_id)
+
+          return {
+            opener: opener,
+            peerId: peer_id,
+            peerConnected: peer_connected,
+            peerAlias: peer?.alias,
+            fundingTransactionId: funding_txid,
+            fundingOutput: funding_outnum,
+            id: channel_id,
+            shortId: short_channel_id || null,
+            status: stateToChannelStatus(state),
+            balanceLocal: formatMsat(to_us_msat),
+            balanceRemote: (
+              BigInt(formatMsat(total_msat)) - BigInt(formatMsat(to_us_msat))
+            ).toString(),
+            reserveRemote: formatMsat(our_reserve_msat || '0'),
+            reserveLocal: formatMsat(their_reserve_msat || '0'),
+            feeBase: fee_base_msat ? formatMsat(fee_base_msat.toString()) : null,
+            feePpm: fee_proportional_millionths,
+            closeToAddress: close_to_addr ?? null,
+            closeToScriptPubkey: close_to ?? null,
+            closer: closer,
+            htlcMin: minimum_htlc_out_msat ? formatMsat(minimum_htlc_out_msat.toString()) : null,
+            htlcMax: maximum_htlc_out_msat ? formatMsat(maximum_htlc_out_msat.toString()) : null,
+            htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+              id,
+              direction,
+              amount: amount_msat,
+              expiry,
+              paymentHash: payment_hash,
+              state
+            }))
+          }
+        })
+      )
+
+      return channelId ? formattedChannels.filter(({ id }) => id === channelId) : formattedChannels
+    }
+  }
+
+  public async updateChannel(options: {
+    /** node id, channel id, short channel id */
+    id: string
+    /** msat base fee */
+    feeBase?: string
+    /** ppm fee rate */
+    feeRate?: number
+    /** the min size we will forward msat */
+    htlcMin?: string
+    /** the max size we will forward msat */
+    htlcMax?: string
+    /** the delay in seconds before enforcing new fees and htlc settings */
+    enforceDelay?: number
+  }): Promise<SetChannelResponse['channels']['0']> {
+    const { id, feeBase, feeRate, htlcMin, htlcMax, enforceDelay } = options
+
+    const result = await this.connection.commando({
+      method: 'setchannel',
+      rune: this.rune,
+      params: {
+        id,
+        feebase: feeBase,
+        feeppm: feeRate,
+        htlcmin: htlcMin,
+        htlcmax: htlcMax,
+        enforcedelay: enforceDelay
+      }
+    })
+
+    return (result as SetChannelResponse).channels[0]
+  }
+
+  public async connectPeer(options: { id: string; host?: string; port?: number }): Promise<void> {
+    const { id, host, port } = options
+
+    await this.connection.commando({
+      method: 'connect',
+      rune: this.rune,
+      params: {
+        id,
+        host,
+        port: port || (host ? 9735 : undefined)
+      }
+    })
+  }
+
+  public async openChannel(options: {
+    id: string
+    amount: string
+    announce: boolean
+  }): Promise<{ txid: string; channelId: string }> {
+    const { id, amount, announce } = options
+
+    const result = await this.connection.commando({
+      rune: this.rune,
+      method: 'fundchannel',
+      params: { id, amount, announce }
+    })
+
+    const { txid, channel_id } = result as FundChannelResponse
+
+    return { txid, channelId: channel_id }
   }
 }
 

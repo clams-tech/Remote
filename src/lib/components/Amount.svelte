@@ -6,13 +6,14 @@
   import info from '$lib/icons/info'
   import warning from '$lib/icons/warning'
   import { settings$ } from '$lib/streams'
-  import { BitcoinDenomination } from '$lib/types'
+  import { BitcoinDenomination, type PaymentType } from '$lib/types'
   import Big from 'big.js'
   import { fade } from 'svelte/transition'
   import Value from './Value.svelte'
 
   export let value: string
   export let direction: 'send' | 'receive'
+  export let type: PaymentType = 'bolt11'
   export let next: () => void
   export let readonly = false
   export let required = false
@@ -58,7 +59,7 @@
   <div class="mb-6">
     <h1 class="text-4xl font-bold mb-4">{$translate('app.headings.amount')}</h1>
     <p class="text-neutral-600 dark:text-neutral-300 italic">
-      {$translate('app.subheadings.amount', { direction })}
+      {$translate('app.subheadings.amount', { direction, paymentType: type })}
     </p>
 
     {#if hint}
