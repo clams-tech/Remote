@@ -7,10 +7,14 @@ import handleError from './error.js'
 import { nowSeconds } from '$lib/utils.js'
 
 import type {
+  ChainEvent,
+  ChannelOpenEvent,
   CorelnConnectionInterface,
   CoreLnError,
+  ListAccountEventsResponse,
   ListTransactionsResponse,
   NewAddrResponse,
+  OnchainFeeEvent,
   WithdrawResponse
 } from './types.js'
 
@@ -25,10 +29,56 @@ class Transactions implements TransactionsInterface {
     try {
       const listTransactionsResponse = await this.connection.rpc({ method: 'listtransactions' })
       const { transactions } = listTransactionsResponse as ListTransactionsResponse
+      let accountEvents: ListAccountEventsResponse | null
+
+      try {
+        accountEvents = (await this.connection.rpc({
+          method: 'bkpr-listaccountevents'
+        })) as ListAccountEventsResponse
+      } catch (error) {
+        // don't have permissions to get account events, so set to null
+        accountEvents = null
+      }
 
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
+
+          const event: {
+            channelOpen: ChannelOpenEvent
+            chain: ChainEvent
+            fees: OnchainFeeEvent[]
+          } | null =
+            accountEvents &&
+            accountEvents.events.reduce((acc, ev) => {
+              const { type, tag } = ev as ChainEvent | ChannelOpenEvent | OnchainFeeEvent
+              const { txid, outpoint } = ev as ChainEvent
+
+              if (type === 'chain') {
+                if (tag === 'withdrawal' && txid === hash) {
+                  acc.chain = ev as ChainEvent
+                }
+
+                if (tag === 'channel_open' && outpoint.includes(hash)) {
+                  acc.channelOpen = ev as ChannelOpenEvent
+                }
+              } else if (type === 'onchain_fee' && txid === hash) {
+                if (!acc.fees) {
+                  acc.fees = []
+                }
+
+                acc.fees.push(ev as OnchainFeeEvent)
+              }
+
+              return acc
+            }, {} as { channelOpen: ChannelOpenEvent; chain: ChainEvent; fees: OnchainFeeEvent[] })
+
+          const fee = event?.fees
+            ? event.fees.reduce((total, { credit_msat, debit_msat }) => {
+                const fee = Big(credit_msat).minus(debit_msat)
+                return Big(total).plus(fee).toString()
+              }, '0')
+            : null
 
           return {
             hash,
@@ -44,7 +94,10 @@ class Transactions implements TransactionsInterface {
               amount: amount_msat,
               scriptPubKey
             })),
-            connectionId: this.connection.info.connectionId
+            connectionId: this.connection.info.connectionId,
+            timestamp: event?.chain?.timestamp || null,
+            channel: event?.channelOpen?.account || undefined,
+            fee
           }
         }
       )

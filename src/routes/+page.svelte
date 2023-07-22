@@ -69,9 +69,10 @@
     {/each}
   </div>
 </div>
+
 {#if showGetStartedHint}
   <div
-    class="max-w-xl 2xl:max-w-2xl absolute bottom-0 p-2 w-full flex justify-center items-center bg-neutral-900"
+    class="max-w-max absolute bottom-2 p-2 w-full flex justify-center items-center bg-neutral-900"
   >
     <Msg
       on:close={handleCloseHint}

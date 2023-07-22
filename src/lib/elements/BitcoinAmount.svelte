@@ -23,7 +23,7 @@
   <div class="w-[1.25em] text-neutral-50">{@html bitcoin}</div>
   <div class="flex items-baseline mt-0.5">
     <div class="mr-[0.375em] font-mono">{@html formattedBtc}</div>
-    <div class="text-[0.8em] text-neutral-50">
+    <div class="text-[0.75em] font-semibold text-neutral-50">
       {$translate('app.labels.sats').toLowerCase()}
     </div>
   </div>

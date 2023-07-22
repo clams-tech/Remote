@@ -129,6 +129,8 @@
     "image_saved": "Image saved",
     "text_copied": "Text copied",
     "connection": "Connection",
+    "fiat_calculator": "Fiat Calculator",
+    "set_amount": "Set amount",
     "sats": "Sats",
     "expired": "Expired",
     "expires": "Expires",

@@ -18,6 +18,10 @@ export type Transaction = {
   }>
   /** the connection this onchain tx is associated with */
   connectionId: string
+  timestamp: number | null
+  fee: string | null
+  /** Channel opened with this transaction */
+  channel?: string
 }
 
 export type SendTransactionOptions = {

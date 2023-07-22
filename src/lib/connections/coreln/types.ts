@@ -981,6 +981,71 @@ export type FundChannelResponse = {
   mindepth?: number
 }
 
+export type ChainEvent = {
+  account: 'wallet'
+  type: 'chain'
+  tag: 'deposit' | 'withdrawal'
+  credit_msat: string
+  debit_msat: string
+  timestamp: number
+  outpoint: string
+  blockheight: number
+  txid?: string
+}
+
+export type ChannelOpenEvent = {
+  account: string
+  type: 'chain'
+  tag: 'channel_open'
+  timestamp: number
+  outpoint: string
+  credit_msat: string
+  debit_msat: string
+  blockheight: number
+}
+
+export type ChannelPushEvent = {
+  account: string
+  type: 'channel'
+  tag: 'pushed'
+  timestamp: number
+  credit_msat: string
+  debit_msat: string
+}
+
+export type OnchainFeeEvent = {
+  account: 'wallet'
+  type: 'onchain_fee'
+  tag: 'onchain_fee'
+  txid: string
+  timestamp: number
+  outpoint: string
+  credit_msat: string
+  debit_msat: string
+}
+
+export type ChannelInvoiceEvent = {
+  account: string
+  type: 'channel'
+  tag: 'invoice'
+  description: string
+  payment_id: string
+  part_id: 0
+  timestamp: number
+  credit_msat: string
+  debit_msat: string
+}
+
+export type ListAccountEventsResponse = {
+  events: (
+    | ChainEvent
+    | ChannelOpenEvent
+    | ChannelPushEvent
+    | OnchainFeeEvent
+    | ChannelInvoiceEvent
+  )[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse

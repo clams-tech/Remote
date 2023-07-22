@@ -6,7 +6,7 @@
   import { slide } from 'svelte/transition'
   import caret from '$lib/icons/caret.js'
   import AdvancedConnection from './AdvancedConnection.svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import Button from '$lib/elements/Button.svelte'
   import check from '$lib/icons/check.js'
   import close from '$lib/icons/close.js'
@@ -60,7 +60,23 @@
       (method) => `"method=${method}"`
     )}], ["rate=120"]]'`
   }
+
+  const handleKeyPress = (e: KeyboardEvent) => {
+    if (modified) {
+      if (e.key === 'Enter') {
+        dispatchUpdate()
+      }
+
+      if (e.key === 'Escape') {
+        resetConfigurationUpdate()
+      }
+    }
+  }
+
+  onMount(() => focusConnectionInput && focusConnectionInput())
 </script>
+
+<svelte:window on:keyup={handleKeyPress} />
 
 <div class="w-full py-2">
   <div class="flex items-center w-full justify-between mb-3">

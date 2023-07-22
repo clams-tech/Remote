@@ -1,3 +1,8 @@
+import type { BitcoinExchangeRates } from './@types/settings.js'
+import { API_URL } from './constants.js'
+import { log } from './services.js'
+import { settings$ } from './streams.js'
+
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
   return Math.round(Date.now() / 1000)
@@ -24,3 +29,17 @@ export const noop = () => {}
 
 export const wait = (time: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, time))
+
+export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
+  const currency = settings$.value.fiatDenomination
+
+  try {
+    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then((res) =>
+      res.json()
+    )
+    return result
+  } catch (error) {
+    log.warn(`Could not get exchange rate for currency: ${currency} `)
+    return null
+  }
+}

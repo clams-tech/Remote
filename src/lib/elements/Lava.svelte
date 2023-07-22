@@ -1,10 +1,10 @@
 <script>
-  // https://codepen.io/siokoden/pen/gvpaMg
-
+  import debounce from 'lodash.debounce'
   import { onMount } from 'svelte'
   let canvas
 
   function start() {
+    // https://codepen.io/siokoden/pen/gvpaMg
     var t,
       i = {
         screen: {
@@ -204,6 +204,10 @@
   }
 
   onMount(() => start())
+
+  const debouncedHandleResize = debounce(start, 250)
 </script>
+
+<svelte:window on:resize={debouncedHandleResize} />
 
 <canvas class="absolute top-0 left-0 bg-neutral-900 w-screen h-[calc(100dvh)]" bind:this={canvas} />

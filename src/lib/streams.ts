@@ -2,7 +2,7 @@ import { onDestroy } from 'svelte'
 import type { Invoice } from './@types/invoices.js'
 import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
-import { DEFAULT_SETTINGS, STORAGE_KEYS } from './constants.js'
+import { DEFAULT_SETTINGS, MIN_IN_MS, STORAGE_KEYS } from './constants.js'
 import type { ConnectionInterface } from './connections/interfaces.js'
 import { liveQuery } from 'dexie'
 import { db } from './db.js'
@@ -21,8 +21,13 @@ import {
   skip,
   startWith,
   Subject,
-  take
+  take,
+  timer,
+  distinctUntilKeyChanged,
+  merge,
+  switchMap
 } from 'rxjs'
+import { getBitcoinExchangeRate } from './utils.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
@@ -106,3 +111,12 @@ settings$
       log.error('Access to local storage is blocked. Could not write settings to storage')
     }
   })
+
+const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
+
+const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDenomination'), skip(1))
+
+// get and update bitcoin exchange rate by poll or if fiat denomination changes
+merge(exchangeRatePoll$, fiatDenominationChange$)
+  .pipe(switchMap(() => from(getBitcoinExchangeRate())))
+  .subscribe(bitcoinExchangeRates$)

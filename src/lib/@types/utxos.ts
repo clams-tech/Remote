@@ -7,8 +7,8 @@ export type Utxo = {
   scriptpubkey: string
   address: string
   status: OutputStatus
-  blockheight?: number
-  /** the connection this utxo is associated with */
   connectionId: string
+  timestamp: number | null
+  blockheight?: number
   reserved?: boolean
 }

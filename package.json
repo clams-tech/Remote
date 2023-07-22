@@ -65,6 +65,7 @@
     "js-lnurl": "^0.6.0",
     "jsqr": "^1.4.0",
     "lnmessage": "^0.2.2",
+    "lodash.debounce": "^4.0.8",
     "nouislider": "^15.7.1",
     "qrcode": "^1.5.3",
     "rune-decoder": "0.0.1",
