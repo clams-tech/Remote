@@ -1004,6 +1004,31 @@ export type ChannelOpenEvent = {
   blockheight: number
 }
 
+export type ChannelCloseEvent = {
+  account: string
+  type: 'chain'
+  tag: 'channel_close'
+  timestamp: number
+  outpoint: string
+  txid: string
+  credit_msat: string
+  debit_msat: string
+  blockheight: number
+}
+
+export type ToThemEvent = {
+  account: string
+  origin: string
+  type: 'chain'
+  tag: 'to_them'
+  timestamp: number
+  outpoint: string
+  txid: string
+  credit_msat: string
+  debit_msat: string
+  blockheight: number
+}
+
 export type ChannelPushEvent = {
   account: string
   type: 'channel'
@@ -1040,9 +1065,11 @@ export type ListAccountEventsResponse = {
   events: (
     | ChainEvent
     | ChannelOpenEvent
+    | ChannelCloseEvent
     | ChannelPushEvent
     | OnchainFeeEvent
     | ChannelInvoiceEvent
+    | ToThemEvent
   )[]
 }
 

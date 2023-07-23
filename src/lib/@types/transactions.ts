@@ -1,5 +1,7 @@
 export type Transaction = {
-  hash: string
+  /** the connection this onchain tx is associated with */
+  connectionId: string
+  id: string
   rawtx: string
   blockheight: number | null
   txindex: number | null
@@ -16,13 +18,30 @@ export type Transaction = {
     amount: string
     scriptPubKey: string
   }>
-  /** the connection this onchain tx is associated with */
-  connectionId: string
-  timestamp: number | null
-  fee: string | null
-  /** Channel opened with this transaction */
-  channel?: string
+  events: TransactionEvent[]
 }
+
+export type FeeEvent = {
+  type: 'fee'
+  amount: string
+}
+
+export type ChainEvent = {
+  /** deposit is a receive, withdrawal is a send, and external is settlement to channel partner */
+  type: 'deposit' | 'withdrawal'
+  amount: string
+  timestamp: number
+}
+
+export type ChannelEvent = {
+  type: 'channelOpen' | 'channelClose' | 'externalSettle'
+  /** the amount added(open) or removed(close) to offchain balance */
+  amount: string
+  timestamp: number
+  channel: string
+}
+
+export type TransactionEvent = ChainEvent | ChannelEvent | FeeEvent
 
 export type SendTransactionOptions = {
   /** amount to send msats */

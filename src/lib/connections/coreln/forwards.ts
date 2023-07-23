@@ -42,8 +42,8 @@ class Forwards implements ForwardsInterface {
             fee: stripMsatSuffix(fee_msat),
             status,
             style,
-            started: received_time,
-            completed: resolved_time,
+            startedAt: received_time,
+            completedAt: resolved_time,
             connectionId: this.connection.info.connectionId
           }
 

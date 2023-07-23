@@ -1,9 +1,9 @@
 export type OutputStatus = 'unconfirmed' | 'confirmed' | 'spent' | 'immature'
 
 export type Utxo = {
-  txid: string
+  id: string
   output: number
-  amount_msat: string
+  amount: string
   scriptpubkey: string
   address: string
   status: OutputStatus

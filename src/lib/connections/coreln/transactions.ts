@@ -1,4 +1,8 @@
-import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
+import type {
+  SendTransactionOptions,
+  Transaction,
+  TransactionEvent
+} from '$lib/@types/transactions.js'
 import type { TransactionsInterface } from '../interfaces.js'
 import type { AppError } from '$lib/@types/errors.js'
 import Big from 'big.js'
@@ -8,6 +12,7 @@ import { nowSeconds } from '$lib/utils.js'
 
 import type {
   ChainEvent,
+  ChannelCloseEvent,
   ChannelOpenEvent,
   CorelnConnectionInterface,
   CoreLnError,
@@ -15,6 +20,7 @@ import type {
   ListTransactionsResponse,
   NewAddrResponse,
   OnchainFeeEvent,
+  ToThemEvent,
   WithdrawResponse
 } from './types.js'
 
@@ -40,48 +46,106 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
+      console.log({ transactions })
+      console.log({ accountEvents })
+
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
 
-          const event: {
-            channelOpen: ChannelOpenEvent
-            chain: ChainEvent
-            fees: OnchainFeeEvent[]
-          } | null =
-            accountEvents &&
-            accountEvents.events.reduce((acc, ev) => {
-              const { type, tag } = ev as ChainEvent | ChannelOpenEvent | OnchainFeeEvent
+          const events: TransactionEvent[] = []
+          const fees: string[] = []
+
+          if (accountEvents) {
+            accountEvents.events.forEach((ev) => {
+              const {
+                type,
+                tag,
+                timestamp: eventTimestamp,
+                account,
+                debit_msat,
+                credit_msat
+              } = ev as
+                | ChainEvent
+                | ChannelOpenEvent
+                | ChannelCloseEvent
+                | OnchainFeeEvent
+                | ToThemEvent
+
               const { txid, outpoint } = ev as ChainEvent
+              const { origin } = ev as ToThemEvent
 
               if (type === 'chain') {
+                if (tag === 'deposit' && outpoint.split(':')[0] === hash) {
+                  events.push({
+                    type: 'deposit',
+                    amount: credit_msat,
+                    timestamp: eventTimestamp
+                  })
+
+                  return
+                }
+
                 if (tag === 'withdrawal' && txid === hash) {
-                  acc.chain = ev as ChainEvent
+                  events.push({
+                    type: 'withdrawal',
+                    amount: debit_msat,
+                    timestamp: eventTimestamp
+                  })
+
+                  return
                 }
 
                 if (tag === 'channel_open' && outpoint.includes(hash)) {
-                  acc.channelOpen = ev as ChannelOpenEvent
+                  events.push({
+                    type: 'channelOpen',
+                    amount: credit_msat,
+                    timestamp: eventTimestamp,
+                    channel: account
+                  })
+
+                  return
+                }
+
+                if (tag === 'channel_close' && txid === hash) {
+                  events.push({
+                    type: 'channelClose',
+                    amount: debit_msat,
+                    timestamp: eventTimestamp,
+                    channel: account
+                  })
+
+                  return
+                }
+
+                if (tag === 'to_them' && outpoint.includes(hash)) {
+                  events.push({
+                    type: 'externalSettle',
+                    amount: credit_msat,
+                    timestamp: eventTimestamp,
+                    channel: origin
+                  })
+
+                  return
                 }
               } else if (type === 'onchain_fee' && txid === hash) {
-                if (!acc.fees) {
-                  acc.fees = []
-                }
-
-                acc.fees.push(ev as OnchainFeeEvent)
+                fees.push(credit_msat ? credit_msat : `-${debit_msat}`)
+                return
               }
+            })
 
-              return acc
-            }, {} as { channelOpen: ChannelOpenEvent; chain: ChainEvent; fees: OnchainFeeEvent[] })
-
-          const fee = event?.fees
-            ? event.fees.reduce((total, { credit_msat, debit_msat }) => {
-                const fee = Big(credit_msat).minus(debit_msat)
-                return Big(total).plus(fee).toString()
-              }, '0')
-            : null
+            if (fees.length) {
+              events.push({
+                type: 'fee',
+                amount: fees.reduce((total, msat) => {
+                  return Big(total).plus(msat).toString()
+                }, '0')
+              })
+            }
+          }
 
           return {
-            hash,
+            id: hash,
             rawtx,
             blockheight,
             txindex,
@@ -95,9 +159,7 @@ class Transactions implements TransactionsInterface {
               scriptPubKey
             })),
             connectionId: this.connection.info.connectionId,
-            timestamp: event?.chain?.timestamp || null,
-            channel: event?.channelOpen?.account || undefined,
-            fee
+            events
           }
         }
       )
@@ -152,7 +214,7 @@ class Transactions implements TransactionsInterface {
 
       const { txid } = withdrawResult as WithdrawResponse
       const transactions = await this.get()
-      const transaction = transactions.find(({ hash }) => hash === txid)
+      const transaction = transactions.find(({ id }) => id === txid)
 
       return transaction as Transaction
     } catch (error) {
@@ -181,7 +243,7 @@ class Transactions implements TransactionsInterface {
          */
         try {
           const transactions = await this.get()
-          const tx = transactions.find(({ hash }) => hash === transaction.hash)
+          const tx = transactions.find(({ id }) => id === transaction.id)
 
           /** can't find transaction, throw error */
           if (!tx) {
@@ -189,7 +251,7 @@ class Transactions implements TransactionsInterface {
               key: 'connection_transaction_not_found',
               detail: {
                 timestamp: nowSeconds(),
-                message: `Could not find transaction for hash: ${transaction.hash}`,
+                message: `Could not find transaction for hash: ${transaction.id}`,
                 context: 'listenForTransactionConfirmation (transactions)'
               }
             }

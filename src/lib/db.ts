@@ -24,11 +24,12 @@ class DB extends Dexie {
     this.version(1).stores({
       channels: '&id, connectionId, shortId',
       connections: '&id, type',
-      forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status',
-      invoices: '&id, connectionId, offerId, value, fee, payIndex',
+      forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status, startedAt, completedAt',
+      invoices:
+        '&id, connectionId, offerId, value, fee, payIndex, startedAt, completedAt, direction',
       offers: '&id, connectionId',
-      transactions: '&hash, connectionId',
-      utxos: '&txid, connectionId',
+      transactions: '&id, connectionId, timestamp, direction',
+      utxos: '&id, connectionId, timestamp',
       metadata: '&id, dataId, type, value'
     })
   }

@@ -135,6 +135,7 @@
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",
+    "add_connection": "You have no connections. <a href='/connections/add'>Create a new connection</a> to get started.",
     "destination": "Destination",
     "status": "Status",
     "issuer": "Issuer",

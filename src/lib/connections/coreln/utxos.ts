@@ -33,24 +33,28 @@ class Utxos implements UtxosInterface {
 
       return outputs.map(
         ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockHeight }) => {
-          const event =
-            accountEvents &&
-            accountEvents.events.find((event) => {
+          let timestamp: number | null = null
+
+          if (accountEvents) {
+            const event = accountEvents.events.find((event) => {
               const { type, tag, outpoint } = event as ChainEvent
               type === 'chain' && tag === 'deposit' && outpoint === `${txid}:${output}`
             })
 
+            timestamp = event?.timestamp || null
+          }
+
           return {
-            txid,
+            id: txid,
             output,
-            amount_msat,
+            amount: amount_msat,
             scriptpubkey,
             address,
             status,
             reserved,
             blockHeight,
             connectionId: this.connection.info.connectionId,
-            timestamp: event?.timestamp || null
+            timestamp
           }
         }
       )

@@ -16,8 +16,8 @@ export type Forward = {
   status: 'settled' | 'offered' | 'failed' | 'local_failed'
   style: 'tlv' | 'legacy'
   /** unix timestamp seconds start */
-  started: number
+  startedAt: number
   /** unix timestamp seconds complete */
-  completed?: number
+  completedAt?: number
   connectionId: string
 }
