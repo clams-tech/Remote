@@ -1,7 +1,14 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import type { ConnectionDetails } from '$lib/@types/connections.js'
+  import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { connectionDetailsToInterface } from '$lib/connections/index.js'
   import type { Connection } from '$lib/connections/interfaces.js'
-  import { STORAGE_KEYS } from '$lib/constants.js'
+  import { DAY_IN_SECS, STORAGE_KEYS } from '$lib/constants.js'
+  import { createRandomHex } from '$lib/crypto.js'
+  import { db } from '$lib/db.js'
   import Button from '$lib/elements/Button.svelte'
   import Msg from '$lib/elements/Msg.svelte'
   import Section from '$lib/elements/Section.svelte'
@@ -11,11 +18,15 @@
   import lightningOutline from '$lib/icons/lightning-outline.js'
   import receive from '$lib/icons/receive.js'
   import { log, storage } from '$lib/services.js'
-  import { storedConnections$ } from '$lib/streams.js'
+  import { connections$, session$, storedConnections$ } from '$lib/streams.js'
+  import { nowSeconds } from '$lib/utils.js'
   import Big from 'big.js'
+  import { slide } from 'svelte/transition'
 
   let selectedConnection: Connection['id']
   let amount = 0
+  let creatingPayment = false
+  let createPaymentError: AppError | null = null
 
   try {
     const lastReceiveConnectionId = storage.get(STORAGE_KEYS.lastReceiveConnection)
@@ -41,8 +52,59 @@
     }
   }
 
-  const createPayment = () => {
-    //
+  const createPayment = async () => {
+    creatingPayment = true
+    createPaymentError = null
+
+    try {
+      const connectionDetails = $storedConnections$.find(
+        ({ id }) => id === selectedConnection
+      ) as ConnectionDetails
+      const connectionInterface =
+        $connections$.find((connection) => connection.info.connectionId === selectedConnection) ||
+        connectionDetailsToInterface(connectionDetails, $session$!)
+
+      if (
+        connectionInterface.connect &&
+        connectionInterface.connectionStatus$.value === 'disconnected'
+      ) {
+        await connectionInterface.connect()
+      }
+
+      // prefer bolt11 if available
+      if (connectionInterface.invoices?.createInvoice) {
+        const invoice = await connectionInterface.invoices.createInvoice({
+          id: createRandomHex(),
+          amount: Big(amount).times(1000).toString() || 'any',
+          description: '',
+          expiry: 2 * DAY_IN_SECS
+        })
+
+        await db.invoices.add(invoice)
+        await goto(`/payments/${invoice.id}`)
+      }
+      // otherwise an onchain address
+      else if (connectionInterface.transactions?.receive) {
+        const address = await connectionInterface.transactions.receive()
+        await goto(`/payments/${address}`)
+      }
+      // no way to receive
+      else {
+        throw {
+          key: 'connection_cannot_receive_payment',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'The selected connection cannot receive via lightning or onchain',
+            context: 'Creating a payment to receive funds',
+            connectionId: selectedConnection
+          }
+        }
+      }
+    } catch (error) {
+      createPaymentError = error as AppError
+    } finally {
+      creatingPayment = false
+    }
   }
 </script>
 
@@ -91,3 +153,9 @@
     </div>
   {/if}
 </Section>
+
+{#if createPaymentError}
+  <div in:slide>
+    <ErrorDetail error={createPaymentError} />
+  </div>
+{/if}

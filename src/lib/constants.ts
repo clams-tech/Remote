@@ -1,11 +1,4 @@
-import {
-  BitcoinDenomination,
-  FiatDenomination,
-  Language,
-  type Settings
-} from './@types/settings.js'
-import bitcoin from './icons/bitcoin'
-import lightningIcon from './icons/lightning'
+import { FiatDenomination, Language, type Settings } from './@types/settings.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -17,6 +10,9 @@ export const WS_PROXY = `wss://${API_HOST}/ws-proxy`
 export const SEC_IN_MS = 1000
 export const MIN_IN_MS = 60 * 1000
 export const MIN_IN_SECS = 60
+export const HOUR_IN_SECS = 60 * MIN_IN_MS
+export const DAY_IN_SECS = 24 * HOUR_IN_SECS
+export const WEEK_IN_SECS = 7 * DAY_IN_SECS
 
 export const DEFAULT_INVOICE_EXPIRY = 60 * MIN_IN_SECS
 

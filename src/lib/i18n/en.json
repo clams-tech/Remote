@@ -256,6 +256,7 @@
     "connection_rate_limited": "Could not make request due to rate limits.",
     "connection_not_supported": "Could not make request due to feature not being supported on this connection.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
+    "connection_cannot_receive_payment": "The selected connection cannot receive a payment, try selecting another one.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
     "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
