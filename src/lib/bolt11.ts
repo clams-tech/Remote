@@ -5,6 +5,7 @@ import Big from 'big.js'
 import { Buffer } from 'buffer'
 import { address as bitcoinjsAddress } from 'bitcoinjs-lib'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
+import { stripMsatSuffix } from './connections/coreln/utils.js'
 
 type Network = {
   bech32: string
@@ -326,7 +327,7 @@ function decode(paymentRequest: string): DecodedBolt11Invoice {
 
   return {
     nodeId: pubKey,
-    value: msat,
+    amount: stripMsatSuffix(msat),
     startedAt: timestamp,
     expiresAt,
     description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || '',

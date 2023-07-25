@@ -38,7 +38,7 @@
         <SummaryRow>
           <div slot="label">{$translate('app.labels.timestamp')}:</div>
           <div slot="value">
-            {#await formatDate(timestamp * 1000) then date}
+            {#await formatDate(timestamp) then date}
               {date}
             {/await}
           </div>

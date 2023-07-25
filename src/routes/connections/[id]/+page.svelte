@@ -36,6 +36,7 @@
     ConnectionDetails,
     CoreLnConfiguration
   } from '$lib/@types/connections.js'
+  import type { AppError } from '$lib/@types/errors.js'
 
   export let data: PageData
 
@@ -121,7 +122,7 @@
       // refresh info UI
       connection = connection
     } catch (error) {
-      connectionError = (error as Error).message
+      connectionError = $translate(`app.errors.${(error as AppError).key}`)
     }
   }
 

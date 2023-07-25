@@ -9,6 +9,7 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
+import { stripMsatSuffix } from './connections/coreln/utils.js'
 
 export function decodeBolt11(bolt11: string): (DecodedBolt11Invoice & { bolt11: string }) | null {
   // Remove prepended string if found
@@ -53,7 +54,7 @@ export async function bolt12ToOffer(bolt12: string, offerId?: string): Promise<O
   if (type === 'bolt12 invoice_request') {
     const { invreq_amount, invreq_payer_id, invreq_id } = decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.msats
-    amount = invreq_amount as string
+    amount = stripMsatSuffix(invreq_amount) as string
     nodeId = invreq_payer_id
     quantityMax = offer_quantity_max
     id = invreq_id

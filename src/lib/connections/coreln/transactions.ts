@@ -23,6 +23,7 @@ import type {
   ToThemEvent,
   WithdrawResponse
 } from './types.js'
+import { stripMsatSuffix } from './utils.js'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface
@@ -45,9 +46,6 @@ class Transactions implements TransactionsInterface {
         // don't have permissions to get account events, so set to null
         accountEvents = null
       }
-
-      console.log({ transactions })
-      console.log({ accountEvents })
 
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
@@ -79,7 +77,7 @@ class Transactions implements TransactionsInterface {
                 if (tag === 'deposit' && outpoint.split(':')[0] === hash) {
                   events.push({
                     type: 'deposit',
-                    amount: credit_msat,
+                    amount: stripMsatSuffix(credit_msat),
                     timestamp: eventTimestamp
                   })
 
@@ -89,7 +87,7 @@ class Transactions implements TransactionsInterface {
                 if (tag === 'withdrawal' && txid === hash) {
                   events.push({
                     type: 'withdrawal',
-                    amount: debit_msat,
+                    amount: stripMsatSuffix(debit_msat),
                     timestamp: eventTimestamp
                   })
 
@@ -99,7 +97,7 @@ class Transactions implements TransactionsInterface {
                 if (tag === 'channel_open' && outpoint.includes(hash)) {
                   events.push({
                     type: 'channelOpen',
-                    amount: credit_msat,
+                    amount: stripMsatSuffix(credit_msat),
                     timestamp: eventTimestamp,
                     channel: account
                   })
@@ -110,7 +108,7 @@ class Transactions implements TransactionsInterface {
                 if (tag === 'channel_close' && txid === hash) {
                   events.push({
                     type: 'channelClose',
-                    amount: debit_msat,
+                    amount: stripMsatSuffix(debit_msat),
                     timestamp: eventTimestamp,
                     channel: account
                   })
@@ -121,7 +119,7 @@ class Transactions implements TransactionsInterface {
                 if (tag === 'to_them' && outpoint.includes(hash)) {
                   events.push({
                     type: 'externalSettle',
-                    amount: credit_msat,
+                    amount: stripMsatSuffix(credit_msat),
                     timestamp: eventTimestamp,
                     channel: origin
                   })
@@ -129,7 +127,9 @@ class Transactions implements TransactionsInterface {
                   return
                 }
               } else if (type === 'onchain_fee' && txid === hash) {
-                fees.push(credit_msat ? credit_msat : `-${debit_msat}`)
+                fees.push(
+                  credit_msat ? stripMsatSuffix(credit_msat) : `-${stripMsatSuffix(debit_msat)}`
+                )
                 return
               }
             })
@@ -155,7 +155,7 @@ class Transactions implements TransactionsInterface {
             inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
             outputs: outputs.map(({ index, amount_msat, scriptPubKey }) => ({
               index,
-              amount: amount_msat,
+              amount: stripMsatSuffix(amount_msat),
               scriptPubKey
             })),
             connectionId: this.connection.info.connectionId,

@@ -99,7 +99,7 @@ class Channels implements ChannelsInterface {
                     ({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                       id,
                       direction,
-                      amount: amount_msat,
+                      amount: stripMsatSuffix(amount_msat),
                       expiry,
                       paymentHash: payment_hash,
                       state
@@ -179,7 +179,7 @@ class Channels implements ChannelsInterface {
               htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                 id,
                 direction,
-                amount: amount_msat,
+                amount: stripMsatSuffix(amount_msat),
                 expiry,
                 paymentHash: payment_hash,
                 state

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
+  import type { Address } from '$lib/@types/addresses.js'
   import type { ConnectionDetails } from '$lib/@types/connections.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
@@ -85,8 +86,18 @@
       }
       // otherwise an onchain address
       else if (connectionInterface.transactions?.receive) {
-        const address = await connectionInterface.transactions.receive()
-        await goto(`/payments/${address}`)
+        const receiveAddress = await connectionInterface.transactions.receive()
+
+        const address: Address = {
+          id: receiveAddress,
+          connectionId: selectedConnection,
+          createdAt: nowSeconds(),
+          amount: 'any',
+          description: ''
+        }
+
+        await db.addresses.add(address)
+        await goto(`/payments/${address.id}`)
       }
       // no way to receive
       else {

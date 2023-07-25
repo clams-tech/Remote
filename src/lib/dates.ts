@@ -22,11 +22,14 @@ const locales: Record<string, () => Promise<Locale>> = {
   ko: () => import('date-fns/esm/locale/ko/index.js').then((mod) => mod.default) // Korean
 }
 
-export async function formatDate(date: number | string): Promise<string> {
+export async function formatDate(
+  /** unix seconds */
+  date: number
+): Promise<string> {
   const { language } = settings$.value
   const locale = await (locales[language] || locales['en-GB'])()
 
-  return formatRelative(new Date(date), new Date(), { locale })
+  return formatRelative(new Date(date * 1000), new Date(), { locale })
 }
 
 export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {

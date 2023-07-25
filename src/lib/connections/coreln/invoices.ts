@@ -76,7 +76,7 @@ class Invoices implements InvoicesInterface {
   async createInvoice(options: CreateInvoiceOptions): Promise<Invoice> {
     try {
       const { id, amount, description, expiry } = options
-      const startedAt = nowSeconds()
+      const createdAt = nowSeconds()
 
       const result = await this.connection.rpc({
         method: 'invoice',
@@ -94,10 +94,10 @@ class Invoices implements InvoicesInterface {
         id,
         status: 'pending',
         direction: 'receive',
-        value: amount,
+        amount,
         fee: null,
         type: 'bolt11',
-        startedAt,
+        createdAt,
         completedAt: null,
         expiresAt: expires_at,
         request: bolt11,
@@ -154,10 +154,10 @@ class Invoices implements InvoicesInterface {
         nodeId: destination,
         type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
         direction: 'send',
-        value: stripMsatSuffix(amount_msat),
+        amount: stripMsatSuffix(amount_msat),
         completedAt: nowSeconds(),
         expiresAt: null,
-        startedAt: created_at,
+        createdAt: created_at,
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(stripMsatSuffix(amount_msat)).toString(),
         status,
         request,
@@ -212,10 +212,10 @@ class Invoices implements InvoicesInterface {
         nodeId: destination,
         type: 'bolt11',
         direction: 'send',
-        value: amountMsat,
+        amount: stripMsatSuffix(amountMsat),
         completedAt: nowSeconds(),
         expiresAt: null,
-        startedAt: created_at,
+        createdAt: created_at,
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
         status,
         connectionId: this.connection.info.connectionId,
@@ -252,7 +252,7 @@ class Invoices implements InvoicesInterface {
       return {
         ...payment,
         status: status === 'paid' ? 'complete' : 'expired',
-        value: stripMsatSuffix(amount_received_msat || payment.value),
+        amount: stripMsatSuffix(amount_received_msat || payment.amount),
         completedAt: paid_at as number,
         preimage: payment_preimage
       }

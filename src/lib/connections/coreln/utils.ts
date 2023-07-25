@@ -8,7 +8,7 @@ import { decodeBolt11 } from '$lib/invoices.js'
 import { log } from '$lib/services.js'
 
 /**Will strip the msat suffix from msat values if there */
-export function stripMsatSuffix(val: string | number): string {
+export function stripMsatSuffix(val: string | number | undefined): string {
   if (!val) return '0'
   return typeof val === 'string' ? val.replace('msat', '') : val.toString()
 }
@@ -41,7 +41,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     local_offer_id
   } = invoice
 
-  let startedAt: number = new Date().getTime() / 1000
+  let createdAt: number = new Date().getTime() / 1000
   let nodeId = ''
 
   let offer: Invoice['offer']
@@ -50,7 +50,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
-      startedAt = decoded.startedAt
+      createdAt = decoded.startedAt
       nodeId = decoded.nodeId
     } else {
       log.error(`Unable to decode bolt11: ${bolt11}`)
@@ -69,7 +69,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
       offer_node_id
     } = decoded as DecodedBolt12Invoice
 
-    startedAt = invoice_created_at
+    createdAt = invoice_created_at
     nodeId = offer_node_id
 
     offer = {
@@ -87,14 +87,14 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     direction: 'receive',
     type: bolt12 ? 'bolt12' : 'bolt11',
     preimage: payment_preimage,
-    value: stripMsatSuffix(amount_received_msat || amount_msat || 'any'),
+    amount: stripMsatSuffix(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
     completedAt: paid_at ? paid_at : null,
     expiresAt: expires_at,
     description,
     nodeId,
     fee: null,
-    startedAt,
+    createdAt,
     payIndex: pay_index,
     offer,
     connectionId
@@ -149,18 +149,18 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     }
   }
 
-  const amountMsat = stripMsatSuffix(amount_msat)
+  const amount = stripMsatSuffix(amount_msat)
 
   return {
     id: label || payment_hash,
     nodeId,
     request: (bolt12 || bolt11) as string,
     status,
-    startedAt: timestamp,
+    createdAt: timestamp,
     hash: payment_hash,
     preimage,
-    value: amountMsat,
-    fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
+    amount,
+    fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amount).toString(),
     direction: 'send',
     type: bolt11 ? 'bolt11' : 'keysend',
     expiresAt: null,

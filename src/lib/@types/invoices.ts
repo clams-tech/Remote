@@ -4,10 +4,10 @@ export type Invoice = {
   id: string
   status: PaymentStatus
   direction: PaymentDirection
-  value: string // msat
+  amount: string // msat
   fee: string | null // msat
   type: PaymentType
-  startedAt: number // unix seconds
+  createdAt: number // unix seconds
   completedAt: number | null // unix seconds
   expiresAt: number | null // unix seconds
   hash: string
@@ -72,7 +72,7 @@ export type DecodedBolt11Invoice = {
   nodeId: string
   startedAt: number
   expiresAt: number
-  value: string
+  amount: string
   hash: string
   description: string
 }

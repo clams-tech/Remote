@@ -19,6 +19,9 @@
     "/payments": {
       "title": "Payments"
     },
+    "/payment": {
+      "title": "Payment"
+    },
     "/utxos": {
       "title": "UTXOs"
     },
@@ -60,10 +63,6 @@
     "/imports": {
       "title": "Imports"
     },
-    "/payment": {
-      "title": "Invoice"
-    },
-
     "/settings/app": {
       "title": "App Settings"
     },

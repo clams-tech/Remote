@@ -35,7 +35,7 @@ export type ChainEvent = {
 
 export type ChannelEvent = {
   type: 'channelOpen' | 'channelClose' | 'externalSettle'
-  /** the amount added(open) or removed(close) to offchain balance */
+  /** the amount added(open), removed(close) to offchain balance or amount settled to channel partner (externalSettle) */
   amount: string
   timestamp: number
   channel: string

@@ -9,18 +9,13 @@
   import keys from '$lib/icons/keys.js'
   import lightningOutline from '$lib/icons/lightning-outline.js'
   import list from '$lib/icons/list.js'
-  import receive from '$lib/icons/receive.js'
   import scan from '$lib/icons/scan.js'
-  import send from '$lib/icons/send.js'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import wallet from '$lib/icons/wallet.js'
   import { storage } from '$lib/services.js'
   import { fade } from 'svelte/transition'
 
   const buttons = [
-    { key: 'send', icon: send },
-    { key: 'scan', icon: scan },
-    { key: 'receive', icon: receive },
     { key: 'connections', icon: keys },
     { key: 'payments', icon: list },
     { key: 'utxos', icon: wallet },

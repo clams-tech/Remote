@@ -7,29 +7,32 @@ import type { Utxo } from './@types/utxos.js'
 import type { Transaction } from './@types/transactions.js'
 import type { Forward } from './@types/forwards.js'
 import type { Metadata } from './@types/metadata.js'
+import type { Address } from './@types/addresses.js'
 
 class DB extends Dexie {
-  channels!: Table<Channel>
   connections!: Table<ConnectionDetails>
-  offers!: Table<Offer>
-  invoices!: Table<Invoice>
-  transactions!: Table<Transaction>
+  channels!: Table<Channel>
   utxos!: Table<Utxo>
+  invoices!: Table<Invoice>
+  addresses!: Table<Address>
+  transactions!: Table<Transaction>
   forwards!: Table<Forward>
+  offers!: Table<Offer>
   metadata!: Table<Metadata>
 
   constructor() {
     super('Clams')
 
     this.version(1).stores({
-      channels: '&id, connectionId, shortId',
       connections: '&id, type',
-      forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status, startedAt, completedAt',
+      channels: '&id, connectionId, shortId',
+      utxos: '&id, connectionId, timestamp',
       invoices:
         '&id, connectionId, offerId, value, fee, payIndex, startedAt, completedAt, direction',
-      offers: '&id, connectionId',
+      addresses: '&id, connectionId, txid',
       transactions: '&id, connectionId, timestamp, direction',
-      utxos: '&id, connectionId, timestamp',
+      forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status, startedAt, completedAt',
+      offers: '&id, connectionId',
       metadata: '&id, dataId, type, value'
     })
   }

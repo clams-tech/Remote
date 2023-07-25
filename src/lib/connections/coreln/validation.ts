@@ -1,12 +1,8 @@
 import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import { nowSeconds } from '$lib/utils.js'
 import type { AppError } from '$lib/@types/errors.js'
-import type { CorelnConnectionInterface } from './types.js'
 
-export const validateConfiguration = (
-  coreln: CorelnConnectionInterface,
-  configuration: CoreLnConfiguration
-) => {
+export const validateConfiguration = (configuration: CoreLnConfiguration) => {
   const {
     address,
     connection: { type, value },
@@ -23,7 +19,6 @@ export const validateConfiguration = (
       }
     }
 
-    coreln.errors$.next(connectionError)
     throw connectionError
   }
 
@@ -37,7 +32,6 @@ export const validateConfiguration = (
       }
     }
 
-    coreln.errors$.next(connectionError)
     throw connectionError
   }
 
@@ -51,7 +45,6 @@ export const validateConfiguration = (
       }
     }
 
-    coreln.errors$.next(connectionError)
     throw connectionError
   }
 
@@ -65,7 +58,6 @@ export const validateConfiguration = (
       }
     }
 
-    coreln.errors$.next(connectionError)
     throw connectionError
   }
 }

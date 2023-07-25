@@ -8,6 +8,7 @@ import type {
   ListAccountEventsResponse,
   ListfundsResponse
 } from './types.js'
+import { stripMsatSuffix } from './utils.js'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -47,7 +48,7 @@ class Utxos implements UtxosInterface {
           return {
             id: txid,
             output,
-            amount: amount_msat,
+            amount: stripMsatSuffix(amount_msat),
             scriptpubkey,
             address,
             status,

@@ -57,7 +57,7 @@ class CoreLightning implements CorelnConnectionInterface {
     session: Session,
     logger?: Logger
   ) {
-    validateConfiguration(this, configuration)
+    validateConfiguration(configuration)
 
     const { address, connection, token } = configuration
     const { publicKey, port, ip } = parseNodeAddress(address)
