@@ -94,7 +94,7 @@
                 ? 'expired'
                 : active
                 ? 'active'
-                : single_use && payments.length
+                : single_use && payments && payments.length
                 ? 'complete'
                 : 'disabled'}
 
