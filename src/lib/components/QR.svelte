@@ -23,7 +23,7 @@
   $: selectedValue = values[selectedValueIndex]
 
   let canvas: HTMLCanvasElement | null = null
-  let qrElement: HTMLButtonElement
+  let qrElement: HTMLDivElement
   let rawData: Blob
 
   type Message = {
@@ -44,6 +44,8 @@
   }
 
   async function copyImage() {
+    qrElement.classList.add('rounded-lg')
+
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -51,6 +53,7 @@
         })
       ])
 
+      qrElement.classList.remove('rounded-lg')
       setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
@@ -60,7 +63,9 @@
 
   async function saveImage() {
     try {
+      qrElement.classList.add('rounded-lg')
       rawData = rawData || (await toBlob(qrElement))
+      qrElement.classList.remove('rounded-lg')
       const fileUrl = URL.createObjectURL(rawData)
       const link = document.createElement('a')
       link.href = fileUrl
@@ -113,10 +118,10 @@
     </div>
 
     <div
-      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min"
+      bind:this={qrElement}
+      class="border-2 border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min dark:bg-black bg-white"
     >
       <button
-        bind:this={qrElement}
         on:click={copyText}
         class="rounded overflow-hidden flex items-center justify-center relative bg-white dark:bg-black"
       >
