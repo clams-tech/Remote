@@ -24,7 +24,7 @@
   import Big from 'big.js'
   import { slide } from 'svelte/transition'
 
-  let selectedConnection: Connection['id']
+  let selectedConnectionId: Connection['id']
   let amount = 0
   let creatingPayment = false
   let createPaymentError: AppError | null = null
@@ -33,18 +33,22 @@
     const lastReceiveConnectionId = storage.get(STORAGE_KEYS.lastReceiveConnection)
 
     if (lastReceiveConnectionId) {
-      selectedConnection = lastReceiveConnectionId
+      selectedConnectionId = lastReceiveConnectionId
     }
   } catch (error) {
     log.warn('Access to storage denied when trying to retrieve last received connection id')
   }
 
-  $: if ($storedConnections$ && $storedConnections$[0] && !selectedConnection) {
+  $: if (
+    $storedConnections$ &&
+    $storedConnections$[0] &&
+    (!selectedConnectionId || !$storedConnections$.find(({ id }) => id === selectedConnectionId))
+  ) {
     selectConnection($storedConnections$[0].id)
   }
 
   const selectConnection = (id: Connection['id']) => {
-    selectedConnection = id
+    selectedConnectionId = id
 
     try {
       storage.write(STORAGE_KEYS.lastReceiveConnection, id)
@@ -59,10 +63,10 @@
 
     try {
       const connectionDetails = $storedConnections$.find(
-        ({ id }) => id === selectedConnection
+        ({ id }) => id === selectedConnectionId
       ) as ConnectionDetails
       const connectionInterface =
-        $connections$.find((connection) => connection.info.connectionId === selectedConnection) ||
+        $connections$.find((connection) => connection.info.connectionId === selectedConnectionId) ||
         connectionDetailsToInterface(connectionDetails, $session$!)
 
       if (
@@ -90,7 +94,7 @@
 
         const address: Address = {
           id: receiveAddress,
-          connectionId: selectedConnection,
+          connectionId: selectedConnectionId,
           createdAt: nowSeconds(),
           amount: 'any',
           description: ''
@@ -107,7 +111,7 @@
             timestamp: nowSeconds(),
             message: 'The selected connection cannot receive via lightning or onchain',
             context: 'Creating a payment to receive funds',
-            connectionId: selectedConnection
+            connectionId: selectedConnectionId
           }
         }
       }
@@ -139,11 +143,13 @@
         class="flex w-full flex-wrap gap-2 rounded font-medium px-4 py-2 border border-neutral-600 bg-neutral-900"
       >
         {#each $storedConnections$ as { label, id }}
-          <button
-            class:border-purple-500={selectedConnection === id}
-            class="border rounded-full px-3 py-1"
-            on:click={() => selectConnection(id)}>{label}</button
-          >
+          <div class="w-min">
+            <Button
+              text={label}
+              primary={selectedConnectionId === id}
+              on:click={() => selectConnection(id)}
+            />
+          </div>
         {/each}
       </div>
     </div>

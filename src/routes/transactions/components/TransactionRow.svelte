@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Address } from '$lib/@types/addresses.js'
   import type { Invoice, PaymentStatus } from '$lib/@types/invoices.js'
-  import type { ChannelEvent, Transaction } from '$lib/@types/transactions.js'
+  import type { Transaction } from '$lib/@types/transactions.js'
   import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import bitcoin from '$lib/icons/bitcoin.js'
@@ -17,7 +17,6 @@
   let abs: '-' | '+' | undefined
   let channelClose = false
   let channelOpen = false
-  let channelId: string | undefined
   let description: string | undefined
 
   if (type === 'invoice') {
@@ -63,8 +62,6 @@
         balanceChange = fee.amount
         abs = '-'
       }
-
-      channelId = (channelEvent as ChannelEvent).channel
     } else {
       events.forEach((event) => {
         if (event.type === 'deposit') {

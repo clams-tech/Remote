@@ -128,13 +128,17 @@
       <div
         bind:this={transactionsContainer}
         in:fade={{ duration: 250 }}
-        class="w-full flex flex-col flex-grow overflow-auto gap-y-2"
+        class="w-full flex flex-col flex-grow overflow-auto gap-y-2 relative"
       >
         <!-- @TODO - Need to virtualise this list to only render items in view since it could be massive -->
         {#each dailyPayments as [day, payments] (day)}
           <div>
             {#await formatDate(day) then formattedDate}
-              <div class="text-xs font-semibold mb-1">{formattedDate}</div>
+              <div
+                class="text-xs font-semibold mb-1 sticky top-0 py-1 px-2 rounded bg-neutral-900 w-min whitespace-nowrap"
+              >
+                {formattedDate}
+              </div>
             {/await}
             <div class="rounded overflow-hidden">
               <div class="overflow-hidden">
@@ -151,17 +155,17 @@
 
   <div class="w-full flex justify-end">
     <a
-      href="/transactions/receive"
+      href="/receive"
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
-      class:px-4={!transactionsContainerScrollable}
+      class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
       class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min"
-      on:mouseenter={() => (showFullReceiveButton = true)}
-      on:mouseleave={() => (showFullReceiveButton = false)}
+      on:mouseenter={() => !showFullReceiveButton && (showFullReceiveButton = true)}
+      on:mouseleave={() => showFullReceiveButton && (showFullReceiveButton = false)}
     >
       <div class="w-6">{@html receive}</div>
 
-      {#if showFullReceiveButton || !transactionsContainerScrollable}
+      {#if !transactionsContainerScrollable || showFullReceiveButton}
         <div class="ml-1 font-semibold" in:slide={{ axis: 'x' }}>Receive</div>
       {/if}
     </a>
