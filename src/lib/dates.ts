@@ -1,4 +1,4 @@
-import { formatDistanceToNowStrict, formatRelative } from 'date-fns'
+import { format, formatDistanceToNowStrict, formatRelative } from 'date-fns'
 import { settings$ } from './streams.js'
 
 // https://github.com/date-fns/date-fns/blob/9bb51691f201c3ec05ab832acbc5d478f2e5c47a/docs/i18nLocales.md
@@ -22,7 +22,7 @@ const locales: Record<string, () => Promise<Locale>> = {
   ko: () => import('date-fns/esm/locale/ko/index.js').then((mod) => mod.default) // Korean
 }
 
-export async function formatDate(
+export async function formatDateRelativeToNow(
   /** unix seconds */
   date: number
 ): Promise<string> {
@@ -30,6 +30,16 @@ export async function formatDate(
   const locale = await (locales[language] || locales['en-GB'])()
 
   return formatRelative(new Date(date * 1000), new Date(), { locale })
+}
+
+export async function formatDate(
+  /** unix seconds */
+  date: number
+): Promise<string> {
+  const { language } = settings$.value
+  const locale = await (locales[language] || locales['en-GB'])()
+
+  return format(new Date(date * 1000), 'EEEE, do MMMM yy', { locale })
 }
 
 export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {

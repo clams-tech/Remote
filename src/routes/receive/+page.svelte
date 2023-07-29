@@ -82,7 +82,7 @@
         })
 
         await db.invoices.add(invoice)
-        await goto(`/payments/${invoice.id}`)
+        await goto(`/transactions/${invoice.id}`)
       }
       // otherwise an onchain address
       else if (connectionInterface.transactions?.receive) {
@@ -97,7 +97,7 @@
         }
 
         await db.addresses.add(address)
-        await goto(`/payments/${address.id}`)
+        await goto(`/transactions/${address.id}`)
       }
       // no way to receive
       else {

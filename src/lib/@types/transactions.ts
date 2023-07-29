@@ -24,6 +24,7 @@ export type Transaction = {
 export type FeeEvent = {
   type: 'fee'
   amount: string
+  timestamp: number
 }
 
 export type ChainEvent = {

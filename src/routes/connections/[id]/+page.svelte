@@ -143,6 +143,7 @@
     }
 
     await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
+    showConfiguration = false
   }
 
   let syncProgress$: Observable<number> | null = null

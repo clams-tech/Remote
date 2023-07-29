@@ -130,6 +130,7 @@ class Transactions implements TransactionsInterface {
                 fees.push(
                   credit_msat ? stripMsatSuffix(credit_msat) : `-${stripMsatSuffix(debit_msat)}`
                 )
+
                 return
               }
             })
@@ -139,7 +140,8 @@ class Transactions implements TransactionsInterface {
                 type: 'fee',
                 amount: fees.reduce((total, msat) => {
                   return Big(total).plus(msat).toString()
-                }, '0')
+                }, '0'),
+                timestamp: events.reverse()[0].timestamp
               })
             }
           }

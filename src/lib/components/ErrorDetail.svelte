@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AppError } from '$lib/@types/errors.js'
-  import { formatDate } from '$lib/dates.js'
+  import { formatDateRelativeToNow } from '$lib/dates.js'
   import Msg from '$lib/elements/Msg.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
@@ -38,7 +38,7 @@
         <SummaryRow>
           <div slot="label">{$translate('app.labels.timestamp')}:</div>
           <div slot="value">
-            {#await formatDate(timestamp) then date}
+            {#await formatDateRelativeToNow(timestamp) then date}
               {date}
             {/await}
           </div>

@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate(`app.routes./payment.title`)}</title>
+  <title>{$translate(`app.routes./transaction.title`)}</title>
 </svelte:head>
 
 <Section>

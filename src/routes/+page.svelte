@@ -17,7 +17,7 @@
 
   const buttons = [
     { key: 'connections', icon: keys },
-    { key: 'payments', icon: list },
+    { key: 'transactions', icon: list },
     { key: 'utxos', icon: wallet },
     { key: 'channels', icon: channels },
     { key: 'offers', icon: lightningOutline },
