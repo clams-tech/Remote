@@ -11,12 +11,12 @@
   import { liveQuery } from 'dexie'
   import TransactionRow from './components/TransactionRow.svelte'
   import receive from '$lib/icons/receive.js'
-  import Button from '$lib/elements/Button.svelte'
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { endOfDay } from 'date-fns'
   import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
+  import debounce from 'lodash.debounce'
 
   const invoices$ = liveQuery(async () => {
     const invoices = await db.invoices.toArray()
@@ -89,15 +89,17 @@
   let transactionsContainerScrollable = false
   let innerHeight: number
 
-  $: if (
-    innerHeight &&
-    transactionsContainer &&
-    transactionsContainer.scrollHeight > transactionsContainer.clientHeight
-  ) {
-    transactionsContainerScrollable = true
-  } else {
-    transactionsContainerScrollable = false
+  $: if (innerHeight && transactionsContainer) {
+    calculateScrollable(transactionsContainer)
   }
+
+  const calculateScrollable = debounce((transactionsContainer: HTMLDivElement) => {
+    if (transactionsContainer.scrollHeight > transactionsContainer.clientHeight) {
+      transactionsContainerScrollable = true
+    } else {
+      transactionsContainerScrollable = false
+    }
+  }, 500)
 </script>
 
 <svelte:window bind:innerHeight />
@@ -151,7 +153,9 @@
     <a
       href="/transactions/receive"
       class:absolute={transactionsContainerScrollable}
-      class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 p-2 hover:px-4 shadow shadow-neutral-50 mt-2 w-min"
+      class:px-2={transactionsContainerScrollable}
+      class:px-4={!transactionsContainerScrollable}
+      class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min"
       on:mouseenter={() => (showFullReceiveButton = true)}
       on:mouseleave={() => (showFullReceiveButton = false)}
     >

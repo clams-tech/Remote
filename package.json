@@ -24,6 +24,7 @@
     "@tauri-apps/cli": "^1.4.0",
     "@types/big.js": "^6.1.6",
     "@types/crypto-js": "^4.1.1",
+    "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^20.4.1",
     "@types/qrcode": "^1.5.1",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
