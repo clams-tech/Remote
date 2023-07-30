@@ -2,7 +2,6 @@
   import { msatsToBtc } from '$lib/conversion.js'
   import { translate } from '$lib/i18n/translations.js'
   import bitcoin from '$lib/icons/bitcoin.js'
-  import Big from 'big.js'
 
   export let msat: string
 

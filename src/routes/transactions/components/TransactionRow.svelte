@@ -19,7 +19,7 @@
   let channelOpen = false
   let description: string | undefined
 
-  if (type === 'invoice') {
+  $: if (type === 'invoice') {
     const {
       status: invoiceStatus,
       direction,
@@ -31,7 +31,7 @@
     icon = lightning
     status = invoiceStatus
     abs = direction == 'receive' ? '+' : '-'
-    balanceChange = invoiceAmount
+    balanceChange = invoiceAmount === 'any' || invoiceAmount === '0' ? undefined : invoiceAmount
     description = invoiceDescription || offer?.description
   } else if (type === 'address') {
     const { amount: addressAmount, description: addressDescription, createdAt } = data as Address
@@ -112,7 +112,12 @@
         class:text-utility-error={status === 'expired'}
         class="flex items-center text-xs"
       >
-        <div class="w-1.5 h-1.5 rounded-full bg-current mr-1" />
+        <div
+          class:bg-utility-success={status === 'complete'}
+          class:bg-utility-pending={status === 'pending'}
+          class:bg-utility-error={status === 'expired'}
+          class="w-1.5 h-1.5 rounded-full mr-1"
+        />
         <div>{$translate(`app.labels.${status}`)}</div>
       </div>
     </div>
@@ -128,6 +133,7 @@
         >
           {abs}
         </div>
+
         <BitcoinAmount msat={balanceChange} />
       </div>
     {/if}
