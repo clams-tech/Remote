@@ -4,8 +4,8 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Lava from '$lib/elements/Lava.svelte'
-  import { session$ } from '$lib/streams.js'
-  import { fade } from 'svelte/transition'
+  import { previousPaths$, session$ } from '$lib/streams.js'
+  import { fade, slide } from 'svelte/transition'
   import { goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
   import Button from '$lib/elements/Button.svelte'
@@ -14,12 +14,26 @@
   import Decrypt from '$lib/components/Decrypt.svelte'
   import lockOutline from '$lib/icons/lock-outline.js'
   import scan from '$lib/icons/scan.js'
-
-  $: path = $page.url.pathname
+  import caret from '$lib/icons/caret.js'
 
   const clearSession = () => session$.next(null)
 
   let showDecryptModal = false
+  let back: string | null
+
+  $: path = $page.url.pathname
+
+  $: if (
+    path !== '/' &&
+    $previousPaths$[1] &&
+    $previousPaths$[1] !== path &&
+    $previousPaths$[1] !== '/' &&
+    !$previousPaths$.slice(2).includes($previousPaths$[1])
+  ) {
+    back = $previousPaths$[1]
+  } else {
+    back = null
+  }
 </script>
 
 <svelte:head>
@@ -38,8 +52,25 @@
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
       {#if routeRequiresSession(path) && $session$}
+        {@const lastPathRouteTitle = $translate(`app.routes.${$previousPaths$[1]}.title`, {
+          default: 'undefined'
+        })}
+
         <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
         <a href="/scan" class="w-9 ml-2">{@html scan}</a>
+
+        {#if back && lastPathRouteTitle !== 'undefined'}
+          <a
+            transition:slide={{ axis: 'x' }}
+            href={back}
+            class="flex items-center ml-2 no-underline text-sm font-semibold"
+          >
+            <div class="w-6 rotate-90">{@html caret}</div>
+            <div>
+              {lastPathRouteTitle}
+            </div>
+          </a>
+        {/if}
       {/if}
     </div>
 

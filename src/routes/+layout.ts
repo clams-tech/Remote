@@ -1,6 +1,6 @@
 import type { LayoutLoad } from './$types'
 import { locale, loadTranslations } from '$lib/i18n/translations'
-import { lastPath$, session$ } from '$lib/streams.js'
+import { previousPaths$, session$ } from '$lib/streams.js'
 import { goto } from '$app/navigation'
 import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
@@ -21,10 +21,9 @@ export const load: LayoutLoad = async ({ url }) => {
     await db.open()
     const { pathname } = url
 
-    // save last path so we can redirect after decrypt
-    if (!lastPath$.value) {
-      lastPath$.next(pathname)
-    }
+    const newPaths = [pathname, ...previousPaths$.value]
+    newPaths.length = Math.min(newPaths.length, 3)
+    previousPaths$.next(newPaths)
 
     // no session in memory, so check stored session
     if (!session$.value) {

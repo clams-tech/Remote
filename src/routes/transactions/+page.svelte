@@ -132,10 +132,10 @@
       >
         <!-- @TODO - Need to virtualise this list to only render items in view since it could be massive -->
         {#each dailyPayments as [day, payments] (day)}
-          <div>
+          <div class="pt-1 pl-1">
             {#await formatDate(day) then formattedDate}
               <div
-                class="text-xs font-semibold mb-1 sticky top-0 py-1 px-2 rounded bg-neutral-900 w-min whitespace-nowrap"
+                class="text-xs font-semibold mb-1 sticky top-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-600/50"
               >
                 {formattedDate}
               </div>
@@ -159,14 +159,14 @@
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
-      class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min"
-      on:mouseenter={() => !showFullReceiveButton && (showFullReceiveButton = true)}
-      on:mouseleave={() => showFullReceiveButton && (showFullReceiveButton = false)}
+      class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min hover:bg-neutral-800/70"
+      on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
+      on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >
       <div class="w-6">{@html receive}</div>
 
       {#if !transactionsContainerScrollable || showFullReceiveButton}
-        <div class="ml-1 font-semibold" in:slide={{ axis: 'x' }}>Receive</div>
+        <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>Receive</div>
       {/if}
     </a>
   </div>

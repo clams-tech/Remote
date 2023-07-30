@@ -17,7 +17,7 @@
 <button
   bind:this={button}
   on:click
-  class="no-underline text-center text-current transition-all text-[1em] shadow shadow-current w-full flex items-center justify-center relative rounded-full px-[1em] py-[0.5em] font-semibold hover:bg-neutral-800"
+  class="no-underline text-center text-current transition-all text-[1em] shadow shadow-current w-full flex items-center justify-center relative rounded-full px-[1em] py-[0.5em] font-semibold hover:bg-neutral-800/70 bg-neutral-900"
   class:opacity-70={disabled}
   class:border={primary || warning}
   class:border-purple-500={primary}

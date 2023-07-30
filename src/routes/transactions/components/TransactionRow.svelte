@@ -24,14 +24,15 @@
       status: invoiceStatus,
       direction,
       amount: invoiceAmount,
-      description: invoiceDescription
+      description: invoiceDescription,
+      offer
     } = data as Invoice
 
     icon = lightning
     status = invoiceStatus
     abs = direction == 'receive' ? '+' : '-'
     balanceChange = invoiceAmount
-    description = invoiceDescription
+    description = invoiceDescription || offer?.description
   } else if (type === 'address') {
     const { amount: addressAmount, description: addressDescription, createdAt } = data as Address
     icon = bitcoin

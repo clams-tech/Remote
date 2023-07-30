@@ -220,10 +220,8 @@
     "never": "Never",
     "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}",
     "date_range": "Date range:",
-    "channels": "Channels"
-  },
-  "time": {
-    "mins": "mins"
+    "channels": "Channels",
+    "back": "Back"
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -286,116 +284,5 @@
     "bolt12_decode_error": "Failed to decode Bolt12 offer.",
     "bolt12_invalid": "Bolt12 offer is not valid",
     "recurrence_unsupported": "Recurring Bolt12 offers are not currently supported."
-  },
-  "buttons": {
-    "create_invoice": "Create Invoice",
-    "send_payment": "Send Invoice",
-    "next": "Next",
-    "yes": "Yes",
-    "no": "No",
-    "send": "Send",
-    "scan": "Scan",
-    "receive": "Receive",
-    "create_instant": "Create Instant Wallet",
-    "welcome": "Welcome",
-    "connect_to_camera": "Connect to Camera",
-    "view_summary": "View Summary",
-    "back": "Back",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "reset_app": "Reset App",
-    "connect": "Connect",
-    "try_again": "Try Again",
-    "add_rune": "Add a Rune",
-    "go": "Let's Go!",
-    "github": "Contribute on Github",
-    "open": "Open",
-    "copy": "Copy",
-    "go_to_payment": "Go to payment",
-    "download": "Download",
-    "offer": "Offer",
-    "create_offer": "Create offer",
-    "confirm": "Confirm",
-    "summary_complete": "{{paymentType; keysend:Send Invoice; bolt11:{{direction; send:Send Invoice; receive:Create Invoice;}}; lnurl:{{direction; receive:Withdraw Funds; send:Send Invoice;}}; bolt12:{{paymentAction; create:Create Offer; fulfill:{{direction; receive:Withdraw Funds; send:Send Invoice;}}}}}}",
-    "disable": "Disable",
-    "total": "Total"
-  },
-  "hints": {
-    "unrestricted": "unrestricted!",
-    "help": "Help?",
-    "how": "How does it work?",
-    "forgot_pin": "Forgot your pin?",
-    "translate": "Can you help translate this app?",
-    "pay_request": "This pay request accepts a minimum amount of {{min}} and a maximum of {{max}}.",
-    "no_routing_fees": "Your channel(s) have not generated routing fees (yet!)",
-    "any_amount": "To allow any amount, press the Next button.",
-    "quantity_max_allow": "Would you like to enable created invoices to specify a quantity of more than one item?",
-    "any_quantity": "To allow any quantity, press the Next button.",
-    "no_offers": "You have not created an offer yet, go ahead and get started ☝️"
-  },
-  "headings": {
-    "summary": "{{paymentType; keysend: Send Invoice; bolt11:{{direction; receive:Receive; send:Send;}} Invoice; lnurl: LNURL {{direction; receive:Withdraw; send:Pay;}}; bolt12:Offer - {{paymentAction; create:{{direction; receive:Pay; send:Withdraw}}; fulfill:{{direction; receive:Withdraw; send:Pay}};}};}}",
-    "amount": "Amount",
-    "description": "Description",
-    "note": "Note",
-    "destination": "Destination",
-    "connect": "Connect",
-    "welcome": "Welcome",
-    "rune": "Permissions",
-    "decrypt": "Decrypt",
-    "encrypt": "Encryption Key",
-    "pay_request": "LNURL Pay Request",
-    "withdraw_request": "LNURL Withdraw Request",
-    "accounting_exports": "Accounting Exports",
-    "routing_performance": "Routing Performance",
-    "account_insights": "Channel Insights",
-    "routing_fees_history": "Routing Fees History",
-    "offer": "Offer",
-    "offers": "Offers",
-    "payer_note": "Note",
-    "changes": "Offer Changes",
-    "quantity": "Quantity",
-    "offer_type": "Offer Type",
-    "issuer": "Issuer",
-    "label": "Label"
-  },
-  "subheadings": {
-    "summary": "Confirm {{paymentType; keysend:keysend payment; bolt11:payment; lnurl: {{direction; send:payment; receive:withdrawal;}}; bolt12:offer {{offerDirection; pay:payment; withdraw:withdrawal;}};}} details.",
-    "amount": "How much would you like to {{direction; receive:receive; send:send;}}?",
-    "description": "What is this payment for?",
-    "note": "Add a note for the receiver of this payment.",
-    "destination": "Where would you like to send a payment?",
-    "connect": "Enter your node connection details.",
-    "rune": "Add a rune to give Clams permissions to interact with your node. Restrict the rune to the following session public key:",
-    "welcome": "Control your CoreLN node securely and directly over the Lightning network.",
-    "decrypt": "Enter your 4 digit pin number to decrypt your local data.",
-    "accounting_exports": "Download a CSV file containing all income events to upload to your accounting software. The following formats are supported:",
-    "routing_performance": "Fees earned by your node for routing value:",
-    "account_insights": "Fees earned and APY per channel (SATS):",
-    "routing_fees_history": "Total fees earned vs fees earned per channel over time:",
-    "payer_note": "Attach a note to this payment.",
-    "changes": "This offer has been updated, please approve changes before paying invoice.",
-    "quantity": "{{direction; receive:What is the max quantity that can be requested with this offer?; send:How many do you want? {{max:ne; 0:(Maximum {{max}});}}}}",
-    "offer_type": "What type of offer would you like to create?",
-    "issuer": "Who is issuing this offer?",
-    "label": "Add a label to this offer for your internal records."
-  },
-  "payment": {
-    "status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
-  },
-  "modals": {
-    "clipboard": {
-      "paragraph_one": "You have a {{paymentType; bolt11:BOLT11 invoice; bolt12:BOLT12 offer; onchain:Bitcoin address; keysend:keysend node public key; lnurl:LNURL; lightning_address:lightning address}} on your clipboard.",
-      "paragraph_two": "Would you like to use it to send a transaction?"
-    },
-    "notifications": {
-      "heading": "Notifications",
-      "description": "Please adjust your browser preferences to allow Clams to trigger notifications on this device."
-    },
-    "disable_offer": {
-      "heading": "Disable Offer",
-      "description": "Are you sure you want to disable this offer? It will become unusable and cannot be reactivated."
-    }
   }
 }

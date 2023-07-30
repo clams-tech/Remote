@@ -82,7 +82,7 @@ export const onDestroy$ = defer(() => {
 })
 
 // the last url path
-export const lastPath$ = new BehaviorSubject('')
+export const previousPaths$ = new BehaviorSubject<string[]>([])
 
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)

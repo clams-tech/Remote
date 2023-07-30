@@ -43,7 +43,7 @@
         {/each}
       </div>
 
-      <a href="/connections/add" class="mt-6 no-underline block">
+      <a href="/connections/add" class="mt-6 no-underline block p-1">
         <Button primary text={$translate(`${translateBase}.add_connection`)}
           ><div class="w-6 ml-1" slot="iconRight">{@html plus}</div></Button
         >
