@@ -76,7 +76,7 @@
     }
   }
 
-  const mainText =
+  $: mainText =
     description ||
     $translate(
       `app.labels.${
@@ -100,22 +100,22 @@
   href={`/transactions/${data.id}`}
 >
   <div class="flex items-start">
-    <div class="w-6 border rounded-full mr-2">{@html icon}</div>
+    <div class="w-6 border rounded-full mr-2 flex-shrink-0">{@html icon}</div>
     <div>
-      <div class="">
+      <div class="mr-2 leading-none">
         {mainText}
       </div>
 
       <div
         class:text-utility-success={status === 'complete'}
         class:text-utility-pending={status === 'pending'}
-        class:text-utility-error={status === 'expired'}
-        class="flex items-center text-xs"
+        class:text-utility-error={status === 'expired' || status === 'failed'}
+        class="flex items-center text-xs mt-1"
       >
         <div
           class:bg-utility-success={status === 'complete'}
           class:bg-utility-pending={status === 'pending'}
-          class:bg-utility-error={status === 'expired'}
+          class:bg-utility-error={status === 'expired' || status === 'failed'}
           class="w-1.5 h-1.5 rounded-full mr-1"
         />
         <div>{$translate(`app.labels.${status}`)}</div>

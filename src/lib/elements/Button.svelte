@@ -14,31 +14,33 @@
   }
 </script>
 
-<button
-  bind:this={button}
-  on:click
-  class="no-underline text-center text-current transition-all text-[1em] shadow shadow-current w-full flex items-center justify-center relative rounded-full px-[1em] py-[0.5em] font-semibold hover:bg-neutral-800/70 bg-neutral-900"
-  class:opacity-70={disabled}
-  class:border={primary || warning}
-  class:border-purple-500={primary}
-  class:border-utility-error={warning}
-  disabled={disabled || requesting}
->
-  <div class:text-transparent={requesting}>
-    <slot name="iconLeft" />
-  </div>
-
-  {#if requesting}
-    <div class="absolute">
-      <Spinner size="1.5em" />
+<div class="w-full p-0.5">
+  <button
+    bind:this={button}
+    on:click
+    class="no-underline text-center text-current transition-all text-[1em] shadow shadow-current w-full flex items-center justify-center relative rounded-full px-[1em] py-[0.5em] font-semibold hover:bg-neutral-800/70 bg-neutral-900 whitespace-nowrap"
+    class:opacity-70={disabled}
+    class:border={primary || warning}
+    class:border-purple-500={primary}
+    class:border-utility-error={warning}
+    disabled={disabled || requesting}
+  >
+    <div class:text-transparent={requesting}>
+      <slot name="iconLeft" />
     </div>
-  {/if}
 
-  <span class:text-transparent={requesting}>
-    {text}
-  </span>
+    {#if requesting}
+      <div class="absolute">
+        <Spinner size="1.5em" />
+      </div>
+    {/if}
 
-  <div class:text-transparent={requesting}>
-    <slot name="iconRight" />
-  </div>
-</button>
+    <span class:text-transparent={requesting}>
+      {text}
+    </span>
+
+    <div class:text-transparent={requesting}>
+      <slot name="iconRight" />
+    </div>
+  </button>
+</div>

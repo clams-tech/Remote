@@ -131,6 +131,7 @@
     "fiat_calculator": "Fiat Calculator",
     "set_amount": "Set amount",
     "sats": "Sats",
+    "failed": "Failed",
     "expired": "Expired",
     "expires": "Expires",
     "invoice": "Invoice",

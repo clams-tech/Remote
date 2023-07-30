@@ -28,12 +28,15 @@
     $previousPaths$[1] &&
     $previousPaths$[1] !== path &&
     $previousPaths$[1] !== '/' &&
-    !$previousPaths$.slice(2).includes($previousPaths$[1])
+    !$previousPaths$.slice(2).includes($previousPaths$[1]) &&
+    $previousPaths$[0] !== $previousPaths$[2]
   ) {
     back = $previousPaths$[1]
   } else {
     back = null
   }
+
+  $: console.log($previousPaths$)
 </script>
 
 <svelte:head>

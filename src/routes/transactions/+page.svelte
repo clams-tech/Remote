@@ -100,6 +100,20 @@
       transactionsContainerScrollable = false
     }
   }, 500)
+
+  let prevTransactionsScrollY: number = 0
+
+  const handleTransactionsScroll = () => {
+    if (transactionsContainer) {
+      if (transactionsContainer.scrollTop < prevTransactionsScrollY) {
+        showFullReceiveButton = true
+      } else {
+        showFullReceiveButton = false
+      }
+
+      prevTransactionsScrollY = transactionsContainer.scrollTop
+    }
+  }
 </script>
 
 <svelte:window bind:innerHeight />
@@ -127,6 +141,7 @@
     {:else}
       <div
         bind:this={transactionsContainer}
+        on:scroll={debounce(handleTransactionsScroll, 100)}
         in:fade={{ duration: 250 }}
         class="w-full flex flex-col flex-grow overflow-auto gap-y-2 relative"
       >
@@ -159,7 +174,7 @@
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
-      class="bottom-7 right-5 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min hover:bg-neutral-800/70"
+      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min hover:bg-neutral-800"
       on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
       on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >

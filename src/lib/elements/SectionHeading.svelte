@@ -33,7 +33,7 @@
 
 <svelte:window on:keyup={handleKeyup} />
 
-<div class="flex w-full justify-start items-center mr-2 whitespace-nowrap">
+<div class="flex justify-start items-center mr-2">
   <div class="flex items-center">
     {#if icon}
       <div class="w-10 mr-2 flex-shrink-0">{@html icon}</div>
@@ -48,7 +48,7 @@
         bind:value={text}
       />
     {:else}
-      <h1 class="text-4xl font-bold flex items-center py-4 break-all w-full">
+      <h1 class="text-4xl font-bold py-4 break-all">
         {text}
       </h1>
     {/if}

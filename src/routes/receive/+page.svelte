@@ -126,7 +126,7 @@
 <Section>
   <div class="flex items-center justify-between">
     <SectionHeading icon={receive} />
-    <div class="w-12">
+    <div class="w-10">
       <Calculator on:amount={({ detail }) => (amount = detail)} />
     </div>
   </div>
