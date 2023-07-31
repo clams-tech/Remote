@@ -32,7 +32,7 @@ class DB extends Dexie {
       addresses: '&id, connectionId, txid',
       transactions: '&id, connectionId, timestamp, direction',
       forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status, startedAt, completedAt',
-      offers: '&id, connectionId',
+      offers: '&id, connectionId, description, type, issuer',
       metadata: '&id, dataId, type, value'
     })
   }

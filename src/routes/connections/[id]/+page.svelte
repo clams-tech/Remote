@@ -45,6 +45,7 @@
   let status: ConnectionStatus
   let showConfiguration = false
   let connectionError = ''
+  let syncing = false
 
   const checkForConnectionDetails = async () => {
     const connectionDetails = (await db.connections.get(id)) as ConnectionDetails
@@ -151,7 +152,7 @@
   // @TODO display last sync timestamp if available
 
   const sync = async () => {
-    await db.connections.update(id, { syncing: true })
+    syncing = true
     syncProgress$ = syncConnectionData(connection!, $connectionDetails$?.lastSync || null)
 
     syncProgress$
@@ -161,7 +162,8 @@
       )
       .subscribe({
         complete: () => {
-          db.connections.update(id, { syncing: false, lastSync: nowSeconds() })
+          db.connections.update(id, { lastSync: nowSeconds() })
+          syncing = false
           setTimeout(() => (syncProgress$ = null), 250)
         }
       })
@@ -231,26 +233,22 @@
           <div class="flex flex-wrap gap-x-2 gap-y-2" in:fade={{ duration: 250 }}>
             <div class="relative w-min">
               <Button
-                disabled={$connectionDetails$.syncing}
+                disabled={syncing}
                 on:click={sync}
                 primary
                 text={$translate('app.labels.sync')}
               >
-                <div
-                  class:animate-spin={$connectionDetails$.syncing}
-                  class="w-4 ml-2"
-                  slot="iconRight"
-                >
+                <div class:animate-spin={syncing} class="w-4 ml-2" slot="iconRight">
                   {@html refresh}
                 </div>
               </Button>
 
               {#if syncProgress$}
-                <div class="w-full h-full rounded-full overflow-hidden absolute top-0">
+                <div class="w-full h-full rounded-full overflow-hidden absolute top-0 p-0.5">
                   <div
                     transition:slide={{ duration: 250 }}
                     style="width: {$syncProgress$}%;"
-                    class="absolute bottom-0 left-0 h-1.5 p-[2px] transition-all bg-purple-500"
+                    class="absolute bottom-0 left-0 h-1.5 transition-all bg-purple-500"
                   />
                 </div>
               {/if}

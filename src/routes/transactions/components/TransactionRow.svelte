@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Address } from '$lib/@types/addresses.js'
-  import type { Invoice, PaymentStatus } from '$lib/@types/invoices.js'
+  import type { TransactionStatus } from '$lib/@types/common.js'
+  import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
   import { translate } from '$lib/i18n/translations.js'
@@ -12,7 +13,7 @@
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
 
   let icon: string
-  let status: PaymentStatus
+  let status: TransactionStatus
   let balanceChange: string | 'any' | undefined
   let abs: '-' | '+' | undefined
   let channelClose = false

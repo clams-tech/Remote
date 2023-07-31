@@ -4,6 +4,7 @@ import { formatInvoice, payToPayment, stripMsatSuffix } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
+import { isBolt12Invoice } from '$lib/invoices.js'
 
 import type {
   CreateInvoiceOptions,
@@ -23,7 +24,6 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
-import { isBolt12Invoice } from '$lib/invoices.js'
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
@@ -95,10 +95,10 @@ class Invoices implements InvoicesInterface {
         status: 'pending',
         direction: 'receive',
         amount,
-        fee: null,
+        fee: undefined,
         type: 'bolt11',
         createdAt,
-        completedAt: null,
+        completedAt: undefined,
         expiresAt: expires_at,
         request: bolt11,
         nodeId: this.connection.info.id,
@@ -156,7 +156,7 @@ class Invoices implements InvoicesInterface {
         direction: 'send',
         amount: stripMsatSuffix(amount_msat),
         completedAt: nowSeconds(),
-        expiresAt: null,
+        expiresAt: undefined,
         createdAt: created_at,
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(stripMsatSuffix(amount_msat)).toString(),
         status,
@@ -214,7 +214,7 @@ class Invoices implements InvoicesInterface {
         direction: 'send',
         amount: stripMsatSuffix(amountMsat),
         completedAt: nowSeconds(),
-        expiresAt: null,
+        expiresAt: undefined,
         createdAt: created_at,
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
         status,

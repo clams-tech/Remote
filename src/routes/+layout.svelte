@@ -28,15 +28,13 @@
     $previousPaths$[1] &&
     $previousPaths$[1] !== path &&
     $previousPaths$[1] !== '/' &&
-    !$previousPaths$.slice(2).includes($previousPaths$[1]) &&
-    $previousPaths$[0] !== $previousPaths$[2]
+    !$previousPaths$.slice(2).includes($previousPaths$[1])
+    // && $previousPaths$[0] !== $previousPaths$[2]
   ) {
     back = $previousPaths$[1]
   } else {
     back = null
   }
-
-  $: console.log($previousPaths$)
 </script>
 
 <svelte:head>
@@ -55,33 +53,33 @@
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
       {#if routeRequiresSession(path) && $session$}
-        {@const lastPathRouteTitle = $translate(`app.routes.${$previousPaths$[1]}.title`, {
-          default: 'undefined'
-        })}
-
         <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
         <a href="/scan" class="w-9 ml-2">{@html scan}</a>
-
-        {#if back && lastPathRouteTitle !== 'undefined'}
-          <a
-            transition:slide={{ axis: 'x' }}
-            href={back}
-            class="flex items-center ml-2 no-underline text-sm font-semibold"
-          >
-            <div class="w-6 rotate-90">{@html caret}</div>
-            <div>
-              {lastPathRouteTitle}
-            </div>
-          </a>
-        {/if}
       {/if}
     </div>
 
     <!-- show clams icon in top right if not welcome or decrypt routes -->
     {#if routeRequiresSession(path)}
-      <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
-        >{@html clamsIcon}</button
-      >
+      {@const lastPathRouteTitle = $translate(`app.routes.${$previousPaths$[1]}.title`, {
+        default: 'undefined'
+      })}
+      <div class="flex items-center">
+        {#if back && lastPathRouteTitle !== 'undefined'}
+          <a
+            transition:slide={{ axis: 'x' }}
+            href={back}
+            class="flex items-center ml-2 no-underline font-semibold whitespace-nowrap"
+          >
+            <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
+            <div>
+              {lastPathRouteTitle}
+            </div>
+          </a>
+        {/if}
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
+          >{@html clamsIcon}</button
+        >
+      </div>
     {/if}
   </header>
 

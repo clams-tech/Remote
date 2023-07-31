@@ -66,13 +66,13 @@
 </div>
 
 {#if showGetStartedHint}
-  <div
-    class="max-w-max absolute bottom-2 p-2 w-full flex justify-center items-center bg-neutral-900"
-  >
-    <Msg
-      on:close={handleCloseHint}
-      message={$translate('app.routes./.get_started_hint')}
-      type="info"
-    />
+  <div class="absolute bottom-0 p-4 w-full flex justify-center items-center bg-neutral-900">
+    <div>
+      <Msg
+        on:close={handleCloseHint}
+        message={$translate('app.routes./.get_started_hint')}
+        type="info"
+      />
+    </div>
   </div>
 {/if}

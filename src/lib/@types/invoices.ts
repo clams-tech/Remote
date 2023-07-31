@@ -1,15 +1,16 @@
 import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
+import type { TransactionStatus } from './common.js'
 
 export type Invoice = {
   id: string
-  status: PaymentStatus
+  status: TransactionStatus
   direction: PaymentDirection
   amount: string // msat
-  fee: string | null // msat
+  fee?: string // msat
   type: PaymentType
   createdAt: number // unix seconds
-  completedAt: number | null // unix seconds
-  expiresAt: number | null // unix seconds
+  completedAt?: number // unix seconds
+  expiresAt?: number // unix seconds
   hash: string
   connectionId: string
   /** BOLT11 | BOLT12 */
@@ -22,7 +23,6 @@ export type Invoice = {
     id?: string
     issuer: DecodedBolt12Offer['offer_issuer']
     payerNote?: DecodedBolt12Invoice['invreq_payer_note']
-    payerId?: DecodedBolt12Invoice['invreq_payer_id']
     description?: DecodedBolt12Offer['offer_description']
   }
 }
@@ -65,8 +65,6 @@ export type PayInvoiceOptions = {
 export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'bolt12'
 
 type PaymentDirection = 'receive' | 'send'
-
-export type PaymentStatus = 'pending' | 'complete' | 'expired' | 'failed'
 
 export type DecodedBolt11Invoice = {
   nodeId: string

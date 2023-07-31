@@ -89,11 +89,11 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     preimage: payment_preimage,
     amount: stripMsatSuffix(amount_received_msat || amount_msat || 'any'),
     status: invoiceStatusToPaymentStatus(status),
-    completedAt: paid_at ? paid_at : null,
+    completedAt: paid_at ? paid_at : undefined,
     expiresAt: expires_at,
     description,
     nodeId,
-    fee: null,
+    fee: undefined,
     createdAt,
     payIndex: pay_index,
     offer,
@@ -136,7 +136,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     const { default: decodeBolt12 } = await import('bolt12-decoder')
     const decoded = decodeBolt12(bolt12)
 
-    const { offer_issuer, offer_description, invreq_payer_note, invreq_payer_id, offer_node_id } =
+    const { offer_issuer, offer_description, invreq_payer_note, offer_node_id } =
       decoded as DecodedBolt12Invoice
 
     nodeId = offer_node_id
@@ -144,7 +144,6 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     offer = {
       issuer: offer_issuer,
       payerNote: invreq_payer_note,
-      payerId: invreq_payer_id,
       description: offer_description
     }
   }
@@ -163,7 +162,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amount).toString(),
     direction: 'send',
     type: bolt11 ? 'bolt11' : 'keysend',
-    expiresAt: null,
+    expiresAt: undefined,
     completedAt: timestamp,
     description,
     offer,
