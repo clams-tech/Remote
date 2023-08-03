@@ -1,5 +1,7 @@
+import { toOutputScript } from 'bitcoinjs-lib/src/address.js'
 import type { BitcoinExchangeRates } from './@types/settings.js'
 import { API_URL } from './constants.js'
+import { bolt11Regex, hostRegex, nodePublicKeyRegex, usernameRegex } from './regex.js'
 import { log } from './services.js'
 import { settings$ } from './streams.js'
 
@@ -41,5 +43,21 @@ export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | n
   } catch (error) {
     log.warn(`Could not get exchange rate for currency: ${currency} `)
     return null
+  }
+}
+
+export function isDesktop() {
+  if (
+    navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i)
+  ) {
+    return false
+  } else {
+    return true
   }
 }

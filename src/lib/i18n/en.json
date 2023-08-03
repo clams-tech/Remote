@@ -10,8 +10,8 @@
     "/receive": {
       "title": "Receive"
     },
-    "/scan": {
-      "title": "Scan"
+    "/input": {
+      "title": "Input"
     },
     "/offers": {
       "title": "Offers"
@@ -54,14 +54,11 @@
       "title": "Add Connection",
       "introduction": "Select a connection you would like to add from the following:"
     },
-    "/contacts": {
-      "title": "Contacts"
-    },
     "/channels": {
       "title": "Channels"
     },
-    "/imports": {
-      "title": "Imports"
+    "/charts": {
+      "title": "Charts"
     },
     "/settings/app": {
       "title": "App Settings"
@@ -134,6 +131,17 @@
     "failed": "Failed",
     "expired": "Expired",
     "expires": "Expires",
+    "scanner": "Scanner",
+    "keyboard": "Keyboard",
+    "image": "Image",
+    "nfc": "NFC",
+    "unknown": "Unknown",
+    "enter": "Enter",
+    "node_address": "Node address",
+    "node_publickey": "Node pubkey",
+    "lightning_address": "Lightning address",
+    "lnurl": "LNURL",
+    "onchain": "Onchain address",
     "invoice": "Invoice",
     "channel_open": "Channel open",
     "channel_close": "Channel close",

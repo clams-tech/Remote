@@ -59,24 +59,24 @@
     <div
       in:slide={{ duration: 250 }}
       out:slide={{ duration: 250, delay: 150 }}
-      class="pl-6 pr-8 w-full py-4 rounded-lg border flex flex-col justify-center items-start relative overflow-hidden transition-all {msgValue
+      class="pl-6 pr-8 w-full py-4 rounded-lg border flex relative overflow-hidden transition-all {msgValue
         .colors.main}"
     >
       {#if closable}
         <button
           on:click={handleClose}
-          class="absolute top-1 right-1 w-4 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
+          class="absolute top-0 right-0 w-6 cursor-pointer flex-shrink-0 {msgValue.colors.button}"
         >
           {@html close}
         </button>
       {/if}
 
-      <div class="flex items-center">
-        <div class="w-4 flex-shrink-0 mr-2 {msgValue.colors.icon}">
+      <div class="flex items-start">
+        <div class="w-6 flex-shrink-0 mr-2 {msgValue.colors.icon}">
           {@html msgValue.icon}
         </div>
 
-        <span class="font-semibold text-sm">
+        <span class="font-semibold text-sm leading-tight h-full flex items-center">
           <!-- text-bitcoin-orange -->
           {@html message}
         </span>

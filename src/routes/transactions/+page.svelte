@@ -10,13 +10,13 @@
   import list from '$lib/icons/list.js'
   import { liveQuery } from 'dexie'
   import TransactionRow from './components/TransactionRow.svelte'
-  import receive from '$lib/icons/receive.js'
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { endOfDay } from 'date-fns'
   import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
   import debounce from 'lodash.debounce'
+  import plus from '$lib/icons/plus.js'
 
   const invoices$ = liveQuery(async () => {
     const invoices = await db.invoices.toArray()
@@ -178,7 +178,7 @@
       on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
       on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >
-      <div class="w-6">{@html receive}</div>
+      <div class="w-6">{@html plus}</div>
 
       {#if !transactionsContainerScrollable || showFullReceiveButton}
         <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>Receive</div>

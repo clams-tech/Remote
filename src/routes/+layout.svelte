@@ -54,7 +54,7 @@
     <div class="flex items-center">
       {#if routeRequiresSession(path) && $session$}
         <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
-        <a href="/scan" class="w-9 ml-2">{@html scan}</a>
+        <a href="/input" class="w-9 ml-2">{@html scan}</a>
       {/if}
     </div>
 

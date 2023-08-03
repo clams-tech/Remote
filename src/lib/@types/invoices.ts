@@ -75,30 +75,6 @@ export type DecodedBolt11Invoice = {
   description: string
 }
 
-export type ParsedOnchainString = {
-  type: 'onchain'
-  value: {
-    address: string
-    amount?: string | null
-    label?: string | null
-    message?: string | null
-  }
-}
-
-export type ParsedOffChainString = {
-  type: PaymentType
-  value: string
-}
-
-export type ParsedBitcoinStringError = {
-  error: string
-}
-
-export type ParsedBitcoinString =
-  | ParsedOnchainString
-  | ParsedOffChainString
-  | ParsedBitcoinStringError
-
 export type SendPayment = {
   destination: string
   type: PaymentType | null

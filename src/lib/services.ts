@@ -9,11 +9,21 @@ export const clipboard = {
     }
   },
   read: async (): Promise<string> => {
-    const clipboardText = await navigator.clipboard.readText()
-    return clipboardText
+    if (window.__TAURI__) {
+      const { readText } = await import('@tauri-apps/api/clipboard')
+      return readText() as Promise<string>
+    } else {
+      const clipboardText = await navigator.clipboard.readText()
+      return clipboardText
+    }
   },
   write: async (text: string): Promise<void> => {
-    await navigator.clipboard.writeText(text)
+    if (window.__TAURI__) {
+      const { writeText } = await import('@tauri-apps/api/clipboard')
+      await writeText(text)
+    } else {
+      await navigator.clipboard.writeText(text)
+    }
   },
   writeImage: async (image: Blob | Promise<Blob>): Promise<void> => {
     await navigator.clipboard.write([

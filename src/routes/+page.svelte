@@ -4,12 +4,11 @@
   import Msg from '$lib/elements/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
-  import contacts from '$lib/icons/contacts.js'
   import feeOutline from '$lib/icons/fee-outline.js'
+  import graph from '$lib/icons/graph.js'
   import keys from '$lib/icons/keys.js'
   import lightningOutline from '$lib/icons/lightning-outline.js'
   import list from '$lib/icons/list.js'
-  import scan from '$lib/icons/scan.js'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import wallet from '$lib/icons/wallet.js'
   import { storage } from '$lib/services.js'
@@ -22,7 +21,7 @@
     { key: 'channels', icon: channels },
     { key: 'offers', icon: lightningOutline },
     { key: 'accounting', icon: feeOutline },
-    { key: 'contacts', icon: contacts },
+    { key: 'charts', icon: graph },
     { key: 'settings', icon: settingsOutline }
   ]
 
