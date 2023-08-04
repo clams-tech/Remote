@@ -1,3 +1,5 @@
+import type { DialogFilter } from '@tauri-apps/api/dialog'
+
 export const clipboard = {
   permission: async (name: PermissionName): Promise<boolean> => {
     try {
@@ -75,6 +77,13 @@ export const file = {
       link.click()
       document.body.removeChild(link)
     }
+  },
+  open: async (filters?: DialogFilter[]): Promise<Uint8Array | null> => {
+    const { open } = await import('@tauri-apps/api/dialog')
+    const { readBinaryFile } = await import('@tauri-apps/api/fs')
+    const path = await open({ filters, multiple: false })
+    const file = path ? await readBinaryFile(path as string) : null
+    return file
   }
 }
 
@@ -84,6 +93,27 @@ export const storage = {
   },
   write: (storageKey: string, data: string): void => {
     window.localStorage.setItem(storageKey, data)
+  }
+}
+
+export const nfc = {
+  available: () => !!window.NDEFReader,
+  read: (): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new NDEFReader()
+      reader
+        .scan()
+        .then(() => {
+          reader.onreading = (event) => {
+            const decoder = new TextDecoder()
+            const decoded = event.message.records.map((record) => decoder.decode(record.data))
+            resolve(decoded)
+          }
+
+          reader.onreadingerror = reject
+        })
+        .catch(reject)
+    })
   }
 }
 

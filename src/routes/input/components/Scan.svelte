@@ -21,7 +21,7 @@
     parsed = parseInput(val)
 
     timeout && clearTimeout(timeout)
-    timeout = setTimeout(() => (parsed = null), 8000)
+    timeout = setTimeout(() => (parsed = null), 4000)
   }, 200)
 
   onDestroy(() => {
@@ -52,6 +52,7 @@
   let qrWorker: Worker
   let canvasContext: CanvasRenderingContext2D
   let loaded = false
+  let videoLoaded = false
 
   onMount(async () => {
     const supported = await checkCameraSupport()
@@ -78,19 +79,9 @@
 
       await video.play()
 
-      scanRegion = calculateScanRegion(video)
-      copyRegion = calculateCopyRegion(video)
+      videoLoaded = true
 
-      canvas.height = scanRegion.height
-      canvas.width = scanRegion.width
-      canvasContext = canvas.getContext('2d', { alpha: false, willReadFrequently: true })!
-      canvasContext.imageSmoothingEnabled = false // gives less blurry images
-
-      const { default: QrWorker } = await import('$lib/qr.worker?worker')
-      qrWorker = new QrWorker()
-      qrWorker.addEventListener('message', handleMessage)
-
-      tick()
+      setTimeout(startScanRegion, 100)
     } catch (error) {
       cameraError = $translate('app.errors.camera_permissions')
 
@@ -99,6 +90,24 @@
 
     loaded = true
   })
+
+  async function startScanRegion() {
+    scanRegion = calculateScanRegion(video)
+    copyRegion = calculateCopyRegion(video)
+
+    canvas.height = scanRegion.height
+    canvas.width = scanRegion.width
+    canvasContext = canvas.getContext('2d', { alpha: false, willReadFrequently: true })!
+    canvasContext.imageSmoothingEnabled = false // gives less blurry images
+
+    const { default: QrWorker } = await import('$lib/qr.worker?worker')
+    qrWorker = new QrWorker()
+    qrWorker.addEventListener('message', handleMessage)
+
+    tick()
+
+    loaded = true
+  }
 
   function handleMessage(message: MessageEvent) {
     const { data } = message
@@ -169,9 +178,17 @@
 </script>
 
 <div class="relative items-center flex-col flex justify-center w-full">
-  <div class="flex items-center justify-center w-full h-full">
-    <!-- svelte-ignore a11y-media-has-caption -->
-    <video bind:this={video} class="rounded overflow-hidden" class:-scale-x-100={desktopDevice} />
+  <div class="flex items-center justify-center w-full h-full bg-neutral-900">
+    <div
+      class:w-0={!videoLoaded}
+      class:w-full={videoLoaded}
+      class:h-40={!videoLoaded}
+      class:h-full={videoLoaded}
+      class="transition-all overflow-hidden"
+    >
+      <!-- svelte-ignore a11y-media-has-caption -->
+      <video bind:this={video} class:-scale-x-100={desktopDevice} />
+    </div>
 
     <!-- Hidden canvas to take snapshots of webcam stream to send to qr decoder -->
     <canvas
@@ -196,9 +213,10 @@
 
   {#if parsed}
     <button
+      disabled={parsed.type === 'unknown'}
       on:click={() => dispatch('input', parsed)}
-      transition:slide
-      class="absolute bottom-3 right-2 py-1 px-4 shadow shadow-current rounded-full flex items-center bg-neutral-900"
+      transition:slide={{ axis: 'x' }}
+      class="absolute bottom-2.5 right-2 py-1 px-4 shadow shadow-current rounded-full flex items-center bg-neutral-900 whitespace-nowrap"
     >
       <div class="font-semibold mr-1">
         {$translate(`app.labels.${parsed.type}`)}:
@@ -210,7 +228,7 @@
     </button>
   {/if}
 
-  {#if !loaded && !cameraError}
+  {#if !videoLoaded && !cameraError}
     <div class="absolute">
       <Spinner />
     </div>

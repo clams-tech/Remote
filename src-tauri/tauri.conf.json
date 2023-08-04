@@ -24,7 +24,7 @@
         "ask": false,
         "confirm": false,
         "message": false,
-        "open": false,
+        "open": true,
         "save": true
       },
       "fs": {
@@ -33,7 +33,7 @@
         "createDir": false,
         "exists": false,
         "readDir": false,
-        "readFile": false,
+        "readFile": true,
         "removeDir": false,
         "removeFile": false,
         "renameFile": false,
