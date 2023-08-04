@@ -255,7 +255,13 @@
         <!-- CONNECTION -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.connection')}:</span>
-          <span slot="value">{connection.label}</span>
+          <a
+            href={`/connections/${connection.id}`}
+            slot="value"
+            class="no-underline flex items-center"
+            >{connection.label}
+            <div class="w-6 ml-1">{@html link}</div></a
+          >
         </SummaryRow>
 
         <!-- STATUS -->
