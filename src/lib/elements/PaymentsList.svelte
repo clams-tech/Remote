@@ -7,7 +7,7 @@
   import { settings$ } from '$lib/streams'
   import { BitcoinDenomination, type Payment } from '$lib/types'
   import { formatDate, formatValueForDisplay } from '$lib/utils'
-  import { fade } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
 
   export let payments: Payment[]
 
@@ -26,61 +26,60 @@
     </div>
   </button>
 
-  <div
-    style="height: {open ? payments.length * 22 + 8 + (payments.length - 1) * 4 : 0}px;"
-    class="transition-all overflow-hidden"
-  >
-    <div class="mt-2 flex flex-col items-end gap-y-1">
-      {#each payments as { completedAt, value, status, direction, id }}
-        <button
-          on:click={() => goto(`/payments/${id}`)}
-          class="text-sm block px-1 border border-transparent transition-all rounded {status ===
-          'complete'
-            ? 'bg-utility-success/20 hover:border-utility-success/40'
-            : status === 'expired' || status === 'failed'
-            ? 'bg-utility-error/20 hover:border-utility-error/40'
-            : 'bg-utility-pending/20 hover:border-utility-pending/40'}"
-        >
-          <div class="flex justify-end whitespace-nowrap">
-            <span
-              >{$translate('app.payment.status', {
-                status: status,
-                direction: direction
-              })}
-            </span>
-            <span class="flex items-center ml-1">
+  {#if open}
+    <div transition:slide|local class="transition-all overflow-hidden">
+      <div class="mt-2 flex flex-col items-end gap-y-1">
+        {#each payments as { completedAt, value, status, direction, id }}
+          <button
+            on:click={() => goto(`/payments/${id}`)}
+            class="text-sm flex items-center max-w-full px-1 border border-transparent transition-all rounded {status ===
+            'complete'
+              ? 'bg-utility-success/20 hover:border-utility-success/40'
+              : status === 'expired' || status === 'failed'
+              ? 'bg-utility-error/20 hover:border-utility-error/40'
+              : 'bg-utility-pending/20 hover:border-utility-pending/40'}"
+          >
+            <div class="flex w-full">
               <span
-                class="flex justify-center items-center"
-                class:w-4={primarySymbol.startsWith('<')}
-                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-              >
-              {formatValueForDisplay({
-                value: convertValue({
-                  value,
-                  from: BitcoinDenomination.msats,
-                  to: $settings$.primaryDenomination
-                }),
-                denomination: $settings$.primaryDenomination,
-                commas: true
-              })}
-            </span>
-            {#if completedAt}
-              <div class="ml-1 overflow-hidden flex items-center whitespace-nowrap">
-                -
-                {#await formatDate( { date: completedAt, language: $settings$.language } ) then formatted}
-                  <div
-                    style="max-width: {Math.floor(window.innerWidth * 0.35)}px"
-                    class="overflow-hidden ml-1 whitespace-nowrap text-ellipsis"
-                    in:fade|local={{ duration: 50 }}
-                  >
-                    {formatted}
-                  </div>
-                {/await}
-              </div>
-            {/if}
-          </div>
-        </button>
-      {/each}
+                >{$translate('app.payment.status', {
+                  status: status,
+                  direction: direction
+                })}
+              </span>
+              <span class="flex items-center">
+                <span
+                  class="flex justify-center items-center ml-1"
+                  class:w-4={primarySymbol.startsWith('<')}
+                  class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
+                >
+                {formatValueForDisplay({
+                  value: convertValue({
+                    value,
+                    from: BitcoinDenomination.msats,
+                    to: $settings$.primaryDenomination
+                  }),
+                  denomination: $settings$.primaryDenomination,
+                  commas: true
+                })}
+              </span>
+              {#if completedAt}
+                <div class="ml-1 flex items-center w-full truncate">
+                  -
+                  {#await formatDate( { date: completedAt, language: $settings$.language } ) then formatted}
+                    <div
+                      style="max-width: {Math.floor(window.innerWidth * 0.35)}px"
+                      class="ml-1 truncate w-full"
+                      in:fade|local={{ duration: 50 }}
+                    >
+                      {formatted}
+                    </div>
+                  {/await}
+                </div>
+              {/if}
+            </div>
+          </button>
+        {/each}
+      </div>
     </div>
-  </div>
+  {/if}
 </div>
