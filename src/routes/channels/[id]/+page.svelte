@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade, slide } from 'svelte/transition'
-  import { connections$, onDestroy$, session$, settings$ } from '$lib/streams'
+  import { connections$, onDestroy$, settings$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
   import CopyValue from '$lib/elements/CopyValue.svelte'
@@ -17,11 +17,15 @@
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db.js'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import connect from '$lib/icons/connect.js'
+  import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
+  import Msg from '$lib/elements/Msg.svelte'
 
   export let data: PageData // channel id
   const channels$ = liveQuery(() => db.channels.toArray())
 
-  let channel: Channel | null
+  let channel: Channel
+  let connection: ConnectionInterface
 
   let feeBaseUpdate: number
   let feeRateUpdate: number
@@ -36,6 +40,10 @@
     channel = $channels$.find((p) => p.id === data.id)!
 
     if (channel) {
+      connection = $connections$.find(
+        (conn) => conn.connectionId === channel.connectionId
+      ) as ConnectionInterface
+
       const { feeBase, feePpm, htlcMin, htlcMax } = channel
 
       if (feeBase) {
@@ -60,9 +68,6 @@
     .pipe(
       filter(() => !!channel),
       switchMap(async () => {
-        const connection = connections$.value.find(
-          (conn) => conn.info.connectionId === channel!.connectionId
-        ) as ConnectionInterface
         return connection.channels?.get({ id: channel!.id, peerId: channel!.peerId })
       }),
       map((update) => update && update[0]),
@@ -80,33 +85,33 @@
     errMsg = ''
     updating = true
 
-    try {
-      const feeBase = Big(feeBaseUpdate).times(1000).toString()
-      const htlcMin = Big(minForwardUpdate).times(1000).toString()
-      const htlcMax = Big(maxForwardUpdate).times(1000).toString()
+    // try {
+    //   const feeBase = Big(feeBaseUpdate).times(1000).toString()
+    //   const htlcMin = Big(minForwardUpdate).times(1000).toString()
+    //   const htlcMax = Big(maxForwardUpdate).times(1000).toString()
 
-      await lnApi.updateChannel({
-        id: data.id,
-        feeBase,
-        feeRate: feeRateUpdate,
-        htlcMin,
-        htlcMax
-      })
+    //   await lnApi.updateChannel({
+    //     id: data.id,
+    //     feeBase,
+    //     feeRate: feeRateUpdate,
+    //     htlcMin,
+    //     htlcMax
+    //   })
 
-      const updatedChannels = (channels$.value.data || []).map((channel) =>
-        channel.id === data.id
-          ? { ...channel, feeBase, feePpm: feeRateUpdate, htlcMin, htlcMax }
-          : channel
-      )
+    //   const updatedChannels = (channels$.value.data || []).map((channel) =>
+    //     channel.id === data.id
+    //       ? { ...channel, feeBase, feePpm: feeRateUpdate, htlcMin, htlcMax }
+    //       : channel
+    //   )
 
-      channels$.next({ data: updatedChannels })
-      showFeeUpdateModal = false
-    } catch (error) {
-      const { message } = error as { message: string }
-      errMsg = message
-    } finally {
-      updating = false
-    }
+    //   channels$.next({ data: updatedChannels })
+    //   showFeeUpdateModal = false
+    // } catch (error) {
+    //   const { message } = error as { message: string }
+    //   errMsg = message
+    // } finally {
+    //   updating = false
+    // }
   }
 
   let connecting = false
@@ -114,14 +119,14 @@
   async function connectPeer() {
     connecting = true
 
-    try {
-      await lnApi.connectPeer({ id: channel.peerId })
-      channel.peerConnected = true
-    } catch (error) {
-      // @TODO - Could display error here?
-    } finally {
-      connecting = false
-    }
+    // try {
+    //   await lnApi.connectPeer({ id: channel.peerId })
+    //   channel.peerConnected = true
+    // } catch (error) {
+    //   // @TODO - Could display error here?
+    // } finally {
+    //   connecting = false
+    // }
   }
 </script>
 
@@ -135,7 +140,7 @@
 >
   <div class="h-16" />
 
-  {#if $channels$.loading}
+  {#if !$channels$}
     <Spinner />
   {:else if channel}
     {@const {
@@ -216,7 +221,7 @@
           </div>
           <div slot="value">
             {opener === 'local'
-              ? $nodeInfo$.data?.alias || $translate('app.labels.us')
+              ? connection?.info?.alias || $translate('app.labels.us')
               : peerAlias || $translate('app.labels.remote')}
           </div>
         </SummaryRow>
@@ -225,21 +230,8 @@
           <div slot="label">
             {$translate('app.labels.outbound')}:
           </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: balanceLocal,
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
+          <div slot="value">
+            <BitcoinAmount msat={balanceLocal} />
           </div>
         </SummaryRow>
 
@@ -247,21 +239,8 @@
           <div slot="label">
             {$translate('app.labels.inbound')}:
           </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: balanceRemote,
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
+          <div slot="value">
+            <BitcoinAmount msat={balanceRemote} />
           </div>
         </SummaryRow>
 
@@ -269,21 +248,10 @@
           <div slot="label">
             {$translate('app.labels.unsettled')}:
           </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString(),
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
+          <div slot="value">
+            <BitcoinAmount
+              msat={htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString()}
+            />
           </div>
         </SummaryRow>
 
@@ -291,21 +259,8 @@
           <div slot="label">
             {$translate('app.labels.local_reserve')}:
           </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: reserveLocal,
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
+          <div slot="value">
+            <BitcoinAmount msat={reserveLocal} />
           </div>
         </SummaryRow>
 
@@ -313,53 +268,33 @@
           <div slot="label">
             {$translate('app.labels.remote_reserve')}:
           </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: reserveRemote,
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
+          <div slot="value">
+            <BitcoinAmount msat={reserveRemote} />
           </div>
         </SummaryRow>
 
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.fee_base')}:
-          </div>
-          <div slot="value" class="flex items-center">
-            <span
-              class="flex justify-center items-center"
-              class:w-4={primarySymbol.startsWith('<')}
-              class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-            >
-            {formatValueForDisplay({
-              value: convertValue({
-                value: feeBase,
-                from: BitcoinDenomination.msats,
-                to: $settings$.primaryDenomination
-              }),
-              denomination: $settings$.primaryDenomination,
-              commas: true
-            })}
-          </div>
-        </SummaryRow>
+        {#if feeBase}
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.fee_base')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount msat={feeBase} />
+            </div>
+          </SummaryRow>
+        {/if}
 
         <SummaryRow>
           <div slot="label">
             {$translate('app.labels.fee_rate')}:
           </div>
-          <div slot="value" class="flex items-center">
-            {feePpm}
-            {$translate('app.labels.ppm')}
+          <div slot="value" class="flex items-baseline">
+            <span class="font-mono">{feePpm}</span>
+            <span
+              class="text-[0.75em] font-semibold text-neutral-50 flex items-end leading-none ml-1"
+            >
+              {$translate('app.labels.ppm')}
+            </span>
           </div>
         </SummaryRow>
 
@@ -368,21 +303,8 @@
             <div slot="label">
               {$translate('app.labels.min_forward')}:
             </div>
-            <div slot="value" class="flex items-center">
-              <span
-                class="flex justify-center items-center"
-                class:w-4={primarySymbol.startsWith('<')}
-                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-              >
-              {formatValueForDisplay({
-                value: convertValue({
-                  value: htlcMin,
-                  from: BitcoinDenomination.msats,
-                  to: $settings$.primaryDenomination
-                }),
-                denomination: $settings$.primaryDenomination,
-                commas: true
-              })}
+            <div slot="value">
+              <BitcoinAmount msat={htlcMin} />
             </div>
           </SummaryRow>
         {/if}
@@ -392,21 +314,8 @@
             <div slot="label">
               {$translate('app.labels.max_forward')}:
             </div>
-            <div slot="value" class="flex items-center">
-              <span
-                class="flex justify-center items-center"
-                class:w-4={primarySymbol.startsWith('<')}
-                class:mr-[2px]={!primarySymbol.startsWith('<')}>{@html primarySymbol}</span
-              >
-              {formatValueForDisplay({
-                value: convertValue({
-                  value: htlcMax,
-                  from: BitcoinDenomination.msats,
-                  to: $settings$.primaryDenomination
-                }),
-                denomination: $settings$.primaryDenomination,
-                commas: true
-              })}
+            <div slot="value">
+              <BitcoinAmount msat={htlcMax} />
             </div>
           </SummaryRow>
         {/if}
@@ -473,7 +382,7 @@
 
       {#if errMsg}
         <div in:slide|local={{ duration: 250 }} class="mt-2">
-          <ErrorMsg message={errMsg} />
+          <Msg type="error" message={errMsg} />
         </div>
       {/if}
     </div>
