@@ -5,8 +5,7 @@
   import { channelStatusTolabel } from '../utils.js'
   import type { Channel } from '$lib/@types/channels.js'
   import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
-  import { db } from '$lib/db.js'
-  import { connections$, connectionsDetails$ } from '$lib/streams.js'
+  import { connectionsDetails$ } from '$lib/streams.js'
 
   export let channel: Channel
 
@@ -16,13 +15,16 @@
 
   const channelStatusLabel = channelStatusTolabel(channel.status)
 
-  const connection = $connectionsDetails$.find((conn) => conn.id === channel.connectionId)
+  $: connectionDetails = $connectionsDetails$?.find((conn) => conn.id === channel.connectionId)
 </script>
 
-<a href="/channels/{channel.id}" class="w-full py-2 border-b border-neutral-400 block no-underline">
+<a
+  href="/channels/{channel.id}"
+  class="w-full pb-2 pt-1 border-b border-neutral-400 block no-underline hover:bg-neutral-800 transition-all"
+>
   <div class="flex items-center gap-x-2">
     <div class="font-semibold whitespace-nowrap">
-      {connection?.label.toUpperCase()}
+      {connectionDetails?.label.toUpperCase()}
     </div>
 
     <div class:gap-x-1={localPercent && remotePercent} class="flex items-center w-full">
