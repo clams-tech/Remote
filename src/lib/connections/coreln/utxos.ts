@@ -54,7 +54,7 @@ class Utxos implements UtxosInterface {
             status,
             reserved,
             blockHeight,
-            connectionId: this.connection.info.connectionId,
+            connectionId: this.connection.connectionId,
             timestamp
           }
         }
@@ -65,7 +65,7 @@ class Utxos implements UtxosInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

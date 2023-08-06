@@ -27,7 +27,7 @@ class Channels implements ChannelsInterface {
     this.connection = connection
   }
 
-  public async get(nodeId?: string, channelId?: string): Promise<Channel[]> {
+  public async get(channel?: { id: string; peerId: string }): Promise<Channel[]> {
     try {
       const { version } = await this.connection.info
       const versionNumber = convertVersionNumber(version)
@@ -35,7 +35,7 @@ class Channels implements ChannelsInterface {
       if (versionNumber < 2305) {
         const listPeersResult = await this.connection.rpc({
           method: 'listpeers',
-          params: nodeId ? { id: nodeId } : undefined
+          params: channel?.peerId ? { id: channel.peerId } : undefined
         })
         const { peers } = listPeersResult as ListPeersResponse
 
@@ -73,6 +73,7 @@ class Channels implements ChannelsInterface {
                 } = channel
 
                 return {
+                  connectionId: this.connection.connectionId,
                   opener: opener,
                   peerId: id,
                   peerConnected: connected,
@@ -112,11 +113,11 @@ class Channels implements ChannelsInterface {
 
         const flattened = result.flat()
 
-        return channelId ? flattened.filter(({ id }) => id === channelId) : flattened
+        return channel?.id ? flattened.filter(({ id }) => id === channel.id) : flattened
       } else {
         const listPeerChannelsResult = await this.connection.rpc({
           method: 'listpeerchannels',
-          params: nodeId ? { id: nodeId } : undefined
+          params: channel?.peerId ? { id: channel.peerId } : undefined
         })
 
         const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
@@ -154,6 +155,7 @@ class Channels implements ChannelsInterface {
             })) as ListNodesResponse
 
             return {
+              connectionId: this.connection.connectionId,
               opener: opener,
               peerId: peer_id,
               peerConnected: peer_connected,
@@ -188,8 +190,8 @@ class Channels implements ChannelsInterface {
           })
         )
 
-        return channelId
-          ? formattedChannels.filter(({ id }) => id === channelId)
+        return channel?.id
+          ? formattedChannels.filter(({ id }) => id === channel.id)
           : formattedChannels
       }
     } catch (error) {
@@ -198,7 +200,7 @@ class Channels implements ChannelsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -227,7 +229,7 @@ class Channels implements ChannelsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -253,7 +255,7 @@ class Channels implements ChannelsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -279,7 +281,7 @@ class Channels implements ChannelsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

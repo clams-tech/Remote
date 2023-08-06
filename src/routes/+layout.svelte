@@ -15,6 +15,8 @@
   import lockOutline from '$lib/icons/lock-outline.js'
   import scan from '$lib/icons/scan.js'
   import caret from '$lib/icons/caret.js'
+  import { db } from '$lib/db.js'
+  import { connect, syncConnectionData } from '$lib/connections/index.js'
 
   const clearSession = () => session$.next(null)
 
@@ -34,6 +36,26 @@
     back = $previousPaths$[1]
   } else {
     back = null
+  }
+
+  const initializeConnections = async () => {
+    const connectionsDetails = await db.connections.toArray()
+    const connections = await Promise.all(
+      connectionsDetails.map(async (connectionDetail) => ({
+        detail: connectionDetail,
+        connection: await connect(connectionDetail)
+      }))
+    )
+
+    connections.forEach(({ detail, connection }) => {
+      if (connection.connectionStatus$.value === 'connected') {
+        syncConnectionData(connection, detail.lastSync)
+      }
+    })
+  }
+
+  $: if ($session$) {
+    initializeConnections()
   }
 </script>
 

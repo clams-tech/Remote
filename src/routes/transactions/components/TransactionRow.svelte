@@ -128,7 +128,7 @@
     {#if balanceChange}
       <div class="flex items-center">
         <div
-          class="mb-0.5 font-semibold text-lg font-mono"
+          class="mr-1 font-semibold text-lg font-mono"
           class:text-utility-success={abs === '+'}
           class:text-utility-error={abs === '-'}
         >

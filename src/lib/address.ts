@@ -4,7 +4,7 @@ export function parseNodeAddress(address: string): ParsedNodeAddress {
   const [publicKey, host] = address.split('@')
   const [ip, port] = host.split(':')
 
-  return { publicKey, ip, port: port ? parseInt(port) : undefined }
+  return { publicKey, ip, port: port ? parseInt(port) : 9735 }
 }
 
 export const nodePublicKeyRegex = /[0-9a-fA-F]{66}/

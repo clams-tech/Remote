@@ -67,7 +67,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -102,7 +102,7 @@ class Offers implements OffersInterface {
         amount,
         description,
         nodeId: this.connection.info.id,
-        connectionId: this.connection.info.connectionId,
+        connectionId: this.connection.connectionId,
         used,
         singleUse: single_use,
         active,
@@ -117,7 +117,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -134,7 +134,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -168,7 +168,7 @@ class Offers implements OffersInterface {
         amount,
         description,
         nodeId: this.connection.info.id,
-        connectionId: this.connection.info.connectionId,
+        connectionId: this.connection.connectionId,
         used,
         singleUse: single_use,
         active,
@@ -182,7 +182,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -202,7 +202,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -234,7 +234,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -275,11 +275,11 @@ class Offers implements OffersInterface {
         completedAt: paid_at ? paid_at : nowSeconds(),
         expiresAt: expires_at,
         createdAt: createdAt,
-        fee: null,
+        fee: undefined,
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus),
         request: bolt12 as string,
         payIndex: pay_index,
-        connectionId: this.connection.info.connectionId
+        connectionId: this.connection.connectionId
       }
     } catch (error) {
       const context = 'sendInvoice (offers)'
@@ -287,7 +287,7 @@ class Offers implements OffersInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

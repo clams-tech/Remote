@@ -44,7 +44,7 @@ class Forwards implements ForwardsInterface {
             style,
             startedAt: received_time,
             completedAt: resolved_time,
-            connectionId: this.connection.info.connectionId
+            connectionId: this.connection.connectionId
           }
 
           const id = bytesToHex(sha256(JSON.stringify(forward)))
@@ -58,7 +58,7 @@ class Forwards implements ForwardsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

@@ -3,12 +3,14 @@ import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
 import { db } from '$lib/db.js'
-import { wait } from '$lib/utils.js'
-import { Subject, type Observable } from 'rxjs'
+import { nowSeconds, wait } from '$lib/utils.js'
+import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
 import type { Invoice } from '$lib/@types/invoices.js'
+import { decryptWithAES } from '$lib/crypto.js'
+import { connections$, errors$, session$ } from '$lib/streams.js'
 
 export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
   {
@@ -47,6 +49,53 @@ export const connectionTypeToInitialConfiguration = (
   }
 }
 
+export const listenForConnectionErrors = (connection: ConnectionInterface) => {
+  connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
+}
+
+/** decrypts auth token if exists and then returns a connection interface */
+export const getConnectionInterface = (
+  connectionDetails: ConnectionDetails
+): ConnectionInterface => {
+  const { configuration } = connectionDetails
+  const { token } = configuration as CoreLnConfiguration
+  const session = session$.value as Session
+
+  /** decrypt stored token*/
+  if (token) {
+    ;(configuration as CoreLnConfiguration).token = decryptWithAES(token, session.secret)
+  }
+
+  const decryptedConnectionDetails = {
+    ...connectionDetails,
+    ...(configuration ? { configuration } : {})
+  }
+
+  return connectionDetailsToInterface(decryptedConnectionDetails, session)
+}
+
+export const connect = async (
+  connectionDetails: ConnectionDetails
+): Promise<ConnectionInterface> => {
+  const currentConnections = connections$.value
+
+  // lookup if connection exists
+  let connection: ConnectionInterface = currentConnections.find(
+    (conn) => conn.connectionId === connectionDetails.id
+  ) as ConnectionInterface
+
+  // if not create one
+  if (!connection) {
+    connection = getConnectionInterface(connectionDetails)
+    connections$.next([...currentConnections, connection])
+  }
+
+  connection.connect && (await connection.connect())
+  listenForConnectionErrors(connection)
+
+  return connection
+}
+
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
  * since last sync
  */
@@ -54,6 +103,7 @@ export const syncConnectionData = (
   connection: ConnectionInterface,
   lastSync: number | null
 ): Observable<number> => {
+  db.connections.update(connection.connectionId, { syncing: true })
   // queue of requests to make
   const requestQueue = []
 
@@ -118,18 +168,30 @@ export const syncConnectionData = (
     const updateInvoice = (invoice: Invoice) => db.invoices.put(invoice)
 
     db.invoices
-      .orderBy('payIndex')
-      .reverse()
-      .limit(1)
-      .first()
-      .then((lastPayedInvoice) => {
-        if (connection?.invoices?.listenForAnyInvoicePayment) {
+      .where('connectionId')
+      .equals(connection.connectionId)
+      .toArray()
+      .then((connectionInvoices) => {
+        const [lastPayedInvoice] = connectionInvoices.sort(
+          (a, b) => (b?.payIndex || 0) - (a?.payIndex || 0)
+        )
+
+        if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
           connection.invoices.listenForAnyInvoicePayment(updateInvoice, lastPayedInvoice?.payIndex)
         }
       })
   }
 
   processQueue(requestQueue, progress$)
+
+  progress$
+    .pipe(
+      filter((p) => p === 100),
+      take(1)
+    )
+    .subscribe(() => {
+      db.connections.update(connection.connectionId, { syncing: false, lastSync: nowSeconds() })
+    })
 
   return progress$.asObservable()
 }

@@ -17,6 +17,7 @@
   import { formatDate } from '$lib/dates.js'
   import debounce from 'lodash.debounce'
   import plus from '$lib/icons/plus.js'
+  import { translate } from '$lib/i18n/translations.js'
 
   const invoices$ = liveQuery(async () => {
     const invoices = await db.invoices.toArray()
@@ -137,11 +138,11 @@
         <Spinner />
       </div>
     {:else if !dailyPayments.length}
-      <Msg type="info" message="No payments here, try adding a connection and syncing it." />
+      <Msg type="info" message={$translate('app.labels.no_transactions')} />
     {:else}
       <div
         bind:this={transactionsContainer}
-        on:scroll={debounce(handleTransactionsScroll, 100)}
+        on:scroll={debounce(handleTransactionsScroll, 100, { leading: true })}
         in:fade={{ duration: 250 }}
         class="w-full flex flex-col flex-grow overflow-auto gap-y-2 relative"
       >
@@ -170,18 +171,20 @@
 
   <div class="w-full flex justify-end">
     <a
-      href="/receive"
+      href="/transactions/receive"
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-2 w-min hover:bg-neutral-800"
+      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-4 w-min hover:bg-neutral-800"
       on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
       on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >
       <div class="w-6">{@html plus}</div>
 
       {#if !transactionsContainerScrollable || showFullReceiveButton}
-        <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>Receive</div>
+        <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>
+          {$translate('app.labels.receive')}
+        </div>
       {/if}
     </a>
   </div>

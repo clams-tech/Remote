@@ -33,7 +33,7 @@
 
 <svelte:window on:keyup={handleKeyup} />
 
-<div class="flex justify-start items-center mr-2 pb-4 pt-2">
+<div class="flex justify-start items-center mr-2 py-2">
   <div class="flex items-center">
     {#if icon}
       <div class="w-10 mr-2 flex-shrink-0">{@html icon}</div>

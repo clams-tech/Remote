@@ -5,8 +5,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
-  import { connectionDetailsToInterface } from '$lib/connections/index.js'
-  import type { Connection } from '$lib/connections/interfaces.js'
+  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
   import { DAY_IN_SECS, STORAGE_KEYS } from '$lib/constants.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
@@ -19,15 +18,18 @@
   import lightningOutline from '$lib/icons/lightning-outline.js'
   import receive from '$lib/icons/receive.js'
   import { log, storage } from '$lib/services.js'
-  import { connections$, session$, storedConnections$ } from '$lib/streams.js'
+  import { connections$, session$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import Big from 'big.js'
+  import { liveQuery } from 'dexie'
   import { slide } from 'svelte/transition'
 
-  let selectedConnectionId: Connection['id']
+  let selectedConnectionId: ConnectionDetails['id']
   let amount = 0
   let creatingPayment = false
   let createPaymentError: AppError | null = null
+
+  const storedConnections$ = liveQuery(() => db.connections.toArray())
 
   try {
     const lastReceiveConnectionId = storage.get(STORAGE_KEYS.lastReceiveConnection)
@@ -39,15 +41,7 @@
     log.warn('Access to storage denied when trying to retrieve last received connection id')
   }
 
-  $: if (
-    $storedConnections$ &&
-    $storedConnections$[0] &&
-    (!selectedConnectionId || !$storedConnections$.find(({ id }) => id === selectedConnectionId))
-  ) {
-    selectConnection($storedConnections$[0].id)
-  }
-
-  const selectConnection = (id: Connection['id']) => {
+  const selectConnection = (id: ConnectionDetails['id']) => {
     selectedConnectionId = id
 
     try {
@@ -62,12 +56,9 @@
     createPaymentError = null
 
     try {
-      const connectionDetails = $storedConnections$.find(
-        ({ id }) => id === selectedConnectionId
-      ) as ConnectionDetails
-      const connectionInterface =
-        $connections$.find((connection) => connection.info.connectionId === selectedConnectionId) ||
-        connectionDetailsToInterface(connectionDetails, $session$!)
+      const connectionInterface = $connections$.find(
+        (connection) => connection.connectionId === selectedConnectionId
+      ) as ConnectionInterface
 
       if (
         connectionInterface.connect &&
@@ -131,43 +122,45 @@
     </div>
   </div>
 
-  {#if !$storedConnections$.length}
-    <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
-  {:else}
-    <div class="mb-5 mt-1">
-      <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
-        {$translate('app.labels.connection')}
+  {#if $storedConnections$}
+    {#if !$storedConnections$.length}
+      <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
+    {:else}
+      <div class="mb-5 mt-1">
+        <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
+          {$translate('app.labels.connection')}
+        </div>
+
+        <div
+          class="flex w-full flex-wrap gap-2 rounded font-medium px-4 py-2 border border-neutral-600 bg-neutral-900"
+        >
+          {#each $storedConnections$ as { label, id }}
+            <div class="w-min">
+              <Button
+                text={label}
+                primary={selectedConnectionId === id}
+                on:click={() => selectConnection(id)}
+              />
+            </div>
+          {/each}
+        </div>
       </div>
 
-      <div
-        class="flex w-full flex-wrap gap-2 rounded font-medium px-4 py-2 border border-neutral-600 bg-neutral-900"
-      >
-        {#each $storedConnections$ as { label, id }}
-          <div class="w-min">
-            <Button
-              text={label}
-              primary={selectedConnectionId === id}
-              on:click={() => selectConnection(id)}
-            />
-          </div>
-        {/each}
+      <TextInput
+        type="number"
+        bind:value={amount}
+        label={$translate('app.labels.sats')}
+        name="amount"
+        hint={!amount ? 'Any amount' : ''}
+        msat={amount ? Big(amount).times(1000).toString() : ''}
+      />
+
+      <div class="mt-6">
+        <Button on:click={createPayment} text="Create payment" primary>
+          <div class="w-6 ml-1" slot="iconRight">{@html lightningOutline}</div>
+        </Button>
       </div>
-    </div>
-
-    <TextInput
-      type="number"
-      bind:value={amount}
-      label={$translate('app.labels.sats')}
-      name="amount"
-      hint={!amount ? 'Any amount' : ''}
-      msat={amount ? Big(amount).times(1000).toString() : ''}
-    />
-
-    <div class="mt-6">
-      <Button on:click={createPayment} text="Create payment" primary>
-        <div class="w-6 ml-1" slot="iconRight">{@html lightningOutline}</div>
-      </Button>
-    </div>
+    {/if}
   {/if}
 </Section>
 

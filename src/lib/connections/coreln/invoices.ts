@@ -51,11 +51,11 @@ class Invoices implements InvoicesInterface {
       const { pays } = paysResponse as ListpaysResponse
 
       const invoicePayments: Invoice[] = await Promise.all(
-        invoices.map((invoice) => formatInvoice(invoice, this.connection.info.connectionId))
+        invoices.map((invoice) => formatInvoice(invoice, this.connection.connectionId))
       )
 
       const sentPayments: Invoice[] = await Promise.all(
-        pays.map((pay) => payToPayment(pay, this.connection.info.connectionId))
+        pays.map((pay) => payToPayment(pay, this.connection.connectionId))
       )
 
       return invoicePayments.concat(sentPayments)
@@ -65,7 +65,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -105,7 +105,7 @@ class Invoices implements InvoicesInterface {
         description,
         hash: payment_hash,
         preimage: payment_secret,
-        connectionId: this.connection.info.connectionId
+        connectionId: this.connection.connectionId
       }
 
       return payment
@@ -115,7 +115,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -161,7 +161,7 @@ class Invoices implements InvoicesInterface {
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(stripMsatSuffix(amount_msat)).toString(),
         status,
         request,
-        connectionId: this.connection.info.connectionId
+        connectionId: this.connection.connectionId
       }
     } catch (error) {
       const context = 'payInvoice (payments)'
@@ -169,7 +169,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -218,7 +218,7 @@ class Invoices implements InvoicesInterface {
         createdAt: created_at,
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
         status,
-        connectionId: this.connection.info.connectionId,
+        connectionId: this.connection.connectionId,
         request: bolt11 as string
       }
     } catch (error) {
@@ -227,7 +227,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -262,7 +262,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -310,7 +310,7 @@ class Invoices implements InvoicesInterface {
       } else {
         const formattedInvoice = await formatInvoice(
           response as WaitAnyInvoiceResponse,
-          this.connection.info.connectionId
+          this.connection.connectionId
         )
 
         onPayment(formattedInvoice)
@@ -327,7 +327,7 @@ class Invoices implements InvoicesInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

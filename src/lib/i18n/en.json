@@ -2,13 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a href='/connections'>connection</a>."
-    },
-    "/send": {
-      "title": "Send"
-    },
-    "/receive": {
-      "title": "Receive"
+      "get_started_hint": "To get started, add a new <a class='ml-1' href='/connections'>connection</a>."
     },
     "/input": {
       "title": "Input"
@@ -18,6 +12,12 @@
     },
     "/transactions": {
       "title": "Transactions"
+    },
+    "/transactions/receive": {
+      "title": "Receive"
+    },
+    "/transactions/send": {
+      "title": "Send"
     },
     "/transaction": {
       "title": "Transaction"
@@ -127,6 +127,7 @@
     "connection": "Connection",
     "fiat_calculator": "Fiat Calculator",
     "set_amount": "Set amount",
+    "last_synced": "Last synced",
     "sats": "Sats",
     "failed": "Failed",
     "expired": "Expired",
@@ -143,6 +144,12 @@
     "lnurl": "LNURL",
     "onchain": "Onchain address",
     "invoice": "Invoice",
+    "sendable": "Sendable",
+    "receivable": "Receivable",
+    "receive": "Receive",
+    "open": "Open",
+    "local": "Local",
+    "remote": "Remote",
     "channel_open": "Channel open",
     "channel_close": "Channel close",
     "channel_id": "Channel id",
@@ -151,6 +158,8 @@
     "onchain_send": "Onchain send",
     "receive_address": "Receive Address",
     "add_connection": "You have no connections. <a href='/connections/add'>Create a new connection</a> to get started.",
+    "no_channels": "You have no channels, try syncing your connections or open a new channel.",
+    "no_transactions": "No payments here, try adding a connection and syncing it.",
     "destination": "Destination",
     "status": "Status",
     "offer_issuer": "Offer issuer",

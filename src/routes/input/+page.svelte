@@ -31,7 +31,7 @@
       await goto(`/offers/bolt12/${value}`)
     } else if (type === 'invoice' || type === 'node_publickey' || type === 'onchain') {
       await goto(
-        `/send/${value}?amount=${amount}&label=${label}&message=${message}&lightning=${lightning}`
+        `/transactions/send/${value}?amount=${amount}&label=${label}&message=${message}&lightning=${lightning}`
       )
     }
   }

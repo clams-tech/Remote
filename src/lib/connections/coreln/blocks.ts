@@ -35,7 +35,7 @@ class Blocks implements BlocksInterface {
         const connectionError = handleError(
           error as CoreLnError,
           context,
-          this.connection.info.connectionId
+          this.connection.connectionId
         )
         this.connection.errors$.next(connectionError)
         throw connectionError
@@ -53,7 +53,7 @@ class Blocks implements BlocksInterface {
         const connectionError = handleError(
           error as CoreLnError,
           context,
-          this.connection.info.connectionId
+          this.connection.connectionId
         )
         this.connection.errors$.next(connectionError)
         throw connectionError

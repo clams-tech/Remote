@@ -1,7 +1,5 @@
-import { toOutputScript } from 'bitcoinjs-lib/src/address.js'
 import type { BitcoinExchangeRates } from './@types/settings.js'
 import { API_URL } from './constants.js'
-import { bolt11Regex, hostRegex, nodePublicKeyRegex, usernameRegex } from './regex.js'
 import { log } from './services.js'
 import { settings$ } from './streams.js'
 

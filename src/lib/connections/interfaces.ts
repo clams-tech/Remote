@@ -28,15 +28,10 @@ import type {
   Invoice
 } from '$lib/@types/invoices.js'
 
-/** the live connection held in memory */
-export type Connection = {
-  id: ConnectionDetails['id']
-  interface: ConnectionInterface
-}
-
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
 export interface ConnectionInterface {
+  connectionId: ConnectionDetails['id']
   /** basic info about the connection including the connection id for looking configuration */
   info: Info
   /** observable used to clean up all internal subscribers, will fire when connection is destroyed */
@@ -61,7 +56,6 @@ export interface ConnectionInterface {
 
 export type Info = {
   id: string
-  connectionId: string
   alias?: string
   color?: string
   version?: string
@@ -131,7 +125,7 @@ export interface UtxosInterface {
 export interface ChannelsInterface {
   connection: ConnectionInterface
   /** get all channels for this node */
-  get(): Promise<Channel[]>
+  get(channel?: { id: string; peerId: string }): Promise<Channel[]>
   /** update a channel fees and htlc settings */
   update?(options: UpdateChannelOptions): Promise<void>
   /** open a new channel */

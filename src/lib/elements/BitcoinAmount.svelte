@@ -19,7 +19,7 @@
 </script>
 
 <div class="flex items-center">
-  <div class="w-[1.25em] text-neutral-50">{@html bitcoin}</div>
+  <div class="w-[1.25em] text-neutral-50 -ml-1">{@html bitcoin}</div>
   <div class="flex">
     <div class="mr-[0.375em] font-mono leading-snug">{@html formattedBtc}</div>
     <div

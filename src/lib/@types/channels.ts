@@ -12,6 +12,8 @@ export type ChannelStatus =
   | 'DUALOPEN_AWAITING_LOCKIN'
 
 export type Channel = {
+  /** the connection this channel belongs to */
+  connectionId: string
   /** full channel id */
   id: string
   /** short channel id */

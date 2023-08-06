@@ -160,7 +160,7 @@ class Transactions implements TransactionsInterface {
               amount: stripMsatSuffix(amount_msat),
               scriptPubKey
             })),
-            connectionId: this.connection.info.connectionId,
+            connectionId: this.connection.connectionId,
             events
           }
         }
@@ -171,7 +171,7 @@ class Transactions implements TransactionsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -191,7 +191,7 @@ class Transactions implements TransactionsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)
@@ -225,7 +225,7 @@ class Transactions implements TransactionsInterface {
       const connectionError = handleError(
         error as CoreLnError,
         context,
-        this.connection.info.connectionId
+        this.connection.connectionId
       )
 
       this.connection.errors$.next(connectionError)

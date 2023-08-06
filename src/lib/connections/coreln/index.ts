@@ -8,7 +8,7 @@ import Transactions from './transactions.js'
 import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
-import type { CoreLnConfiguration } from '$lib/@types/connections.js'
+import type { ConnectionDetails, CoreLnConfiguration } from '$lib/@types/connections.js'
 import type { Session } from '$lib/@types/session.js'
 import type { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
@@ -31,6 +31,7 @@ import type {
 } from '../interfaces.js'
 
 class CoreLightning implements CorelnConnectionInterface {
+  connectionId: ConnectionDetails['id']
   info: Required<Info>
   destroy$: Subject<void>
   errors$: Subject<AppError>
@@ -63,6 +64,8 @@ class CoreLightning implements CorelnConnectionInterface {
     const { publicKey, port, ip } = parseNodeAddress(address)
     const { secret } = session
 
+    this.connectionId = connectionId
+
     const socket = new LnMessage({
       remoteNodePublicKey: publicKey,
       wsProxy: connection.type === 'proxy' ? connection.value : undefined,
@@ -93,7 +96,7 @@ class CoreLightning implements CorelnConnectionInterface {
 
         const { address: host, port: connectionPort } = address[0] || { address: ip, port }
 
-        this.info = { id, host, port: connectionPort, alias, color, version, connectionId }
+        this.info = { id, host, port: connectionPort, alias, color, version }
 
         return this.info
       } else {
