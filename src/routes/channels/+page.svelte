@@ -1,11 +1,8 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import Button from '$lib/elements/Button.svelte'
   import Spinner from '$lib/elements/Spinner.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import plus from '$lib/icons/plus.js'
-  import { settings$ } from '$lib/streams.js'
   import Big from 'big.js'
   import ChannelRow from './components/ChannelRow.svelte'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
