@@ -177,7 +177,7 @@
         {$translate('app.subheadings.offer_type')}
       </p>
 
-      <div class="flex items-center mt-6 w-full gap-x-8">
+      <div class="flex items-center mt-6 w-full gap-x-2">
         <button
           on:click={() => {
             offerType = 'pay'
@@ -187,11 +187,22 @@
           class:border-utility-success={offerType === 'pay'}
           class:bg-black={offerType === 'pay'}
           class:border-2={offerType === 'pay'}
-          class="w-1/2 flex flex-col items-center justify-center border aspect-square text-lg font-bold shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
+          class="w-1/2 flex flex-col items-center border aspect-square p-4 shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
         >
-          <div class="w-10 mb-2 text-utility-success">{@html trendingUp}</div>
-          {$translate('app.labels.pay')}
+          <div class="flex items-center text-2xl font-bold w-full">
+            <div class="w-12 mr-2 text-utility-success">{@html trendingUp}</div>
+            <div>
+              {$translate('app.labels.pay')}
+            </div>
+          </div>
+          <div class="font-normal text-sm text-start p-2">
+            {@html $translate('app.labels.offer_pay_description')}
+          </div>
+          <div class="font-semibold text-sm text-start p-2 w-full">
+            {@html $translate('app.labels.offer_pay_usecases')}
+          </div>
         </button>
+
         <button
           on:click={() => {
             offerType = 'withdraw'
@@ -200,10 +211,20 @@
           class:border-purple-300={offerType === 'withdraw'}
           class:bg-black={offerType === 'withdraw'}
           class:border-2={offerType === 'withdraw'}
-          class="w-1/2 flex flex-col items-center justify-center border aspect-square text-lg font-bold shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
+          class="w-1/2 flex flex-col items-center border aspect-square p-4 shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
         >
-          <div class="w-10 mb-2 text-purple-300">{@html trendingDown}</div>
-          {$translate('app.labels.withdraw')}
+          <div class="flex items-center text-2xl font-bold w-full">
+            <div class="w-12 mr-2 text-utility-error">{@html trendingDown}</div>
+            <div>
+              {$translate('app.labels.withdraw')}
+            </div>
+          </div>
+          <div class="text-sm text-start p-2">
+            {@html $translate('app.labels.offer_withdraw_description')}
+          </div>
+          <div class="font-semibold text-sm text-start p-2 w-full">
+            {@html $translate('app.labels.offer_withdraw_usecases')}
+          </div>
         </button>
       </div>
     </section>
