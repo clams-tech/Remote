@@ -251,7 +251,7 @@
     {/if}
 
     <div class="w-full flex justify-center mt-2">
-      <div class="w-full max-w-md">
+      <div class="w-full max-w-lg">
         <!-- CONNECTION -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.connection')}:</span>

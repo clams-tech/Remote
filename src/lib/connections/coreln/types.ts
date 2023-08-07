@@ -742,6 +742,8 @@ type PeerChannel = {
   htlcs: HTLC[]
   minimum_htlc_out_msat?: number
   maximum_htlc_out_msat?: number
+  their_to_self_delay?: number
+  our_to_self_delay?: number
 }
 
 type HTLC = {

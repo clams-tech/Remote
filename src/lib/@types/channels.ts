@@ -54,6 +54,8 @@ export type Channel = {
   htlcs: HTLC[]
   /** which side closed this channel */
   closer?: 'local' | 'remote'
+  ourToSelfDelay?: number
+  theirToSelfDelay?: number
 }
 
 type HTLC = {

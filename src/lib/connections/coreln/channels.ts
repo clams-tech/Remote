@@ -69,7 +69,9 @@ class Channels implements ChannelsInterface {
                   closer,
                   htlcs,
                   minimum_htlc_out_msat,
-                  maximum_htlc_out_msat
+                  maximum_htlc_out_msat,
+                  our_to_self_delay,
+                  their_to_self_delay
                 } = channel
 
                 return {
@@ -96,6 +98,8 @@ class Channels implements ChannelsInterface {
                   closer,
                   htlcMin: minimum_htlc_out_msat?.toString() || null,
                   htlcMax: maximum_htlc_out_msat?.toString() || null,
+                  ourToSelfDelay: our_to_self_delay,
+                  theirToSelfDelay: their_to_self_delay,
                   htlcs: htlcs.map(
                     ({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                       id,
@@ -106,7 +110,7 @@ class Channels implements ChannelsInterface {
                       state
                     })
                   )
-                }
+                } as Channel
               })
             })
         )
@@ -144,7 +148,9 @@ class Channels implements ChannelsInterface {
               their_reserve_msat,
               htlcs,
               minimum_htlc_out_msat,
-              maximum_htlc_out_msat
+              maximum_htlc_out_msat,
+              our_to_self_delay,
+              their_to_self_delay
             } = channel
 
             const {
@@ -178,6 +184,8 @@ class Channels implements ChannelsInterface {
               closer: closer,
               htlcMin: minimum_htlc_out_msat?.toString() || null,
               htlcMax: maximum_htlc_out_msat?.toString() || null,
+              ourToSelfDelay: our_to_self_delay,
+              theirToSelfDelay: their_to_self_delay,
               htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
                 id,
                 direction,
@@ -186,7 +194,7 @@ class Channels implements ChannelsInterface {
                 paymentHash: payment_hash,
                 state
               }))
-            }
+            } as Channel
           })
         )
 

@@ -41,14 +41,7 @@
       }
     },
     "/connections/coreln": {
-      "title": "Core Lightning",
-      "configuration": {
-        "address_label": "Address",
-        "address_placeholder": "publickey@ip:port",
-        "address_invalid": "Invalid address",
-        "rune_label": "Rune",
-        "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA=="
-      }
+      "title": "Core Lightning"
     },
     "/connections/add": {
       "title": "Add Connection",
@@ -56,6 +49,9 @@
     },
     "/channels": {
       "title": "Channels"
+    },
+    "/channels/open": {
+      "title": "Open Channel"
     },
     "/charts": {
       "title": "Charts"
@@ -141,8 +137,13 @@
     "paste": "Paste",
     "state": "State",
     "peer_connection": "Connection",
+    "peer_address": "Peer address",
+    "channel_size": "Channel size",
+    "announce_channel": "Announce channel?",
     "opened_by": "Opened by",
-    "ppm": "ppm",
+    "ppm": "PPM",
+    "channel_fees": "Set Fees",
+    "update": "Update",
     "update_channel_settings": "Update channel settings",
     "us": "Us",
     "remote_reserve": "Remote reserve",
@@ -173,6 +174,11 @@
     "onchain_receive": "Onchain receive",
     "onchain_send": "Onchain send",
     "receive_address": "Receive Address",
+    "address_label": "Address",
+    "address_placeholder": "publickey@ip:port",
+    "address_invalid": "Invalid address",
+    "rune": "Rune",
+    "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
     "add_connection": "You have no connections. <a href='/connections/add'>Create a new connection</a> to get started.",
     "no_channels": "You have no channels, try syncing your connections or open a new channel.",
     "no_transactions": "No payments here, try adding a connection and syncing it.",

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade, slide } from 'svelte/transition'
-  import { connections$, onDestroy$, settings$ } from '$lib/streams'
+  import { connections$, onDestroy$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
   import CopyValue from '$lib/elements/CopyValue.svelte'
@@ -20,6 +20,9 @@
   import connect from '$lib/icons/connect.js'
   import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
   import Msg from '$lib/elements/Msg.svelte'
+  import Section from '$lib/elements/Section.svelte'
+  import channels from '$lib/icons/channels.js'
+  import type { AppError } from '$lib/@types/errors.js'
 
   export let data: PageData // channel id
   const channels$ = liveQuery(() => db.channels.toArray())
@@ -85,48 +88,51 @@
     errMsg = ''
     updating = true
 
-    // try {
-    //   const feeBase = Big(feeBaseUpdate).times(1000).toString()
-    //   const htlcMin = Big(minForwardUpdate).times(1000).toString()
-    //   const htlcMax = Big(maxForwardUpdate).times(1000).toString()
+    try {
+      const feeBase = Big(feeBaseUpdate).times(1000).toString()
+      const htlcMin = Big(minForwardUpdate).times(1000).toString()
+      const htlcMax = Big(maxForwardUpdate).times(1000).toString()
 
-    //   await lnApi.updateChannel({
-    //     id: data.id,
-    //     feeBase,
-    //     feeRate: feeRateUpdate,
-    //     htlcMin,
-    //     htlcMax
-    //   })
+      await connection.channels?.update!({
+        id: data.id,
+        feeBase,
+        feeRate: feeRateUpdate,
+        htlcMin,
+        htlcMax
+      })
 
-    //   const updatedChannels = (channels$.value.data || []).map((channel) =>
-    //     channel.id === data.id
-    //       ? { ...channel, feeBase, feePpm: feeRateUpdate, htlcMin, htlcMax }
-    //       : channel
-    //   )
+      await db.channels.update(channel.id, {
+        ...channel,
+        feeBase,
+        feePpm: feeRateUpdate,
+        htlcMin,
+        htlcMax
+      })
 
-    //   channels$.next({ data: updatedChannels })
-    //   showFeeUpdateModal = false
-    // } catch (error) {
-    //   const { message } = error as { message: string }
-    //   errMsg = message
-    // } finally {
-    //   updating = false
-    // }
+      showFeeUpdateModal = false
+    } catch (error) {
+      const { message } = error as { message: string }
+      errMsg = message
+    } finally {
+      updating = false
+    }
   }
 
   let connecting = false
 
   async function connectPeer() {
     connecting = true
+    errMsg = ''
 
-    // try {
-    //   await lnApi.connectPeer({ id: channel.peerId })
-    //   channel.peerConnected = true
-    // } catch (error) {
-    //   // @TODO - Could display error here?
-    // } finally {
-    //   connecting = false
-    // }
+    try {
+      await connection.channels?.connect!({ id: channel.peerId })
+      channel.peerConnected = true
+    } catch (error) {
+      const { key } = error as AppError
+      errMsg = $translate(`app.errors.${key}`)
+    } finally {
+      connecting = false
+    }
   }
 </script>
 
@@ -134,211 +140,212 @@
   <title>{$translate('app.titles./channel')}</title>
 </svelte:head>
 
-<section
-  in:fade|local={{ duration: 250 }}
-  class="flex flex-col justify-center items-center w-full max-w-lg p-4 overflow-hidden xs:pb-8"
->
-  <div class="h-16" />
+<Section>
+  <div class="w-full flex flex-col items-center">
+    {#if !$channels$}
+      <Spinner />
+    {:else if channel}
+      {@const {
+        peerAlias,
+        peerId,
+        peerConnected,
+        status,
+        balanceLocal,
+        balanceRemote,
+        reserveLocal,
+        reserveRemote,
+        htlcs,
+        feeBase,
+        feePpm,
+        opener,
+        htlcMin,
+        htlcMax
+      } = channel}
 
-  {#if !$channels$}
-    <Spinner />
-  {:else if channel}
-    {@const {
-      peerAlias,
-      peerId,
-      peerConnected,
-      status,
-      balanceLocal,
-      balanceRemote,
-      reserveLocal,
-      reserveRemote,
-      htlcs,
-      feeBase,
-      feePpm,
-      opener,
-      htlcMin,
-      htlcMax
-    } = channel}
+      {@const channelStatusLabel = channelStatusTolabel(status)}
 
-    {@const channelStatusLabel = channelStatusTolabel(status)}
-
-    <div class="flex flex-col items-center mb-4">
-      <div class="text-xl font-semibold">{peerAlias || $translate('app.labels.channel')}</div>
-      <div class="text-sm pl-2">
-        <CopyValue value={peerId} truncateLength={8} />
+      <div class="flex flex-col items-center mb-4">
+        <div class="text-xl font-semibold">{peerAlias || $translate('app.labels.channel')}</div>
+        <div class="text-sm pl-2">
+          <CopyValue value={peerId} truncateLength={8} />
+        </div>
       </div>
-    </div>
 
-    <div class="flex flex-col w-full overflow-hidden flex-grow">
-      <div class="flex flex-col w-full flex-grow overflow-auto">
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.state')}:
-          </div>
-          <div
-            slot="value"
-            class:text-utility-success={channelStatusLabel === 'active'}
-            class:text-utility-pending={channelStatusLabel === 'pending'}
-            class:text-utility-error={channelStatusLabel === 'closing' ||
-              channelStatusLabel === 'closed'}
-          >
-            {$translate(`app.labels.${channelStatusLabel}`)}
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.peer_connection')}:
-          </div>
-          <div
-            class="flex items-center"
-            slot="value"
-            class:text-utility-success={peerConnected}
-            class:text-utility-error={!peerConnected}
-            class:text-utility-pending={connecting}
-          >
-            {$translate(
-              `app.labels.${
-                connecting ? 'connecting' : peerConnected ? 'connected' : 'disconnected'
-              }`
-            )}
-
-            {#if !peerConnected}
-              <div class="ml-2">
-                {#if !connecting}
-                  <button on:click={connectPeer} class="w-6 block">{@html connect}</button>
-                {:else}
-                  <Spinner size="1rem" />
-                {/if}
-              </div>
-            {/if}
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.opened_by')}:
-          </div>
-          <div slot="value">
-            {opener === 'local'
-              ? connection?.info?.alias || $translate('app.labels.us')
-              : peerAlias || $translate('app.labels.remote')}
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.outbound')}:
-          </div>
-          <div slot="value">
-            <BitcoinAmount msat={balanceLocal} />
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.inbound')}:
-          </div>
-          <div slot="value">
-            <BitcoinAmount msat={balanceRemote} />
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.unsettled')}:
-          </div>
-          <div slot="value">
-            <BitcoinAmount
-              msat={htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString()}
-            />
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.local_reserve')}:
-          </div>
-          <div slot="value">
-            <BitcoinAmount msat={reserveLocal} />
-          </div>
-        </SummaryRow>
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.remote_reserve')}:
-          </div>
-          <div slot="value">
-            <BitcoinAmount msat={reserveRemote} />
-          </div>
-        </SummaryRow>
-
-        {#if feeBase}
+      <div class="flex flex-col w-full overflow-hidden justify-center items-center">
+        <div class="flex flex-col w-full flex-grow overflow-auto max-w-lg">
           <SummaryRow>
             <div slot="label">
-              {$translate('app.labels.fee_base')}:
+              {$translate('app.labels.state')}:
             </div>
-            <div slot="value">
-              <BitcoinAmount msat={feeBase} />
-            </div>
-          </SummaryRow>
-        {/if}
-
-        <SummaryRow>
-          <div slot="label">
-            {$translate('app.labels.fee_rate')}:
-          </div>
-          <div slot="value" class="flex items-baseline">
-            <span class="font-mono">{feePpm}</span>
-            <span
-              class="text-[0.75em] font-semibold text-neutral-50 flex items-end leading-none ml-1"
+            <div
+              slot="value"
+              class:text-utility-success={channelStatusLabel === 'active'}
+              class:text-utility-pending={channelStatusLabel === 'pending'}
+              class:text-utility-error={channelStatusLabel === 'closing' ||
+                channelStatusLabel === 'closed'}
             >
-              {$translate('app.labels.ppm')}
-            </span>
-          </div>
-        </SummaryRow>
-
-        {#if htlcMin}
-          <SummaryRow>
-            <div slot="label">
-              {$translate('app.labels.min_forward')}:
-            </div>
-            <div slot="value">
-              <BitcoinAmount msat={htlcMin} />
+              {$translate(`app.labels.${channelStatusLabel}`)}
             </div>
           </SummaryRow>
-        {/if}
 
-        {#if htlcMax}
           <SummaryRow>
             <div slot="label">
-              {$translate('app.labels.max_forward')}:
+              {$translate('app.labels.peer_connection')}:
             </div>
-            <div slot="value">
-              <BitcoinAmount msat={htlcMax} />
+            <div
+              class="flex items-center"
+              slot="value"
+              class:text-utility-success={peerConnected}
+              class:text-utility-error={!peerConnected}
+              class:text-utility-pending={connecting}
+            >
+              {$translate(
+                `app.labels.${
+                  connecting ? 'connecting' : peerConnected ? 'connected' : 'disconnected'
+                }`
+              )}
+
+              {#if !peerConnected}
+                <div class="ml-2">
+                  {#if !connecting && connection && connection.channels?.connect}
+                    <button on:click={connectPeer} class="w-6 block">{@html connect}</button>
+                  {:else}
+                    <Spinner size="1rem" />
+                  {/if}
+                </div>
+              {/if}
             </div>
           </SummaryRow>
-        {/if}
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.opened_by')}:
+            </div>
+            <div slot="value">
+              {opener === 'local'
+                ? connection?.info?.alias || $translate('app.labels.us')
+                : peerAlias || $translate('app.labels.remote')}
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.outbound')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount msat={balanceLocal} />
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.inbound')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount msat={balanceRemote} />
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.unsettled')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount
+                msat={htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString()}
+              />
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.local_reserve')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount msat={reserveLocal} />
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.remote_reserve')}:
+            </div>
+            <div slot="value">
+              <BitcoinAmount msat={reserveRemote} />
+            </div>
+          </SummaryRow>
+
+          {#if feeBase}
+            <SummaryRow>
+              <div slot="label">
+                {$translate('app.labels.fee_base')}:
+              </div>
+              <div slot="value">
+                <BitcoinAmount msat={feeBase} />
+              </div>
+            </SummaryRow>
+          {/if}
+
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.fee_rate')}:
+            </div>
+            <div slot="value" class="flex items-baseline">
+              <span class="font-mono">{feePpm}</span>
+              <span
+                class="text-[0.75em] font-semibold text-neutral-50 flex items-end leading-none ml-1"
+              >
+                {$translate('app.labels.ppm')}
+              </span>
+            </div>
+          </SummaryRow>
+
+          {#if htlcMin}
+            <SummaryRow>
+              <div slot="label">
+                {$translate('app.labels.min_forward')}:
+              </div>
+              <div slot="value">
+                <BitcoinAmount msat={htlcMin} />
+              </div>
+            </SummaryRow>
+          {/if}
+
+          {#if htlcMax}
+            <SummaryRow>
+              <div slot="label">
+                {$translate('app.labels.max_forward')}:
+              </div>
+              <div slot="value">
+                <BitcoinAmount msat={htlcMax} />
+              </div>
+            </SummaryRow>
+          {/if}
+        </div>
       </div>
-    </div>
 
-    <div class="mt-4 w-full flex items-center justify-between">
-      <Button
-        on:click={() => (showFeeUpdateModal = true)}
-        text={$translate('app.labels.update_channel_settings')}
-      >
-        <div slot="iconLeft" class="w-6 mr-1">{@html edit}</div>
-      </Button>
-    </div>
-  {/if}
-</section>
+      {#if connection && connection.channels?.update}
+        <div class="flex w-full justify-end mt-4 max-w-lg">
+          <div class="w-min">
+            <Button
+              on:click={() => (showFeeUpdateModal = true)}
+              text={$translate('app.labels.update_channel_settings')}
+            >
+              <div slot="iconLeft" class="w-6 mr-1">{@html edit}</div>
+            </Button>
+          </div>
+        </div>
+      {/if}
+    {/if}
+  </div>
+</Section>
 
 {#if showFeeUpdateModal && channel}
   <Modal on:close={() => (showFeeUpdateModal = false)}>
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>
 
-      <div class="flex flex-col flex-grow overflow-auto p-1">
+      <div class="flex flex-col flex-grow overflow-auto p-1 gap-y-4">
         <TextInput
           type="number"
           name="base"

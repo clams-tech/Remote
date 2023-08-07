@@ -21,8 +21,8 @@
     }">${val}</span>`
   }, '')
 
-  $: bigMsat = Big(msat)
-  $: displayMsat = bigMsat.gt(0) && bigMsat.lt(1000)
+  $: bigMsat = msat !== 'any' ? Big(msat) : null
+  $: displayMsat = bigMsat && bigMsat.gt(0) && bigMsat.lt(1000)
 </script>
 
 <div class="flex items-center">
