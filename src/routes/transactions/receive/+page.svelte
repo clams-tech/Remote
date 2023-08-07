@@ -157,7 +157,7 @@
 
       <div class="mt-6">
         <Button on:click={createPayment} text="Create payment" primary>
-          <div class="w-6 ml-1" slot="iconRight">{@html lightningOutline}</div>
+          <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html lightningOutline}</div>
         </Button>
       </div>
     {/if}

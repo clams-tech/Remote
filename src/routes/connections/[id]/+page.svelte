@@ -4,21 +4,15 @@
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
-  import type { ComponentType } from 'svelte'
+  import { onMount, type ComponentType } from 'svelte'
   import type { PageData } from './$types'
   import CoreLn from '$lib/connections/configurations/coreln/Index.svelte'
-  import { type Observable, filter, map, take, takeUntil, BehaviorSubject } from 'rxjs'
-  import { connectionErrors$, connections$, onDestroy$, session$ } from '$lib/streams.js'
-  import {
-    connect,
-    connectionDetailsToInterface,
-    syncConnectionData
-  } from '$lib/connections/index.js'
+  import { type Observable, filter, map, take, takeUntil, BehaviorSubject, from } from 'rxjs'
+  import { connectionErrors$, connections$, errors$, onDestroy$, session$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import caret from '$lib/icons/caret.js'
   import { db } from '$lib/db.js'
-  import Msg from '$lib/elements/Msg.svelte'
   import { goto } from '$app/navigation'
   import { nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
@@ -27,12 +21,19 @@
   import Modal from '$lib/elements/Modal.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import warning from '$lib/icons/warning.js'
-  import { encryptWithAES } from '$lib/crypto.js'
+  import { decryptWithAES, encryptWithAES } from '$lib/crypto.js'
   import qr from '$lib/icons/qr.js'
   import Qr from '$lib/elements/Qr.svelte'
   import { formatDateRelativeToNow } from '$lib/dates.js'
   import { liveQuery } from 'dexie'
   import type { AppError } from '$lib/@types/errors.js'
+  import type { Session } from '$lib/@types/session.js'
+
+  import {
+    connect,
+    connectionDetailsToInterface,
+    syncConnectionData
+  } from '$lib/connections/index.js'
 
   import type {
     ConnectionConfiguration,
@@ -44,9 +45,23 @@
 
   let { id } = data
   let showConfiguration = false
-  let connectionError = ''
 
-  const connectionDetails$ = liveQuery(() => db.connections.get(id))
+  const connectionDetails$ = liveQuery(() =>
+    db.connections.get(id).then((details) => {
+      if (details) {
+        const { token } = details.configuration as CoreLnConfiguration
+
+        if (token) {
+          ;(details.configuration as CoreLnConfiguration).token = decryptWithAES(
+            token,
+            (session$.value as Session).secret
+          )
+        }
+      }
+
+      return details
+    })
+  )
 
   $: connection = $connections$.find((conn) => conn.connectionId === id)
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
@@ -54,6 +69,16 @@
   $: if ($connectionDetails$ && !$connectionDetails$.modifiedAt) {
     showConfiguration = true
   }
+
+  onMount(() => {
+    from(connectionDetails$)
+      .pipe(take(1))
+      .subscribe((details) => {
+        if (!details) {
+          goto('/connections')
+        }
+      })
+  })
 
   const typeToConfigurationComponent = (type: ConnectionDetails['type']): ComponentType => {
     switch (type) {
@@ -70,14 +95,16 @@
 
   const handleConfigurationUpdate = async (configuration: ConnectionConfiguration) => {
     const { token } = configuration as CoreLnConfiguration
-
-    // encrypt token before storing
-    if (token) {
-      ;(configuration as CoreLnConfiguration).token = encryptWithAES(token, $session$?.secret!)
-    }
+    const session = session$.value as Session
+    const connectionDetails = { ...($connectionDetails$ as ConnectionDetails), configuration }
 
     // update connection details
-    await db.connections.update(id, { configuration, modifiedAt: nowSeconds() })
+    await db.connections.update(id, {
+      configuration: token
+        ? { ...configuration, token: encryptWithAES(token, $session$?.secret!) }
+        : configuration,
+      modifiedAt: nowSeconds()
+    })
 
     // disconnect the old connection interface if exists
     const currentConnections = [...$connections$]
@@ -88,11 +115,15 @@
       oldConnection.disconnect && oldConnection.disconnect()
     }
 
-    // create a new connection interface
-    connection = connectionDetailsToInterface($connectionDetails$!, $session$!)
-
-    // connect the new connection interface
-    connection.connect && (await connection.connect())
+    try {
+      // create a new connection interface
+      connection = connectionDetailsToInterface(connectionDetails, session)
+      // connect the new connection interface
+      connection.connect && (await connection.connect())
+    } catch (error) {
+      errors$.next(error as AppError)
+      return
+    }
 
     // add or replace the connection in connections$
     if (oldConnectionIndex !== -1) {
@@ -107,12 +138,10 @@
   }
 
   const attemptConnect = async () => {
-    connectionError = ''
-
     try {
       await connect($connectionDetails$!)
     } catch (error) {
-      connectionError = $translate(`app.errors.${(error as AppError).key}`)
+      errors$.next(error as AppError)
     }
   }
 
@@ -232,7 +261,7 @@
                   on:click={() => (showInfoModal = true)}
                   text={$translate('app.labels.info')}
                 >
-                  <div slot="iconRight" class="w-5 ml-2">{@html qr}</div>
+                  <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html qr}</div>
                 </Button>
               </div>
             </div>
@@ -268,10 +297,21 @@
       </div>
     </div>
 
+    <!-- Connection Configuration UI -->
+    {#if showConfiguration}
+      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
+        <svelte:component
+          this={typeToConfigurationComponent(type)}
+          {configuration}
+          on:updated={({ detail }) => handleConfigurationUpdate(detail)}
+        />
+      </div>
+    {/if}
+
     {#if $recentErrors$}
       <button
         on:click={() => (expandRecentErrors = !expandRecentErrors)}
-        class="mt-4 flex items-center text-sm cursor-pointer w-full"
+        class="mt-4 flex items-center text-sm cursor-pointer w-full font-semibold"
       >
         <div class:-rotate-90={!expandRecentErrors} class="w-3 mr-1 transition-transform">
           {@html caret}
@@ -290,23 +330,6 @@
           {/each}
         </div>
       {/if}
-    {/if}
-
-    <!-- Connection Configuration UI -->
-    {#if showConfiguration}
-      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
-        <svelte:component
-          this={typeToConfigurationComponent(type)}
-          {configuration}
-          on:updated={({ detail }) => handleConfigurationUpdate(detail)}
-        />
-      </div>
-    {/if}
-
-    {#if connectionError}
-      <div class="mt-4">
-        <Msg type="error" bind:message={connectionError} />
-      </div>
     {/if}
   {/if}
 </Section>
@@ -350,7 +373,7 @@
 
     <div class="text-utility-error mt-4 w-full">
       <Button on:click={deleteConnection} warning text={$translate('app.labels.delete')}>
-        <div slot="iconLeft" class="w-6 mr-2">{@html warning}</div>
+        <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
       </Button>
     </div>
   </Modal>

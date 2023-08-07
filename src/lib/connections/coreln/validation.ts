@@ -2,7 +2,7 @@ import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 import { nowSeconds } from '$lib/utils.js'
 import type { AppError } from '$lib/@types/errors.js'
 
-export const validateConfiguration = (configuration: CoreLnConfiguration) => {
+export const validateConfiguration = (configuration: CoreLnConfiguration, connectionId: string) => {
   const {
     address,
     connection: { type, value },
@@ -15,7 +15,8 @@ export const validateConfiguration = (configuration: CoreLnConfiguration) => {
       detail: {
         timestamp: nowSeconds(),
         message: `Address: ${address} is not valid`,
-        context: 'validateConfiguration (connection)'
+        context: 'validateConfiguration (connection)',
+        connectionId
       }
     }
 
@@ -28,7 +29,8 @@ export const validateConfiguration = (configuration: CoreLnConfiguration) => {
       detail: {
         timestamp: nowSeconds(),
         message: `Rune: ${token} is not valid`,
-        context: 'validateConfiguration (connection)'
+        context: 'validateConfiguration (connection)',
+        connectionId
       }
     }
 
@@ -41,7 +43,8 @@ export const validateConfiguration = (configuration: CoreLnConfiguration) => {
       detail: {
         timestamp: nowSeconds(),
         message: `Connection type: ${type} is not valid`,
-        context: 'validateConfiguration (connection)'
+        context: 'validateConfiguration (connection)',
+        connectionId
       }
     }
 
@@ -54,7 +57,8 @@ export const validateConfiguration = (configuration: CoreLnConfiguration) => {
       detail: {
         timestamp: nowSeconds(),
         message: `Connection value: ${value} is not valid`,
-        context: 'validateConfiguration (connection)'
+        context: 'validateConfiguration (connection)',
+        connectionId
       }
     }
 

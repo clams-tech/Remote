@@ -145,14 +145,21 @@
   </div>
 
   {#if modified}
-    <div transition:slide={{ duration: 250 }} class="flex items-center w-full mt-4 gap-x-2">
-      <Button on:click={resetConfigurationUpdate} text="Cancel">
-        <div slot="iconRight" class="w-6 ml-1">{@html close}</div>
-      </Button>
+    <div
+      transition:slide={{ duration: 250 }}
+      class="flex items-center justify-end w-full mt-4 gap-x-2"
+    >
+      <div class="w-min">
+        <Button on:click={resetConfigurationUpdate} text="Cancel">
+          <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html close}</div>
+        </Button>
+      </div>
 
-      <Button on:click={dispatchUpdate} primary text="Update">
-        <div slot="iconRight" class="w-6 ml-1">{@html check}</div>
-      </Button>
+      <div class="w-min">
+        <Button on:click={dispatchUpdate} primary text="Update">
+          <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html check}</div>
+        </Button>
+      </div>
     </div>
   {/if}
 </div>

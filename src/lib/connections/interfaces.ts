@@ -1,6 +1,6 @@
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
-import type { BehaviorSubject, Subject } from 'rxjs'
+import type { BehaviorSubject, Observable, Subject } from 'rxjs'
 import type { ConnectionDetails } from '$lib/@types/connections.js'
 import type { Forward } from '$lib/@types/forwards.js'
 import type { AppError } from '$lib/@types/errors.js'
@@ -156,6 +156,6 @@ export interface ForwardsInterface {
 
 export interface BlocksInterface {
   connection: ConnectionInterface
-  /** subscribe to increases in block height */
-  blockHeight$: Subject<number>
+  subscribeToBlockHeight(): Promise<Observable<number>>
+  getCurrentBlockHeight(): Promise<number>
 }

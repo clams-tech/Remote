@@ -1,66 +1,67 @@
-import { Subject, take } from 'rxjs'
+import { Observable, Subject, take } from 'rxjs'
 import type { BlocksInterface } from '../interfaces.js'
 import handleError from './error.js'
 import type { CorelnConnectionInterface, CoreLnError, GetinfoResponse } from './types.js'
 
 class Blocks implements BlocksInterface {
   connection: CorelnConnectionInterface
-  blockHeight$: Subject<number>
 
-  // @TODO - need to test this works correctly and without memory leaks
   constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
-    this.blockHeight$ = new Subject()
+  }
 
-    let destroyed = false
+  async subscribeToBlockHeight() {
+    try {
+      const currentBlockHeight = await this.getCurrentBlockHeight()
+      const blockHeight$ = new Subject<number>()
+      const observable = blockHeight$.asObservable()
+      let complete = false
 
-    this.connection.destroy$.pipe(take(1)).subscribe(() => {
-      destroyed = true
-    })
+      observable.subscribe({ complete: () => (complete = true) })
 
-    const subscribeToBlockHeight = async (blockHeight: number) => {
-      try {
-        if (destroyed) return
+      const waitBlockHeight = async (height: number) => {
+        if (complete) return
 
         const result = await this.connection.rpc({
           method: 'waitblockheight',
-          params: { blockheight: blockHeight, timeout: 7200 }
+          params: { blockheight: height, timeout: 7200 }
         })
 
         const { blockheight } = result as { blockheight: number }
-        this.blockHeight$.next(blockheight)
-        subscribeToBlockHeight(blockheight + 1)
-      } catch (error) {
-        const context = 'subscribeToBlockHeight (blocks)'
-        const connectionError = handleError(
-          error as CoreLnError,
-          context,
-          this.connection.connectionId
-        )
-        this.connection.errors$.next(connectionError)
-        throw connectionError
+        blockHeight$.next(blockheight)
+        waitBlockHeight(blockheight + 1)
       }
-    }
 
-    const getCurrentBlock = async () => {
-      try {
-        const info = await this.connection.rpc({ method: 'getinfo' })
-        const { blockheight } = info as GetinfoResponse
-        this.blockHeight$.next(blockheight)
-        subscribeToBlockHeight(blockheight + 1)
-      } catch (error) {
-        const context = 'getCurrentBlock (blocks)'
-        const connectionError = handleError(
-          error as CoreLnError,
-          context,
-          this.connection.connectionId
-        )
-        this.connection.errors$.next(connectionError)
-        throw connectionError
-      }
-    }
+      waitBlockHeight(currentBlockHeight)
 
-    getCurrentBlock()
+      return observable
+    } catch (error) {
+      const context = 'subscribeToBlockHeight (blocks)'
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.connectionId
+      )
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+
+  async getCurrentBlockHeight() {
+    try {
+      const info = await this.connection.rpc({ method: 'getinfo' })
+      const { blockheight } = info as GetinfoResponse
+      return blockheight
+    } catch (error) {
+      const context = 'getCurrentBlock (blocks)'
+      const connectionError = handleError(
+        error as CoreLnError,
+        context,
+        this.connection.connectionId
+      )
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
   }
 }
 

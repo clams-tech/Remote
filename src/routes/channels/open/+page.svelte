@@ -96,7 +96,7 @@
           on:click={openChannel}
           text={$translate('app.labels.open')}
         >
-          <div slot="iconRight" class="w-6 ml-1 -mr-1">{@html plus}</div>
+          <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html plus}</div>
         </Button>
       </div>
     </div>

@@ -27,7 +27,7 @@
 
 <div class="flex items-center">
   {#if !displayMsat}
-    <div class="w-[1.25em] text-neutral-50 -ml-1">{@html bitcoin}</div>
+    <div class="w-[1.25em] text-neutral-50 -ml-2">{@html bitcoin}</div>
   {/if}
 
   <div class="flex">

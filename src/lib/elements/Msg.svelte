@@ -59,7 +59,7 @@
     <div
       in:slide={{ duration: 250 }}
       out:slide={{ duration: 250, delay: 150 }}
-      class="pl-6 pr-8 w-full py-4 rounded-lg border flex relative overflow-hidden transition-all {msgValue
+      class="pl-6 pr-8 w-full py-4 rounded-lg border flex flex-col relative overflow-hidden transition-all {msgValue
         .colors.main}"
     >
       {#if closable}
@@ -71,15 +71,17 @@
         </button>
       {/if}
 
-      <div class="flex items-start">
-        <div class="w-6 flex-shrink-0 mr-2 {msgValue.colors.icon}">
-          {@html msgValue.icon}
+      <div class="flex">
+        <div class="flex items-start">
+          <div class="w-6 flex-shrink-0 mr-2 {msgValue.colors.icon}">
+            {@html msgValue.icon}
+          </div>
         </div>
 
-        <span class="font-semibold text-sm leading-tight h-full flex items-center">
+        <div class="font-semibold text-sm leading-tight flex items-center">
           <!-- text-bitcoin-orange -->
           {@html message}
-        </span>
+        </div>
       </div>
 
       <slot />

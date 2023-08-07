@@ -27,19 +27,13 @@
       <Paragraph>
         {@html $translate(`${translateBase}.introduction`)}
       </Paragraph>
-
-      <a href="/connections/add" class="mt-6 no-underline block w-min">
-        <Button text={$translate(`${translateBase}.add_connection`)}>
-          <div class="w-6 ml-1" slot="iconRight">{@html plus}</div>
-        </Button>
-      </a>
     {:else}
       <div class="flex flex-wrap gap-2 w-full flex-grow overflow-auto mt-4">
         {#each $storedConnections$ as { label, id, type }}
           {@const connectionTypeDetails = connectionOptions.find((c) => c.type === type)}
           <a
             href={`/connections/${id}`}
-            class="no-underline border border-neutral-600 rounded w-full w-min flex justify-between items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
+            class="no-underline border border-neutral-600 rounded w-min flex justify-between items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
           >
             <span class="font-semibold text-lg px-4 py-1 truncate">{label}</span>
             {#if connectionTypeDetails}
@@ -48,12 +42,14 @@
           </a>
         {/each}
       </div>
+    {/if}
 
+    <div class="flex w-full justify-end">
       <a href="/connections/add" class="mt-6 no-underline block w-min">
         <Button primary text={$translate(`${translateBase}.add_connection`)}
-          ><div class="w-6 ml-1" slot="iconRight">{@html plus}</div></Button
+          ><div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div></Button
         >
       </a>
-    {/if}
+    </div>
   </div>
 </Section>

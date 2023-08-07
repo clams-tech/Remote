@@ -4,7 +4,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Lava from '$lib/elements/Lava.svelte'
-  import { previousPaths$, session$ } from '$lib/streams.js'
+  import { errors$, previousPaths$, session$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
@@ -17,6 +17,8 @@
   import caret from '$lib/icons/caret.js'
   import { db } from '$lib/db.js'
   import { connect, syncConnectionData } from '$lib/connections/index.js'
+  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import type { AppError } from '$lib/@types/errors.js'
 
   const clearSession = () => session$.next(null)
 
@@ -31,7 +33,6 @@
     $previousPaths$[1] !== path &&
     $previousPaths$[1] !== '/' &&
     !$previousPaths$.slice(2).includes($previousPaths$[1])
-    // && $previousPaths$[0] !== $previousPaths$[2]
   ) {
     back = $previousPaths$[1]
   } else {
@@ -40,15 +41,23 @@
 
   const initializeConnections = async () => {
     const connectionsDetails = await db.connections.toArray()
+
     const connections = await Promise.all(
-      connectionsDetails.map(async (connectionDetail) => ({
-        detail: connectionDetail,
-        connection: await connect(connectionDetail)
-      }))
+      connectionsDetails.map(async (connectionDetail) => {
+        let connection: ConnectionInterface | null
+
+        try {
+          connection = await connect(connectionDetail)
+        } catch (error) {
+          connection = null
+          errors$.next(error as AppError)
+        }
+        return { detail: connectionDetail, connection }
+      })
     )
 
     connections.forEach(({ detail, connection }) => {
-      if (connection.connectionStatus$.value === 'connected') {
+      if (connection && connection.connectionStatus$.value === 'connected') {
         syncConnectionData(connection, detail.lastSync)
       }
     })
@@ -114,7 +123,7 @@
     {:else}
       <div in:fade={{ duration: 250 }} class="w-min">
         <Button on:click={() => (showDecryptModal = true)} text={$translate('app.labels.unlock')}>
-          <div slot="iconRight" class="ml-1 w-6">{@html key}</div>
+          <div slot="iconRight" class="ml-1 w-6 -mr-2">{@html key}</div>
         </Button>
       </div>
     {/if}
