@@ -50,7 +50,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
-      createdAt = decoded.startedAt
+      createdAt = decoded.startedAt || Date.now() / 1000
       nodeId = decoded.nodeId
     } else {
       log.error(`Unable to decode bolt11: ${bolt11}`)
@@ -69,7 +69,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
       offer_node_id
     } = decoded as DecodedBolt12Invoice
 
-    createdAt = invoice_created_at
+    createdAt = invoice_created_at || Date.now() / 1000
     nodeId = offer_node_id
 
     offer = {
@@ -115,7 +115,7 @@ export async function payToPayment(pay: Pay, connectionId: string): Promise<Invo
     amount_sent_msat
   } = pay
 
-  const timestamp = created_at
+  const timestamp = created_at || Date.now() / 1000
 
   let description: string | undefined
   let offer: Invoice['offer']
