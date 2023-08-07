@@ -1,6 +1,8 @@
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { UtxosInterface } from '../interfaces.js'
 import handleError from './error.js'
+import { stripMsatSuffix } from './utils.js'
+
 import type {
   ChainEvent,
   CorelnConnectionInterface,
@@ -8,7 +10,6 @@ import type {
   ListAccountEventsResponse,
   ListfundsResponse
 } from './types.js'
-import { stripMsatSuffix } from './utils.js'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -46,7 +47,8 @@ class Utxos implements UtxosInterface {
           }
 
           return {
-            id: txid,
+            id: `${txid}:${output}`,
+            txid: txid,
             output,
             amount: stripMsatSuffix(amount_msat),
             scriptpubkey,
