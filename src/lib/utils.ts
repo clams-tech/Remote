@@ -267,9 +267,12 @@ export const calculateBalance = (funds: ListfundsResponse): string => {
 
 export const sortPaymentsMostRecent = (payments: Payment[]): Payment[] =>
   payments.sort((a, b) => {
+    const bTimestamp = b.completedAt || b.startedAt
+    const aTimestamp = a.completedAt || a.startedAt
+
     return (
-      new Date(b.completedAt || b.startedAt).getTime() -
-      new Date(a.completedAt || a.startedAt).getTime()
+      (bTimestamp ? new Date(bTimestamp).getTime() : new Date().getTime()) -
+      (aTimestamp ? new Date(aTimestamp).getTime() : new Date().getTime())
     )
   })
 

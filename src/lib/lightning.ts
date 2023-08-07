@@ -167,7 +167,7 @@ class Lightning {
         id: createRandomHex(),
         type: 'error',
         heading: get(translate)('app.errors.data_request'),
-        message: `${get(translate)('app.errors.bkpr_list_income')}: ${message}`
+        message: `${get(translate)('app.errors.list_payments')}: ${message}`
       })
     }
   }

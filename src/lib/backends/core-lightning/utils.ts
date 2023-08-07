@@ -9,8 +9,7 @@ import type {
   Pay,
   ChannelAPY,
   IncomeEvent,
-  DecodedBolt12Invoice,
-  Channel
+  DecodedBolt12Invoice
 } from './types'
 
 export function invoiceStatusToPaymentStatus(status: InvoiceStatus): Payment['status'] {
@@ -86,7 +85,7 @@ export async function invoiceToPayment(invoice: Invoice): Promise<Payment> {
     description,
     destination: undefined,
     fee: null,
-    startedAt: new Date(timestamp * 1000).toISOString(),
+    startedAt: timestamp ? new Date(timestamp * 1000).toISOString() : new Date().toISOString(),
     payIndex: pay_index,
     offer
   }
@@ -106,7 +105,9 @@ export async function payToPayment(pay: Pay): Promise<Payment> {
     amount_sent_msat
   } = pay
 
-  const timestamp = new Date(created_at * 1000).toISOString()
+  const timestamp = created_at
+    ? new Date(created_at * 1000).toISOString()
+    : new Date().toISOString()
 
   let description: string | undefined
   let offer: Payment['offer']
