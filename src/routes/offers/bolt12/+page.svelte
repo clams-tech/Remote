@@ -185,7 +185,6 @@
             next()
           }}
           class:border-utility-success={offerType === 'pay'}
-          class:bg-black={offerType === 'pay'}
           class:border-2={offerType === 'pay'}
           class="w-1/2 flex flex-col items-center border aspect-square p-4 shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
         >
@@ -209,7 +208,6 @@
             next()
           }}
           class:border-purple-300={offerType === 'withdraw'}
-          class:bg-black={offerType === 'withdraw'}
           class:border-2={offerType === 'withdraw'}
           class="w-1/2 flex flex-col items-center border aspect-square p-4 shadow-sm dark:shadow-neutral-700 rounded-md dark:hover:bg-neutral-800/40 hover:bg-neutral-50/50 transition-all"
         >
