@@ -93,7 +93,7 @@
     "remote_reserve": "Remote reserve",
     "local_reserve": "Local reserve",
     "offer_pay_description": "Create an offer that can receive multiple payments to the same QR.",
-    "offer_withdraw_description": "Create an offer that allows someone to withdraw sats from your node.",
+    "offer_withdraw_description": "Create an offer that allows a one-time withdraw of sats from your node.",
     "offer_pay_usecases": "eg donations, tips, store item.",
     "offer_withdraw_usecases": "eg refund, gift, voucher.",
     "offer_type": "Offer type",
