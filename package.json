@@ -72,6 +72,7 @@
     "qrcode": "^1.5.3",
     "rune-decoder": "0.0.1",
     "rxjs": "^7.5.7",
+    "svelte-tiny-virtual-list": "^2.0.5",
     "sveltekit-i18n": "^2.3.2",
     "vconsole": "^3.15.1"
   }

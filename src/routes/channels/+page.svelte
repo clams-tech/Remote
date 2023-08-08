@@ -14,7 +14,7 @@
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import filter from '$lib/icons/filter.js'
   import { fade, slide } from 'svelte/transition'
-  import debounce from 'lodash.debounce'
+  import VirtualList from 'svelte-tiny-virtual-list'
 
   const channels$ = liveQuery(() => db.channels.toArray())
 
@@ -35,37 +35,24 @@
 
   let showFullOpenButton = false
   let channelsContainer: HTMLDivElement
-  let channelsContainerScrollable = false
-  let innerHeight: number
 
-  $: if (innerHeight && channelsContainer) {
-    calculateScrollable(channelsContainer)
-  }
+  $: channelsContainerScrollable =
+    $channels$ && channelsContainer
+      ? $channels$.length * 74 > channelsContainer.clientHeight
+      : false
 
-  const calculateScrollable = debounce((channelsContainer: HTMLDivElement) => {
-    if (channelsContainer.scrollHeight > channelsContainer.clientHeight) {
-      channelsContainerScrollable = true
+  let previousOffset: number = 0
+
+  const handleChannelsScroll = (offset: number) => {
+    if (offset < previousOffset) {
+      showFullOpenButton = true
     } else {
-      channelsContainerScrollable = false
+      showFullOpenButton = false
     }
-  }, 500)
 
-  let prevChannelsScrollY: number = 0
-
-  const handleTransactionsScroll = () => {
-    if (channelsContainer) {
-      if (channelsContainer.scrollTop < prevChannelsScrollY) {
-        showFullOpenButton = true
-      } else {
-        showFullOpenButton = false
-      }
-
-      prevChannelsScrollY = channelsContainer.scrollTop
-    }
+    previousOffset = offset
   }
 </script>
-
-<svelte:window bind:innerHeight />
 
 <Section>
   <div class="flex items-center justify-between w-full">
@@ -111,16 +98,20 @@
 
         <div
           bind:this={channelsContainer}
-          on:scroll={debounce(handleTransactionsScroll, 100)}
-          class="w-full flex flex-col flex-grow overflow-auto gap-y-2 relative"
+          class="w-full flex flex-col flex-grow overflow-hidden gap-y-2"
         >
-          <div class="flex flex-col h-full overflow-hidden">
-            <div class="w-full flex flex-col h-full gap-y-4 overflow-auto">
-              {#each $channels$ as channel}
-                <ChannelRow {channel} />
-              {/each}
+          <VirtualList
+            on:afterScroll={(e) => handleChannelsScroll(e.detail.offset)}
+            width="100%"
+            height={channelsContainer?.clientHeight}
+            itemCount={$channels$.length}
+            itemSize={74}
+            getKey={(index) => $channels$[index].id}
+          >
+            <div slot="item" let:index let:style {style}>
+              <ChannelRow channel={$channels$[index]} />
             </div>
-          </div>
+          </VirtualList>
         </div>
       </div>
     {/if}

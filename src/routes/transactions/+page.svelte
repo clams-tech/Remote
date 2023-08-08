@@ -15,9 +15,9 @@
   import { endOfDay } from 'date-fns'
   import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
-  import debounce from 'lodash.debounce'
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
+  import VirtualList from 'svelte-tiny-virtual-list'
 
   const invoices$ = liveQuery(async () => {
     const invoices = await db.invoices.toArray()
@@ -87,37 +87,30 @@
 
   let showFullReceiveButton = false
   let transactionsContainer: HTMLDivElement
-  let transactionsContainerScrollable = false
-  let innerHeight: number
 
-  $: if (innerHeight && transactionsContainer) {
-    calculateScrollable(transactionsContainer)
+  $: transactionsContainerScrollable =
+    dailyPayments && transactionsContainer
+      ? dailyPayments.reduce((acc, data) => acc + data[1].length * 60 + 24 + 8, 0) >
+        transactionsContainer.clientHeight
+      : false
+
+  let previousOffset: number = 0
+
+  const handleTransactionsScroll = (offset: number) => {
+    if (offset < previousOffset) {
+      showFullReceiveButton = true
+    } else {
+      showFullReceiveButton = false
+    }
+
+    previousOffset = offset
   }
 
-  const calculateScrollable = debounce((transactionsContainer: HTMLDivElement) => {
-    if (transactionsContainer.scrollHeight > transactionsContainer.clientHeight) {
-      transactionsContainerScrollable = true
-    } else {
-      transactionsContainerScrollable = false
-    }
-  }, 500)
-
-  let prevTransactionsScrollY: number = 0
-
-  const handleTransactionsScroll = () => {
-    if (transactionsContainer) {
-      if (transactionsContainer.scrollTop < prevTransactionsScrollY) {
-        showFullReceiveButton = true
-      } else {
-        showFullReceiveButton = false
-      }
-
-      prevTransactionsScrollY = transactionsContainer.scrollTop
-    }
+  const getDaySize = (index: number) => {
+    const payments = dailyPayments[index][1]
+    return payments.length * 60 + 24 + 8
   }
 </script>
-
-<svelte:window bind:innerHeight />
 
 <Section>
   <div class="w-full flex items-center justify-between">
@@ -142,29 +135,36 @@
     {:else}
       <div
         bind:this={transactionsContainer}
-        on:scroll={debounce(handleTransactionsScroll, 100, { leading: true })}
         in:fade={{ duration: 250 }}
-        class="w-full flex flex-col flex-grow overflow-auto gap-y-2 relative"
+        class="w-full flex flex-col flex-grow gap-y-2 relative"
       >
-        <!-- @TODO - Need to virtualise this list to only render items in view since it could be massive -->
-        {#each dailyPayments as [day, payments] (day)}
-          <div class="pt-1 pl-1">
-            {#await formatDate(day) then formattedDate}
-              <div
-                class="text-xs font-semibold mb-1 sticky top-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-600/50"
-              >
-                {formattedDate}
-              </div>
-            {/await}
-            <div class="rounded overflow-hidden">
-              <div class="overflow-hidden">
-                {#each inPlaceSort(payments).desc(({ timestamp }) => timestamp) as { type, data } (data.id)}
-                  <TransactionRow {data} {type} />
-                {/each}
+        <VirtualList
+          on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
+          width="100%"
+          height={transactionsContainer?.clientHeight}
+          itemCount={dailyPayments.length}
+          itemSize={getDaySize}
+          getKey={(index) => dailyPayments[index][0]}
+        >
+          <div slot="item" let:index let:style {style}>
+            <div class="pt-1 pl-1">
+              {#await formatDate(dailyPayments[index][0]) then formattedDate}
+                <div
+                  class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-600/50"
+                >
+                  {formattedDate}
+                </div>
+              {/await}
+              <div class="rounded overflow-hidden">
+                <div class="overflow-hidden">
+                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (data.id)}
+                    <TransactionRow {data} {type} />
+                  {/each}
+                </div>
               </div>
             </div>
           </div>
-        {/each}
+        </VirtualList>
       </div>
     {/if}
   </div>
