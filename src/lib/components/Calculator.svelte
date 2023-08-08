@@ -13,7 +13,7 @@
 
   const dispatch = createEventDispatcher()
 
-  let showModal = false
+  export let showModal = false
   let fiat: number
   let exchange: number
   let sats: number
@@ -43,8 +43,10 @@
   }
 
   const handleKeyPress = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      setAmount()
+    if (showModal) {
+      if (e.key === 'Enter') {
+        setAmount()
+      }
     }
   }
 </script>

@@ -19,6 +19,7 @@
   import { connect, syncConnectionData } from '$lib/connections/index.js'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
+  import plus from '$lib/icons/plus.js'
 
   const clearSession = () => session$.next(null)
 
@@ -86,6 +87,7 @@
       {#if routeRequiresSession(path) && $session$}
         <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
         <a href="/input" class="w-9 ml-2">{@html scan}</a>
+        <a href="/transactions/receive" class="w-9 ml-1">{@html plus}</a>
       {/if}
     </div>
 

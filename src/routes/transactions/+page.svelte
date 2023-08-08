@@ -110,7 +110,17 @@
     const payments = dailyPayments[index][1]
     return payments.length * 60 + 24 + 8
   }
+
+  let innerHeight: number
+
+  $: maxHeight = innerHeight - 80 - 56 - 24
+  $: fullHeight = dailyPayments
+    ? dailyPayments.reduce((acc, data) => acc + data[1].length * 60 + 24 + 8, 0)
+    : 0
+  $: listHeight = Math.min(maxHeight, fullHeight)
 </script>
+
+<svelte:window bind:innerHeight />
 
 <Section>
   <div class="w-full flex items-center justify-between">
@@ -125,7 +135,7 @@
     </div>
   {/if}
 
-  <div class="w-full overflow-hidden flex flex-grow">
+  <div class="w-full overflow-hidden flex">
     {#if !dailyPayments}
       <div in:fade={{ duration: 250 }} class="mt-4 w-full flex justify-center">
         <Spinner />
@@ -136,12 +146,12 @@
       <div
         bind:this={transactionsContainer}
         in:fade={{ duration: 250 }}
-        class="w-full flex flex-col flex-grow gap-y-2 relative"
+        class="w-full flex flex-col overflow-hidden gap-y-2"
       >
         <VirtualList
           on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
           width="100%"
-          height={transactionsContainer?.clientHeight}
+          height={listHeight}
           itemCount={dailyPayments.length}
           itemSize={getDaySize}
           getKey={(index) => dailyPayments[index][0]}

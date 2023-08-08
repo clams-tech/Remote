@@ -136,6 +136,7 @@
     "enter": "Enter",
     "paste": "Paste",
     "state": "State",
+    "to": "To",
     "peer_connection": "Connection",
     "peer_address": "Peer address",
     "channel_size": "Channel size",

@@ -52,7 +52,15 @@
 
     previousOffset = offset
   }
+
+  let innerHeight: number
+
+  $: maxHeight = innerHeight - 147 - 56 - 24 - 80
+  $: fullHeight = $channels$ ? $channels$.length * 74 : 0
+  $: listHeight = Math.min(maxHeight, fullHeight)
 </script>
+
+<svelte:window bind:innerHeight />
 
 <Section>
   <div class="flex items-center justify-between w-full">
@@ -103,7 +111,7 @@
           <VirtualList
             on:afterScroll={(e) => handleChannelsScroll(e.detail.offset)}
             width="100%"
-            height={channelsContainer?.clientHeight}
+            height={listHeight}
             itemCount={$channels$.length}
             itemSize={74}
             getKey={(index) => $channels$[index].id}

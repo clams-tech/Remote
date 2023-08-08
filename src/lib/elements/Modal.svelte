@@ -21,15 +21,17 @@
   let innerWidth: number
 </script>
 
-<svelte:window bind:innerWidth />
+<svelte:window bind:innerWidth on:keyup={({ key }) => key === 'Escape' && closeModal()} />
 
 {#if innerWidth < 450}
-  <button
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div
     in:fade|global={{ easing: quintInOut, duration: 600 }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-end"
   >
-    <button
+    <div
       on:swipe={closeModal}
       bind:this={modal}
       in:fly|global={{ y: modal.clientHeight, easing: quintInOut, duration: 600 }}
@@ -51,17 +53,19 @@
       >
         {@html close}
       </button>
-    </button>
-  </button>
+    </div>
+  </div>
 {:else}
-  <button
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div
     in:fade|global={{ easing: quintInOut }}
     on:click|stopPropagation={closeModal}
     class="{backgroundStyles} justify-center block"
   >
-    <button
+    <div
       on:click|stopPropagation
-      class="{modalStyles} rounded-3xl max-w-lg overflow-hidden pl-10 pr-12 pt-8 pb-10"
+      class="{modalStyles} rounded-3xl max-w-lg overflow-hidden pl-10 pr-12 pt-8 pb-10 select-text"
     >
       <button
         on:click={closeModal}
@@ -70,6 +74,6 @@
         {@html close}
       </button>
       <slot />
-    </button>
-  </button>
+    </div>
+  </div>
 {/if}

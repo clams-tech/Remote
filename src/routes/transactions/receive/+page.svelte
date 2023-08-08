@@ -71,7 +71,7 @@
       if (connectionInterface.invoices?.createInvoice) {
         const invoice = await connectionInterface.invoices.createInvoice({
           id: createRandomHex(),
-          amount: Big(amount).times(1000).toString() || 'any',
+          amount: amount ? Big(amount).times(1000).toString() : 'any',
           description: '',
           expiry: 2 * DAY_IN_SECS
         })
@@ -112,13 +112,25 @@
       creatingPayment = false
     }
   }
+
+  let modalShowing: boolean
+
+  const handleKeyPress = (e: KeyboardEvent) => {
+    if (!modalShowing) {
+      if (e.key === 'Enter') {
+        createPayment()
+      }
+    }
+  }
 </script>
+
+<svelte:window on:keyup={handleKeyPress} />
 
 <Section>
   <div class="flex items-center justify-between">
     <SectionHeading icon={receive} />
     <div class="w-10">
-      <Calculator on:amount={({ detail }) => (amount = detail)} />
+      <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
     </div>
   </div>
 
@@ -128,12 +140,10 @@
     {:else}
       <div class="mb-5 mt-1">
         <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
-          {$translate('app.labels.connection')}
+          {$translate('app.labels.to')}
         </div>
 
-        <div
-          class="flex w-full flex-wrap gap-2 rounded font-medium px-4 py-2 border border-neutral-600 bg-neutral-900"
-        >
+        <div class="flex w-full flex-wrap gap-2 rounded">
           {#each $storedConnections$ as { label, id }}
             <div class="w-min">
               <Button

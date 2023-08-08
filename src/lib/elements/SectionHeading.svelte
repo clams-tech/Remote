@@ -43,7 +43,7 @@
       <input
         size={text.length + 1}
         bind:this={input}
-        class="text-4xl my-[15.5px] font-bold px-0 py-0 bg-transparent autofill:bg-transparent border-none w-4/5 appearance-none focus:outline-none focus:ring focus:ring-transparent flex"
+        class="text-4xl font-bold px-0 py-0 bg-transparent autofill:bg-transparent border-none w-4/5 appearance-none focus:outline-none focus:ring focus:ring-transparent flex"
         type="text"
         bind:value={text}
       />
@@ -58,7 +58,6 @@
     <button
       on:click={handleClick}
       class:text-utility-success={editing}
-      class:ml-2={!editing}
       class="w-8 flex-shrink-0 opacity-60">{@html editing ? check : edit}</button
     >
   {/if}
