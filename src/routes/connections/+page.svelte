@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { connectionOptions } from '$lib/connections/index.js'
   import { db } from '$lib/db.js'
   import Button from '$lib/elements/Button.svelte'
+  import Connection from '$lib/elements/Connection.svelte'
   import Paragraph from '$lib/elements/Paragraph.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
@@ -29,16 +29,9 @@
       </Paragraph>
     {:else}
       <div class="flex flex-wrap gap-2 w-full flex-grow overflow-auto mt-4">
-        {#each $storedConnections$ as { label, id, type }}
-          {@const connectionTypeDetails = connectionOptions.find((c) => c.type === type)}
-          <a
-            href={`/connections/${id}`}
-            class="no-underline border border-neutral-600 rounded w-min flex justify-between items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
-          >
-            <span class="font-semibold text-lg px-4 py-1 truncate">{label}</span>
-            {#if connectionTypeDetails}
-              <div class="w-32">{@html connectionTypeDetails.icon}</div>
-            {/if}
+        {#each $storedConnections$ as connection}
+          <a href={`/connections/${connection.id}`} class="no-underline">
+            <Connection data={connection} />
           </a>
         {/each}
       </div>

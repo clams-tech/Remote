@@ -10,15 +10,15 @@
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
   import Button from '$lib/elements/Button.svelte'
+  import Connection from '$lib/elements/Connection.svelte'
   import Msg from '$lib/elements/Msg.svelte'
   import Section from '$lib/elements/Section.svelte'
   import SectionHeading from '$lib/elements/SectionHeading.svelte'
   import TextInput from '$lib/elements/TextInput.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import lightningOutline from '$lib/icons/lightning-outline.js'
-  import receive from '$lib/icons/receive.js'
+  import plus from '$lib/icons/plus.js'
   import { log, storage } from '$lib/services.js'
-  import { connections$, session$ } from '$lib/streams.js'
+  import { connections$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import Big from 'big.js'
   import { liveQuery } from 'dexie'
@@ -128,7 +128,7 @@
 
 <Section>
   <div class="flex items-center justify-between">
-    <SectionHeading icon={receive} />
+    <SectionHeading icon={plus} />
     <div class="w-10">
       <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
     </div>
@@ -138,20 +138,14 @@
     {#if !$storedConnections$.length}
       <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
     {:else}
-      <div class="mb-5 mt-1">
-        <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
-          {$translate('app.labels.to')}
-        </div>
-
+      <div class="mt-4 mb-6">
         <div class="flex w-full flex-wrap gap-2 rounded">
-          {#each $storedConnections$ as { label, id }}
-            <div class="w-min">
-              <Button
-                text={label}
-                primary={selectedConnectionId === id}
-                on:click={() => selectConnection(id)}
-              />
-            </div>
+          {#each $storedConnections$ as connection}
+            <Connection
+              selected={selectedConnectionId === connection.id}
+              on:click={() => selectConnection(connection.id)}
+              data={connection}
+            />
           {/each}
         </div>
       </div>
@@ -159,16 +153,18 @@
       <TextInput
         type="number"
         bind:value={amount}
-        label={$translate('app.labels.sats')}
+        label={$translate('app.labels.amount')}
         name="amount"
         hint={!amount ? 'Any amount' : ''}
         msat={amount ? Big(amount).times(1000).toString() : ''}
       />
 
-      <div class="mt-6">
-        <Button on:click={createPayment} text="Create payment" primary>
-          <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html lightningOutline}</div>
-        </Button>
+      <div class="w-full flex items-center justify-end mt-6">
+        <div class="w-min">
+          <Button on:click={createPayment} text="Create payment" primary>
+            <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div>
+          </Button>
+        </div>
       </div>
     {/if}
   {/if}

@@ -32,6 +32,7 @@
   import {
     connect,
     connectionDetailsToInterface,
+    connectionOptions,
     syncConnectionData
   } from '$lib/connections/index.js'
 
@@ -69,6 +70,9 @@
   $: if ($connectionDetails$ && !$connectionDetails$.modifiedAt) {
     showConfiguration = true
   }
+
+  $: connectionTypeDetails =
+    $connectionDetails$ && connectionOptions.find((c) => c.type === $connectionDetails$!.type)
 
   onMount(() => {
     from(connectionDetails$)
@@ -214,7 +218,7 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between mt-4">
+    <div class="flex items-start justify-between mt-4 pb-2">
       <div>
         <div class="flex w-full">
           {#if !$status || $status === 'disconnected'}
@@ -235,7 +239,7 @@
                   >
                     <div
                       class:animate-spin={$connectionDetails$ && $connectionDetails$.syncing}
-                      class="w-4 ml-2"
+                      class="w-4 ml-2 -mr-1"
                       slot="iconRight"
                     >
                       {@html refresh}
@@ -261,7 +265,7 @@
                   on:click={() => (showInfoModal = true)}
                   text={$translate('app.labels.info')}
                 >
-                  <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html qr}</div>
+                  <div slot="iconRight" class="w-5 ml-1 -mr-2">{@html qr}</div>
                 </Button>
               </div>
             </div>
@@ -269,7 +273,13 @@
         </div>
       </div>
 
-      <div class="flex items-end flex-col">
+      <div class="flex items-end flex-col p-0.5">
+        {#if connectionTypeDetails}
+          <div class="w-full flex items-center justify-end">
+            <div class="w-24 mb-2">{@html connectionTypeDetails.icon}</div>
+          </div>
+        {/if}
+
         <div class="flex items-center">
           <span
             class="transition-colors whitespace-nowrap text-sm leading-none"
@@ -299,7 +309,7 @@
 
     <!-- Connection Configuration UI -->
     {#if showConfiguration}
-      <div transition:slide={{ duration: 250 }} class="w-full mt-4">
+      <div transition:slide={{ duration: 250 }} class="w-full mt-2 border-t border-t-neutral-400">
         <svelte:component
           this={typeToConfigurationComponent(type)}
           {configuration}
