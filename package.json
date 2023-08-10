@@ -66,7 +66,7 @@
     "html-to-image": "^1.11.11",
     "js-lnurl": "^0.6.0",
     "jsqr": "^1.4.0",
-    "lnmessage": "^0.2.2",
+    "lnmessage": "^0.2.4",
     "lodash.debounce": "^4.0.8",
     "nouislider": "^15.7.1",
     "qrcode": "^1.5.3",

@@ -70,6 +70,8 @@
 
   let dailyPayments: DailyPayments
 
+  $: console.log({ dailyPayments })
+
   $: if ($invoices$ && $transactions$ && $addresses$) {
     const unsorted = [...$invoices$, ...$transactions$, ...$addresses$].reduce((acc, payment) => {
       const date = new Date(payment.timestamp * 1000)
@@ -167,7 +169,7 @@
               {/await}
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden">
-                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (data.id)}
+                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${type}:${data.id}`)}
                     <TransactionRow {data} {type} />
                   {/each}
                 </div>

@@ -135,10 +135,10 @@
       on:mouseenter={() => channelsContainerScrollable && (showFullOpenButton = true)}
       on:mouseleave={() => channelsContainerScrollable && (showFullOpenButton = false)}
     >
-      <div class="w-6">{@html plus}</div>
+      <div class="w-6 -ml-1">{@html plus}</div>
 
       {#if !channelsContainerScrollable || showFullOpenButton}
-        <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>
+        <div class="font-semibold" in:slide|local={{ axis: 'x' }}>
           {$translate('app.labels.open')}
         </div>
       {/if}

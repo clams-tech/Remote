@@ -329,7 +329,7 @@
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}
-              text={$translate('app.labels.update_channel_settings')}
+              text={$translate('app.labels.update_settings')}
             >
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
             </Button>

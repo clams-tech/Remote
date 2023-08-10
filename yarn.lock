@@ -260,11 +260,6 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.1.tgz#8831ef002114670c603c458ab8b11328406953a9"
   integrity sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==
 
-"@noble/secp256k1@^1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
-  integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
-
 "@noble/secp256k1@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-2.0.0.tgz#c214269d45e0233ad6a8ae5104655453636e253d"
@@ -1634,16 +1629,16 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.2.4.tgz#eca284f75d2965079309dc0ad9255abb2ebc1632"
   integrity sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==
 
-lnmessage@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.2.tgz#08ba136612af3922bd90fbc54d43c3a989763272"
-  integrity sha512-Tlgi4VxN9Jaj3dOSeTKYbV3x5iYzUtwxHcHpNi0Ezu/jAqpj8Ch1E2eVLOQWMBu8fqoUjNkw7RgKR97WX/fsHQ==
+lnmessage@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.4.tgz#3859d9e991aed23e95d181ae17aaa8c75e7dc58a"
+  integrity sha512-6L7FZhkqa7SjyyI9JzZfTwSQhAAId+S2oPfp4rMswTE7VerwmuJQTtV8f0H2w5HAyVtIrm7e3ZUELIjoaKO9YQ==
   dependencies:
-    "@noble/hashes" "^1.2.0"
-    "@noble/secp256k1" "^1.7.1"
+    "@noble/hashes" "^1.3.1"
+    "@noble/secp256k1" "^2.0.0"
     buffer "^6.0.3"
     rxjs "^7.5.7"
-    ws "^8.12.1"
+    ws "^8.13.0"
 
 locate-character@^3.0.0:
   version "3.0.0"
@@ -2604,10 +2599,10 @@ wrappy@1:
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
-ws@^8.12.1:
-  version "8.12.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.12.1.tgz#c51e583d79140b5e42e39be48c934131942d4a8f"
-  integrity sha512-1qo+M9Ba+xNhPB+YTWUlK6M17brTut5EXbcBaMRN5pH5dFrXz7lzz1ChFSUq3bOUl8yEvSenhHmYUNJxFzdJew==
+ws@^8.13.0:
+  version "8.13.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.13.0.tgz#9a9fb92f93cf41512a0735c8f4dd09b8a1211cd0"
+  integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==
 
 y18n@^4.0.0:
   version "4.0.3"
