@@ -50,7 +50,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
-      createdAt = decoded.startedAt || Date.now() / 1000
+      createdAt = decoded.createdAt || Date.now() / 1000
       nodeId = decoded.nodeId
     } else {
       log.error(`Unable to decode bolt11: ${bolt11}`)

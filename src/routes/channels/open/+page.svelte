@@ -1,17 +1,17 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import Button from '$lib/elements/Button.svelte'
-  import TextInput from '$lib/elements/TextInput.svelte'
-  import Toggle from '$lib/elements/Toggle.svelte'
+  import Button from '$lib/components/Button.svelte'
+  import TextInput from '$lib/components/TextInput.svelte'
+  import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import scan from '$lib/icons/scan.js'
   import { slide } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import { validateNodeAddress } from '$lib/address.js'
-  import Section from '$lib/elements/Section.svelte'
-  import SectionHeading from '$lib/elements/SectionHeading.svelte'
-  import Msg from '$lib/elements/Msg.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import Msg from '$lib/components/Msg.svelte'
   import plus from '$lib/icons/plus.js'
 
   export let data: PageData

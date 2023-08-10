@@ -328,7 +328,7 @@ function decode(paymentRequest: string): DecodedBolt11Invoice {
   return {
     nodeId: pubKey,
     amount: stripMsatSuffix(msat),
-    startedAt: timestamp,
+    createdAt: timestamp,
     expiresAt,
     description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || '',
     hash: tags.find(({ tagName }) => tagName === 'payment_hash')?.data as string

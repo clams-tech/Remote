@@ -235,11 +235,13 @@ class Transactions implements TransactionsInterface {
 
   // @TODO - need to test this works correctly and is without memory leaks
   async listenForTransactionConfirmation(transaction: Transaction): Promise<Transaction> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const stopListening$ = new Subject<void>()
       const complete$ = merge(stopListening$, this.connection.destroy$)
 
-      this.connection.blocks.blockHeight$.pipe(takeUntil(complete$)).subscribe(async () => {
+      const blockHeight$ = await this.connection.blocks.subscribeToBlockHeight()
+
+      blockHeight$.pipe(takeUntil(complete$)).subscribe(async () => {
         /** when we get a new block height, we ask for all transactions again to see
          * if transaction has been included in a block
          */

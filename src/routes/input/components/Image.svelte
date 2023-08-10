@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ParsedInput } from '$lib/@types/common.js'
-  import Button from '$lib/elements/Button.svelte'
+  import Button from '$lib/components/Button.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
   import photo from '$lib/icons/photo.js'

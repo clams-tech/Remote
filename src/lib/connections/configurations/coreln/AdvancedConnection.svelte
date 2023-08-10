@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { WS_PROXY } from '$lib/constants'
-  import TextInput from '$lib/elements/TextInput.svelte'
+  import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import type { CoreLnConfiguration } from '$lib/@types/connections.js'
 

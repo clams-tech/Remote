@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ParsedInput } from '$lib/@types/common.js'
-  import Msg from '$lib/elements/Msg.svelte'
+  import Msg from '$lib/components/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
   import nfcIcon from '$lib/icons/nfc.js'

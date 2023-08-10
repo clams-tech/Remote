@@ -18,12 +18,10 @@
   <button
     bind:this={button}
     on:click
-    class="no-underline text-center border-2 text-current text-[1em] hover:shadow w-full flex items-center justify-center px-[1.5em] relative rounded-full font-bold whitespace-nowrap"
+    class="no-underline text-center border-2 border-neutral-50 text-current transition-all bg-purple-700 text-[1em] hover:shadow-lg w-full flex items-center justify-center px-[1.5em] relative rounded-full font-bold whitespace-nowrap"
     class:opacity-70={disabled}
-    class:border-neutral-50={!primary && !warning}
-    class:border-purple-300={primary}
     class:border-utility-error={warning}
-    class:hover:shadow-purple-300={primary}
+    class:hover:shadow-purple-500={primary}
     class:hover:shadow-neutral-50={!primary && !warning}
     class:hover:shadow-utility-error={warning}
     disabled={disabled || requesting}

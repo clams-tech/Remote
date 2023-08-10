@@ -166,6 +166,8 @@
     "unsettled": "Unsettled",
     "fee_base": "Fee base",
     "fee_rate": "Fee rate",
+    "create": "Create",
+    "unified": "Unified",
     "min_forward": "Minimum forward",
     "max_forward": "Maximum forward",
     "channel_open": "Channel open",

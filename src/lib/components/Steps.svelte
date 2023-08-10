@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Section from '$lib/elements/Section.svelte'
+  import Section from '$lib/components/Section.svelte'
   import caret from '$lib/icons/caret.js'
   import { createEventDispatcher, type ComponentType } from 'svelte'
   import type { Writable } from 'svelte/store'

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ParsedInput } from '$lib/@types/common.js'
-  import Section from '$lib/elements/Section.svelte'
-  import SectionHeading from '$lib/elements/SectionHeading.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import scan from '$lib/icons/scan.js'
   import Image from './components/Image.svelte'

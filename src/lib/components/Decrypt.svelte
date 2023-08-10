@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { Session } from '$lib/@types/session.js'
-  import Section from '$lib/elements/Section.svelte'
-  import Button from '$lib/elements/Button.svelte'
-  import Msg from '$lib/elements/Msg.svelte'
-  import TextInput from '$lib/elements/TextInput.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import Button from '$lib/components/Button.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { session$ } from '$lib/streams.js'
-  import Paragraph from '$lib/elements/Paragraph.svelte'
+  import Paragraph from '$lib/components/Paragraph.svelte'
   import { onMount } from 'svelte'
   import { createEventDispatcher } from 'svelte'
   import { bytesToHex } from '@noble/hashes/utils'
@@ -15,6 +15,7 @@
   import { decryptWithAES } from '$lib/crypto.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
+  import key from '$lib/icons/key.js'
 
   const translationBase = 'app.routes./decrypt'
 
@@ -76,14 +77,18 @@
     />
   </div>
 
-  <div class="mt-4">
-    <Button
-      bind:this={decryptButton}
-      on:click={decrypt}
-      text={$translate('app.labels.decrypt')}
-      primary
-      disabled={!passphrase}
-    />
+  <div class="mt-4 w-full flex justify-end">
+    <div class="w-min">
+      <Button
+        bind:this={decryptButton}
+        on:click={decrypt}
+        text={$translate('app.labels.decrypt')}
+        primary
+        disabled={!passphrase}
+      >
+        <div class="w-6 ml-2 -mr-2" slot="iconRight">{@html key}</div>
+      </Button>
+    </div>
   </div>
 
   <div class="mt-6">

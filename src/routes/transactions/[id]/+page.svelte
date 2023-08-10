@@ -5,13 +5,13 @@
   import type { ChannelEvent, Transaction } from '$lib/@types/transactions.js'
   import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db.js'
-  import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
-  import ExpiryCountdown from '$lib/elements/ExpiryCountdown.svelte'
-  import Msg from '$lib/elements/Msg.svelte'
-  import Qr from '$lib/elements/Qr.svelte'
-  import Section from '$lib/elements/Section.svelte'
-  import Spinner from '$lib/elements/Spinner.svelte'
-  import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import Qr from '$lib/components/Qr.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import Spinner from '$lib/components/Spinner.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import bitcoin from '$lib/icons/bitcoin.js'
   import check from '$lib/icons/check.js'
@@ -19,14 +19,17 @@
   import warning from '$lib/icons/warning.js'
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
-  import CopyValue from '$lib/elements/CopyValue.svelte'
+  import CopyValue from '$lib/components/CopyValue.svelte'
   import { truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
-  import es from 'date-fns/locale/es'
   import channels from '$lib/icons/channels.js'
   import type { Channel } from '$lib/@types/channels.js'
+  import { liveQuery } from 'dexie'
+  import { msatsToBtc } from '$lib/conversion.js'
 
   export let data: PageData
+
+  type QRValue = { label: string; value: string }
 
   /** payment id could be and invoice.id, transaction.id or an onchain receive address*/
   const { id } = data
@@ -34,7 +37,7 @@
   type TransactionDetail = {
     type: 'invoice' | 'address' | 'transaction'
     icon: string
-    qrValues?: { label: string; value: string }[]
+    qrValues?: QRValue[]
     status: TransactionStatus
     paymentHash?: string
     paymentPreimage?: string
@@ -53,15 +56,14 @@
     channel?: Channel
   }
 
-  let transactionDetail: TransactionDetail | null = null
-  let transactionNotFoundError = false
-
-  const getData = async () => {
+  const transactionDetails$ = liveQuery(async () => {
     const [invoice, address, transaction] = await Promise.all([
       db.invoices.get(id),
       db.addresses.get(id),
       db.transactions.get(id)
     ])
+
+    const details: TransactionDetail[] = []
 
     if (invoice) {
       const {
@@ -81,17 +83,20 @@
         nodeId
       } = invoice
 
-      console.log({ expiresAt })
-
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
 
-      transactionDetail = {
+      details.push({
         type: 'invoice',
         icon: lightning,
         qrValues:
           status === 'pending'
-            ? [{ label: $translate('app.labels.invoice'), value: request }]
+            ? [
+                {
+                  label: $translate('app.labels.invoice'),
+                  value: `lightning:${request.toUpperCase()}`
+                }
+              ]
             : undefined,
         status,
         amount,
@@ -106,9 +111,11 @@
         paymentHash: hash,
         paymentPreimage: preimage,
         peerNodeId: direction === 'send' ? nodeId : undefined
-      }
-    } else if (address) {
-      const { id, connectionId, createdAt, amount, txid, description, completedAt } = address
+      })
+    }
+
+    if (address) {
+      const { value, connectionId, createdAt, amount, txid, message, completedAt, label } = address
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
       let tx: Transaction | null = null
@@ -117,13 +124,34 @@
         tx = (await db.transactions.get(txid)) as Transaction
       }
 
-      transactionDetail = {
+      const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
+      const qrValues: QRValue[] = []
+
+      if (status === 'waiting') {
+        qrValues.push({
+          label: $translate('app.labels.address'),
+          value: `bitcoin:${value.toUpperCase()}`
+        })
+      }
+
+      if (invoice && invoice.status === 'pending') {
+        qrValues.push({
+          label: $translate('app.labels.unified'),
+          value: `bitcoin:${value.toUpperCase()}?amount=${msatsToBtc(amount)}${
+            label ? `&label=${encodeURIComponent(label)}` : ''
+          }${
+            message ? `&message=${encodeURIComponent(message)}` : ''
+          }&lightning=${invoice.request.toUpperCase()}`
+        })
+      }
+
+      details.push({
         type: 'address',
         icon: bitcoin,
-        qrValues: [{ label: $translate('app.labels.address'), value: id }],
-        status: txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting',
+        qrValues,
+        status,
         amount,
-        description,
+        description: message,
         createdAt,
         completedAt,
         connection,
@@ -132,8 +160,10 @@
           ({ type }) => type === 'channelClose' || type === 'channelOpen'
         ) as ChannelEvent,
         txid
-      }
-    } else if (transaction) {
+      })
+    }
+
+    if (transaction) {
       const { id, connectionId, events, blockheight } = transaction
 
       const channelEvent = events.find(
@@ -151,7 +181,7 @@
         channel = await db.channels.get(channelEvent.channel)
       }
 
-      transactionDetail = {
+      details.push({
         type: 'transaction',
         icon: channelEvent ? channels : bitcoin,
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
@@ -163,13 +193,18 @@
         completedAt: typeof blockheight === 'number' ? events[0].timestamp : undefined,
         abs: balanceChange?.type === 'deposit' ? '+' : '-',
         txid: id
-      }
-    } else {
-      transactionNotFoundError = true
+      })
     }
-  }
 
-  getData()
+    return details
+  })
+
+  $: qrValues = $transactionDetails$
+    ? $transactionDetails$.reduce(
+        (values, { qrValues }) => [...values, ...(qrValues || [])],
+        [] as QRValue[]
+      )
+    : []
 
   const handlePaymentExpire = async () => {
     await db.invoices.update(id, { status: 'expired' })
@@ -187,15 +222,18 @@
 </svelte:head>
 
 <Section>
-  {#if transactionNotFoundError}
+  {#if !$transactionDetails$}
+    <div class="mt-4">
+      <Spinner />
+    </div>
+  {:else if !$transactionDetails$.length}
     <div class="mt-4">
       <Msg type="error" closable={false} message={$translate('app.errors.transaction_not_found')} />
     </div>
-  {:else if transactionDetail}
+  {:else}
     {@const {
       type,
       icon,
-      qrValues,
       status,
       paymentHash,
       paymentPreimage,
@@ -212,9 +250,9 @@
       abs,
       channelEvent,
       channel
-    } = transactionDetail}
+    } = $transactionDetails$[0]}
 
-    {#if qrValues}
+    {#if qrValues.length}
       <div class="flex flex-col w-full items-center my-4">
         <Qr values={qrValues} />
 
@@ -448,10 +486,6 @@
           </SummaryRow>
         {/if}
       </div>
-    </div>
-  {:else}
-    <div class="flex-grow flex items-center justify-center">
-      <Spinner />
     </div>
   {/if}
 </Section>

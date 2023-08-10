@@ -1,7 +1,7 @@
 <script lang="ts">
   import { STORAGE_KEYS } from '$lib/constants.js'
   import { db } from '$lib/db.js'
-  import Msg from '$lib/elements/Msg.svelte'
+  import Msg from '$lib/components/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import feeOutline from '$lib/icons/fee-outline.js'

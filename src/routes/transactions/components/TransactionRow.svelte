@@ -3,7 +3,7 @@
   import type { TransactionStatus } from '$lib/@types/common.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
-  import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import bitcoin from '$lib/icons/bitcoin.js'
   import caret from '$lib/icons/caret.js'
@@ -35,7 +35,7 @@
     balanceChange = invoiceAmount === 'any' || invoiceAmount === '0' ? undefined : invoiceAmount
     description = invoiceDescription || offer?.description
   } else if (type === 'address') {
-    const { amount: addressAmount, description: addressDescription, createdAt } = data as Address
+    const { amount: addressAmount, message: addressDescription, createdAt } = data as Address
     icon = bitcoin
     status = 'pending'
     abs = '+'
@@ -49,8 +49,8 @@
     icon = bitcoin
     status = typeof blockheight === 'number' ? 'complete' : 'pending'
 
-    if (receiveAddress && receiveAddress.description) {
-      description = receiveAddress.description
+    if (receiveAddress && receiveAddress.message) {
+      description = receiveAddress.message
     }
 
     const channelEvent = events.find(({ type }) => type.includes('channel'))

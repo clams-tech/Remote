@@ -68,7 +68,7 @@ type PaymentDirection = 'receive' | 'send'
 
 export type DecodedBolt11Invoice = {
   nodeId: string
-  startedAt: number
+  createdAt: number
   expiresAt: number
   amount: string
   hash: string

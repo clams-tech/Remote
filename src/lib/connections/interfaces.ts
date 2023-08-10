@@ -98,11 +98,11 @@ export interface InvoicesInterface {
   /** Get all invoice receive and send invoices and format to a list of Payments */
   get(): Promise<Invoice[]>
   /** Create a BOLT 11 invoice to receive to */
-  createInvoice?(options: CreateInvoiceOptions): Promise<Invoice>
+  create?(options: CreateInvoiceOptions): Promise<Invoice>
   /** Pay a BOLT11 invoice */
-  payInvoice?(options: PayInvoiceOptions): Promise<Invoice>
+  pay?(options: PayInvoiceOptions): Promise<Invoice>
   /** Pay to a node public key via Keysend */
-  payKeysend?(options: PayKeysendOptions): Promise<Invoice>
+  keysend?(options: PayKeysendOptions): Promise<Invoice>
   /** listen for a specific invoice payment
    * must handle disconnection and reconnection logic
    */

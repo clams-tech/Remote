@@ -4,7 +4,7 @@
   import Big from 'big.js'
   import { channelStatusTolabel } from '../utils.js'
   import type { Channel } from '$lib/@types/channels.js'
-  import BitcoinAmount from '$lib/elements/BitcoinAmount.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { connectionsDetails$ } from '$lib/streams.js'
 
   export let channel: Channel

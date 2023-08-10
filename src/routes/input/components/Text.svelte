@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ParsedInput } from '$lib/@types/common.js'
-  import Msg from '$lib/elements/Msg.svelte'
-  import TextInput from '$lib/elements/TextInput.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
   import pasteIcon from '$lib/icons/paste.js'

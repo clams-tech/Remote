@@ -23,13 +23,6 @@
               (this.elem = canvas),
               (this.callback = i || null),
               (this.ctx = this.elem.getContext('2d')),
-              window.addEventListener(
-                'resize',
-                function () {
-                  this.resize()
-                }.bind(this),
-                !1
-              ),
               (this.elem.onselectstart = function () {
                 return !1
               }),

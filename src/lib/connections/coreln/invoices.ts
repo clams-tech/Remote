@@ -73,12 +73,10 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async createInvoice(options: CreateInvoiceOptions): Promise<Invoice> {
+  async create(options: CreateInvoiceOptions): Promise<Invoice> {
     try {
       const { id, amount, description, expiry } = options
       const createdAt = nowSeconds()
-
-      console.log({ expiry })
 
       const result = await this.connection.rpc({
         method: 'invoice',
@@ -91,8 +89,6 @@ class Invoices implements InvoicesInterface {
       })
 
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
-
-      console.log({ expires_at })
 
       const payment: Invoice = {
         id,
@@ -127,7 +123,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async payInvoice(options: PayInvoiceOptions): Promise<Invoice> {
+  async pay(options: PayInvoiceOptions): Promise<Invoice> {
     try {
       const { request, id, amount, description } = options
 
@@ -181,7 +177,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async payKeysend(options: PayKeysendOptions): Promise<Invoice> {
+  async keysend(options: PayKeysendOptions): Promise<Invoice> {
     try {
       const { destination, id, amount } = options
 

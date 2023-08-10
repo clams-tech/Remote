@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { AppError } from '$lib/@types/errors.js'
   import { formatDateRelativeToNow } from '$lib/dates.js'
-  import Msg from '$lib/elements/Msg.svelte'
-  import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
   import { slide } from 'svelte/transition'

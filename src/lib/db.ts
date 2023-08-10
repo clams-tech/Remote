@@ -28,8 +28,8 @@ class DB extends Dexie {
       channels: '&id, connectionId, shortId',
       utxos: '&id, connectionId, txid, timestamp',
       invoices:
-        '&id, connectionId, offerId, value, fee, payIndex, startedAt, completedAt, direction',
-      addresses: '&id, connectionId, txid',
+        '&id, connectionId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage',
+      addresses: '&id, connectionId, value, txid',
       transactions: '&id, connectionId, timestamp, direction',
       forwards: '&id, connectionId, shortIdIn, shortIdOut, fee, status, startedAt, completedAt',
       offers: '&id, connectionId, description, type, issuer',

@@ -9,12 +9,13 @@
   import { DAY_IN_SECS, STORAGE_KEYS } from '$lib/constants.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
-  import Button from '$lib/elements/Button.svelte'
-  import Connection from '$lib/elements/Connection.svelte'
-  import Msg from '$lib/elements/Msg.svelte'
-  import Section from '$lib/elements/Section.svelte'
-  import SectionHeading from '$lib/elements/SectionHeading.svelte'
-  import TextInput from '$lib/elements/TextInput.svelte'
+  import Button from '$lib/components/Button.svelte'
+  import Connection from '$lib/components/Connection.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import TextInput from '$lib/components/TextInput.svelte'
+  import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import plus from '$lib/icons/plus.js'
   import { log, storage } from '$lib/services.js'
@@ -28,6 +29,10 @@
   let amount = 0
   let creatingPayment = false
   let createPaymentError: AppError | null = null
+  let connectionInterface: ConnectionInterface | null
+
+  let createAddress = false
+  let createInvoice = false
 
   const storedConnections$ = liveQuery(() => db.connections.toArray())
 
@@ -51,15 +56,33 @@
     }
   }
 
+  const handleSelectedConnectionIdChange = () => {
+    connectionInterface = $connections$.find(
+      (connection) => connection.connectionId === selectedConnectionId
+    ) as ConnectionInterface
+
+    if (connectionInterface) {
+      if (connectionInterface.invoices?.create) {
+        createInvoice = true
+      } else if (connectionInterface.transactions?.receive) {
+        createAddress = true
+      }
+    }
+  }
+
+  $: if (selectedConnectionId && $connections$) {
+    handleSelectedConnectionIdChange()
+  }
+
   const createPayment = async () => {
+    if (!connectionInterface) return
+
     creatingPayment = true
     createPaymentError = null
 
-    try {
-      const connectionInterface = $connections$.find(
-        (connection) => connection.connectionId === selectedConnectionId
-      ) as ConnectionInterface
+    const id = createRandomHex()
 
+    try {
       if (
         connectionInterface.connect &&
         connectionInterface.connectionStatus$.value === 'disconnected'
@@ -67,49 +90,35 @@
         await connectionInterface.connect()
       }
 
-      // prefer bolt11 if available
-      if (connectionInterface.invoices?.createInvoice) {
-        const invoice = await connectionInterface.invoices.createInvoice({
-          id: createRandomHex(),
+      if (createInvoice && connectionInterface.invoices?.create) {
+        const invoice = await connectionInterface.invoices.create({
+          id,
           amount: amount ? Big(amount).times(1000).toString() : 'any',
           description: '',
           expiry: 2 * DAY_IN_SECS
         })
 
         await db.invoices.add(invoice)
-        await goto(`/transactions/${invoice.id}`)
       }
-      // otherwise an onchain address
-      else if (connectionInterface.transactions?.receive) {
+
+      if (createAddress && connectionInterface.transactions?.receive) {
         const receiveAddress = await connectionInterface.transactions.receive()
 
         const address: Address = {
-          id: receiveAddress,
+          id,
+          value: receiveAddress,
           connectionId: selectedConnectionId,
           createdAt: nowSeconds(),
-          amount: 'any',
-          description: ''
+          amount: amount ? Big(amount).times(1000).toString() : 'any'
         }
 
         await db.addresses.add(address)
-        await goto(`/transactions/${address.id}`)
-      }
-      // no way to receive
-      else {
-        throw {
-          key: 'connection_cannot_receive_payment',
-          detail: {
-            timestamp: nowSeconds(),
-            message: 'The selected connection cannot receive via lightning or onchain',
-            context: 'Creating a payment to receive funds',
-            connectionId: selectedConnectionId
-          }
-        }
       }
     } catch (error) {
       createPaymentError = error as AppError
     } finally {
       creatingPayment = false
+      await goto(`/transactions/${id}`)
     }
   }
 
@@ -136,9 +145,14 @@
 
   {#if $storedConnections$}
     {#if !$storedConnections$.length}
-      <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
+      <div class="mt-4">
+        <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
+      </div>
     {:else}
       <div class="mt-4 mb-6">
+        <div class="mb-2 text-neutral-300 font-semibold text-sm">
+          {$translate('app.labels.to')}
+        </div>
         <div class="flex w-full flex-wrap gap-2 rounded">
           {#each $storedConnections$ as connection}
             <Connection
@@ -147,6 +161,30 @@
               data={connection}
             />
           {/each}
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <div class="mb-2 text-neutral-300 font-semibold text-sm">
+          {$translate('app.labels.create')}
+        </div>
+
+        <div class="flex items-center">
+          {#if connectionInterface && connectionInterface.invoices?.create}
+            <div in:slide class="flex items-center text-xs">
+              <Toggle bind:toggled={createInvoice}>
+                <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
+              </Toggle>
+            </div>
+          {/if}
+
+          {#if connectionInterface && connectionInterface.transactions?.receive}
+            <div in:slide class="flex items-center ml-4 text-xs">
+              <Toggle bind:toggled={createAddress}>
+                <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
+              </Toggle>
+            </div>
+          {/if}
         </div>
       </div>
 
@@ -164,7 +202,8 @@
           <Button
             on:click={createPayment}
             requesting={creatingPayment}
-            text="Create payment"
+            text={$translate('app.labels.create')}
+            disabled={!connectionInterface}
             primary
           >
             <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div>

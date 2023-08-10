@@ -18,7 +18,8 @@ module.exports = {
     node: true
   },
   rules: {
-    '@typescript-eslint/no-empty-function': 'off'
+    '@typescript-eslint/no-empty-function': 'off',
+    'no-async-promise-executor': 'off'
   },
   globals: { __APP_VERSION__: true, NodeJS: true }
 }
