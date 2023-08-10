@@ -199,6 +199,27 @@
     return details
   })
 
+  let transactionDetailToShow: TransactionDetail | undefined
+
+  $: if ($transactionDetails$) {
+    const details = $transactionDetails$
+    const completed = details.find(({ status, type }) => status === 'complete')
+    const pendingTransaction = details.find(
+      ({ type, status }) => type === 'transaction' && status === 'pending'
+    )
+    const invoice = details.find(({ type }) => type === 'invoice')
+
+    if (details.length === 1) {
+      transactionDetailToShow = details[0]
+    } else if (completed) {
+      transactionDetailToShow = completed
+    } else if (pendingTransaction) {
+      transactionDetailToShow = pendingTransaction
+    } else {
+      transactionDetailToShow = invoice
+    }
+  }
+
   $: qrValues = $transactionDetails$
     ? $transactionDetails$.reduce(
         (values, { qrValues }) => [...values, ...(qrValues || [])],
@@ -230,7 +251,7 @@
     <div class="mt-4">
       <Msg type="error" closable={false} message={$translate('app.errors.transaction_not_found')} />
     </div>
-  {:else}
+  {:else if transactionDetailToShow}
     {@const {
       type,
       icon,
@@ -250,7 +271,7 @@
       abs,
       channelEvent,
       channel
-    } = $transactionDetails$[0]}
+    } = transactionDetailToShow}
 
     {#if qrValues.length}
       <div class="flex flex-col w-full items-center my-4">
