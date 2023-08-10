@@ -206,7 +206,7 @@
             disabled={!connectionInterface}
             primary
           >
-            <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div>
+            <div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html plus}</div>
           </Button>
         </div>
       </div>

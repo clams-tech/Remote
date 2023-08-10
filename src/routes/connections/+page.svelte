@@ -40,7 +40,7 @@
     <div class="flex w-full justify-end">
       <a href="/connections/add" class="mt-6 no-underline block w-min">
         <Button primary text={$translate(`${translateBase}.add_connection`)}
-          ><div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div></Button
+          ><div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html plus}</div></Button
         >
       </a>
     </div>

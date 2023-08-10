@@ -130,7 +130,7 @@
     {:else}
       <div in:fade={{ duration: 250 }} class="w-min">
         <Button on:click={() => (showDecryptModal = true)} text={$translate('app.labels.unlock')}>
-          <div slot="iconRight" class="ml-1 w-6 -mr-2">{@html key}</div>
+          <div slot="iconLeft" class="mr-1 w-6 -ml-2">{@html key}</div>
         </Button>
       </div>
     {/if}

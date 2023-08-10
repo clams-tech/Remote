@@ -151,13 +151,13 @@
     >
       <div class="w-min">
         <Button on:click={resetConfigurationUpdate} text="Cancel">
-          <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html close}</div>
+          <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html close}</div>
         </Button>
       </div>
 
       <div class="w-min">
         <Button on:click={dispatchUpdate} primary text="Update">
-          <div slot="iconRight" class="w-6 ml-1 -mr-2">{@html check}</div>
+          <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html check}</div>
         </Button>
       </div>
     </div>

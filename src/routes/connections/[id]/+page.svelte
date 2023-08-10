@@ -239,8 +239,8 @@
                   >
                     <div
                       class:animate-spin={$connectionDetails$ && $connectionDetails$.syncing}
-                      class="w-4 ml-2 -mr-1"
-                      slot="iconRight"
+                      class="w-4 mr-2 -ml-1"
+                      slot="iconLeft"
                     >
                       {@html refresh}
                     </div>
@@ -265,7 +265,7 @@
                   on:click={() => (showInfoModal = true)}
                   text={$translate('app.labels.info')}
                 >
-                  <div slot="iconRight" class="w-5 ml-1 -mr-2">{@html qr}</div>
+                  <div slot="iconLeft" class="w-5 mr-1 -ml-2">{@html qr}</div>
                 </Button>
               </div>
             </div>

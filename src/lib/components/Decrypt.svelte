@@ -86,7 +86,7 @@
         primary
         disabled={!passphrase}
       >
-        <div class="w-6 ml-2 -mr-2" slot="iconRight">{@html key}</div>
+        <div class="w-6 mr-2 -ml-2" slot="iconLeft">{@html key}</div>
       </Button>
     </div>
   </div>
