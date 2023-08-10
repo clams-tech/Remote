@@ -28,7 +28,7 @@
   let input: HTMLInputElement | HTMLTextAreaElement
 
   $: styles = `flex items-center bg-neutral-900 placeholder:text-neutral-400 w-full autofill:bg-transparent font-medium ${
-    micro ? 'px-3 py-2' : 'px-4 py-[14px]'
+    micro ? 'px-3 py-2' : 'px-4 py-3'
   } border border-neutral-600 rounded appearance-none focus:outline-none ${
     micro ? 'focus:ring-2' : 'focus:ring'
   } focus:border-white ${invalid ? 'focus:ring-utility-error' : 'focus:ring-purple-500'} ${

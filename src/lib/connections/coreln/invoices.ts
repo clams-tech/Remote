@@ -78,6 +78,8 @@ class Invoices implements InvoicesInterface {
       const { id, amount, description, expiry } = options
       const createdAt = nowSeconds()
 
+      console.log({ expiry })
+
       const result = await this.connection.rpc({
         method: 'invoice',
         params: {
@@ -89,6 +91,8 @@ class Invoices implements InvoicesInterface {
       })
 
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
+
+      console.log({ expires_at })
 
       const payment: Invoice = {
         id,

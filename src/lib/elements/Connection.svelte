@@ -12,7 +12,7 @@
   on:click
   class:border-purple-500={selected}
   class:border-2={selected}
-  class="rounded-full border flex flex-col items-center justify-center aspect-square w-32 p-4 bg-neutral-900 hover:bg-neutral-800/70 transition-all"
+  class="rounded border flex flex-col items-center justify-center aspect-square w-32 p-4 bg-neutral-900 hover:bg-neutral-800/70 transition-all"
 >
   <div class="font-semibold truncate w-full text-center">{data.label}</div>
 

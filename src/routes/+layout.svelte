@@ -20,6 +20,7 @@
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
+  import { filter, take } from 'rxjs'
 
   const clearSession = () => session$.next(null)
 
@@ -64,9 +65,13 @@
     })
   }
 
-  $: if ($session$) {
-    initializeConnections()
-  }
+  // initialize all connections once after the session is decrypted
+  session$
+    .pipe(
+      filter((x) => !!x),
+      take(1)
+    )
+    .subscribe(initializeConnections)
 </script>
 
 <svelte:head>

@@ -247,14 +247,14 @@
                   </Button>
 
                   {#if syncProgress$}
-                    <div
-                      class="w-full h-full rounded-full overflow-hidden absolute top-0 py-2 px-3"
-                    >
-                      <div
-                        transition:slide={{ duration: 250 }}
-                        style="width: {$syncProgress$}%;"
-                        class="absolute bottom-0 left-0 h-1.5 transition-all bg-purple-500"
-                      />
+                    <div class="absolute top-0 left-0 p-1 w-full h-full overflow-hidden">
+                      <div class="w-full h-full rounded-full overflow-hidden relative">
+                        <div
+                          transition:slide={{ duration: 250 }}
+                          style="width: {$syncProgress$}%;"
+                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-500"
+                        />
+                      </div>
                     </div>
                   {/if}
                 </div>

@@ -161,7 +161,12 @@
 
       <div class="w-full flex items-center justify-end mt-6">
         <div class="w-min">
-          <Button on:click={createPayment} text="Create payment" primary>
+          <Button
+            on:click={createPayment}
+            requesting={creatingPayment}
+            text="Create payment"
+            primary
+          >
             <div class="w-6 ml-1 -mr-2" slot="iconRight">{@html plus}</div>
           </Button>
         </div>

@@ -9,8 +9,9 @@ export const WS_PROXY = `wss://${API_HOST}/ws-proxy`
 
 export const SEC_IN_MS = 1000
 export const MIN_IN_MS = 60 * 1000
+
 export const MIN_IN_SECS = 60
-export const HOUR_IN_SECS = 60 * MIN_IN_MS
+export const HOUR_IN_SECS = 60 * MIN_IN_SECS
 export const DAY_IN_SECS = 24 * HOUR_IN_SECS
 export const WEEK_IN_SECS = 7 * DAY_IN_SECS
 

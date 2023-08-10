@@ -81,6 +81,8 @@
         nodeId
       } = invoice
 
+      console.log({ expiresAt })
+
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
 

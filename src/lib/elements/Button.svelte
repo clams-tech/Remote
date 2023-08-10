@@ -14,33 +14,42 @@
   }
 </script>
 
-<div class="w-full p-0.5 relative">
+<div class="w-full p-0.5">
   <button
     bind:this={button}
     on:click
-    class="no-underline text-center border text-current transition-all text-[1em] shadow shadow-current w-full flex items-center justify-center px-[1.5em] relative rounded-full font-semibold hover:bg-neutral-800/70 bg-neutral-900 whitespace-nowrap"
+    class="no-underline text-center border-2 text-current text-[1em] hover:shadow w-full flex items-center justify-center px-[1.5em] relative rounded-full font-bold whitespace-nowrap"
     class:opacity-70={disabled}
-    class:border-transparent={!primary && !warning}
-    class:border-purple-500={primary}
+    class:border-neutral-50={!primary && !warning}
+    class:border-purple-300={primary}
     class:border-utility-error={warning}
+    class:hover:shadow-purple-300={primary}
+    class:hover:shadow-neutral-50={!primary && !warning}
+    class:hover:shadow-utility-error={warning}
     disabled={disabled || requesting}
   >
-    <div class:text-transparent={requesting}>
-      <slot name="iconLeft" />
+    <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+      <img src="/images/shell1.png" class="h-auto w-full" alt="texture" />
     </div>
 
-    {#if requesting}
-      <div class="absolute">
-        <Spinner size="1.5em" />
+    <div class="relative flex items-center justify-center">
+      <div class:text-transparent={requesting}>
+        <slot name="iconLeft" />
       </div>
-    {/if}
 
-    <span class:text-transparent={requesting} class="py-[0.375em]">
-      {text}
-    </span>
+      {#if requesting}
+        <div class="absolute">
+          <Spinner size="1.5em" />
+        </div>
+      {/if}
 
-    <div class:text-transparent={requesting}>
-      <slot name="iconRight" />
+      <span class:text-transparent={requesting} class="py-[0.5em]">
+        {text}
+      </span>
+
+      <div class:text-transparent={requesting}>
+        <slot name="iconRight" />
+      </div>
     </div>
   </button>
 </div>
