@@ -17,7 +17,7 @@
 </script>
 
 <Section>
-  <div class="h-full flex flex-col overflow-hidden">
+  <div class="h-full flex flex-col">
     <SectionHeading icon={keys} />
 
     <!-- NO CONNECTIONS YET -->
@@ -28,12 +28,14 @@
         {@html $translate(`${translateBase}.introduction`)}
       </Paragraph>
     {:else}
-      <div class="flex flex-wrap gap-2 w-full flex-grow overflow-auto mt-4">
-        {#each $storedConnections$ as connection}
-          <a href={`/connections/${connection.id}`} class="no-underline">
-            <Connection data={connection} />
-          </a>
-        {/each}
+      <div class="w-full overflow-hidden mt-4">
+        <div class="flex flex-wrap gap-2 w-full flex-grow overflow-auto">
+          {#each $storedConnections$ as connection}
+            <a href={`/connections/${connection.id}`} class="no-underline">
+              <Connection data={connection} />
+            </a>
+          {/each}
+        </div>
       </div>
     {/if}
 

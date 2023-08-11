@@ -321,7 +321,6 @@ class Invoices implements InvoicesInterface {
         }
       }
     } catch (error) {
-      console.error(error)
       const context = 'listenForAnyInvoicePayment (payments)'
 
       const connectionError = handleError(

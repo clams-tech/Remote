@@ -2,7 +2,6 @@
   import type { DecodedBolt11Invoice } from '$lib/@types/invoices.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
-  import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import { decodeBolt11 } from '$lib/invoices.js'
   import type { PageData } from './$types.js'
@@ -15,10 +14,14 @@
   import Button from '$lib/components/Button.svelte'
   import CopyValue from '$lib/components/CopyValue.svelte'
   import Calculator from '$lib/components/Calculator.svelte'
+  import Connection from '$lib/components/Connection.svelte'
+  import type { ConnectionDetails } from '$lib/@types/connections.js'
+  import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
 
   export let data: PageData
 
   let decodeError = ''
+  let selectedConnectionId: ConnectionDetails['id']
 
   const decoded = decodeBolt11(data.invoice) as DecodedBolt11Invoice
 
@@ -26,12 +29,12 @@
     decodeError = $translate('app.errors.bolt11_decode')
   }
 
-  const requiredUserInput = !decoded.amount || decoded.amount === 'any' || decoded.amount === '0'
-  let amountSats = requiredUserInput ? 0 : Big(decoded.amount).div(1000).toNumber()
+  const customAmountRequired = !decoded.amount || decoded.amount === 'any' || decoded.amount === '0'
+  let amountSats = customAmountRequired ? 0 : Big(decoded.amount).div(1000).toNumber()
 </script>
 
 <Section>
-  {#if requiredUserInput}
+  {#if customAmountRequired}
     <div class="absolute top-4 right-4 w-12">
       <Calculator on:amount={(e) => (amountSats = e.detail)} />
     </div>
@@ -49,15 +52,13 @@
   {:else}
     {@const { description, expiresAt, nodeId } = decoded}
 
-    {#if !requiredUserInput}
-      <div class="flex items-center w-full justify-center text-2xl">
-        <BitcoinAmount
-          msat={Big(amountSats || 0)
-            .times(1000)
-            .toString()}
-        />
-      </div>
-    {/if}
+    <div class="flex items-center w-full justify-center text-2xl">
+      <BitcoinAmount
+        msat={Big(amountSats || 0)
+          .times(1000)
+          .toString()}
+      />
+    </div>
 
     <div class="w-full mt-6">
       <SummaryRow>
@@ -81,10 +82,16 @@
         </div>
       </SummaryRow>
 
-      {#if requiredUserInput}
-        <div class="mt-6">
+      <div class="mt-6 flex flex-col gap-y-6">
+        <ConnectionSelector
+          label={$translate('app.labels.pay_from')}
+          direction="send"
+          bind:selectedConnectionId
+        />
+
+        {#if customAmountRequired}
           <TextInput
-            label={$translate('app.labels.amount')}
+            label={$translate('app.labels.custom_amount')}
             name="amount"
             bind:value={amountSats}
             type="number"
@@ -92,8 +99,8 @@
               .times(1000)
               .toString()}
           />
-        </div>
-      {/if}
+        {/if}
+      </div>
 
       <div class="w-full flex items-center justify-end mt-6">
         <div class="w-min">

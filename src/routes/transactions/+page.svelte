@@ -70,8 +70,6 @@
 
   let dailyPayments: DailyPayments
 
-  $: console.log({ dailyPayments })
-
   $: if ($invoices$ && $transactions$ && $addresses$) {
     const unsorted = [...$invoices$, ...$transactions$, ...$addresses$].reduce((acc, payment) => {
       const date = new Date(payment.timestamp * 1000)

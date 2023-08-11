@@ -6,24 +6,21 @@
   import Calculator from '$lib/components/Calculator.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { ConnectionInterface } from '$lib/connections/interfaces.js'
-  import { DAY_IN_SECS, STORAGE_KEYS } from '$lib/constants.js'
+  import { DAY_IN_SECS } from '$lib/constants.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
   import Button from '$lib/components/Button.svelte'
-  import Connection from '$lib/components/Connection.svelte'
-  import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import plus from '$lib/icons/plus.js'
-  import { log, storage } from '$lib/services.js'
   import { connections$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import Big from 'big.js'
-  import { liveQuery } from 'dexie'
   import { slide } from 'svelte/transition'
+  import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
 
   let selectedConnectionId: ConnectionDetails['id']
   let amount = 0
@@ -33,28 +30,6 @@
 
   let createAddress = false
   let createInvoice = false
-
-  const storedConnections$ = liveQuery(() => db.connections.toArray())
-
-  try {
-    const lastReceiveConnectionId = storage.get(STORAGE_KEYS.lastReceiveConnection)
-
-    if (lastReceiveConnectionId) {
-      selectedConnectionId = lastReceiveConnectionId
-    }
-  } catch (error) {
-    log.warn('Access to storage denied when trying to retrieve last received connection id')
-  }
-
-  const selectConnection = (id: ConnectionDetails['id']) => {
-    selectedConnectionId = id
-
-    try {
-      storage.write(STORAGE_KEYS.lastReceiveConnection, id)
-    } catch (error) {
-      log.warn('Access to storage denied when trying to write last received connection id')
-    }
-  }
 
   const handleSelectedConnectionIdChange = () => {
     connectionInterface = $connections$.find(
@@ -143,75 +118,58 @@
     </div>
   </div>
 
-  {#if $storedConnections$}
-    {#if !$storedConnections$.length}
-      <div class="mt-4">
-        <Msg closable={false} message={$translate('app.labels.add_connection')} type="info" />
-      </div>
-    {:else}
-      <div class="mt-4 mb-6">
-        <div class="mb-2 text-neutral-300 font-semibold text-sm">
-          {$translate('app.labels.to')}
-        </div>
-        <div class="flex w-full flex-wrap gap-2 rounded">
-          {#each $storedConnections$ as connection}
-            <Connection
-              selected={selectedConnectionId === connection.id}
-              on:click={() => selectConnection(connection.id)}
-              data={connection}
-            />
-          {/each}
-        </div>
-      </div>
+  <ConnectionSelector
+    bind:selectedConnectionId
+    label={$translate('app.labels.receive_to')}
+    direction="receive"
+  />
 
-      <div class="mb-6">
-        <div class="mb-2 text-neutral-300 font-semibold text-sm">
-          {$translate('app.labels.create')}
+  <div class="my-6">
+    <div class="mb-2 text-neutral-300 font-semibold text-sm">
+      {$translate('app.labels.create')}
+    </div>
+
+    <div class="flex items-center">
+      {#if connectionInterface && connectionInterface.invoices?.create}
+        <div in:slide class="flex items-center text-xs">
+          <Toggle bind:toggled={createInvoice}>
+            <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
+          </Toggle>
         </div>
+      {/if}
 
-        <div class="flex items-center">
-          {#if connectionInterface && connectionInterface.invoices?.create}
-            <div in:slide class="flex items-center text-xs">
-              <Toggle bind:toggled={createInvoice}>
-                <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
-              </Toggle>
-            </div>
-          {/if}
-
-          {#if connectionInterface && connectionInterface.transactions?.receive}
-            <div in:slide class="flex items-center ml-4 text-xs">
-              <Toggle bind:toggled={createAddress}>
-                <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
-              </Toggle>
-            </div>
-          {/if}
+      {#if connectionInterface && connectionInterface.transactions?.receive}
+        <div in:slide class="flex items-center ml-4 text-xs">
+          <Toggle bind:toggled={createAddress}>
+            <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
+          </Toggle>
         </div>
-      </div>
+      {/if}
+    </div>
+  </div>
 
-      <TextInput
-        type="number"
-        bind:value={amount}
-        label={$translate('app.labels.amount')}
-        name="amount"
-        hint={!amount ? 'Any amount' : ''}
-        msat={amount ? Big(amount).times(1000).toString() : ''}
-      />
+  <TextInput
+    type="number"
+    bind:value={amount}
+    label={$translate('app.labels.amount')}
+    name="amount"
+    hint={!amount ? 'Any amount' : ''}
+    msat={amount ? Big(amount).times(1000).toString() : ''}
+  />
 
-      <div class="w-full flex items-center justify-end mt-6">
-        <div class="w-min">
-          <Button
-            on:click={createPayment}
-            requesting={creatingPayment}
-            text={$translate('app.labels.create')}
-            disabled={!connectionInterface}
-            primary
-          >
-            <div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html plus}</div>
-          </Button>
-        </div>
-      </div>
-    {/if}
-  {/if}
+  <div class="w-full flex items-center justify-end mt-6">
+    <div class="w-min">
+      <Button
+        on:click={createPayment}
+        requesting={creatingPayment}
+        text={$translate('app.labels.create')}
+        disabled={!connectionInterface}
+        primary
+      >
+        <div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html plus}</div>
+      </Button>
+    </div>
+  </div>
 </Section>
 
 {#if createPaymentError}

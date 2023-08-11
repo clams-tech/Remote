@@ -26,8 +26,7 @@ import {
   timer,
   distinctUntilKeyChanged,
   merge,
-  switchMap,
-  tap
+  switchMap
 } from 'rxjs'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
@@ -41,7 +40,6 @@ type ConnectionErrors = Record<ConnectionDetails['id'], AppError[]>
 
 /** A collection of the last 10 errors for each connectionId */
 export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
-  tap((err) => console.log('ERROR:', err)),
   filter((error) => error.key.startsWith('connection_')),
   scan((acc, value) => {
     const { connectionId } = value.detail

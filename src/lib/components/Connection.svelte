@@ -1,22 +1,40 @@
 <script lang="ts">
   import type { ConnectionDetails } from '$lib/@types/connections.js'
-  import { connectionOptions } from '$lib/connections/index.js'
+  import bitcoin from '$lib/icons/bitcoin.js'
+  import lightning from '$lib/icons/lightning.js'
+  import { connections$ } from '$lib/streams.js'
 
   export let data: ConnectionDetails
   export let selected = false
 
-  const connectionTypeDetails = connectionOptions.find((c) => c.type === data.type)
+  $: connection = $connections$.find((connection) => connection.connectionId === data.id)
 </script>
 
 <button
   on:click
-  class:border-purple-500={selected}
   class:border-2={selected}
-  class="rounded border flex flex-col items-center justify-center aspect-square w-32 p-2 bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
+  class:border-neutral-50={selected}
+  class="rounded-full flex items-center justify-center px-[2em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
 >
-  {#if connectionTypeDetails}
-    <div class="p-1">{@html connectionTypeDetails.icon}</div>
-  {/if}
+  <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+    <img src="/images/rock1.png" class="h-auto w-full" alt="texture" />
+  </div>
 
-  <div class="font-semibold truncate w-full text-center absolute bottom-2">{data.label}</div>
+  <div class="flex items-center relative">
+    {#if connection}
+      <div class="flex items-center mr-1">
+        {#if connection.transactions}
+          <div class="w-5 -ml-2 -mr-1 text-bitcoin-orange">{@html bitcoin}</div>
+        {/if}
+
+        {#if connection.invoices}
+          <div class="w-5 text-bitcoin-yellow">{@html lightning}</div>
+        {/if}
+      </div>
+    {/if}
+
+    <div class="font-semibold truncate w-full text-center py-[0.75em] leading-none">
+      {data.label}
+    </div>
+  </div>
 </button>

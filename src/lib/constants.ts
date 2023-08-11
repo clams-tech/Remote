@@ -62,5 +62,6 @@ export const STORAGE_KEYS = {
   session: `clams:session:${STORAGE_VERSION}`,
   settings: `clams:settings:${STORAGE_VERSION}`,
   lastReceiveConnection: `clams:last_receive_connection:${STORAGE_VERSION}`,
+  lastSendConnection: `clams:last_send_connection:${STORAGE_VERSION}`,
   getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
 }
