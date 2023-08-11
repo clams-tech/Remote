@@ -60,7 +60,7 @@
       {/if}
 
       <div
-        class="flex w-full flex-wrap gap-2 px-2 py-4 border border-neutral-600 rounded bg-neutral-900"
+        class="flex w-full flex-wrap gap-2 px-4 py-4 border border-neutral-600 rounded bg-neutral-900"
       >
         {#each $storedConnections$ as connection}
           <Connection
