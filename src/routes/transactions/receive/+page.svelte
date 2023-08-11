@@ -111,18 +111,14 @@
 <svelte:window on:keyup={handleKeyPress} />
 
 <Section>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between mb-2">
     <SectionHeading icon={plus} />
     <div class="w-10">
       <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
     </div>
   </div>
 
-  <ConnectionSelector
-    bind:selectedConnectionId
-    label={$translate('app.labels.receive_to')}
-    direction="receive"
-  />
+  <ConnectionSelector bind:selectedConnectionId direction="receive" />
 
   <div class="my-6">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">

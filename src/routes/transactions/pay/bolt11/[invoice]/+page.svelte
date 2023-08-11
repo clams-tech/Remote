@@ -17,6 +17,7 @@
   import Connection from '$lib/components/Connection.svelte'
   import type { ConnectionDetails } from '$lib/@types/connections.js'
   import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
+  import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
 
   export let data: PageData
 
@@ -74,20 +75,14 @@
       {/if}
 
       <SummaryRow>
-        <div slot="label">{$translate('app.labels.expires')}</div>
+        <div slot="label">{$translate('app.labels.expires')}:</div>
         <div slot="value">
-          {#await formatDateRelativeToNow(expiresAt) then date}
-            {date}
-          {/await}
+          <ExpiryCountdown label={false} expiry={expiresAt} />
         </div>
       </SummaryRow>
 
       <div class="mt-6 flex flex-col gap-y-6">
-        <ConnectionSelector
-          label={$translate('app.labels.pay_from')}
-          direction="send"
-          bind:selectedConnectionId
-        />
+        <ConnectionSelector direction="send" bind:selectedConnectionId />
 
         {#if customAmountRequired}
           <TextInput

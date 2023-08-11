@@ -9,7 +9,7 @@
   import Connection from './Connection.svelte'
 
   export let direction: 'send' | 'receive'
-  export let label: string
+  export let label: string = $translate('app.labels.connection')
   export let selectedConnectionId: ConnectionDetails['id']
 
   const storedConnections$ = liveQuery(() => db.connections.toArray())
