@@ -11,7 +11,9 @@ import type {
 } from 'bolt12-decoder/@types/types.js'
 import { stripMsatSuffix } from './connections/coreln/utils.js'
 
-export function decodeBolt11(bolt11: string): (DecodedBolt11Invoice & { bolt11: string }) | null {
+export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
+  bolt11 = bolt11.toLowerCase()
+
   // Remove prepended string if found
   if (bolt11.includes('lightning:')) {
     bolt11 = bolt11.replace('lightning:', '')
@@ -20,7 +22,7 @@ export function decodeBolt11(bolt11: string): (DecodedBolt11Invoice & { bolt11: 
   try {
     const decoded = decode(bolt11)
 
-    return { bolt11, ...decoded }
+    return decoded
   } catch (error) {
     return null
   }

@@ -29,9 +29,13 @@
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer') {
       await goto(`/offers/bolt12/${value}`)
-    } else if (type === 'invoice' || type === 'node_publickey' || type === 'onchain') {
+    } else if (type === 'invoice' || lightning) {
+      await goto(`/transactions/pay/bolt11/${lightning || value}`)
+    } else if (type === 'node_publickey') {
+      await goto(`/transactions/pay/keysend/${value}`)
+    } else if (type === 'onchain') {
       await goto(
-        `/transactions/send/${value}?amount=${amount}&label=${label}&message=${message}&lightning=${lightning}`
+        `/transactions/pay/address/${value}?amount=${amount}&label=${label}&message=${message}`
       )
     }
   }
