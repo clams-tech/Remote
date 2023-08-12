@@ -18,9 +18,9 @@
   import plus from '$lib/icons/plus.js'
   import { connections$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
-  import Big from 'big.js'
   import { slide } from 'svelte/transition'
   import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
+  import { satsToMsats } from '$lib/conversion.js'
 
   let selectedConnectionId: ConnectionDetails['id']
   let amount = 0
@@ -68,7 +68,7 @@
       if (createInvoice && connectionInterface.invoices?.create) {
         const invoice = await connectionInterface.invoices.create({
           id,
-          amount: amount ? Big(amount).times(1000).toString() : 'any',
+          amount: amount ? satsToMsats(amount) : 'any',
           description: '',
           expiry: 2 * DAY_IN_SECS
         })
@@ -84,7 +84,7 @@
           value: receiveAddress,
           connectionId: selectedConnectionId,
           createdAt: nowSeconds(),
-          amount: amount ? Big(amount).times(1000).toString() : 'any'
+          amount: amount ? satsToMsats(amount) : 'any'
         }
 
         await db.addresses.add(address)
@@ -113,9 +113,6 @@
 <Section>
   <div class="flex items-center justify-between mb-2">
     <SectionHeading icon={plus} />
-    <div class="w-10">
-      <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
-    </div>
   </div>
 
   <ConnectionSelector bind:selectedConnectionId direction="receive" />
@@ -125,18 +122,18 @@
       {$translate('app.labels.create')}
     </div>
 
-    <div class="flex items-center">
+    <div class="flex items-center border rounded border-neutral-600 p-4 bg-neutral-900">
       {#if connectionInterface && connectionInterface.invoices?.create}
-        <div in:slide class="flex items-center text-xs">
-          <Toggle bind:toggled={createInvoice}>
+        <div in:slide class="flex items-center">
+          <Toggle large bind:toggled={createInvoice}>
             <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
           </Toggle>
         </div>
       {/if}
 
       {#if connectionInterface && connectionInterface.transactions?.receive}
-        <div in:slide class="flex items-center ml-4 text-xs">
-          <Toggle bind:toggled={createAddress}>
+        <div in:slide class="flex items-center ml-4">
+          <Toggle large bind:toggled={createAddress}>
             <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
           </Toggle>
         </div>
@@ -150,10 +147,14 @@
     label={$translate('app.labels.amount')}
     name="amount"
     hint={!amount ? 'Any amount' : ''}
-    msat={amount ? Big(amount).times(1000).toString() : ''}
+    msat={amount ? satsToMsats(amount) : ''}
   />
 
-  <div class="w-full flex items-center justify-end mt-6">
+  <div class="w-full flex items-center justify-between mt-6">
+    <div class="w-12 -ml-1">
+      <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
+    </div>
+
     <div class="w-min">
       <Button
         on:click={createPayment}

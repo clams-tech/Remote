@@ -10,6 +10,7 @@
   import { bitcoinExchangeRates$, settings$ } from '$lib/streams.js'
   import Big from 'big.js'
   import { createEventDispatcher } from 'svelte'
+  import { satsToMsats } from '$lib/conversion.js'
 
   const dispatch = createEventDispatcher()
 
@@ -53,7 +54,9 @@
 
 <svelte:window on:keyup={handleKeyPress} />
 
-<button on:click={() => (showModal = true)} class="w-full">{@html calculator}</button>
+<button on:click={() => (showModal = true)} class="w-full flex items-center"
+  >{@html calculator}</button
+>
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
@@ -70,7 +73,7 @@
       />
 
       <div class="mt-4 mb-6 text-2xl">
-        <BitcoinAmount msat={Big(sats).times(1000).toString()} />
+        <BitcoinAmount msat={satsToMsats(sats)} />
       </div>
 
       <Button primary on:click={setAmount} text={$translate('app.labels.set_amount')} />

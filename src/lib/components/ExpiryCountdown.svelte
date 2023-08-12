@@ -7,7 +7,6 @@
 
   export let expiry: number
   export let label = true
-  export let small = true
 
   const date = new Date(expiry * 1000)
 
@@ -31,7 +30,7 @@
     })
 </script>
 
-<div class:text-sm={small} class:text-utility-error={$msToExpire$.includes('ago')}>
+<div class:text-utility-error={$msToExpire$.includes('ago')}>
   {#if label}
     <span>{$translate(`app.labels.${$msToExpire$.includes('ago') ? 'expired' : 'expires'}`)}</span>
   {/if}

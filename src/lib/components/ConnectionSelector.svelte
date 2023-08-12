@@ -7,6 +7,7 @@
   import Msg from './Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import Connection from './Connection.svelte'
+  import { filter, from, take } from 'rxjs'
 
   export let direction: 'send' | 'receive'
   export let label: string = $translate('app.labels.connection')
@@ -14,21 +15,33 @@
 
   const storedConnections$ = liveQuery(() => db.connections.toArray())
 
-  try {
-    const lastReceiveConnectionId = storage.get(
-      direction === 'receive' ? STORAGE_KEYS.lastReceiveConnection : STORAGE_KEYS.lastSendConnection
+  from(storedConnections$)
+    .pipe(
+      filter((x) => !!x),
+      take(1)
     )
+    .subscribe((connections) => {
+      try {
+        const lastReceiveConnectionId = storage.get(
+          direction === 'receive'
+            ? STORAGE_KEYS.lastReceiveConnection
+            : STORAGE_KEYS.lastSendConnection
+        )
 
-    if (lastReceiveConnectionId) {
-      selectedConnectionId = lastReceiveConnectionId
-    }
-  } catch (error) {
-    log.warn('Access to storage denied when trying to retrieve last received connection id')
-  }
-
-  $: if ($storedConnections$ && !selectedConnectionId) {
-    selectConnection($storedConnections$[0].id)
-  }
+        if (
+          lastReceiveConnectionId &&
+          connections.find(({ id }) => id === lastReceiveConnectionId)
+        ) {
+          selectedConnectionId = lastReceiveConnectionId
+        }
+      } catch (error) {
+        log.warn('Access to storage denied when trying to retrieve last received connection id')
+      } finally {
+        if (!selectedConnectionId) {
+          selectConnection(connections[0].id)
+        }
+      }
+    })
 
   const selectConnection = (id: ConnectionDetails['id']) => {
     selectedConnectionId = id
@@ -59,9 +72,7 @@
         </div>
       {/if}
 
-      <div
-        class="flex w-full flex-wrap gap-2 px-4 py-4 border border-neutral-600 rounded bg-neutral-900"
-      >
+      <div class="flex w-full flex-wrap gap-2 p-4 border border-neutral-600 rounded bg-neutral-900">
         {#each $storedConnections$ as connection}
           <Connection
             selected={selectedConnectionId === connection.id}

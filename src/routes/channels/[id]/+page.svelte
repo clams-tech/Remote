@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade, slide } from 'svelte/transition'
+  import { slide } from 'svelte/transition'
   import { connections$, onDestroy$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
@@ -21,8 +21,8 @@
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
-  import channels from '$lib/icons/channels.js'
   import type { AppError } from '$lib/@types/errors.js'
+  import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 
   export let data: PageData // channel id
   const channels$ = liveQuery(() => db.channels.toArray())
@@ -50,7 +50,7 @@
       const { feeBase, feePpm, htlcMin, htlcMax } = channel
 
       if (feeBase) {
-        feeBaseUpdate = Big(feeBase).div(1000).toNumber()
+        feeBaseUpdate = msatsToSats(feeBase)
       }
 
       if (feePpm) {
@@ -58,11 +58,11 @@
       }
 
       if (htlcMin) {
-        minForwardUpdate = Big(htlcMin).div(1000).toNumber()
+        minForwardUpdate = msatsToSats(htlcMin)
       }
 
       if (htlcMax) {
-        maxForwardUpdate = Big(htlcMax).div(1000).toNumber()
+        maxForwardUpdate = msatsToSats(htlcMax)
       }
     }
   }
@@ -89,9 +89,9 @@
     updating = true
 
     try {
-      const feeBase = Big(feeBaseUpdate).times(1000).toString()
-      const htlcMin = Big(minForwardUpdate).times(1000).toString()
-      const htlcMax = Big(maxForwardUpdate).times(1000).toString()
+      const feeBase = satsToMsats(feeBaseUpdate)
+      const htlcMin = satsToMsats(minForwardUpdate)
+      const htlcMax = satsToMsats(maxForwardUpdate)
 
       await connection.channels?.update!({
         id: data.id,

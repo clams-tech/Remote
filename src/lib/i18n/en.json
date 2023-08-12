@@ -311,6 +311,7 @@
     "connection_configuration": "There is a problem with the connection configuration.",
     "connection_rate_limited": "Could not make request due to rate limits.",
     "connection_not_supported": "Could not make request due to feature not being supported on this connection.",
+    "connection_self_payment_not_supported": "Self payments are not supported by this connection.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "connection_cannot_receive_payment": "The selected connection cannot receive a payment, try selecting another one.",
     "transaction_not_found": "Could not find this transaction...",

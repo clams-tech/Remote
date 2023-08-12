@@ -5,15 +5,16 @@
   import { connections$ } from '$lib/streams.js'
 
   export let data: ConnectionDetails
-  export let selected = false
+  export let selected = true
 
   $: connection = $connections$.find((connection) => connection.connectionId === data.id)
+  $: status = connection?.connectionStatus$
 </script>
 
 <button
   on:click
-  class:opacity-70={!selected}
-  class="rounded border-2 border-neutral-50 flex items-center justify-center px-[1em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
+  class:border-neutral-500={!selected}
+  class="rounded-xl border-2 border-neutral-50 flex items-center justify-center px-[1em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
 >
   <!-- <div class="absolute rounded top-0 right-0 w-full h-full overflow-hidden opacity-30">
     <img src="/images/rock1.png" class="w-full h-full" alt="texture" />
@@ -36,4 +37,13 @@
       {data.label}
     </div>
   </div>
+
+  {#if status}
+    <div
+      class="w-2.5 h-2.5 ml-2 rounded-full transition-colors"
+      class:bg-utility-success={$status === 'connected'}
+      class:bg-utility-pending={$status === 'connecting' || $status === 'waiting_reconnect'}
+      class:bg-utility-error={!$status || $status === 'disconnected'}
+    />
+  {/if}
 </button>

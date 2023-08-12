@@ -23,9 +23,9 @@
     class:border-utility-error={warning}
     class:bg-purple-700={primary}
     class:bg-neutral-900={!primary}
-    class:hover:shadow-purple-500={primary}
-    class:hover:shadow-neutral-50={!primary && !warning}
-    class:hover:shadow-utility-error={warning}
+    class:hover:shadow-purple-500={primary && !disabled}
+    class:hover:shadow-neutral-50={!primary && !warning && !disabled}
+    class:hover:shadow-utility-error={warning && !disabled}
     disabled={disabled || requesting}
   >
     <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">

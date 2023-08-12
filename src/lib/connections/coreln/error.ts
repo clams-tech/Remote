@@ -4,6 +4,7 @@ import type { CoreLnError } from './types.js'
 
 /** a mapping of Coreln error codes -> i18n string error message */
 const errorToMessageKey = (coreLnError: CoreLnError): string => {
+  console.log(coreLnError)
   switch (coreLnError.code.toString()) {
     /** PAY ERRORS */
     case '205':
@@ -81,6 +82,8 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
       return 'connection_rate_limited'
     case '-32601':
       return 'connection_not_supported'
+    case '-32602':
+      return 'connection_self_payment_not_supported'
     default:
       return 'connection_unknown'
   }

@@ -5,13 +5,13 @@ import { bitcoinExchangeRates$ } from './streams'
 Big.NE = -21
 Big.DP = 8
 
-export function msatsToBtc(msats: string): string {
+export const msatsToBtc = (msats: string): string => {
   return Big(msats === 'any' ? '0' : msats)
     .div(1e11)
     .toFixed(8)
 }
 
-export function msatsToFiat(msats: string, denomination: FiatDenomination): string | null {
+export const msatsToFiat = (msats: string, denomination: FiatDenomination): string | null => {
   const exchangeRate = getExchangeRate(denomination)
 
   return exchangeRate
@@ -20,6 +20,10 @@ export function msatsToFiat(msats: string, denomination: FiatDenomination): stri
         .toString()
     : null
 }
+
+export const msatsToSats = (msats: string): number => Big(msats).div(1000).toNumber()
+
+export const satsToMsats = (sats: number): string => Big(sats).times(1000).toString()
 
 export function getExchangeRate(denomination: FiatDenomination): number | undefined {
   return bitcoinExchangeRates$.value?.[denomination]
