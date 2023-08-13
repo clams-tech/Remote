@@ -4,7 +4,6 @@ import type { CoreLnError } from './types.js'
 
 /** a mapping of Coreln error codes -> i18n string error message */
 const errorToMessageKey = (coreLnError: CoreLnError): string => {
-  console.log(coreLnError)
   switch (coreLnError.code.toString()) {
     /** PAY ERRORS */
     case '205':

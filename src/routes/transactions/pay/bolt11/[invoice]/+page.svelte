@@ -49,7 +49,11 @@
         ({ connectionId }) => connectionId === selectedConnectionId
       ) as ConnectionInterface
 
-      const paid = await connection.invoices!.pay!({
+      if (!connection.invoices?.pay) {
+        throw { key: 'connection_unsupported_action' }
+      }
+
+      const paid = await connection.invoices.pay({
         request: data.invoice,
         id: createRandomHex(),
         amount: customAmountRequired ? satsToMsats(amountSats) : undefined

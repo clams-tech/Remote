@@ -179,14 +179,15 @@ class Invoices implements InvoicesInterface {
 
   async keysend(options: PayKeysendOptions): Promise<Invoice> {
     try {
-      const { destination, id, amount } = options
+      const { destination, id, amount, tlvs } = options
 
       const result = await this.connection.rpc({
         method: 'keysend',
         params: {
           label: id,
           destination,
-          amount_msat: amount
+          amount_msat: amount,
+          extratlvs: tlvs
         }
       })
 
@@ -194,16 +195,6 @@ class Invoices implements InvoicesInterface {
         result as KeysendResponse
 
       const amountMsat = stripMsatSuffix(amount_msat)
-
-      // get the invoice by payment_hash for request parameter of Invoice type
-      const listInvoiceResult = await this.connection.rpc({
-        method: 'listinvoice',
-        params: { payment_hash }
-      })
-
-      const {
-        invoices: [{ bolt11 }]
-      } = listInvoiceResult as ListinvoicesResponse
 
       return {
         id,
@@ -219,7 +210,7 @@ class Invoices implements InvoicesInterface {
         fee: Big(stripMsatSuffix(amount_sent_msat)).minus(amountMsat).toString(),
         status,
         connectionId: this.connection.connectionId,
-        request: bolt11 as string
+        request: ''
       }
     } catch (error) {
       const context = 'payKeysend (payments)'

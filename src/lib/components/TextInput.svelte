@@ -48,13 +48,15 @@
 
   <div class="relative flex items-center">
     {#if hint || msat}
-      <span
-        class="flex justify-end absolute right-1 -top-6 text-neutral-400 text-sm w-1/2 cursor-default"
-      >
+      <span class="flex justify-end absolute right-1 -top-6 text-neutral-400 w-1/2 cursor-default">
         {#if msat}
-          <BitcoinAmount {msat} />
+          <div class="text-sm">
+            <BitcoinAmount {msat} />
+          </div>
         {:else}
-          {@html hint}
+          <div class="text-xs">
+            {@html hint}
+          </div>
         {/if}
       </span>
     {/if}

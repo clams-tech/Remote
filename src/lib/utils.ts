@@ -2,6 +2,7 @@ import type { BitcoinExchangeRates } from './@types/settings.js'
 import { API_URL } from './constants.js'
 import { log } from './services.js'
 import { settings$ } from './streams.js'
+import { Buffer } from 'buffer'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -59,3 +60,5 @@ export function isDesktop() {
     return true
   }
 }
+
+export const stringToHex = (val: string): string => Buffer.from(val).toString('hex')

@@ -65,3 +65,7 @@ export const STORAGE_KEYS = {
   lastSendConnection: `clams:last_send_connection:${STORAGE_VERSION}`,
   getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
 }
+
+export const TLV_RECORDS = {
+  message: 34349334
+}

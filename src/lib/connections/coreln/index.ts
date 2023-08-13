@@ -141,7 +141,6 @@ export const methods = [
   'invoice',
   'pay',
   'keysend',
-  'listinvoice',
   'waitinvoice',
   'waitanyinvoice',
   'signmessage',

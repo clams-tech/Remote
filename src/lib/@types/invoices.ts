@@ -43,6 +43,8 @@ export type PayKeysendOptions = {
   maxFeePercent?: string
   retryFor?: number
   maxDelay?: string
+  /** map of tlv number to hex encoded utf-8 string */
+  tlvs?: Record<number, string>
 }
 
 export type CreateInvoiceOptions = {
