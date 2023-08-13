@@ -39,6 +39,7 @@
     icon: string
     qrValues?: QRValue[]
     status: TransactionStatus
+    request?: string
     paymentHash?: string
     paymentPreimage?: string
     txid?: string
@@ -108,6 +109,7 @@
         offer: offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer,
         abs: direction === 'send' ? '-' : '+',
         fee,
+        request,
         paymentHash: hash,
         paymentPreimage: preimage,
         peerNodeId: direction === 'send' ? nodeId : undefined
@@ -260,6 +262,7 @@
       paymentPreimage,
       txid,
       amount,
+      request,
       fee,
       description,
       createdAt,
@@ -291,6 +294,8 @@
                 ? channelEvent.type === 'channelClose'
                   ? 'channel_close'
                   : 'channel_open'
+                : type === 'invoice' && !request
+                ? 'keysend'
                 : type
             }`
           )}

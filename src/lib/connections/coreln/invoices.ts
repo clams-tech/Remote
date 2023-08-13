@@ -1,6 +1,6 @@
 import Big from 'big.js'
 import { nowSeconds } from '$lib/utils.js'
-import { formatInvoice, payToPayment, stripMsatSuffix } from './utils.js'
+import { formatInvoice, payToInvoice, stripMsatSuffix } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
@@ -55,7 +55,7 @@ class Invoices implements InvoicesInterface {
       )
 
       const sentPayments: Invoice[] = await Promise.all(
-        pays.map((pay) => payToPayment(pay, this.connection.connectionId))
+        pays.map((pay) => payToInvoice(pay, this.connection.connectionId))
       )
 
       return invoicePayments.concat(sentPayments)

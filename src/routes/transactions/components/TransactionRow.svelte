@@ -19,6 +19,7 @@
   let channelClose = false
   let channelOpen = false
   let description: string | undefined
+  let request: string | undefined
 
   $: if (type === 'invoice') {
     const {
@@ -26,7 +27,8 @@
       direction,
       amount: invoiceAmount,
       description: invoiceDescription,
-      offer
+      offer,
+      request: invoiceRequest
     } = data as Invoice
 
     icon = lightning
@@ -34,6 +36,7 @@
     abs = direction == 'receive' ? '+' : '-'
     balanceChange = invoiceAmount === 'any' || invoiceAmount === '0' ? undefined : invoiceAmount
     description = invoiceDescription || offer?.description
+    request = invoiceRequest
   } else if (type === 'address') {
     const { amount: addressAmount, message: addressDescription, createdAt } = data as Address
     icon = bitcoin
@@ -91,6 +94,8 @@
           ? abs === '+'
             ? 'onchain_receive'
             : 'onchain_send'
+          : type === 'invoice' && !request
+          ? 'keysend'
           : 'invoice'
       }`
     )

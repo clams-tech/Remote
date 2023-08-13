@@ -91,7 +91,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
     status: invoiceStatusToPaymentStatus(status),
     completedAt: paid_at ? paid_at : undefined,
     expiresAt: expires_at,
-    description,
+    description: description.replace('keysend: ', ''),
     nodeId,
     fee: undefined,
     createdAt,
@@ -101,7 +101,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
   }
 }
 
-export async function payToPayment(pay: Pay, connectionId: string): Promise<Invoice> {
+export async function payToInvoice(pay: Pay, connectionId: string): Promise<Invoice> {
   const {
     bolt11,
     bolt12,
