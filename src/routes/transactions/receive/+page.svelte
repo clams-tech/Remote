@@ -38,9 +38,9 @@
 
     if (connectionInterface) {
       if (connectionInterface.invoices?.create) {
-        createInvoice = true
+        setTimeout(() => (createInvoice = true), 50)
       } else if (connectionInterface.transactions?.receive) {
-        createAddress = true
+        setTimeout(() => (createAddress = true), 50)
       }
     }
   }
@@ -122,10 +122,10 @@
       {$translate('app.labels.create')}
     </div>
 
-    <div class="flex items-center border rounded border-neutral-600 p-4 bg-neutral-900">
+    <div class="flex items-center border rounded border-neutral-600 px-4 bg-neutral-900">
       {#if connectionInterface && connectionInterface.invoices?.create}
         <div in:slide class="flex items-center">
-          <Toggle large bind:toggled={createInvoice}>
+          <Toggle bind:toggled={createInvoice}>
             <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
           </Toggle>
         </div>
@@ -133,7 +133,7 @@
 
       {#if connectionInterface && connectionInterface.transactions?.receive}
         <div in:slide class="flex items-center ml-4">
-          <Toggle large bind:toggled={createAddress}>
+          <Toggle bind:toggled={createAddress}>
             <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
           </Toggle>
         </div>

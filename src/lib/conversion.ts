@@ -11,6 +11,8 @@ export const msatsToBtc = (msats: string): string => {
     .toFixed(8)
 }
 
+export const btcToSats = (btc: string): number => Big(btc).times(1e8).toNumber()
+
 export const msatsToFiat = (msats: string, denomination: FiatDenomination): string | null => {
   const exchangeRate = getExchangeRate(denomination)
 

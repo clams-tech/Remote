@@ -1,4 +1,5 @@
 import { toOutputScript } from 'bitcoinjs-lib/src/address.js'
+import { networks } from 'bitcoinjs-lib'
 import type { ParsedInput } from './@types/common.js'
 
 import {
@@ -26,9 +27,22 @@ export function isValidBitcoinAddress(val: string) {
     toOutputScript(val)
     return true
   } catch (e) {
-    return false
+    try {
+      toOutputScript(val, networks.testnet)
+      return true
+    } catch (e) {
+      try {
+        toOutputScript(val, networks.regtest)
+        return true
+      } catch (e) {
+        return false
+      }
+    }
   }
 }
+
+export const isBolt12Offer = (input: string): boolean =>
+  input.startsWith('lno1') || input.startsWith('lni1') || input.startsWith('lnr1')
 
 export function getInputType(destination: string): ParsedInput {
   destination = destination.toLowerCase()
@@ -57,14 +71,7 @@ export function getInputType(destination: string): ParsedInput {
   }
 
   // Bolt 12
-  if (
-    // Offer
-    destination.startsWith('lno1') ||
-    // Invoice
-    destination.startsWith('lni1') ||
-    // Invoice request
-    destination.startsWith('lnr1')
-  ) {
+  if (isBolt12Offer(destination)) {
     return {
       type: 'offer',
       value: destination

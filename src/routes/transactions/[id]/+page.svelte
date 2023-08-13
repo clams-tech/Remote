@@ -119,6 +119,15 @@
     if (address) {
       const { value, connectionId, createdAt, amount, txid, message, completedAt, label } = address
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
+      const searchParams = new URLSearchParams({ amount: msatsToBtc(amount) })
+
+      if (label) {
+        searchParams.append('label', label)
+      }
+
+      if (message) {
+        searchParams.append('message', message)
+      }
 
       let tx: Transaction | null = null
 
@@ -132,18 +141,16 @@
       if (status === 'waiting') {
         qrValues.push({
           label: $translate('app.labels.address'),
-          value: `bitcoin:${value.toUpperCase()}`
+          value: `bitcoin:${value.toUpperCase()}?${searchParams.toString()}`
         })
       }
 
       if (invoice && invoice.status === 'pending') {
+        searchParams.append('lightning', invoice.request.toUpperCase())
+
         qrValues.push({
           label: $translate('app.labels.unified'),
-          value: `bitcoin:${value.toUpperCase()}?amount=${msatsToBtc(amount)}${
-            label ? `&label=${encodeURIComponent(label)}` : ''
-          }${
-            message ? `&message=${encodeURIComponent(message)}` : ''
-          }&lightning=${invoice.request.toUpperCase()}`
+          value: `bitcoin:${value.toUpperCase()}?${searchParams.toString()}`
         })
       }
 
@@ -341,7 +348,7 @@
             slot="value"
           >
             {status}
-            {#if status === 'pending'}
+            {#if status === 'pending' || status === 'waiting'}
               <div class="ml-1">
                 <Spinner size="1rem" />
               </div>

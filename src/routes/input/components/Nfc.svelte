@@ -2,13 +2,12 @@
   import type { ParsedInput } from '$lib/@types/common.js'
   import Msg from '$lib/components/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import caret from '$lib/icons/caret.js'
   import nfcIcon from '$lib/icons/nfc.js'
   import { parseInput } from '$lib/input-parser.js'
   import { nfc } from '$lib/services.js'
-  import { truncateValue } from '$lib/utils.js'
   import { createEventDispatcher } from 'svelte'
   import { slide } from 'svelte/transition'
+  import ParsedInputButton from './ParsedInputButton.svelte'
 
   const dispatch = createEventDispatcher()
 
@@ -46,19 +45,8 @@
   {/if}
 
   {#if parsed}
-    <button
-      disabled={parsed.type === 'unknown'}
-      on:click={() => dispatch('input', parsed)}
-      transition:slide={{ axis: 'x' }}
-      class="absolute bottom-2.5 right-2 py-1 px-4 shadow shadow-current rounded-full flex items-center bg-neutral-900 whitespace-nowrap"
-    >
-      <div class="font-semibold mr-1">
-        {$translate(`app.labels.${parsed.type}`)}:
-      </div>
-      <div>
-        {truncateValue(parsed.value)}
-      </div>
-      <div class="w-4 -rotate-90 ml-1 -mr-2">{@html caret}</div>
-    </button>
+    <div class="absolute bottom-2.5 right-2">
+      <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+    </div>
   {/if}
 </div>

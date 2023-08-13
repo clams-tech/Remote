@@ -10,6 +10,7 @@
   import NFCComponent from './components/Nfc.svelte'
   import { nfc } from '$lib/services.js'
   import { goto } from '$app/navigation'
+  import { isBolt12Offer } from '$lib/input-parser.js'
 
   type InputKey = 'scan' | 'text' | 'image' | 'nfc'
 
@@ -27,16 +28,28 @@
       await goto(`/lnurl/${value}?type=${type}`)
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
-    } else if (type === 'offer') {
-      await goto(`/offers/bolt12/${value}`)
+    } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
+      await goto(`/offers/bolt12/${lightning || value}`)
     } else if (type === 'invoice' || lightning) {
       await goto(`/transactions/pay/bolt11/${lightning || value}`)
     } else if (type === 'node_publickey') {
       await goto(`/transactions/pay/keysend/${value}`)
     } else if (type === 'onchain') {
-      await goto(
-        `/transactions/pay/address/${value}?amount=${amount}&label=${label}&message=${message}`
-      )
+      const searchParams = new URLSearchParams()
+
+      if (amount) {
+        searchParams.append('amount', amount)
+      }
+
+      if (label) {
+        searchParams.append('label', label)
+      }
+
+      if (message) {
+        searchParams.append('message', message)
+      }
+
+      await goto(`/transactions/pay/onchain/${value}?${searchParams.toString()}`)
     }
   }
 </script>
