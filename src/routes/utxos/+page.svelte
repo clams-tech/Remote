@@ -62,7 +62,7 @@
         <Msg closable={false} type="info" message={$translate('app.labels.no_utxos')} />
       </div>
     {:else}
-      <div class="w-full h-full overflow-hidden">
+      <div class="w-full h-full overflow-hidden flex flex-col">
         <div class="w-full mb-4">
           <SummaryRow>
             <div slot="label">{$translate('app.labels.total')}:</div>
@@ -89,8 +89,7 @@
         </div>
 
         <div
-          in:fade={{ duration: 250 }}
-          class="w-full flex flex-wrap items-center flex-grow overflow-auto gap-x-2"
+          class="w-full flex items-center justify-center flex-wrap flex-grow overflow-auto gap-2"
         >
           {#each $utxos$ as utxo}
             <Coin {utxo} />
