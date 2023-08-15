@@ -137,7 +137,7 @@
       bind:value={configurationUpdate.token}
     />
 
-    <div class="w-min whitespace-nowrap mt-2">
+    <div class="w-min whitespace-nowrap mt-4">
       <div class="text-xs font-semibold border rounded py-1 pl-2">
         <CopyValue value={getRuneCommand()} label={$translate('app.labels.rune_cli')} />
       </div>

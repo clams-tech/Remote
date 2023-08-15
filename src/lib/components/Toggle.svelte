@@ -24,7 +24,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
   <label on:click|stopPropagation class="relative inline-block m-0 {sliderStyles}">
-    <input checked={toggled} on:change class="opacity-0 w-0 h-0 peer" type="checkbox" />
+    <input bind:checked={toggled} on:change class="opacity-0 w-0 h-0 peer" type="checkbox" />
     <span
       class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-neutral-300 peer-checked:bg-purple-500 transition-all rounded-full before:absolute before:bg-white before:transition-all before:rounded-full before:shadow-md {roundedStyles}"
     />

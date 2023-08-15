@@ -56,7 +56,7 @@
   let innerHeight: number
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = $channels$ ? $channels$.length * 74 : 0
+  $: fullHeight = $channels$ ? $channels$.length * 84 : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
 </script>
 
@@ -78,15 +78,15 @@
         <Spinner />
       </div>
     {:else if !$channels$.length}
-      <div class="mt-4">
-        <Msg type="info" message={$translate('app.labels.no_channels')} />
+      <div class="mt-4 w-full">
+        <Msg type="info" closable={false} message={$translate('app.labels.no_channels')} />
       </div>
     {:else}
       <div class="w-full flex flex-col h-full overflow-hidden">
-        <div class="w-full mb-4">
+        <div class="w-full mb-2">
           <SummaryRow>
-            <div slot="label">Channels:</div>
-            <div slot="value">{$channels$.length}</div>
+            <div slot="label">{$translate('app.labels.total')}:</div>
+            <div slot="value">{$channels$.length} channels</div>
           </SummaryRow>
 
           <SummaryRow>
@@ -113,7 +113,7 @@
             width="100%"
             height={listHeight}
             itemCount={$channels$.length}
-            itemSize={74}
+            itemSize={84}
             getKey={(index) => $channels$[index].id}
           >
             <div slot="item" let:index let:style {style}>

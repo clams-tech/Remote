@@ -252,7 +252,7 @@
                         <div
                           transition:slide={{ duration: 250 }}
                           style="width: {$syncProgress$}%;"
-                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-500"
+                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-500/70"
                         />
                       </div>
                     </div>

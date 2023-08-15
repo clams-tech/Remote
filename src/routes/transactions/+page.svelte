@@ -141,7 +141,9 @@
         <Spinner />
       </div>
     {:else if !dailyPayments.length}
-      <Msg type="info" message={$translate('app.labels.no_transactions')} />
+      <div class="mt-4 w-full">
+        <Msg type="info" closable={false} message={$translate('app.labels.no_transactions')} />
+      </div>
     {:else}
       <div
         bind:this={transactionsContainer}

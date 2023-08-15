@@ -80,48 +80,52 @@
 
 <svelte:window on:keyup={handleKeyPress} />
 
-<div class="pt-4 h-full flex items-center">
-  <Section>
-    <div class="w-full flex justify-center mb-8">
-      <div class="w-[150px] md:w-[200px] xl:w-[250px]">
-        <ClamsLogo />
+<Section>
+  <div class="flex w-full justify-center">
+    <div class="w-full flex flex-col items-center justify-center max-w-lg">
+      <div class="w-full flex justify-center mb-8">
+        <div class="w-[150px] md:w-[200px] xl:w-[250px]">
+          <ClamsLogo />
+        </div>
       </div>
-    </div>
 
-    <Paragraph>
-      {@html $translate(`${translationBase}.subheading`)}
-    </Paragraph>
+      <Paragraph>
+        {@html $translate(`${translationBase}.subheading`)}
+      </Paragraph>
 
-    <div class="mt-6 w-full">
-      <TextInput
-        hint={score === 0
-          ? ''
-          : $translate(
-              `${translationBase}.passphrase.${
-                score < 3 ? 'weak' : score < 5 ? 'medium' : 'strong'
-              }`
-            )}
-        name="passphrase"
-        type="password"
-        bind:value={passphrase}
-        label={$translate('app.labels.passphrase')}
-      />
-    </div>
-
-    <div class="mt-4">
-      <Button
-        bind:this={encryptButton}
-        on:click={encryptAndStoreSecret}
-        text={$translate('app.labels.encrypt')}
-        primary
-        disabled={score === 0}
-      />
-    </div>
-
-    {#if errorMsg}
-      <div class="mt-6">
-        <Msg bind:message={errorMsg} type="error" />
+      <div class="mt-6 w-full">
+        <TextInput
+          hint={score === 0
+            ? ''
+            : $translate(
+                `${translationBase}.passphrase.${
+                  score < 3 ? 'weak' : score < 5 ? 'medium' : 'strong'
+                }`
+              )}
+          name="passphrase"
+          type="password"
+          bind:value={passphrase}
+          label={$translate('app.labels.passphrase')}
+        />
       </div>
-    {/if}
-  </Section>
-</div>
+
+      <div class="mt-4 w-full flex justify-end">
+        <div class="w-min">
+          <Button
+            bind:this={encryptButton}
+            on:click={encryptAndStoreSecret}
+            text={$translate('app.labels.encrypt')}
+            primary
+            disabled={score === 0}
+          />
+        </div>
+      </div>
+
+      {#if errorMsg}
+        <div class="mt-6">
+          <Msg bind:message={errorMsg} type="error" />
+        </div>
+      {/if}
+    </div>
+  </div>
+</Section>

@@ -427,7 +427,8 @@ export type Output = {
    */
   txid: string
   reserved: boolean
-  blockHeight?: number
+  reserved_to_block?: number
+  blockheight?: number
 }
 
 export enum OutputStatus {

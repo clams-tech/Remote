@@ -32,9 +32,7 @@
 
   <div class="flex">
     <div class="mr-[0.375em] font-mono leading-snug">{@html displayMsat ? msat : formattedBtc}</div>
-    <div
-      class="text-[0.75em] font-semibold text-neutral-50 flex items-end leading-none pb-[0.25em]"
-    >
+    <div class="text-[0.75em] text-neutral-50 flex items-end leading-none pb-[0.25em]">
       {$translate(`app.labels.${displayMsat ? 'msat' : 'sats'}`).toLowerCase()}
     </div>
   </div>

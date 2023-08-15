@@ -102,7 +102,7 @@
 </script>
 
 <a
-  class="flex items-center justify-between py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline p-2"
+  class="flex items-center justify-between rounded py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
   href={`/transactions/${data.id}`}
 >
   <div class="flex items-start">
@@ -129,7 +129,7 @@
     </div>
   </div>
 
-  <button class="flex items-center">
+  <div class="flex items-center">
     {#if balanceChange}
       <div class="flex items-center">
         <div
@@ -147,5 +147,5 @@
     <div class="flex items-center h-full ml-1">
       <div class="w-4 -rotate-90">{@html caret}</div>
     </div>
-  </button>
+  </div>
 </a>

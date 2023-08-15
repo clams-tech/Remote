@@ -20,7 +20,7 @@
 
 <a
   href="/channels/{channel.id}"
-  class="w-full pb-2 pt-1 border-b border-neutral-400 block no-underline hover:bg-neutral-800 transition-all"
+  class="w-full pb-3 pt-2.5 border-b border-neutral-400 block no-underline hover:bg-neutral-800 transition-all"
 >
   <div class="flex items-center gap-x-2">
     <div class="font-semibold whitespace-nowrap">

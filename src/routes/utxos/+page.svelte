@@ -1,0 +1,102 @@
+<script lang="ts">
+  import { db } from '$lib/db.js'
+  import Msg from '$lib/components/Msg.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import Spinner from '$lib/components/Spinner.svelte'
+  import { liveQuery } from 'dexie'
+  import { fade, slide } from 'svelte/transition'
+  import filter from '$lib/icons/filter.js'
+  import { translate } from '$lib/i18n/translations.js'
+  import keys from '$lib/icons/keys.js'
+  import Coin from './components/Coin.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import Big from 'big.js'
+
+  const utxos$ = liveQuery(async () => db.utxos.toArray())
+
+  $: totals = $utxos$
+    ? $utxos$.reduce(
+        (acc, utxo) => {
+          const { reserved, amount, status } = utxo
+
+          if (status !== 'spent') {
+            acc.balance = acc.balance.add(amount)
+
+            if (!reserved && status !== 'immature') {
+              acc.sendable = acc.sendable.add(amount)
+            }
+          }
+
+          return acc
+        },
+        { balance: new Big(0), sendable: new Big(0) }
+      )
+    : null
+
+  let showFilters = false
+  const toggleFilters = () => (showFilters = !showFilters)
+</script>
+
+<Section>
+  <div class="w-full flex items-center justify-between">
+    <SectionHeading icon={keys} />
+
+    <button on:click={toggleFilters} class="w-8">{@html filter}</button>
+  </div>
+
+  {#if showFilters}
+    <div in:slide>
+      <!-- @TODO - Checkbox filters -->
+    </div>
+  {/if}
+
+  <div class="w-full overflow-hidden flex">
+    {#if !$utxos$}
+      <div in:fade={{ duration: 250 }} class="mt-4 w-full flex justify-center">
+        <Spinner />
+      </div>
+    {:else if !$utxos$.length}
+      <div class="mt-4 w-full">
+        <Msg closable={false} type="info" message={$translate('app.labels.no_utxos')} />
+      </div>
+    {:else}
+      <div class="w-full h-full overflow-hidden">
+        <div class="w-full mb-4">
+          <SummaryRow>
+            <div slot="label">{$translate('app.labels.total')}:</div>
+            <div slot="value">{$utxos$.length} utxos</div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">{$translate('app.labels.balance')}:</div>
+            <div slot="value">
+              {#if totals}
+                <BitcoinAmount msat={totals.balance.toString()} />
+              {/if}
+            </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">{$translate('app.labels.sendable')}:</div>
+            <div slot="value">
+              {#if totals}
+                <BitcoinAmount msat={totals.sendable.toString()} />
+              {/if}
+            </div>
+          </SummaryRow>
+        </div>
+
+        <div
+          in:fade={{ duration: 250 }}
+          class="w-full flex flex-wrap items-center flex-grow overflow-auto gap-x-2"
+        >
+          {#each $utxos$ as utxo}
+            <Coin {utxo} />
+          {/each}
+        </div>
+      </div>
+    {/if}
+  </div>
+</Section>

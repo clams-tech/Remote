@@ -34,12 +34,13 @@ export async function formatDateRelativeToNow(
 
 export async function formatDate(
   /** unix seconds */
-  date: number
+  date: number,
+  formatter = 'EEEE, do MMMM yy'
 ): Promise<string> {
   const { language } = settings$.value
   const locale = await (locales[language] || locales['en-GB'])()
 
-  return format(new Date(date * 1000), 'EEEE, do MMMM yy', { locale })
+  return format(new Date(date * 1000), formatter, { locale })
 }
 
 export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {

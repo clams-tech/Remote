@@ -10,6 +10,7 @@ import type {
   ListAccountEventsResponse,
   ListfundsResponse
 } from './types.js'
+import { inPlaceSort } from 'fast-sort'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -20,8 +21,9 @@ class Utxos implements UtxosInterface {
 
   async get(): Promise<Utxo[]> {
     try {
-      const funds = await this.connection.rpc({ method: 'listfunds' })
+      const funds = await this.connection.rpc({ method: 'listfunds', params: { spent: true } })
       const { outputs } = funds as ListfundsResponse
+
       let accountEvents: ListAccountEventsResponse | null
 
       try {
@@ -34,31 +36,54 @@ class Utxos implements UtxosInterface {
       }
 
       return outputs.map(
-        ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockHeight }) => {
+        ({
+          txid,
+          output,
+          amount_msat,
+          scriptpubkey,
+          address,
+          status,
+          reserved,
+          reserved_to_block,
+          blockheight
+        }) => {
           let timestamp: number | null = null
+          let spendingTxid: string | undefined = undefined
 
           if (accountEvents) {
-            const event = accountEvents.events.find((event) => {
-              const { type, tag, outpoint } = event as ChainEvent
-              type === 'chain' && tag === 'deposit' && outpoint === `${txid}:${output}`
-            })
+            const events = inPlaceSort(
+              accountEvents.events.filter((event) => {
+                const { type, outpoint, account } = event as ChainEvent
+                return account === 'wallet' && type === 'chain' && outpoint === `${txid}:${output}`
+              })
+            ).desc(({ timestamp }) => timestamp)
 
-            timestamp = event?.timestamp || null
+            const [lastEvent] = events as ChainEvent[]
+
+            if (lastEvent) {
+              timestamp = lastEvent.timestamp || null
+
+              if (lastEvent.tag === 'withdrawal') {
+                spendingTxid = lastEvent.txid
+              }
+            }
           }
 
           return {
             id: `${txid}:${output}`,
             txid: txid,
             output,
+            spendingTxid,
             amount: stripMsatSuffix(amount_msat),
             scriptpubkey,
             address,
             status,
             reserved,
-            blockHeight,
+            reservedToBlock: reserved_to_block,
+            blockHeight: blockheight,
             connectionId: this.connection.connectionId,
             timestamp
-          }
+          } as Utxo
         }
       )
     } catch (error) {
