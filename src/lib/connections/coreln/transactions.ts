@@ -9,6 +9,9 @@ import Big from 'big.js'
 import { merge, Subject, takeUntil } from 'rxjs'
 import handleError from './error.js'
 import { nowSeconds } from '$lib/utils.js'
+import { stripMsatSuffix } from './utils.js'
+import { Transaction as BitcoinTransaction } from 'bitcoinjs-lib/src/transaction'
+import { fromOutputScript } from 'bitcoinjs-lib/src/address'
 
 import type {
   ChainEvent,
@@ -23,7 +26,6 @@ import type {
   ToThemEvent,
   WithdrawResponse
 } from './types.js'
-import { stripMsatSuffix } from './utils.js'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface
@@ -50,6 +52,7 @@ class Transactions implements TransactionsInterface {
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
+          const bitcoinTransaction = BitcoinTransaction.fromHex(rawtx)
 
           const events: TransactionEvent[] = []
           const fees: string[] = []
@@ -155,10 +158,10 @@ class Transactions implements TransactionsInterface {
             version,
             rbfEnabled,
             inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
-            outputs: outputs.map(({ index, amount_msat, scriptPubKey }) => ({
+            outputs: outputs.map(({ index, amount_msat }) => ({
               index,
               amount: stripMsatSuffix(amount_msat),
-              scriptPubKey
+              address: fromOutputScript(bitcoinTransaction.outs[index].script)
             })),
             connectionId: this.connection.connectionId,
             events

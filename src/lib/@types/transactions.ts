@@ -16,7 +16,7 @@ export type Transaction = {
   outputs: Array<{
     index: number
     amount: string
-    scriptPubKey: string
+    address: string
   }>
   events: TransactionEvent[]
 }

@@ -171,8 +171,17 @@
     takeUntil(onDestroy$)
   )
 
+  let deletingConnection = false
+
   const deleteConnection = async () => {
+    deletingConnection = true
+
     await db.connections.delete(id)
+    await Promise.all(
+      db.tables
+        .filter(({ name }) => name !== 'connections' && name !== 'metadata')
+        .map(async (table) => table.where('connectionId').equals(id).delete())
+    )
     setTimeout(() => goto('/connections'), 250)
   }
 
@@ -381,10 +390,17 @@
       >
     </div>
 
-    <div class="text-utility-error mt-4 w-full">
-      <Button on:click={deleteConnection} warning text={$translate('app.labels.delete')}>
-        <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
-      </Button>
+    <div class="mt-4 w-full flex justify-end">
+      <div class="w-min">
+        <Button
+          requesting={deletingConnection}
+          on:click={deleteConnection}
+          warning
+          text={$translate('app.labels.delete')}
+        >
+          <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+        </Button>
+      </div>
     </div>
   </Modal>
 {/if}

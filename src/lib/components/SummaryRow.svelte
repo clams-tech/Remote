@@ -2,8 +2,7 @@
   export let baseline = false
 </script>
 
-<button
-  on:click
+<div
   class="w-full flex justify-between text-start {baseline
     ? 'items-baseline'
     : 'items-center'} border-b border-b-neutral-700 py-3"
@@ -13,4 +12,4 @@
   <p class="flex items-center justify-end w-3/4 overflow-hidden text-right break-words">
     <slot name="value" />
   </p>
-</button>
+</div>

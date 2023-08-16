@@ -26,6 +26,8 @@
   import type { Channel } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { msatsToBtc } from '$lib/conversion.js'
+  import caret from '$lib/icons/caret.js'
+  import { calculateTransactionBalanceChange } from '../utils.js'
 
   export let data: PageData
 
@@ -55,6 +57,8 @@
     abs: '+' | '-'
     channelEvent?: ChannelEvent
     channel?: Channel
+    inputs?: Transaction['inputs']
+    outputs?: Transaction['outputs']
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -173,14 +177,13 @@
     }
 
     if (transaction) {
-      const { id, connectionId, events, blockheight } = transaction
+      const { id, connectionId, events, blockheight, inputs, outputs } = transaction
 
       const channelEvent = events.find(
         ({ type }) => type === 'channelOpen' || type === 'channelClose'
       ) as ChannelEvent
 
-      const balanceChange = events.find(({ type }) => type === 'deposit' || type === 'withdrawal')
-      const amount = !channelEvent ? balanceChange?.amount : undefined
+      const { balanceChange, abs } = await calculateTransactionBalanceChange(transaction)
       const fee = events.find(({ type }) => type === 'fee')?.amount
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
@@ -194,14 +197,16 @@
         type: 'transaction',
         icon: channelEvent ? channels : bitcoin,
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
-        amount,
+        amount: balanceChange,
         fee,
         channelEvent,
         channel,
         connection,
         completedAt: typeof blockheight === 'number' ? events[0].timestamp : undefined,
-        abs: balanceChange?.type === 'deposit' ? '+' : '-',
-        txid: id
+        abs,
+        txid: id,
+        inputs,
+        outputs
       })
     }
 
@@ -280,7 +285,9 @@
       offer,
       abs,
       channelEvent,
-      channel
+      channel,
+      inputs,
+      outputs
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -333,7 +340,7 @@
             slot="value"
             class="no-underline flex items-center"
             >{connection.label}
-            <div class="w-6 ml-1">{@html link}</div></a
+            <div class="w-6 ml-1 -rotate-90">{@html caret}</div></a
           >
         </SummaryRow>
 
@@ -399,9 +406,10 @@
         {#if fee}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.fee')}:</span>
-            <span slot="value">
+            <div class="flex items-center" slot="value">
+              <div class="font-semibold text-utility-error mr-1">-</div>
               <BitcoinAmount msat={fee} />
-            </span>
+            </div>
           </SummaryRow>
         {/if}
 
@@ -411,8 +419,8 @@
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
             <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
               {truncateValue(channel.id)}
-              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
-                {@html link}
+              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1 -rotate-90">
+                {@html caret}
               </div>
             </a>
           </SummaryRow>
@@ -433,8 +441,8 @@
               <span slot="label">{$translate('app.labels.offer')}:</span>
               <a slot="value" href={`/offers/${id}`} class="flex items-center">
                 {truncateValue(id)}
-                <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
-                  {@html link}
+                <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1 -rotate-90">
+                  {@html caret}
                 </div>
               </a>
             </SummaryRow>
@@ -495,6 +503,81 @@
             <span slot="label">{$translate('app.labels.destination')}:</span>
             <div slot="value">
               <CopyValue value={peerNodeId} truncateLength={9} />
+            </div>
+          </SummaryRow>
+        {/if}
+
+        <!-- INPUTS -->
+        {#if inputs}
+          <SummaryRow baseline>
+            <span slot="label">{$translate('app.labels.inputs')}:</span>
+            <div class="gap-y-1 flex flex-col text-sm" slot="value">
+              {#each inputs as input}
+                {@const outpoint = `${input.txid}:${input.index}`}
+                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                  {#await db.utxos.get(outpoint) then utxo}
+                    {#if utxo}
+                      <a class="no-underline" href={`/utxos/${outpoint}`}>
+                        <div class="text-xs flex items-center">
+                          <div class="text-utility-error mr-1">
+                            {$translate('app.labels.spent')}:
+                          </div>
+                          <div>
+                            {truncateValue(utxo.address, 6)}
+                          </div>
+                        </div>
+
+                        <BitcoinAmount msat={utxo.amount} />
+                      </a>
+                      <div class="w-4 ml-1 -rotate-90">{@html caret}</div>
+                    {:else}
+                      {truncateValue(outpoint)}
+                    {/if}
+                  {/await}
+                </div>
+              {/each}
+            </div>
+          </SummaryRow>
+        {/if}
+
+        <!-- OUTPUTS -->
+        {#if outputs && txid}
+          <SummaryRow baseline>
+            <span slot="label">{$translate('app.labels.outputs')}:</span>
+            <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
+              {#each outputs as output}
+                {@const outpoint = `${txid}:${output.index}`}
+                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                  {#await db.utxos.get(outpoint) then utxo}
+                    {#if utxo}
+                      <a class="no-underline" href={`/utxos/${outpoint}`}>
+                        <div class="text-xs flex items-center">
+                          <div class="text-utility-success mr-1">
+                            {$translate('app.labels.change')}:
+                          </div>
+                          <div>
+                            {truncateValue(utxo.address, 6)}
+                          </div>
+                        </div>
+                        <BitcoinAmount msat={utxo.amount} />
+                      </a>
+                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                    {:else}
+                      <div>
+                        <div class="text-xs flex items-center">
+                          <div class="text-utility-error mr-1">
+                            {$translate('app.labels.sent')}:
+                          </div>
+                          <div>
+                            {truncateValue(output.address, 6)}
+                          </div>
+                        </div>
+                        <BitcoinAmount msat={output.amount} />
+                      </div>
+                    {/if}
+                  {/await}
+                </div>
+              {/each}
             </div>
           </SummaryRow>
         {/if}

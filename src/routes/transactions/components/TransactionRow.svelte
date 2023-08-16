@@ -8,6 +8,7 @@
   import bitcoin from '$lib/icons/bitcoin.js'
   import caret from '$lib/icons/caret.js'
   import lightning from '$lib/icons/lightning.js'
+  import { calculateTransactionBalanceChange } from '../utils.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -21,7 +22,7 @@
   let description: string | undefined
   let request: string | undefined
 
-  $: if (type === 'invoice') {
+  const formatInvoice = () => {
     const {
       status: invoiceStatus,
       direction,
@@ -37,15 +38,19 @@
     balanceChange = invoiceAmount === 'any' || invoiceAmount === '0' ? undefined : invoiceAmount
     description = invoiceDescription || offer?.description
     request = invoiceRequest
-  } else if (type === 'address') {
+  }
+
+  const formatAddress = () => {
     const { amount: addressAmount, message: addressDescription, createdAt } = data as Address
     icon = bitcoin
     status = 'pending'
     abs = '+'
     balanceChange = addressAmount
     description = addressDescription
-  } else if (type === 'transaction') {
-    const { events, blockheight, receiveAddress } = data as Transaction & {
+  }
+
+  const formatTransaction = async () => {
+    const { events, blockheight, receiveAddress, inputs, outputs } = data as Transaction & {
       receiveAddress?: Address
     }
 
@@ -60,24 +65,17 @@
     channelOpen = channelEvent?.type === 'channelOpen'
     channelClose = channelEvent?.type === 'channelClose'
 
-    if (!!channelEvent) {
-      const fee = events.find(({ type }) => type === 'fee')
+    const calculated = await calculateTransactionBalanceChange(data as Transaction)
+    balanceChange = calculated.balanceChange
+    abs = calculated.abs
+  }
 
-      if (fee && fee.amount && fee.amount !== '0') {
-        balanceChange = fee.amount
-        abs = '-'
-      }
-    } else {
-      events.forEach((event) => {
-        if (event.type === 'deposit') {
-          abs = '+'
-          balanceChange = event.amount
-        } else if (event.type === 'withdrawal') {
-          abs = '-'
-          balanceChange = event.amount
-        }
-      })
-    }
+  $: if (type === 'invoice') {
+    formatInvoice()
+  } else if (type === 'address') {
+    formatAddress()
+  } else if (type === 'transaction') {
+    formatTransaction()
   }
 
   $: mainText =

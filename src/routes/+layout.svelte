@@ -34,7 +34,8 @@
     $previousPaths$[1] &&
     $previousPaths$[1] !== path &&
     $previousPaths$[1] !== '/' &&
-    !$previousPaths$.slice(2).includes($previousPaths$[1])
+    !$previousPaths$.slice(2).includes($previousPaths$[1]) &&
+    $previousPaths$[0] !== $previousPaths$[2]
   ) {
     back = $previousPaths$[1]
   } else {
@@ -102,7 +103,7 @@
         default: 'undefined'
       })}
       <div class="flex items-center">
-        {#if back && lastPathRouteTitle !== 'undefined'}
+        {#if back}
           <a
             transition:slide={{ axis: 'x' }}
             href={back}
@@ -110,7 +111,9 @@
           >
             <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
             <div>
-              {lastPathRouteTitle}
+              {!lastPathRouteTitle || lastPathRouteTitle === 'undefined'
+                ? $translate('app.labels.back')
+                : lastPathRouteTitle}
             </div>
           </a>
         {/if}

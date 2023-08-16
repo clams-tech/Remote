@@ -16,7 +16,7 @@
 <a
   style="padding: {padding}px;"
   class="flex flex-col items-center justify-center aspect-square rounded-full w-min border-2 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline"
-  href={`/transactions/${utxo.id}`}
+  href={`/utxos/${utxo.id}`}
 >
   <div class="flex flex-col w-full justify-center items-center">
     <div
