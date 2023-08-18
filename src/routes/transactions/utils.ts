@@ -25,8 +25,6 @@ export const calculateTransactionBalanceChange = async (
     new Big(0)
   )
 
-  const fee = transaction.events.find(({ type }) => type === 'fee')
-
   // receive
   if (spentUtxos.length === 0) {
     return { abs: '+', balanceChange: ourUnspentOutputsTotal.toString() }
@@ -36,7 +34,7 @@ export const calculateTransactionBalanceChange = async (
     abs: '-',
     balanceChange: outputsTotal
       .minus(ourUnspentOutputsTotal)
-      .plus(fee ? fee.amount : '0')
+      .plus(transaction.fee ? transaction.fee : '0')
       .toString()
   }
 }

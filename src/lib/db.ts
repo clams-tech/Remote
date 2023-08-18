@@ -25,7 +25,7 @@ class DB extends Dexie {
 
     this.version(1).stores({
       connections: '&id, type',
-      channels: '&id, connectionId, shortId',
+      channels: '&[id+connectionId], shortId',
       utxos: '&id, connectionId, txid, timestamp, spendingTxid',
       invoices:
         '&id, connectionId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage',

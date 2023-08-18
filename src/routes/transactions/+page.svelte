@@ -37,11 +37,7 @@
         return {
           type: 'transaction' as 'transaction',
           data: { ...transaction, receiveAddress },
-          timestamp: transaction.events
-            ? transaction.events[0].timestamp
-            : receiveAddress
-            ? receiveAddress.createdAt
-            : 0
+          timestamp: transaction.timestamp
         }
       })
     )

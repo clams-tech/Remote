@@ -20,6 +20,7 @@
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import bitcoin from '$lib/icons/bitcoin.js'
+  import { log } from '$lib/services.js'
 
   export let data: PageData
 
@@ -48,6 +49,17 @@
         amount: satsToMsats(amountSats),
         address
       })
+
+      if (connection.utxos?.get) {
+        try {
+          const updatedUtxos = await connection.utxos.get()
+          await db.utxos.bulkPut(updatedUtxos)
+        } catch (error) {
+          const { detail } = error as AppError
+          const { message } = error as Error
+          log.error(detail ? detail.message : message)
+        }
+      }
 
       await db.transactions.add(paid)
       await goto(`/transactions/${paid.id}`)

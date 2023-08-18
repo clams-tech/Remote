@@ -2,7 +2,7 @@
   import type { TransactionStatus } from '$lib/@types/common.js'
   import type { ConnectionDetails } from '$lib/@types/connections.js'
   import type { Invoice } from '$lib/@types/invoices.js'
-  import type { ChannelEvent, Transaction } from '$lib/@types/transactions.js'
+  import type { Transaction } from '$lib/@types/transactions.js'
   import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
@@ -23,11 +23,11 @@
   import { truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import channels from '$lib/icons/channels.js'
-  import type { Channel } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { msatsToBtc } from '$lib/conversion.js'
   import caret from '$lib/icons/caret.js'
   import { calculateTransactionBalanceChange } from '../utils.js'
+  import type { Utxo } from '$lib/@types/utxos.js'
 
   export let data: PageData
 
@@ -37,8 +37,7 @@
   const { id } = data
 
   type TransactionDetail = {
-    type: 'invoice' | 'address' | 'transaction'
-    icon: string
+    type: 'invoice' | 'address' | 'onchain'
     qrValues?: QRValue[]
     status: TransactionStatus
     request?: string
@@ -55,10 +54,15 @@
     connection: ConnectionDetails
     offer?: Invoice['offer']
     abs: '+' | '-'
-    channelEvent?: ChannelEvent
-    channel?: Channel
-    inputs?: Transaction['inputs']
-    outputs?: Transaction['outputs']
+    channel?: Transaction['channel']
+    inputs?: { outpoint: string; utxo?: Utxo }[]
+    outputs?: {
+      amount: string
+      outpoint: string
+      address: string
+      labelKey?: string
+      utxo?: Utxo
+    }[]
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -93,7 +97,6 @@
 
       details.push({
         type: 'invoice',
-        icon: lightning,
         qrValues:
           status === 'pending'
             ? [
@@ -160,7 +163,6 @@
 
       details.push({
         type: 'address',
-        icon: bitcoin,
         qrValues,
         status,
         amount,
@@ -169,44 +171,81 @@
         completedAt,
         connection,
         abs: '+',
-        channelEvent: tx?.events.find(
-          ({ type }) => type === 'channelClose' || type === 'channelOpen'
-        ) as ChannelEvent,
+        channel: tx?.channel,
         txid
       })
     }
 
     if (transaction) {
-      const { id, connectionId, events, blockheight, inputs, outputs } = transaction
-
-      const channelEvent = events.find(
-        ({ type }) => type === 'channelOpen' || type === 'channelClose'
-      ) as ChannelEvent
-
+      const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
+        transaction
       const { balanceChange, abs } = await calculateTransactionBalanceChange(transaction)
-      const fee = events.find(({ type }) => type === 'fee')?.amount
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
-      let channel: Channel | undefined
+      const formattedInputs = await Promise.all(
+        inputs.map(async ({ index, txid }) => {
+          const outpoint = `${txid}:${index}`
+          const utxo = await db.utxos.get(outpoint)
+          return { outpoint, utxo }
+        })
+      )
 
-      if (channelEvent) {
-        channel = await db.channels.get(channelEvent.channel)
-      }
+      const formattedOutputs = await Promise.all(
+        outputs.map(async ({ index, amount, address }) => {
+          const outpoint = `${id}:${index}`
+          const utxo = await db.utxos.get(outpoint)
+          const inputUtxos = formattedInputs.filter(({ utxo }) => !!utxo)
+
+          let labelKey: string | undefined = undefined
+
+          // we own this output
+          if (utxo) {
+            // no owned inputs, so must be a receive
+            if (!inputUtxos.length) {
+              labelKey = 'receive'
+            } else {
+              const inputUtxoWithSameConnection = inputUtxos.find(
+                (input) => input.utxo?.connectionId === utxo?.connectionId
+              )
+              // input has the same connection as this output, so is change
+              if (inputUtxoWithSameConnection) {
+                labelKey = 'change'
+              }
+              // otherwise sent from different connection, so is transfer
+              else {
+                labelKey = 'transfer'
+              }
+            }
+          }
+          // unknown output so must be send if we own at least one of the inputs
+          else {
+            if (inputUtxos.length) {
+              labelKey = 'send'
+            }
+          }
+
+          return {
+            amount,
+            outpoint,
+            address,
+            utxo,
+            labelKey
+          }
+        })
+      )
 
       details.push({
-        type: 'transaction',
-        icon: channelEvent ? channels : bitcoin,
+        type: 'onchain',
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
         amount: balanceChange,
         fee,
-        channelEvent,
         channel,
         connection,
-        completedAt: typeof blockheight === 'number' ? events[0].timestamp : undefined,
+        completedAt: typeof blockheight === 'number' ? timestamp : undefined,
         abs,
         txid: id,
-        inputs,
-        outputs
+        inputs: formattedInputs,
+        outputs: formattedOutputs
       })
     }
 
@@ -219,7 +258,7 @@
     const details = $transactionDetails$
     const completed = details.find(({ status, type }) => status === 'complete')
     const pendingTransaction = details.find(
-      ({ type, status }) => type === 'transaction' && status === 'pending'
+      ({ type, status }) => type === 'onchain' && status === 'pending'
     )
     const invoice = details.find(({ type }) => type === 'invoice')
 
@@ -268,7 +307,6 @@
   {:else if transactionDetailToShow}
     {@const {
       type,
-      icon,
       status,
       paymentHash,
       paymentPreimage,
@@ -284,7 +322,6 @@
       connection,
       offer,
       abs,
-      channelEvent,
       channel,
       inputs,
       outputs
@@ -300,12 +337,11 @@
       </div>
     {:else}
       <div class="w-full flex justify-center items-center text-3xl font-semibold">
-        <div class="w-8 mr-1.5">{@html icon}</div>
         <div>
           {$translate(
             `app.labels.${
-              channelEvent
-                ? channelEvent.type === 'channelClose'
+              channel
+                ? channel.type === 'close'
                   ? 'channel_close'
                   : 'channel_open'
                 : type === 'invoice' && !request
@@ -384,7 +420,7 @@
               href={`https://mempool.space/tx/${txid}`}
               target="_blank"
               rel="noreferrer noopener"
-              class="flex items-center"
+              class="flex items-center no-underline"
             >
               {truncateValue(txid)}
               <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
@@ -399,6 +435,79 @@
           <SummaryRow>
             <span slot="label">{$translate('app.labels.description')}:</span>
             <span slot="value">{description}</span>
+          </SummaryRow>
+        {/if}
+
+        <!-- INPUTS -->
+        {#if inputs}
+          <SummaryRow baseline>
+            <span slot="label">{$translate('app.labels.inputs')}:</span>
+            <div class="gap-y-1 flex flex-col text-sm" slot="value">
+              {#each inputs as { outpoint, utxo }}
+                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                  {#if utxo}
+                    <a class="no-underline" href={`/utxos/${outpoint}`}>
+                      <div class="text-xs flex items-center">
+                        <div class="text-utility-error mr-1">
+                          {$translate('app.labels.spent')}:
+                        </div>
+                        <div>
+                          {truncateValue(utxo.address, 6)}
+                        </div>
+                      </div>
+
+                      <BitcoinAmount msat={utxo.amount} />
+                    </a>
+                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                  {:else}
+                    {truncateValue(outpoint)}
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </SummaryRow>
+        {/if}
+
+        <!-- OUTPUTS -->
+        {#if outputs}
+          <SummaryRow baseline>
+            <span slot="label">{$translate('app.labels.outputs')}:</span>
+            <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
+              {#each outputs as { outpoint, utxo, amount, address, labelKey }}
+                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                  {#if utxo}
+                    <a class="no-underline" href={`/utxos/${outpoint}`}>
+                      <div class="text-xs flex items-center">
+                        {#if labelKey}
+                          <div class="text-utility-success mr-1">
+                            {$translate(`app.labels.${labelKey}`)}:
+                          </div>
+                        {/if}
+                        <div>
+                          {truncateValue(utxo.address, 6)}
+                        </div>
+                      </div>
+                      <BitcoinAmount msat={utxo.amount} />
+                    </a>
+                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                  {:else}
+                    <div>
+                      <div class="text-xs flex items-center">
+                        {#if labelKey}
+                          <div class="text-utility-error mr-1">
+                            {$translate(`app.labels.${labelKey}`)}:
+                          </div>
+                        {/if}
+                        <div>
+                          {truncateValue(address, 6)}
+                        </div>
+                      </div>
+                      <BitcoinAmount msat={amount} />
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
           </SummaryRow>
         {/if}
 
@@ -417,20 +526,24 @@
         {#if channel}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
-            <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
-              {truncateValue(channel.id)}
+            <a slot="value" href={`/channels/${channel.channelId}`} class="flex items-center">
+              {truncateValue(channel.channelId)}
               <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1 -rotate-90">
                 {@html caret}
               </div>
             </a>
           </SummaryRow>
 
-          <SummaryRow>
-            <span slot="label">{$translate('app.labels.channel_peer')}:</span>
-            <span slot="value">
-              {channel.peerAlias}
-            </span>
-          </SummaryRow>
+          {#await db.channels.get(channel.channelId) then channelDetails}
+            {#if channelDetails}
+              <SummaryRow>
+                <span slot="label">{$translate('app.labels.channel_peer')}:</span>
+                <span slot="value">
+                  {channelDetails.peerAlias}
+                </span>
+              </SummaryRow>
+            {/if}
+          {/await}
         {/if}
 
         <!-- OFFER -->
@@ -481,7 +594,7 @@
           <SummaryRow>
             <span slot="label">{$translate('app.labels.completed_at')}:</span>
             <span slot="value">
-              {#await formatDate(completedAt) then formatted}
+              {#await formatDate(completedAt, 'h:mmaaa - EEEE do LLL') then formatted}
                 <span in:fade|local={{ duration: 50 }}>{formatted}</span>
               {/await}
             </span>
@@ -503,81 +616,6 @@
             <span slot="label">{$translate('app.labels.destination')}:</span>
             <div slot="value">
               <CopyValue value={peerNodeId} truncateLength={9} />
-            </div>
-          </SummaryRow>
-        {/if}
-
-        <!-- INPUTS -->
-        {#if inputs}
-          <SummaryRow baseline>
-            <span slot="label">{$translate('app.labels.inputs')}:</span>
-            <div class="gap-y-1 flex flex-col text-sm" slot="value">
-              {#each inputs as input}
-                {@const outpoint = `${input.txid}:${input.index}`}
-                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
-                  {#await db.utxos.get(outpoint) then utxo}
-                    {#if utxo}
-                      <a class="no-underline" href={`/utxos/${outpoint}`}>
-                        <div class="text-xs flex items-center">
-                          <div class="text-utility-error mr-1">
-                            {$translate('app.labels.spent')}:
-                          </div>
-                          <div>
-                            {truncateValue(utxo.address, 6)}
-                          </div>
-                        </div>
-
-                        <BitcoinAmount msat={utxo.amount} />
-                      </a>
-                      <div class="w-4 ml-1 -rotate-90">{@html caret}</div>
-                    {:else}
-                      {truncateValue(outpoint)}
-                    {/if}
-                  {/await}
-                </div>
-              {/each}
-            </div>
-          </SummaryRow>
-        {/if}
-
-        <!-- OUTPUTS -->
-        {#if outputs && txid}
-          <SummaryRow baseline>
-            <span slot="label">{$translate('app.labels.outputs')}:</span>
-            <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
-              {#each outputs as output}
-                {@const outpoint = `${txid}:${output.index}`}
-                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
-                  {#await db.utxos.get(outpoint) then utxo}
-                    {#if utxo}
-                      <a class="no-underline" href={`/utxos/${outpoint}`}>
-                        <div class="text-xs flex items-center">
-                          <div class="text-utility-success mr-1">
-                            {$translate('app.labels.change')}:
-                          </div>
-                          <div>
-                            {truncateValue(utxo.address, 6)}
-                          </div>
-                        </div>
-                        <BitcoinAmount msat={utxo.amount} />
-                      </a>
-                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
-                    {:else}
-                      <div>
-                        <div class="text-xs flex items-center">
-                          <div class="text-utility-error mr-1">
-                            {$translate('app.labels.sent')}:
-                          </div>
-                          <div>
-                            {truncateValue(output.address, 6)}
-                          </div>
-                        </div>
-                        <BitcoinAmount msat={output.amount} />
-                      </div>
-                    {/if}
-                  {/await}
-                </div>
-              {/each}
             </div>
           </SummaryRow>
         {/if}

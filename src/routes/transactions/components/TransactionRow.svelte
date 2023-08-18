@@ -17,8 +17,7 @@
   let status: TransactionStatus
   let balanceChange: string | 'any' | undefined
   let abs: '-' | '+' | undefined
-  let channelClose = false
-  let channelOpen = false
+  let channel: Transaction['channel']
   let description: string | undefined
   let request: string | undefined
 
@@ -50,7 +49,13 @@
   }
 
   const formatTransaction = async () => {
-    const { events, blockheight, receiveAddress, inputs, outputs } = data as Transaction & {
+    const {
+      blockheight,
+      receiveAddress,
+      inputs,
+      outputs,
+      channel: channelDetails
+    } = data as Transaction & {
       receiveAddress?: Address
     }
 
@@ -61,9 +66,7 @@
       description = receiveAddress.message
     }
 
-    const channelEvent = events.find(({ type }) => type.includes('channel'))
-    channelOpen = channelEvent?.type === 'channelOpen'
-    channelClose = channelEvent?.type === 'channelClose'
+    channel = channelDetails
 
     const calculated = await calculateTransactionBalanceChange(data as Transaction)
     balanceChange = calculated.balanceChange
@@ -82,9 +85,9 @@
     description ||
     $translate(
       `app.labels.${
-        channelOpen
+        channel?.type === 'open'
           ? 'channel_open'
-          : channelClose
+          : channel?.type === 'close'
           ? 'channel_close'
           : type === 'address'
           ? 'receive_address'

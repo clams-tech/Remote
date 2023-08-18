@@ -81,7 +81,7 @@ export async function formatInvoice(invoice: RawInvoice, connectionId: string): 
   }
 
   return {
-    id: label || payment_hash,
+    id: payment_hash,
     request: (bolt12 || bolt11) as string,
     hash: payment_hash,
     direction: 'receive',

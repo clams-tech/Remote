@@ -13,18 +13,19 @@
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Big from 'big.js'
+  import wallet from '$lib/icons/wallet.js'
 
   const utxos$ = liveQuery(async () => db.utxos.toArray())
 
   $: totals = $utxos$
     ? $utxos$.reduce(
         (acc, utxo) => {
-          const { reserved, amount, status } = utxo
+          const { amount, status } = utxo
 
-          if (status !== 'spent') {
+          if (status !== 'spent' && status !== 'spent_unconfirmed') {
             acc.balance = acc.balance.add(amount)
 
-            if (!reserved && status !== 'immature') {
+            if (status !== 'immature') {
               acc.sendable = acc.sendable.add(amount)
             }
           }
@@ -41,7 +42,7 @@
 
 <Section>
   <div class="w-full flex items-center justify-between">
-    <SectionHeading icon={keys} />
+    <SectionHeading icon={wallet} />
 
     <button on:click={toggleFilters} class="w-8">{@html filter}</button>
   </div>
@@ -79,7 +80,7 @@
           </SummaryRow>
 
           <SummaryRow>
-            <div slot="label">{$translate('app.labels.sendable')}:</div>
+            <div slot="label">{$translate('app.labels.spendable')}:</div>
             <div slot="value">
               {#if totals}
                 <BitcoinAmount msat={totals.sendable.toString()} />

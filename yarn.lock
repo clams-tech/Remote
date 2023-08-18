@@ -1629,10 +1629,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.2.4.tgz#eca284f75d2965079309dc0ad9255abb2ebc1632"
   integrity sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==
 
-lnmessage@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.4.tgz#3859d9e991aed23e95d181ae17aaa8c75e7dc58a"
-  integrity sha512-6L7FZhkqa7SjyyI9JzZfTwSQhAAId+S2oPfp4rMswTE7VerwmuJQTtV8f0H2w5HAyVtIrm7e3ZUELIjoaKO9YQ==
+lnmessage@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/lnmessage/-/lnmessage-0.2.6.tgz#359288dde77b77872ed53a2d5058772f12a4bc7e"
+  integrity sha512-tT44RyiX5IrfuzoxsH7smQwtbBw3im54ezv5HF7C9eQXO6qrj39DJeZ/l9iM9PKbBMtrSelEsRNaKgdCB7jzAg==
   dependencies:
     "@noble/hashes" "^1.3.1"
     "@noble/secp256k1" "^2.0.0"

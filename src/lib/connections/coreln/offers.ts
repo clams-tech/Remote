@@ -48,7 +48,12 @@ class Offers implements OffersInterface {
       const formatted = [...offers, ...invoicerequests].map(async (offer) => {
         const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
         const { invreq_id } = offer as InvoiceRequestSummary
-        const formattedOffer = await bolt12ToOffer(bolt12, offer_id || invreq_id)
+
+        const formattedOffer = await bolt12ToOffer(
+          bolt12,
+          this.connection.connectionId,
+          offer_id || invreq_id
+        )
 
         return {
           ...formattedOffer,

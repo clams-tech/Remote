@@ -1,4 +1,4 @@
-export type OutputStatus = 'unconfirmed' | 'confirmed' | 'spent' | 'immature'
+export type OutputStatus = 'unconfirmed' | 'confirmed' | 'spent' | 'spent_unconfirmed' | 'immature'
 
 export type Utxo = {
   id: string
@@ -13,6 +13,12 @@ export type Utxo = {
   /** the txid for the transaction that spent this output */
   spendingTxid?: string
   blockheight?: number
-  reserved?: boolean
-  reservedToBlock?: number
 }
+
+/**
+ * pending receive (unconfirmed)
+ * spendable (confirmed)
+ * spend pending (spend_unconfirmed)
+ * spent (spent)
+ * immature (timelocked due to force close?)
+ */

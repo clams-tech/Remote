@@ -18,31 +18,10 @@ export type Transaction = {
     amount: string
     address: string
   }>
-  events: TransactionEvent[]
-}
-
-export type FeeEvent = {
-  type: 'fee'
-  amount: string
   timestamp: number
+  channel?: { type: 'open' | 'close'; amount: string; timestamp: number; channelId: string }
+  fee?: string
 }
-
-export type ChainEvent = {
-  /** deposit is a receive, withdrawal is a send, and external is settlement to channel partner */
-  type: 'deposit' | 'withdrawal'
-  amount: string
-  timestamp: number
-}
-
-export type ChannelEvent = {
-  type: 'channelOpen' | 'channelClose' | 'externalSettle'
-  /** the amount added(open), removed(close) to offchain balance or amount settled to channel partner (externalSettle) */
-  amount: string
-  timestamp: number
-  channel: string
-}
-
-export type TransactionEvent = ChainEvent | ChannelEvent | FeeEvent
 
 export type SendTransactionOptions = {
   /** amount to send msats */

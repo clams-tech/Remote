@@ -1,10 +1,9 @@
-import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex } from '@noble/hashes/utils'
 import type { Forward } from '$lib/@types/forwards.js'
 import type { ForwardsInterface } from '../interfaces.js'
 import handleError from './error.js'
 import type { CorelnConnectionInterface, CoreLnError, ListForwardsResponse } from './types.js'
 import { stripMsatSuffix } from './utils.js'
+import { hash } from '$lib/crypto.js'
 
 class Forwards implements ForwardsInterface {
   connection: CorelnConnectionInterface
@@ -47,7 +46,7 @@ class Forwards implements ForwardsInterface {
             connectionId: this.connection.connectionId
           }
 
-          const id = bytesToHex(sha256(JSON.stringify(forward)))
+          const id = hash(JSON.stringify(forward))
 
           return { ...forward, id }
         }

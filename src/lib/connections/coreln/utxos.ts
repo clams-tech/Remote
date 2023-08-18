@@ -2,6 +2,7 @@ import type { Utxo } from '$lib/@types/utxos.js'
 import type { UtxosInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { stripMsatSuffix } from './utils.js'
+import { inPlaceSort } from 'fast-sort'
 
 import type {
   ChainEvent,
@@ -10,7 +11,6 @@ import type {
   ListAccountEventsResponse,
   ListfundsResponse
 } from './types.js'
-import { inPlaceSort } from 'fast-sort'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -35,18 +35,10 @@ class Utxos implements UtxosInterface {
         accountEvents = null
       }
 
+      console.log({ outputs })
+
       return outputs.map(
-        ({
-          txid,
-          output,
-          amount_msat,
-          scriptpubkey,
-          address,
-          status,
-          reserved,
-          reserved_to_block,
-          blockheight
-        }) => {
+        ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockheight }) => {
           let timestamp: number | null = null
           let spendingTxid: string | undefined = undefined
 
@@ -77,9 +69,7 @@ class Utxos implements UtxosInterface {
             amount: stripMsatSuffix(amount_msat),
             scriptpubkey,
             address,
-            status,
-            reserved,
-            reservedToBlock: reserved_to_block,
+            status: reserved ? 'spent_unconfirmed' : status,
             blockHeight: blockheight,
             connectionId: this.connection.connectionId,
             timestamp

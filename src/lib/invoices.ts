@@ -2,6 +2,7 @@ import { BitcoinDenomination, FiatDenomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
 import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
+import { stripMsatSuffix } from './connections/coreln/utils.js'
 
 import type {
   DecodedBolt12Invoice,
@@ -9,7 +10,6 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
-import { stripMsatSuffix } from './connections/coreln/utils.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -28,7 +28,11 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   }
 }
 
-export async function bolt12ToOffer(bolt12: string, offerId?: string): Promise<Offer> {
+export async function bolt12ToOffer(
+  bolt12: string,
+  connectionId: string,
+  offerId?: string
+): Promise<Offer> {
   const { default: decoder } = await import('bolt12-decoder')
   const decoded = decoder(bolt12)
 
@@ -72,6 +76,7 @@ export async function bolt12ToOffer(bolt12: string, offerId?: string): Promise<O
 
   return {
     id,
+    connectionId,
     bolt12,
     type: decodedOfferTypeToOfferType(type),
     expiry,

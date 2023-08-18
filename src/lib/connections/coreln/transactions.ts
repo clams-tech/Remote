@@ -1,8 +1,3 @@
-import type {
-  SendTransactionOptions,
-  Transaction,
-  TransactionEvent
-} from '$lib/@types/transactions.js'
 import type { TransactionsInterface } from '../interfaces.js'
 import type { AppError } from '$lib/@types/errors.js'
 import Big from 'big.js'
@@ -12,6 +7,7 @@ import { nowSeconds } from '$lib/utils.js'
 import { stripMsatSuffix } from './utils.js'
 import { Transaction as BitcoinTransaction } from 'bitcoinjs-lib/src/transaction'
 import { fromOutputScript } from 'bitcoinjs-lib/src/address'
+import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
 
 import type {
   ChainEvent,
@@ -26,6 +22,7 @@ import type {
   ToThemEvent,
   WithdrawResponse
 } from './types.js'
+import { inPlaceSort } from 'fast-sort'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface
@@ -49,13 +46,15 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
+      console.log({ accountEvents, transactions })
+
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
           const bitcoinTransaction = BitcoinTransaction.fromHex(rawtx)
-
-          const events: TransactionEvent[] = []
           const fees: string[] = []
+          let channel: Transaction['channel']
+          let timestamp = nowSeconds()
 
           if (accountEvents) {
             accountEvents.events.forEach((ev) => {
@@ -74,59 +73,35 @@ class Transactions implements TransactionsInterface {
                 | ToThemEvent
 
               const { txid, outpoint } = ev as ChainEvent
-              const { origin } = ev as ToThemEvent
 
               if (type === 'chain') {
                 if (tag === 'deposit' && outpoint.split(':')[0] === hash) {
-                  events.push({
-                    type: 'deposit',
-                    amount: stripMsatSuffix(credit_msat),
-                    timestamp: eventTimestamp
-                  })
-
+                  timestamp = eventTimestamp
                   return
                 }
 
                 if (tag === 'withdrawal' && txid === hash) {
-                  events.push({
-                    type: 'withdrawal',
-                    amount: stripMsatSuffix(debit_msat),
-                    timestamp: eventTimestamp
-                  })
-
+                  timestamp = eventTimestamp
                   return
                 }
 
                 if (tag === 'channel_open' && outpoint.includes(hash)) {
-                  events.push({
-                    type: 'channelOpen',
+                  channel = {
+                    type: 'open',
                     amount: stripMsatSuffix(credit_msat),
                     timestamp: eventTimestamp,
-                    channel: account
-                  })
-
+                    channelId: account
+                  }
                   return
                 }
 
                 if (tag === 'channel_close' && txid === hash) {
-                  events.push({
-                    type: 'channelClose',
+                  channel = {
+                    type: 'close',
                     amount: stripMsatSuffix(debit_msat),
                     timestamp: eventTimestamp,
-                    channel: account
-                  })
-
-                  return
-                }
-
-                if (tag === 'to_them' && outpoint.includes(hash)) {
-                  events.push({
-                    type: 'externalSettle',
-                    amount: stripMsatSuffix(credit_msat),
-                    timestamp: eventTimestamp,
-                    channel: origin
-                  })
-
+                    channelId: account
+                  }
                   return
                 }
               } else if (type === 'onchain_fee' && txid === hash) {
@@ -137,16 +112,6 @@ class Transactions implements TransactionsInterface {
                 return
               }
             })
-
-            if (fees.length) {
-              events.push({
-                type: 'fee',
-                amount: fees.reduce((total, msat) => {
-                  return Big(total).plus(msat).toString()
-                }, '0'),
-                timestamp: events.reverse()[0].timestamp
-              })
-            }
           }
 
           return {
@@ -164,7 +129,13 @@ class Transactions implements TransactionsInterface {
               address: fromOutputScript(bitcoinTransaction.outs[index].script)
             })),
             connectionId: this.connection.connectionId,
-            events
+            timestamp,
+            channel,
+            fee: fees.length
+              ? fees.reduce((total, msat) => {
+                  return Big(total).plus(msat).toString()
+                }, '0')
+              : undefined
           }
         }
       )

@@ -129,6 +129,14 @@
           </SummaryRow>
         {/if}
 
+        <!-- ADDRESS -->
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.address')}</div>
+          <div slot="value">
+            <CopyValue value={address} truncateLength={8} />
+          </div>
+        </SummaryRow>
+
         <!-- TXID -->
         <SummaryRow>
           <div slot="label">{$translate('app.labels.receive_transaction')}</div>

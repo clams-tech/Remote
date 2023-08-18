@@ -7,10 +7,7 @@
 
   export let utxo: Utxo
 
-  const padding = Big(utxo.amount.length)
-    .times(8)
-    .minus(40)
-    .plus(Number(utxo.amount[0]) * 4)
+  const padding = Big(utxo.amount.length).times(8).minus(40)
 </script>
 
 <a
@@ -21,7 +18,9 @@
   <div class="flex flex-col w-full justify-center items-center">
     <div
       class:text-utility-success={utxo.status === 'confirmed'}
-      class:text-utility-pending={utxo.status === 'immature' || utxo.status === 'unconfirmed'}
+      class:text-utility-pending={utxo.status === 'immature' ||
+        utxo.status === 'unconfirmed' ||
+        utxo.status === 'spent_unconfirmed'}
       class:text-utility-error={utxo.status === 'spent'}
       class="flex items-center text-xs whitespace-nowrap"
     >
