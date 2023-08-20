@@ -76,7 +76,7 @@ class Channels implements ChannelsInterface {
 
                 return {
                   connectionId: this.connection.connectionId,
-                  opener: opener,
+                  opener: opener === 'local' ? this.connection.info.id : id,
                   peerId: id,
                   peerConnected: connected,
                   peerAlias: peer?.alias,
@@ -162,7 +162,7 @@ class Channels implements ChannelsInterface {
 
             return {
               connectionId: this.connection.connectionId,
-              opener: opener,
+              opener: opener === 'local' ? this.connection.info.id : peer_id,
               peerId: peer_id,
               peerConnected: peer_connected,
               peerAlias: peer?.alias,

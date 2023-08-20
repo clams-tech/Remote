@@ -7,6 +7,7 @@
   import { createEventDispatcher, onMount } from 'svelte'
   import { slide } from 'svelte/transition'
   import ParsedInputButton from './ParsedInputButton.svelte'
+  import pasteIcon from '$lib/icons/paste.js'
 
   const dispatch = createEventDispatcher()
 
@@ -60,11 +61,8 @@
       <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
     {/if}
 
-    <button on:click={paste} class="py-1 px-4 rounded-full shadow shadow-current font-semibold"
-      >{$translate('app.labels.paste')}</button
-    >
-    <button on:click={enter} class="rounded-full py-1 px-4 shadow shadow-current font-semibold"
-      >{$translate('app.labels.enter')}</button
+    <button on:click={paste} class="w-10 shadow shadow-current rounded-full p-2.5"
+      >{@html pasteIcon}</button
     >
   </div>
 </div>

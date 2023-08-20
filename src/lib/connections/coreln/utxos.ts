@@ -35,8 +35,6 @@ class Utxos implements UtxosInterface {
         accountEvents = null
       }
 
-      console.log({ outputs })
-
       return outputs.map(
         ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockheight }) => {
           let timestamp: number | null = null

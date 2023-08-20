@@ -8,19 +8,19 @@
   import { translate } from '$lib/i18n/translations.js'
   import keys from '$lib/icons/keys.js'
   import { nowSeconds } from '$lib/utils.js'
+  import { createRandomHex } from '$lib/crypto.js'
 
   import {
     connectionOptions,
     connectionTypeToInitialConfiguration
   } from '$lib/connections/index.js'
-  import { createRandomHex } from '$lib/crypto.js'
 
   const translateBase = 'app.routes./connections/add'
 
   const addConnection = async (type: ConnectionDetails['type']) => {
     // add new connection to the db with generic label and random id
     const id = createRandomHex()
-    const label = 'New Coreln'
+    const label = type
 
     await db.connections.add({
       id,

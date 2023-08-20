@@ -52,7 +52,7 @@
   }
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <button on:click={() => (showModal = true)} class="w-full flex items-center"
   >{@html calculator}</button

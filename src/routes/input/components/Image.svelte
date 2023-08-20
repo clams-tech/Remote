@@ -73,9 +73,7 @@
   }
 </script>
 
-<div
-  class="flex flex-col justify-center items-center w-full min-h-[304px] pt-4 px-2 pb-2.5 relative"
->
+<div class="flex flex-col justify-center items-center w-full min-h-[304px] py-4 px-2 relative">
   {#if imageSrc}
     <div class="mb-4 max-w-md">
       <img bind:this={imageEl} on:load={readImage} width="100%" src={imageSrc} alt="Selected" />
@@ -83,7 +81,7 @@
   {/if}
 
   <div
-    class="w-full flex items-center"
+    class="w-full flex items-center h-full"
     class:justify-center={!imageSrc}
     class:justify-between={imageSrc}
   >

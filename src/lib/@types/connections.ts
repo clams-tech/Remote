@@ -4,7 +4,6 @@ export type ConnectionDetailsType =
   | 'xpub'
   | 'multisig'
   | 'webln'
-  | 'electrum'
   | 'nostr-wallet-connect'
 
 export type ConnectionDetails = {

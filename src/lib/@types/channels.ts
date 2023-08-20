@@ -18,8 +18,8 @@ export type Channel = {
   id: string
   /** short channel id */
   shortId: string | null
-  /** which side opened this channel */
-  opener: 'local' | 'remote'
+  /** nodeid of who opened this channel */
+  opener: string
   /** funding transaction id */
   fundingTransactionId: string
   /** 0-based index of the output in the funding transaction */

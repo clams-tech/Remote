@@ -314,7 +314,7 @@
     "connection_pay_invoice_expired": "Invoice has expired.",
     "connection_pay_invoice_invalid": "Invoice is invalid.",
     "connection_pay_unknown": "Could not make payment.",
-    "connection_fund_cannot_afford": "Not enough funds available to open channel.",
+    "connection_cannot_afford": "Not enough funds available to make this transaction.",
     "connection_fund_broadcast_fail": "Failed to broadcast channel funding transaction.",
     "connection_fund_peer_not_connected": "Peer is not connected when trying to open channel.",
     "connection_fund_unknown": "Could not make onchain transaction (send or open channel).",

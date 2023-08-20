@@ -46,8 +46,6 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
-      console.log({ accountEvents, transactions })
-
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)

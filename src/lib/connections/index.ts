@@ -119,7 +119,13 @@ export const syncConnectionData = (
   const invoicesRequest = async () =>
     connection.invoices
       ? connection.invoices.get().then((invoices) => {
-          db.invoices.bulkPut(invoices)
+          return Promise.all(
+            invoices.map((invoice) =>
+              db.invoices
+                .update(invoice.id, invoice)
+                .then((updated) => !updated && db.invoices.add(invoice))
+            )
+          )
         })
       : Promise.resolve()
 
@@ -128,7 +134,11 @@ export const syncConnectionData = (
   const utxosRequest = () =>
     connection.utxos
       ? connection.utxos.get().then((utxos) => {
-          db.utxos.bulkPut(utxos)
+          return Promise.all(
+            utxos.map((utxo) =>
+              db.utxos.update(utxo.id, utxo).then((updated) => !updated && db.utxos.add(utxo))
+            )
+          )
         })
       : Promise.resolve()
 
@@ -137,7 +147,13 @@ export const syncConnectionData = (
   const channelsRequest = () =>
     connection.channels
       ? connection.channels.get().then((channels) => {
-          db.channels.bulkPut(channels)
+          return Promise.all(
+            channels.map((channel) =>
+              db.channels
+                .update(channel.id, channel)
+                .then((updated) => !updated && db.channels.add(channel))
+            )
+          )
         })
       : Promise.resolve()
 
@@ -146,7 +162,13 @@ export const syncConnectionData = (
   const transactionsRequest = () =>
     connection.transactions
       ? connection.transactions.get().then((transactions) => {
-          db.transactions.bulkPut(transactions)
+          return Promise.all(
+            transactions.map((transaction) =>
+              db.transactions
+                .update(transaction.id, transaction)
+                .then((updated) => !updated && db.transactions.add(transaction))
+            )
+          )
         })
       : Promise.resolve()
 
@@ -155,7 +177,13 @@ export const syncConnectionData = (
   const forwardsRequest = () =>
     connection.forwards
       ? connection.forwards.get().then((forwards) => {
-          db.forwards.bulkPut(forwards)
+          return Promise.all(
+            forwards.map((forward) =>
+              db.forwards
+                .update(forward.id, forward)
+                .then((updated) => !updated && db.forwards.add(forward))
+            )
+          )
         })
       : Promise.resolve()
 
@@ -164,24 +192,28 @@ export const syncConnectionData = (
   const offersRequest = () =>
     connection.offers
       ? connection.offers.get().then((offers) => {
-          db.offers.bulkPut(offers)
+          return Promise.all(
+            offers.map((offer) =>
+              db.offers.update(offer.id, offer).then((updated) => !updated && db.offers.add(offer))
+            )
+          )
         })
       : Promise.resolve()
 
   requestQueue.push(offersRequest)
 
   if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-    const updateInvoice = (invoice: Invoice) => db.invoices.put(invoice)
+    const updateInvoice = (invoice: Invoice) =>
+      db.invoices
+        .update(invoice.id, invoice)
+        .then((updated) => !updated && db.invoices.add(invoice))
 
     db.invoices
       .where('connectionId')
       .equals(connection.connectionId)
-      .toArray()
-      .then((connectionInvoices) => {
-        const [lastPayedInvoice] = connectionInvoices.sort(
-          (a, b) => (b?.payIndex || 0) - (a?.payIndex || 0)
-        )
-
+      .reverse()
+      .sortBy('payIndex')
+      .then(([lastPayedInvoice]) => {
         if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
           connection.invoices.listenForAnyInvoicePayment(updateInvoice, lastPayedInvoice?.payIndex)
         }
@@ -202,7 +234,7 @@ export const syncConnectionData = (
   return progress$.asObservable()
 }
 
-type Request = () => Promise<void>
+type Request = () => Promise<void | void[]>
 
 const processQueue = async (queue: Request[], progress$: Subject<number>) => {
   // wait before making next request

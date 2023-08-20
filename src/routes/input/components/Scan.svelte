@@ -8,6 +8,7 @@
   import Msg from '$lib/components/Msg.svelte'
   import type { ParsedInput } from '$lib/@types/common.js'
   import ParsedInputButton from './ParsedInputButton.svelte'
+  import scan from '$lib/icons/scan.js'
 
   const dispatch = createEventDispatcher()
 
@@ -50,10 +51,10 @@
 
   let qrWorker: Worker
   let canvasContext: CanvasRenderingContext2D
-  let loaded = false
-  let videoLoaded = false
+  let loading = false
 
-  onMount(async () => {
+  const startCamera = async () => {
+    loading = true
     const supported = await checkCameraSupport()
 
     if (!supported) {
@@ -78,17 +79,13 @@
 
       await video.play()
 
-      videoLoaded = true
-
       setTimeout(startScanRegion, 100)
     } catch (error) {
       cameraError = $translate('app.errors.camera_permissions')
 
       return
     }
-
-    loaded = true
-  })
+  }
 
   async function startScanRegion() {
     scanRegion = calculateScanRegion(video)
@@ -105,7 +102,7 @@
 
     tick()
 
-    loaded = true
+    loading = false
   }
 
   function handleMessage(message: MessageEvent) {
@@ -176,15 +173,9 @@
   const desktopDevice = isDesktop()
 </script>
 
-<div class="relative items-center flex-col flex justify-center w-full">
-  <div class="flex items-center justify-center w-full h-full bg-neutral-900">
-    <div
-      class:w-0={!videoLoaded}
-      class:w-full={videoLoaded}
-      class:h-40={!videoLoaded}
-      class:h-full={videoLoaded}
-      class="transition-all overflow-hidden"
-    >
+<div class="relative items-center flex-col flex justify-center w-full min-h-[304px]">
+  <div class="flex items-center justify-center w-full h-full">
+    <div class="transition-all overflow-hidden w-full h-full">
       <!-- svelte-ignore a11y-media-has-caption -->
       <video bind:this={video} class:-scale-x-100={desktopDevice} />
     </div>
@@ -202,6 +193,12 @@
         class="absolute box z-50"
       />
     {/if}
+
+    {#if !scanRegion && !loading}
+      <button on:click={startCamera} class="w-10 shadow shadow-current rounded-full p-1 absolute"
+        >{@html scan}</button
+      >
+    {/if}
   </div>
 
   {#if cameraError}
@@ -214,7 +211,7 @@
     <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
   {/if}
 
-  {#if !videoLoaded && !cameraError}
+  {#if loading && !cameraError}
     <div class="absolute">
       <Spinner />
     </div>

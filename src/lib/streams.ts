@@ -74,9 +74,6 @@ export const onDestroy$ = defer(() => {
   return subject.asObservable().pipe(take(1))
 })
 
-// the last url path
-export const previousPaths$ = new BehaviorSubject<string[]>([])
-
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 

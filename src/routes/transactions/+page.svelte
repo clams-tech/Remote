@@ -165,7 +165,7 @@
               {/await}
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden">
-                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${type}:${data.id}`)}
+                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.connectionId}:${data.id}`)}
                     <TransactionRow {data} {type} />
                   {/each}
                 </div>

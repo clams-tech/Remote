@@ -78,7 +78,6 @@
 
 <Section>
   <div class="w-full flex justify-center items-center text-3xl font-semibold">
-    <div class="w-8 mr-1.5 -ml-2">{@html bitcoin}</div>
     <div>
       {$translate('app.labels.address')}
     </div>

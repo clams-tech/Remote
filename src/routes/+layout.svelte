@@ -4,9 +4,9 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Lava from '$lib/components/Lava.svelte'
-  import { errors$, previousPaths$, session$ } from '$lib/streams.js'
+  import { errors$, session$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
-  import { goto } from '$app/navigation'
+  import { afterNavigate, goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
   import Button from '$lib/components/Button.svelte'
   import key from '$lib/icons/key.js'
@@ -25,22 +25,9 @@
   const clearSession = () => session$.next(null)
 
   let showDecryptModal = false
-  let back: string | null
+  let routeHistory: string[] = []
 
   $: path = $page.url.pathname
-
-  $: if (
-    path !== '/' &&
-    $previousPaths$[1] &&
-    $previousPaths$[1] !== path &&
-    $previousPaths$[1] !== '/' &&
-    !$previousPaths$.slice(2).includes($previousPaths$[1]) &&
-    $previousPaths$[0] !== $previousPaths$[2]
-  ) {
-    back = $previousPaths$[1]
-  } else {
-    back = null
-  }
 
   const initializeConnections = async () => {
     const connectionsDetails = await db.connections.toArray()
@@ -73,6 +60,23 @@
       take(1)
     )
     .subscribe(initializeConnections)
+
+  afterNavigate(({ from, to }) => {
+    if (to && to.url.pathname === '/') {
+      routeHistory = []
+    } else if (from?.url) {
+      routeHistory = [from.url.pathname, ...routeHistory]
+    }
+  })
+
+  const back = async () => {
+    const [backPath, ...previousRoutes] = routeHistory
+
+    if (backPath) {
+      await goto(backPath)
+      routeHistory = previousRoutes
+    }
+  }
 </script>
 
 <svelte:head>
@@ -99,15 +103,15 @@
 
     <!-- show clams icon in top right if not welcome or decrypt routes -->
     {#if routeRequiresSession(path)}
-      {@const lastPathRouteTitle = $translate(`app.routes.${$previousPaths$[1]}.title`, {
+      {@const lastPathRouteTitle = $translate(`app.routes.${routeHistory[0]}.title`, {
         default: 'undefined'
       })}
       <div class="flex items-center">
-        {#if back}
-          <a
+        {#if routeHistory[0]}
+          <button
+            on:click={back}
             transition:slide={{ axis: 'x' }}
-            href={back}
-            class="flex items-center ml-2 no-underline font-semibold whitespace-nowrap"
+            class="flex items-center ml-2 font-semibold whitespace-nowrap"
           >
             <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
             <div>
@@ -115,8 +119,9 @@
                 ? $translate('app.labels.back')
                 : lastPathRouteTitle}
             </div>
-          </a>
+          </button>
         {/if}
+
         <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
           >{@html clamsIcon}</button
         >

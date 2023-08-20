@@ -52,8 +52,6 @@
     const {
       blockheight,
       receiveAddress,
-      inputs,
-      outputs,
       channel: channelDetails
     } = data as Transaction & {
       receiveAddress?: Address
@@ -104,7 +102,7 @@
 
 <a
   class="flex items-center justify-between rounded py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
-  href={`/transactions/${data.id}`}
+  href={`/transactions/${data.id}?connection=${data.connectionId}`}
 >
   <div class="flex items-start">
     <div class="w-6 border rounded-full mr-2 flex-shrink-0">{@html icon}</div>

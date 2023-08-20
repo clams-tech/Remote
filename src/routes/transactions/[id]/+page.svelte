@@ -34,7 +34,7 @@
   type QRValue = { label: string; value: string }
 
   /** payment id could be and invoice.id, transaction.id or an onchain receive address*/
-  const { id } = data
+  const { id, connection } = data
 
   type TransactionDetail = {
     type: 'invoice' | 'address' | 'onchain'
@@ -66,10 +66,10 @@
   }
 
   const transactionDetails$ = liveQuery(async () => {
-    const [invoice, address, transaction] = await Promise.all([
+    const [invoice, address, [transaction]] = await Promise.all([
       db.invoices.get(id),
       db.addresses.get(id),
-      db.transactions.get(id)
+      db.transactions.where({ id, connectionId: connection }).toArray()
     ])
 
     const details: TransactionDetail[] = []
@@ -126,7 +126,11 @@
     if (address) {
       const { value, connectionId, createdAt, amount, txid, message, completedAt, label } = address
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
-      const searchParams = new URLSearchParams({ amount: msatsToBtc(amount) })
+      const searchParams = new URLSearchParams()
+
+      if (amount && amount !== '0' && amount !== 'any') {
+        searchParams.append('amount', msatsToBtc(amount))
+      }
 
       if (label) {
         searchParams.append('label', label)
@@ -148,7 +152,9 @@
       if (status === 'waiting') {
         qrValues.push({
           label: $translate('app.labels.address'),
-          value: `bitcoin:${value.toUpperCase()}?${searchParams.toString()}`
+          value: `bitcoin:${value.toUpperCase()}${
+            searchParams.size ? `?${searchParams.toString()}` : ''
+          }`
         })
       }
 
@@ -157,7 +163,9 @@
 
         qrValues.push({
           label: $translate('app.labels.unified'),
-          value: `bitcoin:${value.toUpperCase()}?${searchParams.toString()}`
+          value: `bitcoin:${value.toUpperCase()}${
+            searchParams.size ? `?${searchParams.toString()}` : ''
+          }`
         })
       }
 
@@ -179,6 +187,7 @@
     if (transaction) {
       const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
         transaction
+
       const { balanceChange, abs } = await calculateTransactionBalanceChange(transaction)
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 

@@ -112,7 +112,7 @@
 
 <Section>
   <div class="flex items-center justify-between mb-2">
-    <SectionHeading icon={plus} />
+    <SectionHeading />
   </div>
 
   <ConnectionSelector bind:selectedConnectionId direction="receive" />

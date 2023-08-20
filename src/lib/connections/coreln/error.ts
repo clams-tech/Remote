@@ -28,7 +28,7 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
       return 'connection_pay_unknown'
     /** FUND CHANNEL / WITHDRAW ERRORS */
     case '301':
-      return 'connection_fund_cannot_afford'
+      return 'connection_cannot_afford'
     case '303':
       return 'connection_fund_broadcast_fail'
     case '305':
