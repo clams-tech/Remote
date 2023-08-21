@@ -13,6 +13,7 @@
   import { convertValue } from '$lib/conversion.js'
   import { BitcoinDenomination } from '$lib/types.js'
   import SummaryRow from '$lib/elements/SummaryRow.svelte'
+  import { currencySymbols } from '$lib/constants'
 
   $: sendableMsat =
     $channels$.data &&
@@ -29,6 +30,8 @@
         Big(acc).add(balanceRemote).minus(reserveRemote).toString(),
       '0'
     )
+
+  const primarySymbol = currencySymbols[$settings$.primaryDenomination]
 </script>
 
 <svelte:head>
@@ -70,7 +73,14 @@
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.sendable')}:</div>
-            <div slot="value">
+            <div class="flex" slot="value">
+              <span
+                class="flex justify-center items-center"
+                class:w-4={primarySymbol.startsWith('<')}
+                class:mr-[2px]={!primarySymbol.startsWith('<')}
+              >
+                {@html primarySymbol}
+              </span>
               {formatValueForDisplay({
                 value: convertValue({
                   value: sendableMsat && Big(sendableMsat).gt('0') ? sendableMsat : '0',
@@ -85,7 +95,14 @@
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.receivable')}:</div>
-            <div slot="value">
+            <div class="flex" slot="value">
+              <span
+                class="flex justify-center items-center"
+                class:w-4={primarySymbol.startsWith('<')}
+                class:mr-[2px]={!primarySymbol.startsWith('<')}
+              >
+                {@html primarySymbol}
+              </span>
               {formatValueForDisplay({
                 value: convertValue({
                   value: receivableMsat && Big(receivableMsat).gt('0') ? receivableMsat : '0',
