@@ -63,10 +63,10 @@
   }
 
   const transactionDetails$ = liveQuery(async () => {
-    const [invoice, address, [transaction]] = await Promise.all([
+    const [invoice, address, transaction] = await Promise.all([
       db.invoices.get(id),
       db.addresses.get(id),
-      db.transactions.where({ id, connectionId: connection }).toArray()
+      db.transactions.get(id)
     ])
 
     const details: TransactionDetail[] = []
@@ -185,7 +185,9 @@
       const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
         transaction
 
-      const { balanceChange, abs, category } = await deriveOnchainTransactionDetails(transaction)
+      const { balanceChange, abs, category, from, to } = await deriveOnchainTransactionDetails(
+        transaction
+      )
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
       const formattedInputs = await Promise.all(
@@ -458,7 +460,9 @@
                           {$translate('app.labels.spent')}:
                         </div>
                         <div>
-                          {truncateValue(utxo.address, 6)}
+                          {#await db.connections.get(utxo.connectionId) then connection}
+                            {connection?.label}
+                          {/await}
                         </div>
                       </div>
 
@@ -490,7 +494,9 @@
                           </div>
                         {/if}
                         <div>
-                          {truncateValue(utxo.address, 6)}
+                          {#await db.connections.get(utxo.connectionId) then connection}
+                            {connection?.label}
+                          {/await}
                         </div>
                       </div>
                       <BitcoinAmount msat={utxo.amount} />
