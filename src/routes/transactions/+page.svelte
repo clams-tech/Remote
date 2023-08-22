@@ -84,6 +84,9 @@
   let showFullReceiveButton = false
   let transactionsContainer: HTMLDivElement
 
+  // need to adjust this if you change the transaction row height
+  const rowSize = 104
+
   $: transactionsContainerScrollable =
     dailyPayments && transactionsContainer
       ? dailyPayments.reduce((acc, data) => acc + data[1].length * 60 + 24 + 8, 0) >
@@ -104,14 +107,14 @@
 
   const getDaySize = (index: number) => {
     const payments = dailyPayments[index][1]
-    return payments.length * 60 + 24 + 8
+    return payments.length * rowSize + 24 + 8
   }
 
   let innerHeight: number
 
   $: maxHeight = innerHeight - 80 - 56 - 24
   $: fullHeight = dailyPayments
-    ? dailyPayments.reduce((acc, data) => acc + data[1].length * 60 + 24 + 8, 0)
+    ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
 </script>

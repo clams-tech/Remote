@@ -217,6 +217,7 @@
     "restrictions": "Restrictions",
     "direction": "{{direction; receive:}}",
     "any": "Any",
+    "balance_change": "Balance change",
     "amount": "Amount",
     "help_and_support": "Help & Support",
     "dark_mode": "Dark Mode",

@@ -13,20 +13,17 @@
   import Spinner from '$lib/components/Spinner.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import bitcoin from '$lib/icons/bitcoin.js'
   import check from '$lib/icons/check.js'
-  import lightning from '$lib/icons/lightning.js'
   import warning from '$lib/icons/warning.js'
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
   import { truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
-  import channels from '$lib/icons/channels.js'
   import { liveQuery } from 'dexie'
   import { msatsToBtc } from '$lib/conversion.js'
   import caret from '$lib/icons/caret.js'
-  import { calculateTransactionBalanceChange } from '../utils.js'
+  import { deriveOnchainTransactionDetails } from '../utils.js'
   import type { Utxo } from '$lib/@types/utxos.js'
 
   export let data: PageData
@@ -188,7 +185,7 @@
       const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
         transaction
 
-      const { balanceChange, abs } = await calculateTransactionBalanceChange(transaction)
+      const { balanceChange, abs, category } = await deriveOnchainTransactionDetails(transaction)
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
       const formattedInputs = await Promise.all(
