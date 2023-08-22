@@ -3,7 +3,7 @@ import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
 import { db } from '$lib/db.js'
-import { nowSeconds, wait } from '$lib/utils.js'
+import { nowSeconds, stripUndefined, wait } from '$lib/utils.js'
 import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
@@ -122,7 +122,7 @@ export const syncConnectionData = (
           return Promise.all(
             invoices.map((invoice) =>
               db.invoices
-                .update(invoice.id, invoice)
+                .update(invoice.id, stripUndefined(invoice))
                 .then((updated) => !updated && db.invoices.add(invoice))
             )
           )
@@ -136,7 +136,9 @@ export const syncConnectionData = (
       ? connection.utxos.get().then((utxos) => {
           return Promise.all(
             utxos.map((utxo) =>
-              db.utxos.update(utxo.id, utxo).then((updated) => !updated && db.utxos.add(utxo))
+              db.utxos
+                .update(utxo.id, stripUndefined(utxo))
+                .then((updated) => !updated && db.utxos.add(utxo))
             )
           )
         })
@@ -150,7 +152,7 @@ export const syncConnectionData = (
           return Promise.all(
             channels.map((channel) =>
               db.channels
-                .update(channel.id, channel)
+                .update(channel.id, stripUndefined(channel))
                 .then((updated) => !updated && db.channels.add(channel))
             )
           )
@@ -165,7 +167,7 @@ export const syncConnectionData = (
           return Promise.all(
             transactions.map((transaction) =>
               db.transactions
-                .update(transaction.id, transaction)
+                .update(transaction.id, stripUndefined(transaction))
                 .then((updated) => !updated && db.transactions.add(transaction))
             )
           )
@@ -180,7 +182,7 @@ export const syncConnectionData = (
           return Promise.all(
             forwards.map((forward) =>
               db.forwards
-                .update(forward.id, forward)
+                .update(forward.id, stripUndefined(forward))
                 .then((updated) => !updated && db.forwards.add(forward))
             )
           )
@@ -194,7 +196,9 @@ export const syncConnectionData = (
       ? connection.offers.get().then((offers) => {
           return Promise.all(
             offers.map((offer) =>
-              db.offers.update(offer.id, offer).then((updated) => !updated && db.offers.add(offer))
+              db.offers
+                .update(offer.id, stripUndefined(offer))
+                .then((updated) => !updated && db.offers.add(offer))
             )
           )
         })
@@ -205,7 +209,7 @@ export const syncConnectionData = (
   if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
     const updateInvoice = (invoice: Invoice) =>
       db.invoices
-        .update(invoice.id, invoice)
+        .update(invoice.id, stripUndefined(invoice))
         .then((updated) => !updated && db.invoices.add(invoice))
 
     db.invoices

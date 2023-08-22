@@ -76,7 +76,11 @@
         <BitcoinAmount msat={satsToMsats(sats)} />
       </div>
 
-      <Button primary on:click={setAmount} text={$translate('app.labels.set_amount')} />
+      <div class="w-full flex justify-end">
+        <div class="w-min">
+          <Button primary on:click={setAmount} text={$translate('app.labels.set_amount')} />
+        </div>
+      </div>
     </div>
   </Modal>
 {/if}

@@ -18,39 +18,47 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
+  import { combineLatest, debounce, from, map, takeUntil } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
 
-  const invoices$ = liveQuery(async () => {
-    const invoices = await db.invoices.toArray()
-    return invoices.map((data) => ({
-      type: 'invoice' as 'invoice',
-      data,
-      timestamp: data.completedAt || data.createdAt
-    }))
-  })
+  const invoices$ = from(
+    liveQuery(async () => {
+      const invoices = await db.invoices.toArray()
+      return invoices.map((data) => ({
+        type: 'invoice' as 'invoice',
+        data,
+        timestamp: data.completedAt || data.createdAt
+      }))
+    })
+  )
 
-  const transactions$ = liveQuery(async () => {
-    const transactions = await db.transactions.toArray()
+  const transactions$ = from(
+    liveQuery(async () => {
+      const transactions = await db.transactions.toArray()
 
-    return Promise.all(
-      transactions.map(async (transaction) => {
-        const receiveAddress = await db.addresses.get({ txid: transaction.id })
-        return {
-          type: 'transaction' as 'transaction',
-          data: { ...transaction, receiveAddress },
-          timestamp: transaction.timestamp
-        }
-      })
-    )
-  })
+      return Promise.all(
+        transactions.map(async (transaction) => {
+          const receiveAddress = await db.addresses.get({ txid: transaction.id })
+          return {
+            type: 'transaction' as 'transaction',
+            data: { ...transaction, receiveAddress },
+            timestamp: transaction.timestamp
+          }
+        })
+      )
+    })
+  )
 
-  const addresses$ = liveQuery(async () => {
-    const addresses = await db.addresses.filter(({ txid }) => !txid).toArray()
-    return addresses.map((data) => ({
-      type: 'address' as 'address',
-      data,
-      timestamp: data.createdAt
-    }))
-  })
+  const addresses$ = from(
+    liveQuery(async () => {
+      const addresses = await db.addresses.filter(({ txid }) => !txid).toArray()
+      return addresses.map((data) => ({
+        type: 'address' as 'address',
+        data,
+        timestamp: data.createdAt
+      }))
+    })
+  )
 
   type InvoiceData = { type: 'invoice'; data: Invoice; timestamp: number }
   type AddressData = { type: 'address'; data: Address; timestamp: number }
@@ -62,21 +70,21 @@
 
   type Payment = InvoiceData | AddressData | TransactionData
   type PaymentsMap = Map<number, Payment[]>
-  type DailyPayments = [number, Payment[]][]
 
-  let dailyPayments: DailyPayments
+  const dailyPayments$ = combineLatest([invoices$, transactions$, addresses$]).pipe(
+    map((payments) => {
+      const paymentMap = payments.flat().reduce((acc, payment) => {
+        const date = new Date(payment.timestamp * 1000)
+        const dateKey = endOfDay(date).getTime() / 1000
+        acc.set(dateKey, [...(acc.get(dateKey) || []), payment])
 
-  $: if ($invoices$ && $transactions$ && $addresses$) {
-    const unsorted = [...$invoices$, ...$transactions$, ...$addresses$].reduce((acc, payment) => {
-      const date = new Date(payment.timestamp * 1000)
-      const dateKey = endOfDay(date).getTime() / 1000
-      acc.set(dateKey, [...(acc.get(dateKey) || []), payment])
+        return acc
+      }, new Map() as PaymentsMap)
 
-      return acc
-    }, new Map() as PaymentsMap)
-
-    dailyPayments = inPlaceSort(Array.from(unsorted.entries())).desc(([timestamp]) => timestamp)
-  }
+      return inPlaceSort(Array.from(paymentMap.entries())).desc(([timestamp]) => timestamp)
+    }),
+    takeUntil(onDestroy$)
+  )
 
   let showFilters = false
   const toggleFilters = () => (showFilters = !showFilters)
@@ -85,13 +93,7 @@
   let transactionsContainer: HTMLDivElement
 
   // need to adjust this if you change the transaction row height
-  const rowSize = 104
-
-  $: transactionsContainerScrollable =
-    dailyPayments && transactionsContainer
-      ? dailyPayments.reduce((acc, data) => acc + data[1].length * 60 + 24 + 8, 0) >
-        transactionsContainer.clientHeight
-      : false
+  const rowSize = 76
 
   let previousOffset: number = 0
 
@@ -106,17 +108,24 @@
   }
 
   const getDaySize = (index: number) => {
-    const payments = dailyPayments[index][1]
+    const payments = $dailyPayments$[index][1]
     return payments.length * rowSize + 24 + 8
   }
 
   let innerHeight: number
 
   $: maxHeight = innerHeight - 80 - 56 - 24
-  $: fullHeight = dailyPayments
-    ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
+
+  $: fullHeight = $dailyPayments$
+    ? $dailyPayments$.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
+
   $: listHeight = Math.min(maxHeight, fullHeight)
+
+  $: transactionsContainerScrollable =
+    $dailyPayments$ && transactionsContainer
+      ? fullHeight > transactionsContainer.clientHeight
+      : false
 </script>
 
 <svelte:window bind:innerHeight />
@@ -135,11 +144,11 @@
   {/if}
 
   <div class="w-full overflow-hidden flex">
-    {#if !dailyPayments}
+    {#if !$dailyPayments$}
       <div in:fade={{ duration: 250 }} class="mt-4 w-full flex justify-center">
         <Spinner />
       </div>
-    {:else if !dailyPayments.length}
+    {:else if !$dailyPayments$.length}
       <div class="mt-4 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_transactions')} />
       </div>
@@ -153,13 +162,13 @@
           on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
-          itemCount={dailyPayments.length}
+          itemCount={$dailyPayments$.length}
           itemSize={getDaySize}
-          getKey={(index) => dailyPayments[index][0]}
+          getKey={(index) => $dailyPayments$[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
-              {#await formatDate(dailyPayments[index][0]) then formattedDate}
+              {#await formatDate($dailyPayments$[index][0]) then formattedDate}
                 <div
                   class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-600/50"
                 >
@@ -168,7 +177,7 @@
               {/await}
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden">
-                  {#each inPlaceSort(dailyPayments[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.connectionId}:${data.id}`)}
+                  {#each inPlaceSort($dailyPayments$[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.connectionId}:${data.id}:${type}`)}
                     <TransactionRow {data} {type} />
                   {/each}
                 </div>

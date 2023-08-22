@@ -108,29 +108,14 @@
           {$translate(`app.labels.${category}`)}
         </div>
 
-        <div class="text-xs font-semibold flex items-center mt-1 border-2 px-2 py-1 rounded">
-          <div>
-            {from}
+        <div class="text-xs font-semibold flex items-center mt-1">
+          <div class="border-2 px-1 rounded">
+            {from.toLowerCase()}
           </div>
 
-          <div class="w-3 mx-1 -rotate-90">{@html arrow}</div>
+          <div class="w-4 mx-1 -rotate-90">{@html arrow}</div>
 
-          <div>{to}</div>
-        </div>
-
-        <div
-          class:text-utility-success={status === 'complete'}
-          class:text-utility-pending={status === 'pending'}
-          class:text-utility-error={status === 'expired' || status === 'failed'}
-          class="flex items-center text-xs mt-2"
-        >
-          <div
-            class:bg-utility-success={status === 'complete'}
-            class:bg-utility-pending={status === 'pending'}
-            class:bg-utility-error={status === 'expired' || status === 'failed'}
-            class="w-1.5 h-1.5 rounded-full mr-1"
-          />
-          <div>{$translate(`app.labels.${status}`)}</div>
+          <div class="border-2 px-1 rounded">{to.toLowerCase()}</div>
         </div>
       </div>
     </div>
@@ -138,7 +123,23 @@
     <div class="flex items-center">
       {#if balanceChange}
         <div>
-          <div class="flex justify-end text-xs">{$translate('app.labels.balance_change')}</div>
+          <div
+            class:text-utility-success={status === 'complete'}
+            class:text-utility-pending={status === 'pending'}
+            class:text-utility-error={status === 'expired' || status === 'failed'}
+            class="flex items-center justify-end text-xs mt-2"
+          >
+            <div
+              class:bg-utility-success={status === 'complete'}
+              class:bg-utility-pending={status === 'pending'}
+              class:bg-utility-error={status === 'expired' || status === 'failed'}
+              class="w-1.5 h-1.5 rounded-full mr-1"
+            />
+            <div>{$translate(`app.labels.${status}`)}</div>
+          </div>
+
+          <!-- <div class="flex justify-end text-xs">{$translate('app.labels.balance_change')}</div> -->
+
           <div class="flex items-center">
             <div
               class="mr-1 font-semibold text-lg font-mono"
@@ -154,7 +155,7 @@
       {/if}
 
       <div class="flex items-center h-full ml-1">
-        <div class="w-4 -rotate-90">{@html caret}</div>
+        <div class="w-6 flex-shrink-0 -rotate-90">{@html caret}</div>
       </div>
     </div>
   </a>
