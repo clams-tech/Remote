@@ -18,7 +18,7 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { combineLatest, debounce, from, map, takeUntil } from 'rxjs'
+  import { combineLatest, from, map, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
 
   const invoices$ = from(
@@ -176,7 +176,7 @@
                 </div>
               {/await}
               <div class="rounded overflow-hidden">
-                <div class="overflow-hidden">
+                <div class="overflow-hidden rounded">
                   {#each inPlaceSort($dailyPayments$[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.connectionId}:${data.id}:${type}`)}
                     <TransactionRow {data} {type} />
                   {/each}

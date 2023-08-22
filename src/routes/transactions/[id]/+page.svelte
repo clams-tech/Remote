@@ -150,7 +150,7 @@
         qrValues.push({
           label: $translate('app.labels.address'),
           value: `bitcoin:${value.toUpperCase()}${
-            searchParams.size ? `?${searchParams.toString()}` : ''
+            Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
           }`
         })
       }
@@ -161,7 +161,7 @@
         qrValues.push({
           label: $translate('app.labels.unified'),
           value: `bitcoin:${value.toUpperCase()}${
-            searchParams.size ? `?${searchParams.toString()}` : ''
+            Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
           }`
         })
       }

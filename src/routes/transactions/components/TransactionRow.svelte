@@ -98,11 +98,17 @@
 {#if formatted}
   <a
     in:fade
-    class="flex items-center justify-between rounded py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
+    class="flex items-center justify-between py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
     href={`/transactions/${data.id}?connection=${data.connectionId}`}
   >
     <div class="flex items-start">
-      <div class="w-6 border rounded-full mr-2 flex-shrink-0">{@html icon}</div>
+      <div
+        class="w-6 border border-current rounded-full mr-2 flex-shrink-0"
+        class:text-bitcoin-orange={type === 'transaction' || type === 'address'}
+        class:text-bitcoin-yellow={type === 'invoice'}
+      >
+        {@html icon}
+      </div>
       <div>
         <div class="mr-2 font-semibold">
           {$translate(`app.labels.${category}`)}
