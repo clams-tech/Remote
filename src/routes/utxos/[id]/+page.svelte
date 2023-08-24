@@ -2,22 +2,18 @@
   import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
-  import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import Msg from '$lib/components/Msg.svelte'
-  import Qr from '$lib/components/Qr.svelte'
   import Section from '$lib/components/Section.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import check from '$lib/icons/check.js'
-  import warning from '$lib/icons/warning.js'
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
   import { truncateValue } from '$lib/utils.js'
-  import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
-  import { first, from, take, timestamp } from 'rxjs'
+  import { from, take } from 'rxjs'
   import keys from '$lib/icons/keys.js'
   import caret from '$lib/icons/caret.js'
 
@@ -50,17 +46,7 @@
       <Spinner />
     </div>
   {:else}
-    {@const {
-      status,
-      txid,
-      timestamp,
-      amount,
-      connectionId,
-      address,
-      reserved,
-      reservedToBlock,
-      spendingTxid
-    } = $utxo$}
+    {@const { status, txid, timestamp, amount, connectionId, address, spendingTxid } = $utxo$}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold">
       <div class="w-8 mr-1.5">{@html keys}</div>
@@ -166,13 +152,6 @@
             {/if}
           {/if}
         {/await}
-
-        {#if reserved && reservedToBlock}
-          <SummaryRow>
-            <div slot="label">{$translate('app.labels.reserved_to_block')}</div>
-            <div slot="value">{reservedToBlock}</div>
-          </SummaryRow>
-        {/if}
 
         {#if spendingTxid}
           <SummaryRow>

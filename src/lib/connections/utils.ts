@@ -1,21 +1,11 @@
-import type { Channel } from '$lib/@types/channels.js'
-import type { ConnectionDetails } from '$lib/@types/connections.js'
-import type { Transaction, TransactionCategory } from '$lib/@types/transactions.js'
-import type { Utxo } from '$lib/@types/utxos.js'
+import type { Invoice } from '$lib/@types/invoices.js'
+import type { Metadata } from '$lib/@types/metadata.js'
+import type { Transaction } from '$lib/@types/transactions.js'
 import { db } from '$lib/db.js'
-import { truncateValue } from '$lib/utils.js'
+import { connections$ } from '$lib/streams.js'
 import Big from 'big.js'
 
-export const deriveOnchainTransactionDetails = async (
-  transaction: Transaction
-): Promise<{
-  abs: '+' | '-'
-  balanceChange: string
-  category: TransactionCategory
-  channel?: Channel
-  from: string
-  to: string
-}> => {
+export const deriveTransactionMetadata = async (transaction: Transaction): Promise<Metadata> => {
   const inputsWithOwnedUtxo = await Promise.all(
     transaction.inputs.map(async (input) => {
       const { txid, index } = input
@@ -58,42 +48,68 @@ export const deriveOnchainTransactionDetails = async (
   const toConnection =
     firstOutputWithTransferUtxo &&
     firstOutputWithTransferUtxo.utxo &&
-    (await db.connections.get(firstOutputWithTransferUtxo.utxo.connectionId))
+    firstOutputWithTransferUtxo.utxo.connectionId
 
   const fromConnection =
     firstInputWithSpentUtxo &&
     firstInputWithSpentUtxo.utxo &&
-    ((await db.connections.get(firstInputWithSpentUtxo.utxo.connectionId)) as ConnectionDetails)
+    firstInputWithSpentUtxo.utxo.connectionId
 
-  const to = toConnection?.label || truncateValue(firstOutputSendAddress, 6)
-  const from = fromConnection?.label || 'unknown'
+  const to = toConnection || firstOutputSendAddress
+  const from = fromConnection || undefined
 
   // no known spent utxo, so must be receive
   if (!firstInputWithSpentUtxo) {
     return {
-      abs: '+',
+      id: transaction.id,
+      type: 'transaction',
       balanceChange: ourOutputUtxoTotal.toString(),
-      category: 'receive',
-      from,
-      to
+      tags: ['income'],
+      counterparties: [from, undefined]
     }
   }
 
   return {
-    abs: '-',
+    id: transaction.id,
+    type: 'transaction',
     balanceChange: outputsTotal
       .minus(ourOutputUtxoTotal)
       .plus(transaction.fee ? transaction.fee : '0')
       .toString(),
-    category:
-      transaction.channel?.type === 'open'
-        ? 'channel_open'
-        : transaction.channel?.type === 'close'
-        ? 'channel_close'
+    tags: [
+      transaction.channel
+        ? transaction.fee
+          ? 'expense'
+          : 'neutral'
         : firstOutputWithTransferUtxo
         ? 'transfer'
-        : 'send',
-    to,
-    from
+        : 'expense'
+    ],
+    counterparties: [from, to]
+  }
+}
+
+export const deriveInvoiceMetadata = async ({
+  id,
+  direction,
+  amount,
+  fee,
+  nodeId,
+  connectionId
+}: Invoice): Promise<Metadata> => {
+  const rebalancedToConnection =
+    direction === 'send' ? connections$.value.find(({ info }) => info.id === nodeId) : undefined
+
+  return {
+    id,
+    type: 'invoice',
+    tags: [direction === 'send' ? 'expense' : 'income'],
+    balanceChange: Big(amount === 'any' ? '0' : amount)
+      .plus(fee || '0')
+      .toString(),
+    counterparties:
+      direction === 'receive'
+        ? [undefined, connectionId]
+        : [connectionId, rebalancedToConnection?.connectionId || nodeId]
   }
 }

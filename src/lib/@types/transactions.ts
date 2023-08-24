@@ -23,8 +23,6 @@ export type Transaction = {
   fee?: string
 }
 
-export type TransactionCategory = 'send' | 'receive' | 'transfer' | 'channel_open' | 'channel_close'
-
 export type SendTransactionOptions = {
   /** amount to send msats */
   amount: string

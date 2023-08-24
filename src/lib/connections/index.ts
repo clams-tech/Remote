@@ -2,15 +2,25 @@ import type { ConnectionDetails, CoreLnConfiguration } from '$lib/@types/connect
 import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
-import { db } from '$lib/db.js'
-import { nowSeconds, stripUndefined, wait } from '$lib/utils.js'
+import { nowSeconds, wait } from '$lib/utils.js'
 import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { ConnectionInterface } from './interfaces.js'
-import type { Invoice } from '$lib/@types/invoices.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
+import { deriveInvoiceMetadata, deriveTransactionMetadata } from './utils.js'
+import Big from 'big.js'
+import {
+  db,
+  updateChannel,
+  updateForward,
+  updateInvoice,
+  updateMetadata,
+  updateOffer,
+  updateTransaction,
+  updateUtxo
+} from '$lib/db.js'
 // import { log } from '$lib/services.js'
 
 export const connectionOptions: { type: ConnectionDetails['type']; icon: string }[] = [
@@ -120,11 +130,11 @@ export const syncConnectionData = (
     connection.invoices
       ? connection.invoices.get().then((invoices) => {
           return Promise.all(
-            invoices.map((invoice) =>
-              db.invoices
-                .update(invoice.id, stripUndefined(invoice))
-                .then((updated) => !updated && db.invoices.add(invoice))
-            )
+            invoices.map(async (invoice) => {
+              await updateInvoice(invoice)
+              const metadata = await deriveInvoiceMetadata(invoice)
+              await updateMetadata(metadata)
+            })
           )
         })
       : Promise.resolve()
@@ -134,13 +144,7 @@ export const syncConnectionData = (
   const utxosRequest = () =>
     connection.utxos
       ? connection.utxos.get().then((utxos) => {
-          return Promise.all(
-            utxos.map((utxo) =>
-              db.utxos
-                .update(utxo.id, stripUndefined(utxo))
-                .then((updated) => !updated && db.utxos.add(utxo))
-            )
-          )
+          return Promise.all(utxos.map(async (utxo) => await updateUtxo(utxo)))
         })
       : Promise.resolve()
 
@@ -149,13 +153,7 @@ export const syncConnectionData = (
   const channelsRequest = () =>
     connection.channels
       ? connection.channels.get().then((channels) => {
-          return Promise.all(
-            channels.map((channel) =>
-              db.channels
-                .update(channel.id, stripUndefined(channel))
-                .then((updated) => !updated && db.channels.add(channel))
-            )
-          )
+          return Promise.all(channels.map(async (channel) => await updateChannel(channel)))
         })
       : Promise.resolve()
 
@@ -163,13 +161,17 @@ export const syncConnectionData = (
 
   const transactionsRequest = () =>
     connection.transactions
-      ? connection.transactions.get().then((transactions) => {
-          return Promise.all(
-            transactions.map((transaction) =>
-              db.transactions
-                .update(transaction.id, stripUndefined(transaction))
-                .then((updated) => !updated && db.transactions.add(transaction))
-            )
+      ? connection.transactions.get().then(async (transactions) => {
+          await Promise.all(
+            transactions.map(async (transaction) => {
+              // update transaction data in db
+              await updateTransaction(transaction)
+
+              // derive metadata
+              const metadata = await deriveTransactionMetadata(transaction)
+
+              await updateMetadata(metadata)
+            })
           )
         })
       : Promise.resolve()
@@ -179,13 +181,7 @@ export const syncConnectionData = (
   const forwardsRequest = () =>
     connection.forwards
       ? connection.forwards.get().then((forwards) => {
-          return Promise.all(
-            forwards.map((forward) =>
-              db.forwards
-                .update(forward.id, stripUndefined(forward))
-                .then((updated) => !updated && db.forwards.add(forward))
-            )
-          )
+          return Promise.all(forwards.map(async (forward) => await updateForward(forward)))
         })
       : Promise.resolve()
 
@@ -194,24 +190,13 @@ export const syncConnectionData = (
   const offersRequest = () =>
     connection.offers
       ? connection.offers.get().then((offers) => {
-          return Promise.all(
-            offers.map((offer) =>
-              db.offers
-                .update(offer.id, stripUndefined(offer))
-                .then((updated) => !updated && db.offers.add(offer))
-            )
-          )
+          return Promise.all(offers.map(async (offer) => await updateOffer(offer)))
         })
       : Promise.resolve()
 
   requestQueue.push(offersRequest)
 
   if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-    const updateInvoice = (invoice: Invoice) =>
-      db.invoices
-        .update(invoice.id, stripUndefined(invoice))
-        .then((updated) => !updated && db.invoices.add(invoice))
-
     db.invoices
       .where('connectionId')
       .equals(connection.connectionId)

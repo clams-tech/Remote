@@ -23,8 +23,8 @@
   import { liveQuery } from 'dexie'
   import { msatsToBtc } from '$lib/conversion.js'
   import caret from '$lib/icons/caret.js'
-  import { deriveOnchainTransactionDetails } from '../utils.js'
   import type { Utxo } from '$lib/@types/utxos.js'
+  import type { Metadata } from '$lib/@types/metadata.js'
 
   export let data: PageData
 
@@ -49,8 +49,8 @@
     expiresAt?: number
     peerNodeId?: string
     connection: ConnectionDetails
+    tags: Metadata['tags']
     offer?: Invoice['offer']
-    abs: '+' | '-'
     channel?: Transaction['channel']
     inputs?: { outpoint: string; utxo?: Utxo }[]
     outputs?: {
@@ -91,6 +91,7 @@
 
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
+      const { tags } = (await db.metadata.get(invoice.id)) as Metadata
 
       details.push({
         type: 'invoice',
@@ -111,12 +112,12 @@
         expiresAt,
         connection,
         offer: offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer,
-        abs: direction === 'send' ? '-' : '+',
         fee,
         request,
         paymentHash: hash,
         paymentPreimage: preimage,
-        peerNodeId: direction === 'send' ? nodeId : undefined
+        peerNodeId: direction === 'send' ? nodeId : undefined,
+        tags
       })
     }
 
@@ -175,9 +176,9 @@
         createdAt,
         completedAt,
         connection,
-        abs: '+',
         channel: tx?.channel,
-        txid
+        txid,
+        tags: ['income']
       })
     }
 
@@ -185,9 +186,7 @@
       const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
         transaction
 
-      const { balanceChange, abs, category, from, to } = await deriveOnchainTransactionDetails(
-        transaction
-      )
+      const { balanceChange, tags } = (await db.metadata.get(transaction.id)) as Metadata
       const connection = (await db.connections.get(connectionId)) as ConnectionDetails
 
       const formattedInputs = await Promise.all(
@@ -250,10 +249,10 @@
         channel,
         connection,
         completedAt: typeof blockheight === 'number' ? timestamp : undefined,
-        abs,
         txid: id,
         inputs: formattedInputs,
-        outputs: formattedOutputs
+        outputs: formattedOutputs,
+        tags
       })
     }
 
@@ -329,10 +328,10 @@
       peerNodeId,
       connection,
       offer,
-      abs,
       channel,
       inputs,
-      outputs
+      outputs,
+      tags
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -364,12 +363,13 @@
     {#if amount}
       <div class="flex items-center w-full justify-center text-2xl">
         <div
-          class:text-utility-success={abs === '+'}
-          class:text-utility-error={abs === '-'}
+          class:text-utility-success={tags.includes('income')}
+          class:text-utility-error={tags.includes('expense')}
           class="font-semibold"
         >
-          {abs}
+          {tags.includes('income') ? '+' : tags.includes('expense') ? '-' : ''}
         </div>
+
         <BitcoinAmount msat={amount} />
       </div>
     {/if}
@@ -593,7 +593,7 @@
             <SummaryRow>
               <span slot="label"
                 >{$translate('app.labels.payer_note', {
-                  direction: abs === '+' ? 'receive' : 'send'
+                  direction: tags.includes('income') ? 'receive' : 'send'
                 })}:</span
               >
               <span slot="value">{payerNote}</span>

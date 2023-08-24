@@ -1,24 +1,25 @@
 export type Metadata = {
-  /** unique id for this metadata */
+  // refers to the id of the item the metadata is attached to
   id: string
-  /** the id that this metadata is associated with (payment.id, channel.id, utxo.txid, metadata.id) */
-  dataId: string
-  /** the type of metadata which defines how the value is interpreted */
-  type: MetadataType
-  /** value of the metadata, could be JSON string. How to interpret the value is defined by the type */
-  value: string
+  // the type of item this metadata is attached to
+  type: 'invoice' | 'transaction' | 'channel' | 'address' | 'forward' | 'utxo'
+  tags: string[]
+  note?: string
+  balanceChange?: string
+  counterparties?: [From, To]
+  contact?: string
+  exchangeRate?: string
+  label?: BIP329Label
 }
 
-export enum MetadataType {
-  tag = 'tag',
-  historicalExchangeRate = 'historicalExchangeRate',
-  contact = 'contact',
-  note = 'note',
-  npub = 'npub'
-}
+/** either a connection id if us, or onchain address or undefined if unknown */
+type From = string | undefined
+type To = string | undefined
 
-export type Tag = string
-export type HistoricalExchangeRate = string
-export type Note = string
-export type Contact = string
-export type Npub = string
+export type BIP329Label = {
+  type: 'tx' | 'addr' | 'pubkey' | 'input' | 'output' | 'xpub' | 'invoice'
+  ref: string
+  label: string
+  origin?: string
+  spendable?: boolean
+}

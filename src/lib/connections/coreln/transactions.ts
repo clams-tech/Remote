@@ -22,7 +22,6 @@ import type {
   ToThemEvent,
   WithdrawResponse
 } from './types.js'
-import { inPlaceSort } from 'fast-sort'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface

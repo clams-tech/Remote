@@ -8,6 +8,7 @@ import type { Transaction } from './@types/transactions.js'
 import type { Forward } from './@types/forwards.js'
 import type { Metadata } from './@types/metadata.js'
 import type { Address } from './@types/addresses.js'
+import { stripUndefined } from './utils.js'
 
 class DB extends Dexie {
   connections!: Table<ConnectionDetails>
@@ -39,3 +40,59 @@ class DB extends Dexie {
 }
 
 export const db = new DB()
+
+export const updateMetadata = async (update: Metadata) => {
+  const updated = await db.metadata.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.metadata.add(update)
+  }
+}
+
+export const updateTransaction = async (update: Transaction) => {
+  const updated = await db.transactions.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.transactions.add(update)
+  }
+}
+
+export const updateInvoice = async (update: Invoice) => {
+  const updated = await db.invoices.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.invoices.add(update)
+  }
+}
+
+export const updateUtxo = async (update: Utxo) => {
+  const updated = await db.utxos.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.utxos.add(update)
+  }
+}
+
+export const updateForward = async (update: Forward) => {
+  const updated = await db.forwards.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.forwards.add(update)
+  }
+}
+
+export const updateChannel = async (update: Channel) => {
+  const updated = await db.channels.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.channels.add(update)
+  }
+}
+
+export const updateOffer = async (update: Offer) => {
+  const updated = await db.offers.update(update.id, stripUndefined(update))
+
+  if (!updated) {
+    await db.offers.add(update)
+  }
+}
