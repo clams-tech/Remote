@@ -69,13 +69,15 @@ export const deriveTransactionMetadata = async (transaction: Transaction): Promi
     }
   }
 
+  const balanceChange = outputsTotal
+    .minus(ourOutputUtxoTotal)
+    .plus(transaction.fee ? transaction.fee : '0')
+    .toString()
+
   return {
     id: transaction.id,
     type: 'transaction',
-    balanceChange: outputsTotal
-      .minus(ourOutputUtxoTotal)
-      .plus(transaction.fee ? transaction.fee : '0')
-      .toString(),
+    balanceChange: balanceChange === '0' ? null : balanceChange,
     tags: [
       transaction.channel
         ? transaction.fee

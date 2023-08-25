@@ -5,7 +5,7 @@ export type Metadata = {
   type: 'invoice' | 'transaction' | 'channel' | 'address' | 'forward' | 'utxo'
   tags: string[]
   note?: string
-  balanceChange?: string
+  balanceChange?: string | null
   counterparties?: [From, To]
   contact?: string
   exchangeRate?: string

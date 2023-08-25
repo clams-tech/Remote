@@ -21,6 +21,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
   import { filter, take } from 'rxjs'
+  import lock from '$lib/icons/lock.js'
 
   const clearSession = () => session$.next(null)
 
@@ -95,7 +96,7 @@
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
       {#if routeRequiresSession(path) && $session$}
-        <button on:click={clearSession} class="w-8 ml-4">{@html lockOutline}</button>
+        <button on:click={clearSession} class="w-8 ml-4">{@html lock}</button>
         <a href="/input" class="w-9 ml-2">{@html scan}</a>
         <a href="/transactions/receive" class="w-9 ml-1">{@html plus}</a>
       {/if}

@@ -93,7 +93,7 @@
   let transactionsContainer: HTMLDivElement
 
   // need to adjust this if you change the transaction row height
-  const rowSize = 76
+  const rowSize = 84
 
   let previousOffset: number = 0
 

@@ -30,8 +30,8 @@
 
   type QRValue = { label: string; value: string }
 
-  /** payment id could be and invoice.id, transaction.id or an onchain receive address*/
-  const { id, connection } = data
+  /** payment id could be an invoice.id, transaction.id or an onchain receive address*/
+  const { id } = data
 
   type TransactionDetail = {
     type: 'invoice' | 'address' | 'onchain'
@@ -41,7 +41,7 @@
     paymentHash?: string
     paymentPreimage?: string
     txid?: string
-    amount?: string
+    amount?: string | null
     fee?: string
     description?: string
     createdAt?: number

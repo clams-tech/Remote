@@ -42,6 +42,7 @@ class DB extends Dexie {
 export const db = new DB()
 
 export const updateMetadata = async (update: Metadata) => {
+  console.log({ update })
   const updated = await db.metadata.update(update.id, stripUndefined(update))
 
   if (!updated) {
@@ -50,6 +51,7 @@ export const updateMetadata = async (update: Metadata) => {
 }
 
 export const updateTransaction = async (update: Transaction) => {
+  console.log({ update, stripped: stripUndefined(update) })
   const updated = await db.transactions.update(update.id, stripUndefined(update))
 
   if (!updated) {

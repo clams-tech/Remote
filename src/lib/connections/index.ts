@@ -169,7 +169,6 @@ export const syncConnectionData = (
 
               // derive metadata
               const metadata = await deriveTransactionMetadata(transaction)
-
               await updateMetadata(metadata)
             })
           )

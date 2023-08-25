@@ -15,6 +15,7 @@
   import { truncateValue } from '$lib/utils.js'
   import type { Metadata } from '$lib/@types/metadata.js'
   import { connections$ } from '$lib/streams.js'
+  import tag from '$lib/icons/tag.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -22,7 +23,7 @@
   let formatted = false
   let icon: string
   let status: TransactionStatus
-  let balanceChange: string | 'any' | undefined
+  let balanceChange: string | 'any' | undefined | null
   let channelEvent: Transaction['channel']
   let description: string | undefined
   let request: string | undefined
@@ -123,7 +124,7 @@
           {$translate(`app.labels.${action}`)}
         </div>
 
-        <div class="text-xs font-semibold flex items-center mt-1 uppercase">
+        <div class="text-xs font-semibold flex items-center mt-1 lowercase">
           <div class="border-2 px-1 rounded">
             {#if action === 'send'}
               {connection.label}
@@ -208,9 +209,14 @@
             <div
               class="mr-1 font-semibold text-lg font-mono"
               class:text-utility-success={tags.includes('income')}
-              class:text-utility-error={tags.includes('expense')}
+              class:text-utility-error={tags.includes('expense') ||
+                (tags.includes('transfer') && balanceChange)}
             >
-              {tags.includes('income') ? '+' : tags.includes('expense') ? '-' : ''}
+              {tags.includes('income')
+                ? '+'
+                : tags.includes('expense') || (tags.includes('transfer') && balanceChange)
+                ? '-'
+                : ''}
             </div>
 
             <BitcoinAmount msat={balanceChange} />
