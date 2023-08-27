@@ -59,6 +59,9 @@
     "/charts": {
       "title": "Charts"
     },
+    "/forwards": {
+      "title": "Forwards"
+    },
     "/trades": {
       "title": "Trades"
     },

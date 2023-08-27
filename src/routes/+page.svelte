@@ -14,6 +14,7 @@
   import { fade } from 'svelte/transition'
   import { wallets$ } from '$lib/streams.js'
   import trade from '$lib/icons/trade.js'
+  import forward from '$lib/icons/forward.js'
 
   const buttons = [
     { key: 'wallets', icon: wallet },
@@ -21,6 +22,7 @@
     { key: 'utxos', icon: keys },
     { key: 'channels', icon: channels },
     { key: 'offers', icon: lightningOutline },
+    { key: 'forwards', icon: forward },
     { key: 'accounting', icon: feeOutline },
     { key: 'charts', icon: graph },
     { key: 'trades', icon: trade },

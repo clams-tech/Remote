@@ -48,6 +48,7 @@ export interface Connection {
   disconnect?: () => void
   rpc?: RpcCall
   node?: NodeInterface
+  balance?: BalanceInterface
   offers?: OffersInterface
   invoices?: InvoicesInterface
   utxos?: UtxosInterface
@@ -176,4 +177,8 @@ export interface WithdrawalsInterface {
 
 export interface DepositsInterface {
   get(): Promise<Deposit[]>
+}
+
+export interface BalanceInterface {
+  get(): Promise<number>
 }
