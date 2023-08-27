@@ -27,6 +27,9 @@ import type {
   PayKeysendOptions,
   Invoice
 } from '$lib/@types/invoices.js'
+import type { Trade } from '$lib/@types/trades.js'
+import type { Withdrawal } from '$lib/@types/withdrawals.js'
+import type { Deposit } from '$lib/@types/deposits.js'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -52,6 +55,9 @@ export interface Connection {
   transactions?: TransactionsInterface
   forwards?: ForwardsInterface
   blocks?: BlocksInterface
+  trades?: TradesInterface
+  withdrawals?: WithdrawalsInterface
+  deposits?: DepositsInterface
 }
 
 export type Info = {
@@ -158,4 +164,16 @@ export interface BlocksInterface {
   connection: Connection
   subscribeToBlockHeight(): Promise<Observable<number>>
   getCurrentBlockHeight(): Promise<number>
+}
+
+export interface TradesInterface {
+  get(): Promise<Trade[]>
+}
+
+export interface WithdrawalsInterface {
+  get(): Promise<Withdrawal[]>
+}
+
+export interface DepositsInterface {
+  get(): Promise<Deposit[]>
 }

@@ -9,16 +9,7 @@ import coreLnLogo from './coreln/logo.js'
 import type { Connection } from './interfaces.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
-
-import {
-  db,
-  updateChannel,
-  updateForward,
-  updateInvoice,
-  updateOffer,
-  updateTransaction,
-  updateUtxo
-} from '$lib/db.js'
+import { db } from '$lib/db.js'
 // import { log } from '$lib/services.js'
 
 export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
@@ -109,6 +100,7 @@ export const syncConnectionData = (
   lastSync: number | null
 ): Observable<number> => {
   db.wallets.update(connection.walletId, { syncing: true })
+
   // queue of requests to make
   const requestQueue = []
 
@@ -117,62 +109,87 @@ export const syncConnectionData = (
 
   const invoicesRequest = async () =>
     connection.invoices
-      ? connection.invoices.get().then((invoices) => Promise.all(invoices.map(updateInvoice)))
+      ? connection.invoices.get().then((invoices) => db.invoices.bulkPut(invoices))
       : Promise.resolve()
 
   requestQueue.push(invoicesRequest)
 
   const utxosRequest = () =>
     connection.utxos
-      ? connection.utxos.get().then((utxos) => Promise.all(utxos.map(updateUtxo)))
+      ? connection.utxos.get().then((utxos) => db.utxos.bulkPut(utxos))
       : Promise.resolve()
 
   requestQueue.push(utxosRequest)
 
   const channelsRequest = () =>
     connection.channels
-      ? connection.channels.get().then((channels) => Promise.all(channels.map(updateChannel)))
+      ? connection.channels.get().then((channels) => db.channels.bulkPut(channels))
       : Promise.resolve()
 
   requestQueue.push(channelsRequest)
 
   const transactionsRequest = () =>
     connection.transactions
-      ? connection.transactions
-          .get()
-          .then((transactions) => Promise.all(transactions.map(updateTransaction)))
+      ? connection.transactions.get().then((transactions) => db.transactions.bulkPut(transactions))
       : Promise.resolve()
 
   requestQueue.push(transactionsRequest)
 
   const forwardsRequest = () =>
     connection.forwards
-      ? connection.forwards.get().then((forwards) => Promise.all(forwards.map(updateForward)))
+      ? connection.forwards.get().then((forwards) => db.forwards.bulkPut(forwards))
       : Promise.resolve()
 
   requestQueue.push(forwardsRequest)
 
   const offersRequest = () =>
     connection.offers
-      ? connection.offers.get().then((offers) => Promise.all(offers.map(updateOffer)))
+      ? connection.offers.get().then((offers) => db.offers.bulkPut(offers))
       : Promise.resolve()
 
   requestQueue.push(offersRequest)
 
-  if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-    db.invoices
-      .where('walletId')
-      .equals(connection.walletId)
-      .reverse()
-      .sortBy('payIndex')
-      .then(([lastPayedInvoice]) => {
-        if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-          connection.invoices.listenForAnyInvoicePayment(updateInvoice, lastPayedInvoice?.payIndex)
-        }
-      })
-  }
+  const tradesRequest = () =>
+    connection.trades
+      ? connection.trades.get().then((trades) => db.trades.bulkPut(trades))
+      : Promise.resolve()
 
-  processQueue(requestQueue, progress$)
+  requestQueue.push(tradesRequest)
+
+  const withdrawalsRequest = () =>
+    connection.withdrawals
+      ? connection.withdrawals.get().then((withdrawals) => db.withdrawals.bulkPut(withdrawals))
+      : Promise.resolve()
+
+  requestQueue.push(withdrawalsRequest)
+
+  const depositsRequest = () =>
+    connection.deposits
+      ? connection.deposits.get().then((deposits) => db.deposits.bulkPut(deposits))
+      : Promise.resolve()
+
+  requestQueue.push(depositsRequest)
+
+  /** process request queue
+   * then listen for invoice updates
+   */
+  processQueue(requestQueue, progress$).then(() => {
+    if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
+      db.invoices
+        .where('walletId')
+        .equals(connection.walletId)
+        .reverse()
+        .sortBy('payIndex')
+        .then(([lastPayedInvoice]) => {
+          if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
+            connection.invoices.listenForAnyInvoicePayment(
+              (invoice) => db.invoices.put(invoice),
+              lastPayedInvoice?.payIndex
+            )
+          }
+        })
+    }
+  })
 
   progress$
     .pipe(
