@@ -11,11 +11,11 @@
   import caret from '$lib/icons/caret.js'
   import lightning from '$lib/icons/lightning.js'
   import { fade } from 'svelte/transition'
-  import type { ConnectionDetails } from '$lib/@types/connections.js'
+  import type { Wallet } from '$lib/@types/wallets.js'
   import { truncateValue } from '$lib/utils.js'
-  import type { Metadata } from '$lib/@types/metadata.js'
   import { connections$ } from '$lib/streams.js'
-  import tag from '$lib/icons/tag.js'
+  import type { Movement } from '$lib/@types/movement.js'
+  import { deriveInvoiceMovement, deriveTransactionMovement } from '$lib/movement.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -23,49 +23,49 @@
   let formatted = false
   let icon: string
   let status: TransactionStatus
-  let balanceChange: string | 'any' | undefined | null
+  let balanceChange: Movement['balanceChange']
   let channelEvent: Transaction['channel']
   let description: string | undefined
   let request: string | undefined
-  let tags: Metadata['tags']
-  let counterparties: Metadata['counterparties']
+  let category: Movement['category']
+  let from: Movement['from']
+  let to: Movement['to']
+  let wallet: Wallet
   let action: string
-  let connection: ConnectionDetails
 
   const formatData = async () => {
-    connection = (await db.connections.get(data.connectionId)) as ConnectionDetails
+    wallet = (await db.wallets.get(data.walletId)) as Wallet
 
     if (type === 'invoice') {
       const {
         status: invoiceStatus,
         description: invoiceDescription,
         offer,
-        request: invoiceRequest,
-        id
+        request: invoiceRequest
       } = data as Invoice
 
       icon = lightning
       status = invoiceStatus
 
-      const metadata = await db.metadata.get(id)
+      const movement = deriveInvoiceMovement(data as Invoice)
 
-      if (metadata) {
-        tags = metadata.tags
-        balanceChange = metadata.balanceChange
-        counterparties = metadata.counterparties
-      }
-
+      balanceChange = movement.balanceChange
+      from = movement.from
+      to = movement.to
+      category = movement.category
       description = invoiceDescription || offer?.description
       request = invoiceRequest
     } else if (type === 'address') {
       const { amount: addressAmount, message: addressDescription, createdAt } = data as Address
       icon = bitcoin
       status = 'pending'
-      tags = ['income']
+      category = 'income'
+      from = undefined
+      to = data.walletId
       balanceChange = addressAmount
       description = addressDescription
     } else if (type === 'transaction') {
-      const { id, blockheight, receiveAddress, channel } = data as Transaction & {
+      const { blockheight, receiveAddress, channel } = data as Transaction & {
         receiveAddress?: Address
       }
 
@@ -78,26 +78,26 @@
 
       channelEvent = channel
 
-      const metadata = await db.metadata.get(id)
+      const movement = await deriveTransactionMovement(data as Transaction)
 
-      if (metadata) {
-        balanceChange = metadata.balanceChange
-        tags = metadata.tags
-        counterparties = metadata.counterparties
-      }
+      balanceChange = movement.balanceChange
+      from = movement.from
+      to = movement.to
+      category = movement.category
     }
 
-    action = tags.includes('income')
-      ? 'receive'
-      : tags.includes('expense')
-      ? 'send'
-      : tags.includes('transfer')
-      ? 'transfer'
-      : channelEvent
-      ? channelEvent.type === 'open'
-        ? 'channel_open'
-        : 'channel_close'
-      : ''
+    action =
+      category === 'income'
+        ? 'receive'
+        : category === 'expense'
+        ? 'send'
+        : category === 'transfer'
+        ? 'transfer'
+        : channelEvent
+        ? channelEvent.type === 'open'
+          ? 'channel_open'
+          : 'channel_close'
+        : ''
 
     formatted = true
   }
@@ -109,7 +109,7 @@
   <a
     in:fade
     class="flex items-center justify-between py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
-    href={`/transactions/${data.id}?connection=${data.connectionId}`}
+    href={`/transactions/${data.id}?wallet=${data.walletId}`}
   >
     <div class="flex items-start">
       <div
@@ -127,15 +127,15 @@
         <div class="text-xs font-semibold flex items-center mt-1 lowercase">
           <div class="border-2 px-1 rounded">
             {#if action === 'send'}
-              {connection.label}
+              {wallet.label}
             {:else if action === 'receive' || action === 'transfer'}
-              {#if counterparties && counterparties[0]}
-                <!-- see if counterparties is one of our connections -->
-                {#await db.connections.get(counterparties[0]) then connection}
-                  {#if connection}
-                    {connection.label}
+              {#if from}
+                <!-- see if counterparties is one of our wallets -->
+                {#await db.wallets.get(from) then wallet}
+                  {#if wallet}
+                    {wallet.label}
                   {:else}
-                    {truncateValue(counterparties[0])}
+                    {truncateValue(from)}
                   {/if}
                 {/await}
               {:else}
@@ -145,12 +145,13 @@
               {#await db.channels.get(channelEvent.channelId) then channel}
                 {#if channel}
                   <!-- did we open the channel? -->
-                  {@const ourConnectionThatOpenedTheChannel = $connections$.find(
+                  {@const ourwalletThatOpenedTheChannel = $connections$.find(
                     ({ info }) => info.id === channel?.opener
                   )}
-                  {#if ourConnectionThatOpenedTheChannel}
-                    {#await db.connections.get(ourConnectionThatOpenedTheChannel.connectionId) then connection}
-                      {connection?.label}
+
+                  {#if ourwalletThatOpenedTheChannel}
+                    {#await db.wallets.get(ourwalletThatOpenedTheChannel.walletId) then wallet}
+                      {wallet?.label}
                     {/await}
                   {:else}
                     {truncateValue(channel.opener, 6)}
@@ -164,15 +165,15 @@
 
           <div class="border-2 px-1 rounded">
             {#if action === 'receive'}
-              {connection.label}
+              {wallet.label}
             {:else if action === 'send' || action === 'transfer'}
-              {#if counterparties && counterparties[1]}
-                <!-- see if counterparties is one of our connections -->
-                {#await db.connections.get(counterparties[1]) then connection}
-                  {#if connection}
-                    {connection.label}
+              {#if to}
+                <!-- see if counterparties is one of our wallets -->
+                {#await db.wallets.get(to) then wallet}
+                  {#if wallet}
+                    {wallet.label}
                   {:else}
-                    {truncateValue(counterparties[1])}
+                    {truncateValue(to)}
                   {/if}
                 {/await}
               {:else}
@@ -182,12 +183,12 @@
               {#await db.channels.get(channelEvent.channelId) then channel}
                 {#if channel}
                   <!-- did we open the channel? -->
-                  {@const ourConnectionThatOpenedTheChannel = $connections$.find(
+                  {@const ourwalletThatOpenedTheChannel = $connections$.find(
                     ({ info }) => info.id === channel?.opener
                   )}
-                  {#if ourConnectionThatOpenedTheChannel}
-                    {#await db.connections.get(ourConnectionThatOpenedTheChannel.connectionId) then connection}
-                      {connection?.label}
+                  {#if ourwalletThatOpenedTheChannel}
+                    {#await db.wallets.get(ourwalletThatOpenedTheChannel.walletId) then wallet}
+                      {wallet?.label}
                     {/await}
                   {:else}
                     {truncateValue(channel.opener, 6)}
@@ -208,18 +209,18 @@
           <div class="flex items-center">
             <div
               class="mr-1 font-semibold text-lg font-mono"
-              class:text-utility-success={tags.includes('income')}
-              class:text-utility-error={tags.includes('expense') ||
-                (tags.includes('transfer') && balanceChange)}
+              class:text-utility-success={category === 'income'}
+              class:text-utility-error={category === 'expense' ||
+                (category === 'transfer' && balanceChange)}
             >
-              {tags.includes('income')
+              {category === 'income'
                 ? '+'
-                : tags.includes('expense') || (tags.includes('transfer') && balanceChange)
+                : category === 'expense' || (category === 'transfer' && balanceChange)
                 ? '-'
                 : ''}
             </div>
 
-            <BitcoinAmount msat={balanceChange} />
+            <BitcoinAmount sats={balanceChange} />
           </div>
 
           <div

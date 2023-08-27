@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a class='ml-1' href='/connections'>connection</a>."
+      "get_started_hint": "To get started, add a new <a class='ml-1' href='/wallets'>wallet</a>."
     },
     "/input": {
       "title": "Input"
@@ -34,21 +34,21 @@
     "/settings": {
       "title": "Settings"
     },
-    "/connections": {
-      "title": "Connections",
-      "introduction": "Add a new <b>connection</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> connection will allow you to <b>control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
-      "add_connection": "Add Connection",
-      "delete_connection_modal": {
-        "heading": "Delete Connection",
-        "paragraph": "Are you sure that you would like to delete this connection and all of it's associated data?"
+    "/wallets": {
+      "title": "Wallets",
+      "introduction": "Connect a new <b>wallet</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> wallet connection will allow you to <b>control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
+      "add_wallet": "Add Wallet",
+      "delete_wallet_modal": {
+        "heading": "Delete Wallet",
+        "paragraph": "Are you sure that you would like to delete this wallet connection and all of it's associated data?"
       }
     },
-    "/connections/coreln": {
+    "/wallets/coreln": {
       "title": "Core Lightning"
     },
-    "/connections/add": {
-      "title": "Add Connection",
-      "introduction": "Select a connection you would like to add from the following:"
+    "/wallets/add": {
+      "title": "Add Wallet",
+      "introduction": "Select a wallet you would like to connect from the following:"
     },
     "/channels": {
       "title": "Channels"
@@ -59,6 +59,9 @@
     "/charts": {
       "title": "Charts"
     },
+    "/trades": {
+      "title": "Trades"
+    },
     "/settings/app": {
       "title": "App Settings"
     },
@@ -67,9 +70,6 @@
     },
     "/settings/currency": {
       "title": "Currency Settings"
-    },
-    "/settings/connection": {
-      "title": "Connection Settings"
     },
     "/settings/language": {
       "title": "Language Settings"
@@ -191,16 +191,17 @@
     "send": "Send",
     "change": "Change",
     "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-    "add_connection": "You have no connections. <a href='/connections/add'>Create a new connection</a> to get started.",
-    "no_channels": "You have no channels, try syncing your connections or open a new channel.",
-    "no_transactions": "No payments here, try adding a connection and syncing it.",
-    "no_utxos": "No utxos here, try adding a connection and syncing it.",
+    "add_wallet": "You do not have a wallet connected. <a href='/wallets/add'>Create a new wallet connection</a> to get started.",
+    "no_channels": "You have no channels, try syncing your wallets or open a new channel.",
+    "no_transactions": "No payments here, try adding a wallet connection and syncing it.",
+    "no_utxos": "No utxos here, try adding a wallet connection and syncing it.",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",
     "confirmed": "Spendable",
     "spent_unconfirmed": "Spent (unconfirmed)",
     "spent": "Spent",
     "immature": "Immature",
+    "wallet": "Wallet",
     "balance": "Balance",
     "status": "Status",
     "offer_issuer": "Offer issuer",
@@ -337,7 +338,7 @@
     "connection_self_payment_not_supported": "Self payments are not supported by this connection.",
     "connection_unsupported_action": "This action is not supported on this connection, please select another connection to continue.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
-    "connection_cannot_receive_payment": "The selected connection cannot receive a payment, try selecting another one.",
+    "connection_cannot_receive_payment": "The selected wallet connection cannot receive a payment, try selecting another one.",
     "transaction_not_found": "Could not find this transaction...",
     "utxo_not_found": "Could not find this UTXO...",
     "nfc_read": "Could not read NFC.",

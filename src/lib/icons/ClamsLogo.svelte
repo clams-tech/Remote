@@ -1,6 +1,5 @@
 <script lang="ts">
   import { fade, draw } from 'svelte/transition'
-  import { onMount } from 'svelte'
   import { quintInOut, quintOut } from 'svelte/easing'
 
   export let max = 2

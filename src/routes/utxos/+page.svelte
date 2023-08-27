@@ -8,7 +8,6 @@
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { translate } from '$lib/i18n/translations.js'
-  import keys from '$lib/icons/keys.js'
   import Coin from './components/Coin.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
@@ -23,16 +22,16 @@
           const { amount, status } = utxo
 
           if (status !== 'spent' && status !== 'spent_unconfirmed') {
-            acc.balance = acc.balance.add(amount)
+            acc.balance += amount
 
             if (status !== 'immature') {
-              acc.sendable = acc.sendable.add(amount)
+              acc.sendable += amount
             }
           }
 
           return acc
         },
-        { balance: new Big(0), sendable: new Big(0) }
+        { balance: 0, sendable: 0 }
       )
     : null
 
@@ -74,7 +73,7 @@
             <div slot="label">{$translate('app.labels.balance')}:</div>
             <div slot="value">
               {#if totals}
-                <BitcoinAmount msat={totals.balance.toString()} />
+                <BitcoinAmount sats={totals.balance} />
               {/if}
             </div>
           </SummaryRow>
@@ -83,7 +82,7 @@
             <div slot="label">{$translate('app.labels.spendable')}:</div>
             <div slot="value">
               {#if totals}
-                <BitcoinAmount msat={totals.sendable.toString()} />
+                <BitcoinAmount sats={totals.sendable} />
               {/if}
             </div>
           </SummaryRow>

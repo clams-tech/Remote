@@ -7,17 +7,17 @@ export type Forward = {
   shortIdOut: string
   htlcInId: number
   htlcOutId: number
-  /** amount msat in */
-  in: string | number
-  /** amount msat out */
-  out: string | number
-  /** fee amount msat */
-  fee: string | number
+  /** amount in */
+  in: number
+  /** amount out */
+  out: number
+  /** fee amount */
+  fee: number
   status: 'settled' | 'offered' | 'failed' | 'local_failed'
   style: 'tlv' | 'legacy'
   /** unix timestamp seconds start */
-  startedAt: number
+  createdAt: number
   /** unix timestamp seconds complete */
   completedAt?: number
-  connectionId: string
+  walletId: string
 }

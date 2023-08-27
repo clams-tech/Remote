@@ -10,27 +10,26 @@
   import Button from '$lib/components/Button.svelte'
   import CopyValue from '$lib/components/CopyValue.svelte'
   import Calculator from '$lib/components/Calculator.svelte'
-  import type { ConnectionDetails } from '$lib/@types/connections.js'
-  import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
+  import type { Wallet } from '$lib/@types/wallets.js'
+  import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import { connections$ } from '$lib/streams.js'
-  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
-  import { btcToSats, satsToMsats } from '$lib/conversion.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
+  import { btcToSats } from '$lib/conversion.js'
   import { db } from '$lib/db.js'
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
-  import bitcoin from '$lib/icons/bitcoin.js'
   import { log } from '$lib/services.js'
 
   export let data: PageData
 
   const { address, amount, message, label } = data
-  const customAmountRequired = !amount || amount === 'any' || amount === '0'
+  const customAmountRequired = !amount
 
-  let selectedConnectionId: ConnectionDetails['id']
+  let selectedWalletId: Wallet['id']
   let paying = false
   let payingError = ''
-  let amountSats = customAmountRequired ? 0 : btcToSats(amount)
+  let amountSats = !amount ? 0 : btcToSats(amount)
 
   const pay = async () => {
     paying = true
@@ -38,15 +37,15 @@
 
     try {
       const connection = connections$.value.find(
-        ({ connectionId }) => connectionId === selectedConnectionId
-      ) as ConnectionInterface
+        ({ walletId }) => walletId === selectedWalletId
+      ) as Connection
 
       if (!connection.transactions?.send) {
         throw { key: 'connection_unsupported_action' }
       }
 
       const paid = await connection.transactions.send({
-        amount: satsToMsats(amountSats),
+        amount: amountSats,
         address
       })
 
@@ -84,7 +83,7 @@
   </div>
 
   <div class="flex items-center w-full justify-center text-2xl">
-    <BitcoinAmount msat={satsToMsats(amountSats || 0)} />
+    <BitcoinAmount sats={amountSats || 0} />
   </div>
 
   <div class="w-full mt-6">
@@ -108,7 +107,7 @@
     {/if}
 
     <div class="mt-6 flex flex-col gap-y-6">
-      <ConnectionSelector direction="send" bind:selectedConnectionId />
+      <WalletSelector direction="send" bind:selectedWalletId />
 
       {#if customAmountRequired}
         <TextInput
@@ -116,7 +115,7 @@
           name="amount"
           bind:value={amountSats}
           type="number"
-          msat={satsToMsats(amountSats || 0)}
+          sats={amountSats}
         />
       {/if}
     </div>

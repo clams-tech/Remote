@@ -8,9 +8,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import calculator from '$lib/icons/calculator.js'
   import { bitcoinExchangeRates$, settings$ } from '$lib/streams.js'
-  import Big from 'big.js'
   import { createEventDispatcher } from 'svelte'
-  import { satsToMsats } from '$lib/conversion.js'
 
   const dispatch = createEventDispatcher()
 
@@ -23,13 +21,7 @@
   $: if (showModal) {
     exchange = ($bitcoinExchangeRates$ && $bitcoinExchangeRates$[$settings$.fiatDenomination]) || 0
 
-    sats = fiat
-      ? Big(1)
-          .div(exchange || 1)
-          .times(fiat)
-          .times(1e8)
-          .toNumber()
-      : 0
+    sats = fiat ? (1 / (exchange || 1)) * fiat * 1e8 : 0
   }
 
   $: if (showModal && focusInput) {
@@ -73,7 +65,7 @@
       />
 
       <div class="mt-4 mb-6 text-2xl">
-        <BitcoinAmount msat={satsToMsats(sats)} />
+        <BitcoinAmount {sats} />
       </div>
 
       <div class="w-full flex justify-end">

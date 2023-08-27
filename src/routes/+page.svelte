@@ -1,6 +1,5 @@
 <script lang="ts">
   import { STORAGE_KEYS } from '$lib/constants.js'
-  import { db } from '$lib/db.js'
   import Msg from '$lib/components/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
@@ -13,27 +12,26 @@
   import wallet from '$lib/icons/wallet.js'
   import { storage } from '$lib/services.js'
   import { fade } from 'svelte/transition'
+  import { wallets$ } from '$lib/streams.js'
+  import trade from '$lib/icons/trade.js'
 
   const buttons = [
-    { key: 'connections', icon: keys },
+    { key: 'wallets', icon: wallet },
     { key: 'transactions', icon: list },
-    { key: 'utxos', icon: wallet },
+    { key: 'utxos', icon: keys },
     { key: 'channels', icon: channels },
     { key: 'offers', icon: lightningOutline },
     { key: 'accounting', icon: feeOutline },
     { key: 'charts', icon: graph },
+    { key: 'trades', icon: trade },
     { key: 'settings', icon: settingsOutline }
   ]
 
   let showGetStartedHint = false
   const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
 
-  if (!getStartedDismissed) {
-    db.connections.toArray().then((connections) => {
-      if (!connections.length) {
-        showGetStartedHint = true
-      }
-    })
+  $: if (!getStartedDismissed && $wallets$ && !$wallets$.length) {
+    showGetStartedHint = true
   }
 
   function handleCloseHint() {

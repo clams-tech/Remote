@@ -1,13 +1,11 @@
 <script lang="ts">
   import type { Utxo } from '$lib/@types/utxos.js'
-  import { msatsToSats } from '$lib/conversion.js'
   import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations.js'
-  import Big from 'big.js'
 
   export let utxo: Utxo
 
-  const padding = Big(utxo.amount.length).times(8).minus(40)
+  const padding = utxo.amount.toString().length * 8 - 32
 </script>
 
 <a
@@ -24,18 +22,12 @@
       class:text-utility-error={utxo.status === 'spent'}
       class="flex items-center text-xs whitespace-nowrap"
     >
-      <!-- <div
-      class:bg-utility-success={utxo.status === 'confirmed'}
-      class:bg-utility-pending={utxo.status === 'immature' || utxo.status === 'unconfirmed'}
-      class:bg-utility-error={utxo.status === 'spent'}
-      class="w-1.5 h-1.5 rounded-full mr-1"
-    /> -->
       <div>{$translate(`app.labels.${utxo.status}`)}</div>
     </div>
 
     <div class="flex items-baseline">
       <span class="font-mono mr-1 text-sm">
-        {msatsToSats(utxo.amount).toLocaleString()}
+        {utxo.amount.toLocaleString()}
       </span>
       <span class="text-xs">{$translate('app.labels.sats').toLowerCase()}</span>
     </div>

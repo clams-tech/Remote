@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "lint": "prettier --plugin-search-dir . --check . && eslint .",
+    "lint": "eslint . --fix",
     "format": "prettier --plugin-search-dir . --write .",
     "tauri": "tauri",
     "check-unused-exports": "./node_modules/.bin/ts-unused-exports ./tsconfig.json"
@@ -34,6 +34,7 @@
     "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-svelte3": "^4.0.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
     "postcss": "^8.4.24",
     "prettier": "^2.8.8",
     "prettier-plugin-svelte": "^2.10.1",

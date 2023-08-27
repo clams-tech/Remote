@@ -5,10 +5,10 @@ export type Offer = {
   bolt12: string
   type: 'pay' | 'withdraw'
   denomination: BitcoinDenomination.msats | FiatDenomination
-  amount: string
+  amount: number
   description: string
   nodeId: string
-  connectionId: string
+  walletId: string
   used?: boolean
   singleUse?: boolean
   active?: boolean
@@ -19,7 +19,7 @@ export type Offer = {
 }
 
 export type CreatePayOfferOptions = {
-  amount: string
+  amount: number
   description: string
   issuer?: string
   label?: string
@@ -29,7 +29,7 @@ export type CreatePayOfferOptions = {
 }
 
 export type CreateWithdrawOfferOptions = {
-  amount: string
+  amount: number
   description: string
   issuer?: string
   label?: string
@@ -39,7 +39,7 @@ export type CreateWithdrawOfferOptions = {
 
 export type FetchInvoiceOptions = {
   offer: string
-  amount?: string
+  amount?: number
   quantity?: number
   timeout?: number
   payerNote?: string
@@ -48,7 +48,7 @@ export type FetchInvoiceOptions = {
 export type SendInvoiceOptions = {
   offer: string
   label: string
-  amount?: string
+  amount?: number
   quantity?: number
   timeout?: number
 }

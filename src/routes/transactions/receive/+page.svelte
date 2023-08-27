@@ -1,11 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import type { Address } from '$lib/@types/addresses.js'
-  import type { ConnectionDetails } from '$lib/@types/connections.js'
+  import type { Wallet } from '$lib/@types/wallets.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
-  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
   import { DAY_IN_SECS } from '$lib/constants.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
@@ -19,38 +19,37 @@
   import { connections$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
-  import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
-  import { satsToMsats } from '$lib/conversion.js'
-
-  let selectedConnectionId: ConnectionDetails['id']
+  import WalletSelector from '$lib/components/WalletSelector.svelte'
+  
+  let selectedWalletId: Wallet['id']
   let amount = 0
   let creatingPayment = false
   let createPaymentError: AppError | null = null
-  let connectionInterface: ConnectionInterface | null
+  let connection: Connection | null
 
   let createAddress = false
   let createInvoice = false
 
-  const handleSelectedConnectionIdChange = () => {
-    connectionInterface = $connections$.find(
-      (connection) => connection.connectionId === selectedConnectionId
-    ) as ConnectionInterface
+  const handleselectedWalletIdChange = () => {
+    connection = $connections$.find(
+      (connection) => connection.walletId === selectedWalletId
+    ) as Connection
 
-    if (connectionInterface) {
-      if (connectionInterface.invoices?.create) {
+    if (connection) {
+      if (connection.invoices?.create) {
         setTimeout(() => (createInvoice = true), 50)
-      } else if (connectionInterface.transactions?.receive) {
+      } else if (connection.transactions?.receive) {
         setTimeout(() => (createAddress = true), 50)
       }
     }
   }
 
-  $: if (selectedConnectionId && $connections$) {
-    handleSelectedConnectionIdChange()
+  $: if (selectedWalletId && $connections$) {
+    handleselectedWalletIdChange()
   }
 
   const createPayment = async () => {
-    if (!connectionInterface) return
+    if (!connection) return
 
     creatingPayment = true
     createPaymentError = null
@@ -58,17 +57,14 @@
     const id = createRandomHex()
 
     try {
-      if (
-        connectionInterface.connect &&
-        connectionInterface.connectionStatus$.value === 'disconnected'
-      ) {
-        await connectionInterface.connect()
+      if (connection.connect && connection.connectionStatus$.value === 'disconnected') {
+        await connection.connect()
       }
 
-      if (createInvoice && connectionInterface.invoices?.create) {
-        const invoice = await connectionInterface.invoices.create({
+      if (createInvoice && connection.invoices?.create) {
+        const invoice = await connection.invoices.create({
           id,
-          amount: amount ? satsToMsats(amount) : 'any',
+          amount,
           description: '',
           expiry: 2 * DAY_IN_SECS
         })
@@ -76,15 +72,15 @@
         await db.invoices.add(invoice)
       }
 
-      if (createAddress && connectionInterface.transactions?.receive) {
-        const receiveAddress = await connectionInterface.transactions.receive()
+      if (createAddress && connection.transactions?.receive) {
+        const receiveAddress = await connection.transactions.receive()
 
         const address: Address = {
           id,
           value: receiveAddress,
-          connectionId: selectedConnectionId,
+          walletId: selectedWalletId,
           createdAt: nowSeconds(),
-          amount: amount ? satsToMsats(amount) : 'any'
+          amount
         }
 
         await db.addresses.add(address)
@@ -115,7 +111,7 @@
     <SectionHeading />
   </div>
 
-  <ConnectionSelector bind:selectedConnectionId direction="receive" />
+  <WalletSelector bind:selectedWalletId direction="receive" />
 
   <div class="my-6">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">
@@ -123,7 +119,7 @@
     </div>
 
     <div class="flex items-center border rounded border-neutral-600 px-4 bg-neutral-900">
-      {#if connectionInterface && connectionInterface.invoices?.create}
+      {#if connection && connection.invoices?.create}
         <div in:slide class="flex items-center">
           <Toggle bind:toggled={createInvoice}>
             <div slot="right" class="ml-2">{$translate('app.labels.invoice')}</div>
@@ -131,7 +127,7 @@
         </div>
       {/if}
 
-      {#if connectionInterface && connectionInterface.transactions?.receive}
+      {#if connection && connection.transactions?.receive}
         <div in:slide class="flex items-center ml-4">
           <Toggle bind:toggled={createAddress}>
             <div slot="right" class="ml-2">{$translate('app.labels.address')}</div>
@@ -147,7 +143,7 @@
     label={$translate('app.labels.amount')}
     name="amount"
     hint={!amount ? 'Any amount' : ''}
-    msat={amount ? satsToMsats(amount) : ''}
+    sats={amount}
   />
 
   <div class="w-full flex items-center justify-between mt-6">
@@ -160,7 +156,7 @@
         on:click={createPayment}
         requesting={creatingPayment}
         text={$translate('app.labels.create')}
-        disabled={!connectionInterface}
+        disabled={!connection}
         primary
       >
         <div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html plus}</div>

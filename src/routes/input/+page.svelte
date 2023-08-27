@@ -38,7 +38,7 @@
       const searchParams = new URLSearchParams()
 
       if (amount) {
-        searchParams.append('amount', amount)
+        searchParams.append('amount', amount.toString())
       }
 
       if (label) {

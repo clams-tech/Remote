@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { TransactionStatus } from '$lib/@types/common.js'
-  import type { ConnectionDetails } from '$lib/@types/connections.js'
+  import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import { formatDate } from '$lib/dates.js'
@@ -21,10 +21,12 @@
   import { truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
-  import { msatsToBtc } from '$lib/conversion.js'
   import caret from '$lib/icons/caret.js'
   import type { Utxo } from '$lib/@types/utxos.js'
   import type { Metadata } from '$lib/@types/metadata.js'
+  import { satsToBtcString } from '$lib/conversion.js'
+  import { deriveInvoiceMovement, deriveTransactionMovement } from '$lib/movement.js'
+  import type { Movement } from '$lib/@types/movement.js'
 
   export let data: PageData
 
@@ -41,20 +43,22 @@
     paymentHash?: string
     paymentPreimage?: string
     txid?: string
-    amount?: string | null
-    fee?: string
+    balanceChange: Movement['balanceChange']
+    fee?: number
     description?: string
     createdAt?: number
     completedAt?: number
     expiresAt?: number
     peerNodeId?: string
-    connection: ConnectionDetails
-    tags: Metadata['tags']
+    wallet: Wallet
+    category: Movement['category']
+    from: Movement['from']
+    to: Movement['to']
     offer?: Invoice['offer']
     channel?: Transaction['channel']
     inputs?: { outpoint: string; utxo?: Utxo }[]
     outputs?: {
-      amount: string
+      amount: number
       outpoint: string
       address: string
       labelKey?: string
@@ -79,7 +83,7 @@
         description,
         createdAt,
         completedAt,
-        connectionId,
+        walletId,
         offer,
         direction,
         expiresAt,
@@ -89,9 +93,9 @@
         nodeId
       } = invoice
 
-      const connection = (await db.connections.get(connectionId)) as ConnectionDetails
+      const wallet = (await db.wallets.get(walletId)) as Wallet
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-      const { tags } = (await db.metadata.get(invoice.id)) as Metadata
+      const movement = deriveInvoiceMovement(invoice)
 
       details.push({
         type: 'invoice',
@@ -105,29 +109,31 @@
               ]
             : undefined,
         status,
-        amount,
+        balanceChange: movement.balanceChange,
         description,
         createdAt,
         completedAt,
         expiresAt,
-        connection,
+        wallet,
         offer: offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer,
         fee,
         request,
         paymentHash: hash,
         paymentPreimage: preimage,
         peerNodeId: direction === 'send' ? nodeId : undefined,
-        tags
+        category: movement.category,
+        from: movement.from,
+        to: movement.to
       })
     }
 
     if (address) {
-      const { value, connectionId, createdAt, amount, txid, message, completedAt, label } = address
-      const connection = (await db.connections.get(connectionId)) as ConnectionDetails
+      const { value, walletId, createdAt, amount, txid, message, completedAt, label } = address
+      const wallet = (await db.wallets.get(walletId)) as Wallet
       const searchParams = new URLSearchParams()
 
-      if (amount && amount !== '0' && amount !== 'any') {
-        searchParams.append('amount', msatsToBtc(amount))
+      if (amount && amount !== 0) {
+        searchParams.append('amount', satsToBtcString(amount))
       }
 
       if (label) {
@@ -171,23 +177,24 @@
         type: 'address',
         qrValues,
         status,
-        amount,
+        balanceChange: amount,
         description: message,
         createdAt,
         completedAt,
-        connection,
+        wallet,
         channel: tx?.channel,
         txid,
-        tags: ['income']
+        category: 'income',
+        to: walletId,
+        from: undefined
       })
     }
 
     if (transaction) {
-      const { id, connectionId, fee, blockheight, inputs, outputs, channel, timestamp } =
-        transaction
+      const { id, walletId, fee, blockheight, inputs, outputs, channel, timestamp } = transaction
 
-      const { balanceChange, tags } = (await db.metadata.get(transaction.id)) as Metadata
-      const connection = (await db.connections.get(connectionId)) as ConnectionDetails
+      const wallet = (await db.wallets.get(walletId)) as Wallet
+      const movement = await deriveTransactionMovement(transaction)
 
       const formattedInputs = await Promise.all(
         inputs.map(async ({ index, txid }) => {
@@ -211,14 +218,14 @@
             if (!inputUtxos.length) {
               labelKey = 'receive'
             } else {
-              const inputUtxoWithSameConnection = inputUtxos.find(
-                (input) => input.utxo?.connectionId === utxo?.connectionId
+              const inputUtxoWithSamewallet = inputUtxos.find(
+                (input) => input.utxo?.walletId === utxo?.walletId
               )
-              // input has the same connection as this output, so is change
-              if (inputUtxoWithSameConnection) {
+              // input has the same wallet as this output, so is change
+              if (inputUtxoWithSamewallet) {
                 labelKey = 'change'
               }
-              // otherwise sent from different connection, so is transfer
+              // otherwise sent from different wallet, so is transfer
               else {
                 labelKey = 'transfer'
               }
@@ -244,15 +251,17 @@
       details.push({
         type: 'onchain',
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
-        amount: balanceChange,
+        balanceChange: movement.balanceChange,
         fee,
         channel,
-        connection,
+        wallet,
         completedAt: typeof blockheight === 'number' ? timestamp : undefined,
         txid: id,
         inputs: formattedInputs,
         outputs: formattedOutputs,
-        tags
+        category: movement.category,
+        from: movement.from,
+        to: movement.to
       })
     }
 
@@ -318,7 +327,7 @@
       paymentHash,
       paymentPreimage,
       txid,
-      amount,
+      balanceChange,
       request,
       fee,
       description,
@@ -326,12 +335,14 @@
       completedAt,
       expiresAt,
       peerNodeId,
-      connection,
+      wallet,
       offer,
       channel,
       inputs,
       outputs,
-      tags
+      category,
+      from,
+      to
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -360,30 +371,27 @@
       </div>
     {/if}
 
-    {#if amount}
+    {#if balanceChange}
       <div class="flex items-center w-full justify-center text-2xl">
         <div
-          class:text-utility-success={tags.includes('income')}
-          class:text-utility-error={tags.includes('expense')}
+          class:text-utility-success={category === 'income'}
+          class:text-utility-error={category === 'expense'}
           class="font-semibold"
         >
-          {tags.includes('income') ? '+' : tags.includes('expense') ? '-' : ''}
+          {category === 'income' ? '+' : category === 'expense' ? '-' : ''}
         </div>
 
-        <BitcoinAmount msat={amount} />
+        <BitcoinAmount sats={balanceChange} />
       </div>
     {/if}
 
     <div class="w-full flex justify-center mt-2">
       <div class="w-full max-w-lg">
-        <!-- CONNECTION -->
+        <!-- wallet -->
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.connection')}:</span>
-          <a
-            href={`/connections/${connection.id}`}
-            slot="value"
-            class="no-underline flex items-center"
-            >{connection.label}
+          <span slot="label">{$translate('app.labels.wallet')}:</span>
+          <a href={`/wallets/${wallet.id}`} slot="value" class="no-underline flex items-center"
+            >{wallet.label}
             <div class="w-6 ml-1 -rotate-90">{@html caret}</div></a
           >
         </SummaryRow>
@@ -460,13 +468,13 @@
                           {$translate('app.labels.spent')}:
                         </div>
                         <div>
-                          {#await db.connections.get(utxo.connectionId) then connection}
-                            {connection?.label}
+                          {#await db.wallets.get(utxo.walletId) then wallet}
+                            {wallet?.label}
                           {/await}
                         </div>
                       </div>
 
-                      <BitcoinAmount msat={utxo.amount} />
+                      <BitcoinAmount sats={utxo.amount} />
                     </a>
                     <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
                   {:else}
@@ -494,12 +502,12 @@
                           </div>
                         {/if}
                         <div>
-                          {#await db.connections.get(utxo.connectionId) then connection}
-                            {connection?.label}
+                          {#await db.wallets.get(utxo.walletId) then wallet}
+                            {wallet?.label}
                           {/await}
                         </div>
                       </div>
-                      <BitcoinAmount msat={utxo.amount} />
+                      <BitcoinAmount sats={utxo.amount} />
                     </a>
                     <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
                   {:else}
@@ -514,7 +522,7 @@
                           {truncateValue(address, 6)}
                         </div>
                       </div>
-                      <BitcoinAmount msat={amount} />
+                      <BitcoinAmount sats={amount} />
                     </div>
                   {/if}
                 </div>
@@ -529,7 +537,7 @@
             <span slot="label">{$translate('app.labels.fee')}:</span>
             <div class="flex items-center" slot="value">
               <div class="font-semibold text-utility-error mr-1">-</div>
-              <BitcoinAmount msat={fee} />
+              <BitcoinAmount sats={fee} />
             </div>
           </SummaryRow>
         {/if}
@@ -593,7 +601,7 @@
             <SummaryRow>
               <span slot="label"
                 >{$translate('app.labels.payer_note', {
-                  direction: tags.includes('income') ? 'receive' : 'send'
+                  direction: category === 'income' ? 'receive' : 'send'
                 })}:</span
               >
               <span slot="value">{payerNote}</span>

@@ -12,7 +12,7 @@ export interface AppError {
      * at the time of error?
      */
     context: string
-    /** if this error is associated with a specific connection id */
-    connectionId?: string
+    /** if this error is associated with a specific wallet id */
+    walletId?: string
   }
 }

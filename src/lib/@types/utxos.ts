@@ -4,21 +4,12 @@ export type Utxo = {
   id: string
   txid: string
   output: number
-  amount: string
+  amount: number
   scriptpubkey: string
   address: string
   status: OutputStatus
-  connectionId: string
+  walletId: string
   timestamp: number | null
-  /** the txid for the transaction that spent this output */
   spendingTxid?: string
   blockheight?: number
 }
-
-/**
- * pending receive (unconfirmed)
- * spendable (confirmed)
- * spend pending (spend_unconfirmed)
- * spent (spent)
- * immature (timelocked due to force close?)
- */

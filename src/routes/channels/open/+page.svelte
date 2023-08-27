@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
-  import scan from '$lib/icons/scan.js'
   import { slide } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import { validateNodeAddress } from '$lib/address.js'
@@ -17,7 +15,7 @@
   export let data: PageData
 
   let address: string
-  let channelSize: number = 0
+  let channelSize = 0
   let announce = true
 
   let validAddress: boolean
@@ -78,7 +76,7 @@
       type="number"
       rows={6}
       label={$translate('app.labels.channel_size')}
-      msat={(channelSize * 1000).toString()}
+      sats={channelSize}
       bind:value={channelSize}
     />
 

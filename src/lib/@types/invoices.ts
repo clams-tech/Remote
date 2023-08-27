@@ -5,14 +5,14 @@ export type Invoice = {
   id: string
   status: TransactionStatus
   direction: PaymentDirection
-  amount: string // msat
-  fee?: string // msat
+  amount: number
+  fee?: number
   type: PaymentType
   createdAt: number // unix seconds
   completedAt?: number // unix seconds
   expiresAt?: number // unix seconds
   hash: string
-  connectionId: string
+  walletId: string
   /** BOLT11 | BOLT12 */
   request: string
   nodeId: string
@@ -30,8 +30,8 @@ export type Invoice = {
 export type SendPaymentOptions = {
   id: string
   request: string
-  amount?: string
-  maxFeePercent?: string
+  amount?: number
+  maxFeePercent?: number
   retryFor?: number
   maxDelay?: string
 }
@@ -39,8 +39,8 @@ export type SendPaymentOptions = {
 export type PayKeysendOptions = {
   id: string
   destination: string
-  amount: string
-  maxFeePercent?: string
+  amount: number
+  maxFeePercent?: number
   retryFor?: number
   maxDelay?: string
   /** map of tlv number to hex encoded utf-8 string */
@@ -48,7 +48,7 @@ export type PayKeysendOptions = {
 }
 
 export type CreateInvoiceOptions = {
-  amount: string | 'any'
+  amount: number
   id: string
   description: string
   expiry?: number
@@ -57,7 +57,7 @@ export type CreateInvoiceOptions = {
 export type PayInvoiceOptions = {
   request: string
   id: string
-  amount?: string
+  amount?: number
   /** required if the invoice contains a description hash
    * to validate they match
    */
@@ -72,7 +72,7 @@ export type DecodedBolt11Invoice = {
   nodeId: string
   createdAt: number
   expiresAt: number
-  amount: string
+  amount: number
   hash: string
   description: string
 }
@@ -83,6 +83,6 @@ export type SendPayment = {
   description: string
   expiry: number | null
   timestamp: number | null
-  amount: string // invoice amount
-  value: string // user input amount
+  amount: number // invoice amount
+  value: number // user input amount
 }

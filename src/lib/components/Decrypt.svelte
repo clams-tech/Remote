@@ -27,8 +27,8 @@
 
   async function decrypt() {
     try {
-      const storedSession = storage.get(STORAGE_KEYS.session)
-      const session = JSON.parse(storedSession!) as Session
+      const storedSession = storage.get(STORAGE_KEYS.session) as string
+      const session = JSON.parse(storedSession) as Session
       const decrypted = decryptWithAES(session.secret, passphrase)
 
       if (!decrypted) {

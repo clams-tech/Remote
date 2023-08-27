@@ -3,12 +3,12 @@ export type Address = {
   id: string
   /** the onchain address */
   value: string
-  /** the connection id that created this receive address */
-  connectionId: string
+  /** the wallet id that created this receive address */
+  walletId: string
   /** unix timestamp this address was created */
   createdAt: number
   /** Amount msat expected */
-  amount: string | 'any'
+  amount: number
   /** label added to BIP21 QR */
   label?: string
   /** message added to BIP21 QR */

@@ -46,7 +46,7 @@
       <Spinner />
     </div>
   {:else}
-    {@const { status, txid, timestamp, amount, connectionId, address, spendingTxid } = $utxo$}
+    {@const { status, txid, timestamp, amount, walletId, address, spendingTxid } = $utxo$}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold">
       <div class="w-8 mr-1.5">{@html keys}</div>
@@ -56,21 +56,17 @@
     </div>
 
     <div class="flex items-center w-full justify-center text-2xl">
-      <BitcoinAmount msat={amount} />
+      <BitcoinAmount sats={amount} />
     </div>
 
     <div class="w-full flex justify-center mt-2">
       <div class="w-full max-w-lg">
-        <!-- CONNECTION -->
+        <!-- WALLET -->
         <SummaryRow>
-          <span slot="label">{$translate('app.labels.connection')}:</span>
-          <a
-            href={`/connections/${connectionId}`}
-            slot="value"
-            class="no-underline flex items-center"
-          >
-            {#await db.connections.get(connectionId) then connection}
-              {connection?.label}
+          <span slot="label">{$translate('app.labels.wallet')}:</span>
+          <a href={`/wallets/${walletId}`} slot="value" class="no-underline flex items-center">
+            {#await db.wallets.get(walletId) then wallet}
+              {wallet?.label}
             {/await}
             <div class="w-6 ml-1 -rotate-90">{@html caret}</div></a
           >

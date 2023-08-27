@@ -7,7 +7,6 @@
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import { channelStatusTolabel } from '../utils.js'
-  import Big from 'big.js'
   import Button from '$lib/components/Button.svelte'
   import Modal from '$lib/components/Modal.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
@@ -16,19 +15,18 @@
   import type { Channel } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db.js'
-  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
   import connect from '$lib/icons/connect.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 
   export let data: PageData // channel id
   const channels$ = liveQuery(() => db.channels.toArray())
 
   let channel: Channel
-  let connection: ConnectionInterface
+  let connection: Connection
 
   let feeBaseUpdate: number
   let feeRateUpdate: number
@@ -43,14 +41,12 @@
     channel = $channels$.find((p) => p.id === data.id)!
 
     if (channel) {
-      connection = $connections$.find(
-        (conn) => conn.connectionId === channel.connectionId
-      ) as ConnectionInterface
+      connection = $connections$.find((conn) => conn.walletId === channel.walletId) as Connection
 
       const { feeBase, feePpm, htlcMin, htlcMax } = channel
 
       if (feeBase) {
-        feeBaseUpdate = msatsToSats(feeBase)
+        feeBaseUpdate = feeBase
       }
 
       if (feePpm) {
@@ -58,11 +54,11 @@
       }
 
       if (htlcMin) {
-        minForwardUpdate = msatsToSats(htlcMin)
+        minForwardUpdate = htlcMin
       }
 
       if (htlcMax) {
-        maxForwardUpdate = msatsToSats(htlcMax)
+        maxForwardUpdate = htlcMax
       }
     }
   }
@@ -89,9 +85,9 @@
     updating = true
 
     try {
-      const feeBase = satsToMsats(feeBaseUpdate)
-      const htlcMin = satsToMsats(minForwardUpdate)
-      const htlcMax = satsToMsats(maxForwardUpdate)
+      const feeBase = feeBaseUpdate
+      const htlcMin = minForwardUpdate
+      const htlcMax = maxForwardUpdate
 
       await connection.channels?.update!({
         id: data.id,
@@ -233,7 +229,7 @@
               {$translate('app.labels.outbound')}:
             </div>
             <div slot="value">
-              <BitcoinAmount msat={balanceLocal} />
+              <BitcoinAmount sats={balanceLocal} />
             </div>
           </SummaryRow>
 
@@ -242,7 +238,7 @@
               {$translate('app.labels.inbound')}:
             </div>
             <div slot="value">
-              <BitcoinAmount msat={balanceRemote} />
+              <BitcoinAmount sats={balanceRemote} />
             </div>
           </SummaryRow>
 
@@ -251,9 +247,7 @@
               {$translate('app.labels.unsettled')}:
             </div>
             <div slot="value">
-              <BitcoinAmount
-                msat={htlcs.reduce((acc, { amount }) => acc.add(amount), Big(0)).toString()}
-              />
+              <BitcoinAmount sats={htlcs.reduce((acc, { amount }) => acc + amount, 0)} />
             </div>
           </SummaryRow>
 
@@ -262,7 +256,7 @@
               {$translate('app.labels.local_reserve')}:
             </div>
             <div slot="value">
-              <BitcoinAmount msat={reserveLocal} />
+              <BitcoinAmount sats={reserveLocal} />
             </div>
           </SummaryRow>
 
@@ -271,7 +265,7 @@
               {$translate('app.labels.remote_reserve')}:
             </div>
             <div slot="value">
-              <BitcoinAmount msat={reserveRemote} />
+              <BitcoinAmount sats={reserveRemote} />
             </div>
           </SummaryRow>
 
@@ -281,7 +275,7 @@
                 {$translate('app.labels.fee_base')}:
               </div>
               <div slot="value">
-                <BitcoinAmount msat={feeBase} />
+                <BitcoinAmount sats={feeBase} />
               </div>
             </SummaryRow>
           {/if}
@@ -306,7 +300,7 @@
                 {$translate('app.labels.min_forward')}:
               </div>
               <div slot="value">
-                <BitcoinAmount msat={htlcMin} />
+                <BitcoinAmount sats={htlcMin} />
               </div>
             </SummaryRow>
           {/if}
@@ -317,7 +311,7 @@
                 {$translate('app.labels.max_forward')}:
               </div>
               <div slot="value">
-                <BitcoinAmount msat={htlcMax} />
+                <BitcoinAmount sats={htlcMax} />
               </div>
             </SummaryRow>
           {/if}

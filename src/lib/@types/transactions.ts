@@ -1,6 +1,6 @@
 export type Transaction = {
-  /** the connection this onchain tx is associated with */
-  connectionId: string
+  /** the wallet this onchain tx is associated with */
+  walletId: string
   id: string
   rawtx: string
   blockheight: number | null
@@ -15,17 +15,17 @@ export type Transaction = {
   }>
   outputs: Array<{
     index: number
-    amount: string
+    amount: number
     address: string
   }>
   timestamp: number
-  channel?: { type: 'open' | 'close'; amount: string; timestamp: number; channelId: string }
-  fee?: string
+  channel?: { type: 'open' | 'close'; amount: number; timestamp: number; channelId: string }
+  fee?: number
 }
 
 export type SendTransactionOptions = {
-  /** amount to send msats */
-  amount: string
+  /** amount to send */
+  amount: number
   /** the address to send to */
   address: string
   /** the fee rate in sats/vbyte */

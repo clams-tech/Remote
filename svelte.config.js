@@ -28,7 +28,7 @@ const config = {
       checkOrigin: true
     },
     prerender: {
-      entries: ['/', '/connections', '/connections/add', '/connections/[id]', '/welcome']
+      entries: ['/', '/wallets', '/wallets/add', '/wallets/[id]', '/welcome']
     }
   }
 }

@@ -12,14 +12,13 @@
   import Button from '$lib/components/Button.svelte'
   import CopyValue from '$lib/components/CopyValue.svelte'
   import Calculator from '$lib/components/Calculator.svelte'
-  import type { ConnectionDetails } from '$lib/@types/connections.js'
-  import ConnectionSelector from '$lib/components/ConnectionSelector.svelte'
+  import type { Wallet } from '$lib/@types/wallets.js'
+  import ConnectionSelector from '$lib/components/WalletSelector.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import { connections$ } from '$lib/streams.js'
-  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import { msatsToSats, satsToMsats } from '$lib/conversion.js'
   import { db } from '$lib/db.js'
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
@@ -27,7 +26,7 @@
   export let data: PageData
 
   let decodeError = ''
-  let selectedConnectionId: ConnectionDetails['id']
+  let selectedWalletId: Wallet['id']
   let paying = false
   let payingError = ''
 
@@ -37,8 +36,7 @@
     decodeError = $translate('app.errors.bolt11_decode')
   }
 
-  const customAmountRequired = !decoded.amount || decoded.amount === 'any' || decoded.amount === '0'
-  let amountSats = customAmountRequired ? 0 : msatsToSats(decoded.amount)
+  let amountSats = !decoded.amount ? 0 : decoded.amount
 
   const pay = async () => {
     paying = true
@@ -46,8 +44,8 @@
 
     try {
       const connection = connections$.value.find(
-        ({ connectionId }) => connectionId === selectedConnectionId
-      ) as ConnectionInterface
+        ({ walletId }) => walletId === selectedWalletId
+      ) as Connection
 
       if (!connection.invoices?.pay) {
         throw { key: 'connection_unsupported_action' }
@@ -56,7 +54,7 @@
       const paid = await connection.invoices.pay({
         request: data.invoice,
         id: createRandomHex(),
-        amount: customAmountRequired ? satsToMsats(amountSats) : undefined
+        amount: !decoded.amount ? amountSats : undefined
       })
 
       await db.invoices.add(paid)
@@ -88,7 +86,7 @@
     {@const { description, expiresAt, nodeId } = decoded}
 
     <div class="flex items-center w-full justify-center text-2xl">
-      <BitcoinAmount msat={satsToMsats(amountSats || 0)} />
+      <BitcoinAmount sats={amountSats || 0} />
     </div>
 
     <div class="w-full mt-6">
@@ -112,22 +110,22 @@
       </SummaryRow>
 
       <div class="mt-6 flex flex-col gap-y-6">
-        <ConnectionSelector direction="send" bind:selectedConnectionId />
+        <ConnectionSelector direction="send" bind:selectedWalletId />
 
-        {#if customAmountRequired}
+        {#if !decoded.amount}
           <TextInput
             label={$translate('app.labels.custom_amount')}
             name="amount"
             bind:value={amountSats}
             type="number"
-            msat={satsToMsats(amountSats || 0)}
+            sats={amountSats}
           />
         {/if}
       </div>
 
       <div class="w-full flex items-center justify-between mt-6">
         <div class="w-12 -ml-2">
-          {#if customAmountRequired}
+          {#if !decoded.amount}
             <Calculator on:amount={(e) => (amountSats = e.detail)} />
           {/if}
         </div>

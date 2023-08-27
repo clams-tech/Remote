@@ -112,7 +112,7 @@ export function parseInput(input: string): ParsedInput {
 
     const lightning = lightningParam ? getInputType(lightningParam.toLowerCase())?.value : undefined
 
-    return { type, value, lightning, amount, label, message }
+    return { type, value, lightning, amount: amount ? parseInt(amount) : 0, label, message }
   } catch (error) {
     return getInputType(input)
   }

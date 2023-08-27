@@ -2,9 +2,9 @@ import { onDestroy } from 'svelte'
 import type { Session } from './@types/session.js'
 import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
 import { DEFAULT_SETTINGS, MIN_IN_MS, STORAGE_KEYS } from './constants.js'
-import type { ConnectionInterface } from './connections/interfaces.js'
+import type { Connection } from './wallets/interfaces.js'
 import type { AppError } from './@types/errors.js'
-import type { ConnectionDetails } from './@types/connections.js'
+import type { Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
 import { getBitcoinExchangeRate } from './utils.js'
@@ -33,27 +33,27 @@ export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
 
-export const connections$ = new BehaviorSubject<ConnectionInterface[]>([])
-export const connectionsDetails$ = from(liveQuery(() => db.connections.toArray()))
+export const connections$ = new BehaviorSubject<Connection[]>([])
+export const wallets$ = from(liveQuery(() => db.wallets.toArray()))
 
-type ConnectionErrors = Record<ConnectionDetails['id'], AppError[]>
+type ConnectionErrors = Record<Wallet['id'], AppError[]>
 
-/** A collection of the last 10 errors for each connectionId */
+/** A collection of the last 10 errors for each walletId */
 export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
   filter((error) => error.key.startsWith('connection_')),
   scan((acc, value) => {
-    const { connectionId } = value.detail
+    const { walletId } = value.detail
 
-    if (!connectionId) {
-      log.warn(`Connection error that does not have a connection id: ${JSON.stringify(value)}`)
+    if (!walletId) {
+      log.warn(`Connection error that does not have a wallet id: ${JSON.stringify(value)}`)
       return acc
     }
 
-    if (!acc[connectionId]) {
-      acc[connectionId] = []
+    if (!acc[walletId]) {
+      acc[walletId] = []
     }
 
-    const errors = acc[connectionId]
+    const errors = acc[walletId]
     errors.push(value)
 
     /** keep the last 10 errors only, truncate if longer */

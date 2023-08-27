@@ -12,8 +12,8 @@ export type ChannelStatus =
   | 'DUALOPEN_AWAITING_LOCKIN'
 
 export type Channel = {
-  /** the connection this channel belongs to */
-  connectionId: string
+  /** the wallet this channel belongs to */
+  walletId: string
   /** full channel id */
   id: string
   /** short channel id */
@@ -31,22 +31,18 @@ export type Channel = {
   /** currently connected to peer */
   peerConnected: boolean
   status: ChannelStatus
-  /** msat */
-  balanceLocal: string
-  /** msat */
-  balanceRemote: string
-  /** msat */
-  reserveLocal: string
-  /** msat */
-  reserveRemote: string
-  /** amount we charge to use the channel (msat) */
-  feeBase: string | null
+  balanceLocal: number
+  balanceRemote: number
+  reserveLocal: number
+  reserveRemote: number
+  /** amount we charge to use the channel */
+  feeBase: number | null
   /** amount we charge to use the channel in parts-per-million */
   feePpm: number
   /** the min htlc msat size we will forward */
-  htlcMin: string | null
+  htlcMin: number | null
   /** the max htlc msat size we will forward */
-  htlcMax: string | null
+  htlcMax: number | null
   /** The bitcoin address we will close to */
   closeToAddress: string | null
   /** The bitcoin address we will close to */
@@ -61,8 +57,7 @@ export type Channel = {
 type HTLC = {
   direction: 'in' | 'out'
   id: number
-  /** msat */
-  amount: string
+  amount: number
   expiry: number
   paymentHash: string
   state: HTLCState
@@ -93,14 +88,13 @@ type HTLCState =
 export type UpdateChannelOptions = {
   /** node id, channel id, short channel id */
   id: string
-  /** msat base fee */
-  feeBase?: string
+  feeBase?: number
   /** ppm fee rate */
   feeRate?: number
-  /** the min size we will forward msat */
-  htlcMin?: string
-  /** the max size we will forward msat */
-  htlcMax?: string
+  /** the min size we will forward */
+  htlcMin?: number
+  /** the max size we will forward */
+  htlcMax?: number
   /** the delay in seconds before enforcing new fees and htlc settings */
   enforceDelay?: number
 }
@@ -109,7 +103,7 @@ export type OpenChannelOptions = {
   /** node public key to open channel to */
   id: string
   /** amount in sats for channel size */
-  amount: string
+  amount: number
   /** whether to announce the channel to the network or not */
   announce: boolean
 }

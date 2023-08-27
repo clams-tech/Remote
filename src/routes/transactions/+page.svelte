@@ -25,7 +25,7 @@
     liveQuery(async () => {
       const invoices = await db.invoices.toArray()
       return invoices.map((data) => ({
-        type: 'invoice' as 'invoice',
+        type: 'invoice' as const,
         data,
         timestamp: data.completedAt || data.createdAt
       }))
@@ -40,7 +40,7 @@
         transactions.map(async (transaction) => {
           const receiveAddress = await db.addresses.get({ txid: transaction.id })
           return {
-            type: 'transaction' as 'transaction',
+            type: 'transaction' as const,
             data: { ...transaction, receiveAddress },
             timestamp: transaction.timestamp
           }
@@ -53,7 +53,7 @@
     liveQuery(async () => {
       const addresses = await db.addresses.filter(({ txid }) => !txid).toArray()
       return addresses.map((data) => ({
-        type: 'address' as 'address',
+        type: 'address' as const,
         data,
         timestamp: data.createdAt
       }))
@@ -95,7 +95,7 @@
   // need to adjust this if you change the transaction row height
   const rowSize = 84
 
-  let previousOffset: number = 0
+  let previousOffset = 0
 
   const handleTransactionsScroll = (offset: number) => {
     if (offset < previousOffset) {
@@ -177,7 +177,7 @@
               {/await}
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
-                  {#each inPlaceSort($dailyPayments$[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.connectionId}:${data.id}:${type}`)}
+                  {#each inPlaceSort($dailyPayments$[index][1]).desc(({ timestamp }) => timestamp) as { type, data } (`${data.walletId}:${data.id}:${type}`)}
                     <TransactionRow {data} {type} />
                   {/each}
                 </div>

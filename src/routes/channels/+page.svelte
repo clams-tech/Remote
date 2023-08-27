@@ -3,7 +3,6 @@
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import plus from '$lib/icons/plus.js'
-  import Big from 'big.js'
   import ChannelRow from './components/ChannelRow.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { liveQuery } from 'dexie'
@@ -18,16 +17,16 @@
 
   const channels$ = liveQuery(() => db.channels.toArray())
 
-  $: totalMsat =
+  $: totalSats =
     $channels$ &&
     $channels$.reduce(
       (acc, { balanceLocal, reserveLocal, balanceRemote, reserveRemote }) => {
-        acc.sendable = Big(acc.sendable).add(balanceLocal).minus(reserveLocal).toString()
-        acc.receivable = Big(acc.receivable).add(balanceRemote).minus(reserveRemote).toString()
+        acc.sendable = acc.sendable + balanceLocal - reserveLocal
+        acc.receivable = acc.receivable + balanceRemote - reserveRemote
 
         return acc
       },
-      { sendable: '0', receivable: '0' }
+      { sendable: 0, receivable: 0 }
     )
 
   let showFilters = false
@@ -41,7 +40,7 @@
       ? $channels$.length * 74 > channelsContainer.clientHeight
       : false
 
-  let previousOffset: number = 0
+  let previousOffset = 0
 
   const handleChannelsScroll = (offset: number) => {
     if (offset < previousOffset) {
@@ -92,14 +91,14 @@
           <SummaryRow>
             <div slot="label">{$translate('app.labels.sendable')}:</div>
             <div slot="value">
-              <BitcoinAmount msat={totalMsat.sendable} />
+              <BitcoinAmount sats={totalSats.sendable} />
             </div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.receivable')}:</div>
             <div slot="value">
-              <BitcoinAmount msat={totalMsat.receivable} />
+              <BitcoinAmount sats={totalSats.receivable} />
             </div>
           </SummaryRow>
         </div>

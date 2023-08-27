@@ -13,7 +13,7 @@ export type ParsedInput = {
   value: string
   /** invoice for lightning param */
   lightning?: string
-  amount?: string | null
+  amount?: number | null
   label?: string | null
   message?: string | null
 }

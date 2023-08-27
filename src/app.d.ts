@@ -62,8 +62,8 @@ interface Window {
 }
 declare class NDEFReader extends EventTarget {
   constructor()
-  onreading: (this: this, event: NDEFReadingEvent) => any
-  onreadingerror: (this: this, error: Event) => any
+  onreading: (this: this, event: NDEFReadingEvent) => unknown
+  onreadingerror: (this: this, error: Event) => unknown
   scan: (options?: NDEFScanOptions) => Promise<void>
   write: (message: NDEFMessageSource, options?: NDEFWriteOptions) => Promise<void>
 }

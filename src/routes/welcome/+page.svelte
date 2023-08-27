@@ -24,7 +24,7 @@
   const hasUppercase = /[A-Z]+/
   const hasLowerCase = /[a-z]+/
   const hasNumber = /[0-9]+/
-  const hasSpecial = /[!@#$%^&*()\_\=\+]+/
+  const hasSpecial = /[!@#$%^&*()_=+]+/
 
   $: if (passphrase) {
     score = 0

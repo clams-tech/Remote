@@ -4,7 +4,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIcon from '$lib/icons/clamsIcon.js'
   import Lava from '$lib/components/Lava.svelte'
-  import { errors$, session$ } from '$lib/streams.js'
+  import { errors$, session$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
@@ -12,12 +12,10 @@
   import key from '$lib/icons/key.js'
   import Modal from '$lib/components/Modal.svelte'
   import Decrypt from '$lib/components/Decrypt.svelte'
-  import lockOutline from '$lib/icons/lock-outline.js'
   import scan from '$lib/icons/scan.js'
   import caret from '$lib/icons/caret.js'
-  import { db } from '$lib/db.js'
-  import { connect, syncConnectionData } from '$lib/connections/index.js'
-  import type { ConnectionInterface } from '$lib/connections/interfaces.js'
+  import { connect, syncConnectionData } from '$lib/wallets/index.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
   import { filter, take } from 'rxjs'
@@ -31,19 +29,17 @@
   $: path = $page.url.pathname
 
   const initializeConnections = async () => {
-    const connectionsDetails = await db.connections.toArray()
-
     const connections = await Promise.all(
-      connectionsDetails.map(async (connectionDetail) => {
-        let connection: ConnectionInterface | null
+      $wallets$.map(async (wallet) => {
+        let connection: Connection | null
 
         try {
-          connection = await connect(connectionDetail)
+          connection = await connect(wallet)
         } catch (error) {
           connection = null
           errors$.next(error as AppError)
         }
-        return { detail: connectionDetail, connection }
+        return { detail: wallet, connection }
       })
     )
 

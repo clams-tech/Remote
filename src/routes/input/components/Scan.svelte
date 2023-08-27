@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from 'svelte'
+  import { createEventDispatcher, onDestroy } from 'svelte'
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/components/Spinner.svelte'

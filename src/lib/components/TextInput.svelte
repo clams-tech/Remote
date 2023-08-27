@@ -8,7 +8,7 @@
   export let type: InputType = 'text'
   export let value: string | number
   export let label = ''
-  export let msat = ''
+  export let sats = 0
   export let name: string
   export let invalid = ''
   export let placeholder = ''
@@ -47,11 +47,11 @@
   {/if}
 
   <div class="relative flex items-center">
-    {#if hint || msat}
+    {#if hint || sats}
       <span class="flex justify-end absolute right-1 -top-6 text-neutral-400 w-1/2 cursor-default">
-        {#if msat}
+        {#if sats}
           <div class="text-sm">
-            <BitcoinAmount {msat} />
+            <BitcoinAmount {sats} />
           </div>
         {:else}
           <div class="text-xs">

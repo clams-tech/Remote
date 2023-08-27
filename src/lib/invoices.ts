@@ -2,7 +2,7 @@ import { BitcoinDenomination, FiatDenomination } from './@types/settings.js'
 import type { Offer } from './@types/offers.js'
 import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
-import { stripMsatSuffix } from './connections/coreln/utils.js'
+import { formatMsatString } from './wallets/coreln/utils.js'
 
 import type {
   DecodedBolt12Invoice,
@@ -10,6 +10,7 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
+import { msatsToSats } from './conversion.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -30,7 +31,7 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
 
 export async function bolt12ToOffer(
   bolt12: string,
-  connectionId: string,
+  walletId: string,
   offerId?: string
 ): Promise<Offer> {
   const { default: decoder } = await import('bolt12-decoder')
@@ -54,13 +55,13 @@ export async function bolt12ToOffer(
   let denomination: BitcoinDenomination.msats | FiatDenomination
   let nodeId: string
   let quantityMax: number | undefined
-  let amount: string
+  let amount: number
   let id = offerId || ''
 
   if (type === 'bolt12 invoice_request') {
     const { invreq_amount, invreq_payer_id, invreq_id } = decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.msats
-    amount = stripMsatSuffix(invreq_amount) as string
+    amount = msatsToSats(formatMsatString(invreq_amount))
     nodeId = invreq_payer_id
     quantityMax = offer_quantity_max
     id = invreq_id
@@ -68,7 +69,7 @@ export async function bolt12ToOffer(
     const { invreq_amount } = decoded as DecodedBolt12Invoice
     const { offer_id } = decoded as DecodedBolt12Offer
     denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.msats
-    amount = (offer_amount || invreq_amount) as string
+    amount = msatsToSats(formatMsatString(offer_amount || invreq_amount))
     nodeId = offer_node_id
     quantityMax = offer_quantity_max
     id = offer_id || id
@@ -76,7 +77,7 @@ export async function bolt12ToOffer(
 
   return {
     id,
-    connectionId,
+    walletId,
     bolt12,
     type: decodedOfferTypeToOfferType(type),
     expiry,
