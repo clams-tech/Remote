@@ -1,4 +1,14 @@
-import { FiatDenomination, Language, type Settings } from './@types/settings.js'
+import { FiatDenomination, type Language, type Settings, type Tile } from './@types/settings.js'
+import channels from '$lib/icons/channels.js'
+import feeOutline from '$lib/icons/fee-outline.js'
+import graph from '$lib/icons/graph.js'
+import keys from '$lib/icons/keys.js'
+import lightningOutline from '$lib/icons/lightning-outline.js'
+import list from '$lib/icons/list.js'
+import settingsOutline from '$lib/icons/settings-outline.js'
+import wallet from '$lib/icons/wallet.js'
+import trade from '$lib/icons/trade.js'
+import forward from '$lib/icons/forward.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -17,16 +27,65 @@ export const WEEK_IN_SECS = 7 * DAY_IN_SECS
 
 export const DEFAULT_INVOICE_EXPIRY = 60 * MIN_IN_SECS
 
+export const TILES: Tile[] = [
+  'wallets',
+  'transactions',
+  'utxos',
+  'channels',
+  'offers',
+  'forwards',
+  'accounting',
+  'charts',
+  'trades',
+  'settings'
+]
+
+export const TILE_ICONS: Record<Tile, string> = {
+  wallets: wallet,
+  transactions: list,
+  utxos: keys,
+  channels: channels,
+  offers: lightningOutline,
+  forwards: forward,
+  accounting: feeOutline,
+  charts: graph,
+  trades: trade,
+  settings: settingsOutline
+}
+
+export const ALL_LANGUAGES: Language[] = [
+  'en',
+  'en-US',
+  'en-GB',
+  'zh-CN',
+  'es',
+  'hi',
+  'ar',
+  'bn',
+  'fr',
+  'pt',
+  'ru',
+  'ja',
+  'id',
+  'de',
+  'te',
+  'tr',
+  'ta',
+  'ko'
+]
+
 export const DEFAULT_SETTINGS: Settings = {
   language: (typeof window === 'undefined'
-    ? Language['en-US']
+    ? 'en-US'
     : navigator?.languages
     ? navigator.languages[0]
     : navigator.language) as Language,
-  fiatDenomination: FiatDenomination.usd
+  fiatDenomination: FiatDenomination.usd,
+  notifications: false,
+  tiles: TILES
 }
 
-export const SUPPORTED_LOCALES = ['en-US']
+export const SUPPORTED_LANGUAGES = ['en-US']
 export const DOCS_LINK = 'https://docs.clams.tech'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'

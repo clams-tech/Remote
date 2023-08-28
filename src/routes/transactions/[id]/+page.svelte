@@ -460,7 +460,9 @@
             <span slot="label">{$translate('app.labels.inputs')}:</span>
             <div class="gap-y-1 flex flex-col text-sm" slot="value">
               {#each inputs as { outpoint, utxo }}
-                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                <div
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-4"
+                >
                   {#if utxo}
                     <a class="no-underline" href={`/utxos/${outpoint}`}>
                       <div class="text-xs flex items-center">
@@ -492,7 +494,9 @@
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
               {#each outputs as { outpoint, utxo, amount, address, labelKey }}
-                <div class="flex items-center w-full rounded-full bg-neutral-800 py-1 px-4">
+                <div
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-4"
+                >
                   {#if utxo}
                     <a class="no-underline" href={`/utxos/${outpoint}`}>
                       <div class="text-xs flex items-center">

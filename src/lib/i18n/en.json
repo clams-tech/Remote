@@ -166,6 +166,7 @@
     "receivable": "Receivable",
     "receive": "Receive",
     "open": "Open",
+    "clams": "Clams",
     "local": "Local",
     "remote": "Remote",
     "outbound": "Outbound",
@@ -301,7 +302,12 @@
     "connection_status": "{{status; connected:Connected; connecting:Connecting...; disconnected:Disconnected; waiting_reconnect: Waiting...}}",
     "date_range": "Date range:",
     "channels": "Channels",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close",
+    "test": "Test",
+    "testing": "Testing testing 123...",
+    "notifications_description": "Allow notifications for transaction events.",
+    "language_description": "Set your preferred language. It will default to what your environment is set to"
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -355,7 +361,7 @@
     "unrecognized_payment_type": "Unrecognized Invoice Type",
     "onchain_unsupported": "Onchain payments are not yet supported",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",
-    "permissions_notifications": "The request to enable browser notifications was rejected. Please adjust your browser preferences if you would like them enabled.",
+    "permissions_notifications": "The request to enable notifications was rejected. Please adjust your browser or system preferences if you would like to enable notifications.",
     "min_sendable": "Amount is less than payment request minimum",
     "max_sendable": "Amount is larger than payment request maximum",
     "min_withdrawable": "Amount is less than withdraw minimum",
@@ -370,5 +376,25 @@
     "bolt12_decode_error": "Failed to decode Bolt12 offer.",
     "bolt12_invalid": "Bolt12 offer is not valid",
     "recurrence_unsupported": "Recurring Bolt12 offers are not currently supported."
+  },
+  "languages": {
+    "en-AU": "English - AU",
+    "en-US": "English - US",
+    "en-GB": "English - UK",
+    "zh": "Chinese",
+    "es": "Spanish",
+    "hi": "Hindi",
+    "ar": "Arabic",
+    "bn": "Bengali",
+    "fr": "French",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ja": "Japanese",
+    "id": "Indonesian",
+    "de": "German",
+    "te": "Telugu",
+    "tr": "Turkish",
+    "ta": "Tamil",
+    "ko": "Korean"
   }
 }

@@ -28,7 +28,26 @@ const config = {
       checkOrigin: true
     },
     prerender: {
-      entries: ['/', '/wallets', '/wallets/add', '/wallets/[id]', '/welcome']
+      entries: [
+        '/',
+        '/wallets',
+        '/wallets/add',
+        '/wallets/[id]',
+        '/welcome',
+        '/channels',
+        '/channels/open',
+        '/channels/[id]',
+        '/input',
+        '/settings',
+        '/transactions',
+        '/transactions/pay/bolt11/[invoice]',
+        '/transactions/pay/keysend/[pubkey]',
+        '/transactions/pay/onchain/[address]',
+        '/transactions/receive',
+        '/transactions/[id]',
+        '/utxos',
+        '/utxos/[id]'
+      ]
     }
   }
 }

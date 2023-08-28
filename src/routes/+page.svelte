@@ -1,33 +1,10 @@
 <script lang="ts">
-  import { STORAGE_KEYS } from '$lib/constants.js'
+  import { STORAGE_KEYS, TILE_ICONS } from '$lib/constants.js'
   import Msg from '$lib/components/Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import channels from '$lib/icons/channels.js'
-  import feeOutline from '$lib/icons/fee-outline.js'
-  import graph from '$lib/icons/graph.js'
-  import keys from '$lib/icons/keys.js'
-  import lightningOutline from '$lib/icons/lightning-outline.js'
-  import list from '$lib/icons/list.js'
-  import settingsOutline from '$lib/icons/settings-outline.js'
-  import wallet from '$lib/icons/wallet.js'
   import { storage } from '$lib/services.js'
   import { fade } from 'svelte/transition'
-  import { wallets$ } from '$lib/streams.js'
-  import trade from '$lib/icons/trade.js'
-  import forward from '$lib/icons/forward.js'
-
-  const buttons = [
-    { key: 'wallets', icon: wallet },
-    { key: 'transactions', icon: list },
-    { key: 'utxos', icon: keys },
-    { key: 'channels', icon: channels },
-    { key: 'offers', icon: lightningOutline },
-    { key: 'forwards', icon: forward },
-    { key: 'accounting', icon: feeOutline },
-    { key: 'charts', icon: graph },
-    { key: 'trades', icon: trade },
-    { key: 'settings', icon: settingsOutline }
-  ]
+  import { settings$, wallets$ } from '$lib/streams.js'
 
   let showGetStartedHint = false
   const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
@@ -48,17 +25,17 @@
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
   >
-    {#each buttons as { key, icon } (key)}
-      {@const route = `/${key}`}
+    {#each $settings$.tiles as tile (tile)}
+      {@const route = `/${tile}`}
       <a
         href={route}
         class="aspect-square no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
       >
         <div class="w-10 xs:w-12">
-          {@html icon}
+          {@html TILE_ICONS[tile]}
         </div>
 
-        <div class="font-semi-bold">{$translate(`app.routes.${route}.title`)}</div>
+        <div>{$translate(`app.routes.${route}.title`)}</div>
       </a>
     {/each}
   </div>

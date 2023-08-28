@@ -62,7 +62,7 @@
     "crypto-js": "^4.1.1",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
-    "dexie": "^4.0.1-alpha.10",
+    "dexie": "^4.0.1-alpha.25",
     "fast-sort": "^3.4.0",
     "html-to-image": "^1.11.11",
     "js-lnurl": "^0.6.0",

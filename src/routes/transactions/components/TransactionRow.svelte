@@ -108,7 +108,7 @@
 {#if formatted}
   <a
     in:fade
-    class="flex items-center justify-between py-3 hover:bg-neutral-800/80 bg-neutral-900 transition-colors no-underline px-2"
+    class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900"
     href={`/transactions/${data.id}?wallet=${data.walletId}`}
   >
     <div class="flex items-start">

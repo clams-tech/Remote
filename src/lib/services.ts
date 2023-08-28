@@ -39,6 +39,7 @@ export const clipboard = {
 export const notification = {
   supported: (): boolean => 'Notification' in window,
   permission: () => Notification.permission === 'granted',
+  requestPermission: () => Notification.requestPermission(),
   create: (options: { heading: string; message: string }) =>
     new Notification(options.heading, {
       body: options.message,

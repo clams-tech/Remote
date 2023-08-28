@@ -13,12 +13,14 @@ import type { Label } from './@types/labels.js'
 import type { Trade } from './@types/trades.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import type { Deposit } from './@types/deposits.js'
+import type { ExchangeRate } from './@types/exchange-rates.js'
 
 class DB extends Dexie {
   addresses!: Table<Address>
   channels!: Table<Channel>
   contacts!: Table<Contact>
   deposits!: Table<Deposit>
+  exchangeRates!: Table<ExchangeRate>
   forwards!: Table<Forward>
   invoices!: Table<Invoice>
   labels!: Table<Label>
@@ -38,6 +40,7 @@ class DB extends Dexie {
       channels: '&id, walletId, shortId, peerId, status',
       contacts: '&id, name, npub',
       deposits: '&id, walletId, destination, timestamp, amount',
+      exchangeRates: '&[timestamp+currency], price',
       forwards: '&id, walletId, shortIdIn, shortIdOut, fee, status, createdAt, completedAt',
       invoices:
         '&id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage',

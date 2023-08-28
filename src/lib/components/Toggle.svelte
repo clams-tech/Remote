@@ -18,7 +18,7 @@
   }
 </script>
 
-<button on:click|stopPropagation={handleClick} class="flex items-center py-4">
+<button on:click|stopPropagation={handleClick} class="flex items-center">
   <slot name="left" />
 
   <!-- svelte-ignore a11y-click-events-have-key-events -->

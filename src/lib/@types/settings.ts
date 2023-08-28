@@ -1,28 +1,41 @@
 export type Settings = {
   language: Language
   fiatDenomination: FiatDenomination
+  notifications: boolean
+  tiles: Tile[]
 }
 
-// locale => Display language
-export enum Language {
-  'en-US' = 'English (US)', // American
-  'en-GB' = 'English (UK)', // British
-  'zh-CN' = 'Chinese', // Mainland
-  es = 'Spanish',
-  hi = 'Hindi',
-  ar = 'Arabic',
-  bn = 'Bengali',
-  fr = 'French',
-  pt = 'Portuguese',
-  ru = 'Russian',
-  ja = 'Japanese',
-  id = 'Indonesian',
-  de = 'German',
-  te = 'Telugu',
-  tr = 'Turkish',
-  ta = 'Tamil',
-  ko = 'Korean'
-}
+export type Tile =
+  | 'wallets'
+  | 'transactions'
+  | 'utxos'
+  | 'channels'
+  | 'offers'
+  | 'forwards'
+  | 'accounting'
+  | 'charts'
+  | 'trades'
+  | 'settings'
+
+export type Language =
+  | 'en'
+  | 'en-US'
+  | 'en-GB'
+  | 'zh-CN'
+  | 'es'
+  | 'hi'
+  | 'ar'
+  | 'bn'
+  | 'fr'
+  | 'pt'
+  | 'ru'
+  | 'ja'
+  | 'id'
+  | 'de'
+  | 'te'
+  | 'tr'
+  | 'ta'
+  | 'ko'
 
 export enum BitcoinDenomination {
   btc = 'btc',

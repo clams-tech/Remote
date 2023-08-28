@@ -170,7 +170,7 @@
             <div class="pt-1 pl-1">
               {#await formatDate($dailyPayments$[index][0]) then formattedDate}
                 <div
-                  class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-600/50"
+                  class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
                 >
                   {formattedDate}
                 </div>

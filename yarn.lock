@@ -1022,10 +1022,10 @@ devalue@^4.3.1:
   resolved "https://registry.yarnpkg.com/devalue/-/devalue-4.3.1.tgz#08f9a0b5375ad754167aa71872a9c911a46a5428"
   integrity sha512-Kc0TSP9IUU9eg55au5Q3YtqaYI2cgntVpunJV9Exbm9nvlBeTE5p2NqYHfpuXK6+VF2hF5PI+BPFPUti7e2N1g==
 
-dexie@^4.0.1-alpha.10:
-  version "4.0.1-alpha.10"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.0.1-alpha.10.tgz#ba6a2c4f74669cc0902b91b7d50707c249baf328"
-  integrity sha512-j1aqeWaUMiFRF+67JVPS+G50yVX69Moe/kIdrDQ65sIyo9fj2v6xhkzXlsQcDWl9m3NC+MEmFu6D9ng0gU3ymQ==
+dexie@^4.0.1-alpha.25:
+  version "4.0.1-alpha.25"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.0.1-alpha.25.tgz#e3bb44db249382c3d546b6f04f6fe1005836e672"
+  integrity sha512-udAExYYfJaC6IzVC+ygHdlWYoYxhwYHtiITkthGgSH7dh2FBk3qqDGkJ/Mn2lfxsmATcq9qJDUjyO7yWOo/ZPA==
 
 didyoumean@^1.2.2:
   version "1.2.2"
