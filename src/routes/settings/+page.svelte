@@ -15,10 +15,22 @@
   import { notification } from '$lib/services.js'
   import { fade, slide } from 'svelte/transition'
   import Modal from '$lib/components/Modal.svelte'
-  import { ALL_LANGUAGES, CURRENCY_SYMBOLS, SUPPORTED_LANGUAGES, TILES } from '$lib/constants.js'
+  import {
+    ALL_LANGUAGES,
+    CURRENCY_SYMBOLS,
+    DISCORD_LINK,
+    DOCS_LINK,
+    GITHUB_LINK,
+    SUPPORTED_LANGUAGES,
+    TILES,
+    TWITTER_LINK
+  } from '$lib/constants.js'
   import check from '$lib/icons/check.js'
   import { sort } from 'fast-sort'
   import { flip } from 'svelte/animate'
+  import discord from '$lib/icons/discord.js'
+  import github from '$lib/icons/github.js'
+  import twitter from '$lib/icons/twitter.js'
 
   let version = __APP_VERSION__
 
@@ -113,7 +125,7 @@
 </svelte:head>
 
 <Section>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center gap-x-4">
     <SectionHeading icon={settingsOutline} />
     <div class="text-sm font-semibold">{$translate('app.labels.clams')} v{version}</div>
   </div>
@@ -187,6 +199,23 @@
         {$translate('app.labels.homescreen_description')}
       </div>
     </button>
+  </div>
+
+  <div class="w-full flex items-center mt-6">
+    <div class="flex items-center gap-x-4">
+      <a href={DISCORD_LINK} rel="noopener noreferrer" target="_blank"
+        ><div class="w-6">{@html discord}</div></a
+      >
+      <a href={GITHUB_LINK} rel="noopener noreferrer" target="_blank"
+        ><div class="w-6">{@html github}</div></a
+      >
+      <a href={TWITTER_LINK} rel="noopener noreferrer" target="_blank"
+        ><div class="w-6">{@html twitter}</div></a
+      >
+      <a href={DOCS_LINK} rel="noopener noreferrer" target="_blank"
+        >{$translate('app.labels.docs')}</a
+      >
+    </div>
   </div>
 </Section>
 
