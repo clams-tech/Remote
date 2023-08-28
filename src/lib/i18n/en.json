@@ -307,7 +307,11 @@
     "test": "Test",
     "testing": "Testing testing 123...",
     "notifications_description": "Allow notifications for transaction events.",
-    "language_description": "Set your preferred language for the app."
+    "language_description": "Set your preferred language for the app.",
+    "fiat": "Fiat",
+    "fiat_description": "Set your default fiat currency for all amount comparisons.",
+    "homescreen": "Homescreen",
+    "homescreen_description": "Set which tiles will be displayed on your homescreen."
   },
   "validation": {
     "field_invalid": "Field Invalid",

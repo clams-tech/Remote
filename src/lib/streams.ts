@@ -85,7 +85,7 @@ export const settings$ = new SvelteSubject<Settings>({
   ...(storedSettings ? JSON.parse(storedSettings) : {})
 })
 
-// updates settings in storage and handles dark mode toggle
+// updates settings in storage on change
 settings$
   .pipe(
     skip(1),
