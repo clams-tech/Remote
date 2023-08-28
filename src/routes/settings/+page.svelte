@@ -136,7 +136,7 @@
 </Section>
 
 {#if showLanguageModal}
-  <Modal>
+  <Modal on:close={() => (showLanguageModal = false)}>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
       {#each ALL_LANGUAGES as language}
         {@const disabled = !SUPPORTED_LANGUAGES.includes(language)}
@@ -147,7 +147,7 @@
           on:click={() => setLanguage(language)}
         >
           <SummaryRow>
-            <span slot="label">{language}</span>
+            <span slot="label">{$translate(`app.languages.${language}`)}</span>
 
             <div slot="value">
               {#if $settings$.language === language}

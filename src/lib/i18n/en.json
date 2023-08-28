@@ -307,7 +307,7 @@
     "test": "Test",
     "testing": "Testing testing 123...",
     "notifications_description": "Allow notifications for transaction events.",
-    "language_description": "Set your preferred language. It will default to what your environment is set to"
+    "language_description": "Set your preferred language for the app."
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -378,10 +378,11 @@
     "recurrence_unsupported": "Recurring Bolt12 offers are not currently supported."
   },
   "languages": {
+    "en": "English",
     "en-AU": "English - AU",
     "en-US": "English - US",
     "en-GB": "English - UK",
-    "zh": "Chinese",
+    "zh-CN": "Chinese",
     "es": "Spanish",
     "hi": "Hindi",
     "ar": "Arabic",

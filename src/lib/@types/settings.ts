@@ -19,6 +19,7 @@ export type Tile =
 
 export type Language =
   | 'en'
+  | 'en-AU'
   | 'en-US'
   | 'en-GB'
   | 'zh-CN'

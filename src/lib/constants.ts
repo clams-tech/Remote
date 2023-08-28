@@ -55,6 +55,7 @@ export const TILE_ICONS: Record<Tile, string> = {
 
 export const ALL_LANGUAGES: Language[] = [
   'en',
+  'en-AU',
   'en-US',
   'en-GB',
   'zh-CN',
@@ -85,7 +86,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tiles: TILES
 }
 
-export const SUPPORTED_LANGUAGES = ['en-US']
+export const SUPPORTED_LANGUAGES = ['en', 'en-AU', 'en-GB', 'en-US']
 export const DOCS_LINK = 'https://docs.clams.tech'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
