@@ -105,5 +105,8 @@ const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDeno
 
 // get and update bitcoin exchange rate by poll or if fiat denomination changes
 merge(exchangeRatePoll$, fiatDenominationChange$)
-  .pipe(switchMap(() => from(getBitcoinExchangeRate())))
+  .pipe(
+    switchMap(() => from(getBitcoinExchangeRate())),
+    filter((x) => !!x)
+  )
   .subscribe(bitcoinExchangeRates$)

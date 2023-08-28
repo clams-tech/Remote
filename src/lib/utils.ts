@@ -34,6 +34,10 @@ export const wait = (time: number): Promise<void> =>
 export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
   const currency = settings$.value.fiatDenomination
 
+  if (currency === 'none') {
+    return null
+  }
+
   try {
     const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then((res) =>
       res.json()

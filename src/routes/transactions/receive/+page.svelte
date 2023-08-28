@@ -16,11 +16,11 @@
   import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import plus from '$lib/icons/plus.js'
-  import { connections$ } from '$lib/streams.js'
+  import { connections$, settings$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
-  
+
   let selectedWalletId: Wallet['id']
   let amount = 0
   let creatingPayment = false
@@ -147,9 +147,11 @@
   />
 
   <div class="w-full flex items-center justify-between mt-6">
-    <div class="w-12 -ml-1">
-      <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
-    </div>
+    {#if $settings$.fiatDenomination !== 'none'}
+      <div class="w-12 -ml-1">
+        <Calculator bind:showModal={modalShowing} on:amount={({ detail }) => (amount = detail)} />
+      </div>
+    {/if}
 
     <div class="w-min">
       <Button

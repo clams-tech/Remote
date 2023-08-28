@@ -13,7 +13,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { connections$ } from '$lib/streams.js'
+  import { connections$, settings$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
@@ -106,9 +106,11 @@
     </div>
 
     <div class="w-full flex items-center justify-between mt-6">
-      <div class="w-12 -ml-2">
-        <Calculator on:amount={(e) => (amountSats = e.detail)} />
-      </div>
+      {#if $settings$.fiatDenomination !== 'none'}
+        <div class="w-12 -ml-2">
+          <Calculator on:amount={(e) => (amountSats = e.detail)} />
+        </div>
+      {/if}
       <div class="w-min">
         <Button
           on:click={pay}

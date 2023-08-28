@@ -16,7 +16,7 @@
   import ConnectionSelector from '$lib/components/WalletSelector.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { connections$ } from '$lib/streams.js'
+  import { connections$, settings$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
@@ -125,7 +125,7 @@
 
       <div class="w-full flex items-center justify-between mt-6">
         <div class="w-12 -ml-2">
-          {#if !decoded.amount}
+          {#if !decoded.amount && $settings$.fiatDenomination !== 'none'}
             <Calculator on:amount={(e) => (amountSats = e.detail)} />
           {/if}
         </div>
