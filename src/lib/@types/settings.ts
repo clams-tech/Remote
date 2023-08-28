@@ -46,6 +46,7 @@ export enum BitcoinDenomination {
 
 // https://www.statista.com/statistics/1189498/share-of-global-payments-by-currency/
 export enum FiatDenomination {
+  'none' = 'none',
   'usd' = 'usd',
   'eur' = 'eur',
   'gbp' = 'gbp',

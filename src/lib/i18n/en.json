@@ -311,7 +311,8 @@
     "fiat": "Fiat",
     "fiat_description": "Set your default fiat currency for all amount comparisons.",
     "homescreen": "Homescreen",
-    "homescreen_description": "Set which tiles will be displayed on your homescreen."
+    "homescreen_description": "Set which tiles will be displayed on your homescreen.",
+    "no_fiat": "Sats the standard"
   },
   "validation": {
     "field_invalid": "Field Invalid",

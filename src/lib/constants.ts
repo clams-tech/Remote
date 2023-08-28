@@ -113,7 +113,8 @@ export const CURRENCY_SYMBOLS = {
   zar: 'R',
   nzd: '$',
   mxn: '$',
-  rub: '₽'
+  rub: '₽',
+  none: '₿'
 }
 
 const STORAGE_VERSION = 1

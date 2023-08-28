@@ -4,17 +4,24 @@
   import { translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import settingsOutline from '$lib/icons/settings-outline'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import { notification } from '$lib/services.js'
+  import { fade, slide } from 'svelte/transition'
+  import Modal from '$lib/components/Modal.svelte'
+  import check from '$lib/icons/check.js'
+  import { flip } from 'svelte/animate'
+  import discord from '$lib/icons/discord.js'
+  import github from '$lib/icons/github.js'
+  import twitter from '$lib/icons/twitter.js'
+
   import {
     FiatDenomination,
     type Language,
     type Settings,
     type Tile
   } from '$lib/@types/settings.js'
-  import Section from '$lib/components/Section.svelte'
-  import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import { notification } from '$lib/services.js'
-  import { fade, slide } from 'svelte/transition'
-  import Modal from '$lib/components/Modal.svelte'
+
   import {
     ALL_LANGUAGES,
     CURRENCY_SYMBOLS,
@@ -25,12 +32,6 @@
     TILES,
     TWITTER_LINK
   } from '$lib/constants.js'
-  import check from '$lib/icons/check.js'
-  import { sort } from 'fast-sort'
-  import { flip } from 'svelte/animate'
-  import discord from '$lib/icons/discord.js'
-  import github from '$lib/icons/github.js'
-  import twitter from '$lib/icons/twitter.js'
 
   let version = __APP_VERSION__
 
@@ -183,7 +184,11 @@
         <div
           class="font-semibold whitespace-nowrap border border-purple-400 px-1.5 text-sm rounded"
         >
-          {$settings$.fiatDenomination.toUpperCase()}
+          {#if !$settings$.fiatDenomination}
+            {$translate('app.labels.no_fiat')}
+          {:else}
+            {$settings$.fiatDenomination.toUpperCase()}
+          {/if}
         </div>
       </div>
 
@@ -255,7 +260,12 @@
       {#each Object.values(FiatDenomination) as fiat}
         <button class="w-full disabled:opacity-50" on:click={() => setFiat(fiat)}>
           <SummaryRow>
-            <span slot="label">{fiat.toUpperCase()} {CURRENCY_SYMBOLS[fiat]}</span>
+            <span slot="label"
+              >{fiat === 'none'
+                ? $translate('app.labels.no_fiat').toUpperCase()
+                : fiat.toUpperCase()}
+              {CURRENCY_SYMBOLS[fiat]}</span
+            >
 
             <div slot="value">
               {#if $settings$.fiatDenomination === fiat}
