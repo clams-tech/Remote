@@ -1,5 +1,5 @@
 <script lang="ts">
-  import * as secp256k1 from '@noble/secp256k1'
+  import { secp256k1 } from '@noble/curves/secp256k1'
   import { bytesToHex } from '@noble/hashes/utils'
   import { goto } from '$app/navigation'
   import Section from '$lib/components/Section.svelte'

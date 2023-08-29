@@ -13,7 +13,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { connections$, settings$ } from '$lib/streams.js'
+  import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
@@ -85,7 +85,9 @@
     </SummaryRow>
 
     <div class="mt-6 flex flex-col gap-y-6">
-      <WalletSelector direction="send" bind:selectedWalletId />
+      {#if $wallets$}
+        <WalletSelector autoSelectLast="sent" wallets={$wallets$} bind:selectedWalletId />
+      {/if}
 
       <TextInput
         label={$translate('app.labels.message')}

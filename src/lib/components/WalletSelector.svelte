@@ -5,47 +5,44 @@
   import Msg from './Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import WalletComponent from './Wallet.svelte'
-  import { filter, take } from 'rxjs'
   import { wallets$ } from '$lib/streams.js'
 
-  export let direction: 'send' | 'receive'
+  export let autoSelectLast: 'sent' | 'received' | '' = ''
   export let label: string = $translate('app.labels.wallet')
   export let selectedWalletId: Wallet['id']
-
-  wallets$
-    .pipe(
-      filter((x) => !!x),
-      take(1)
-    )
-    .subscribe((wallets) => {
-      try {
-        const lastReceivewalletId = storage.get(
-          direction === 'receive' ? STORAGE_KEYS.lastReceiveWallet : STORAGE_KEYS.lastSendWallet
-        )
-
-        if (lastReceivewalletId && wallets.find(({ id }) => id === lastReceivewalletId)) {
-          selectedWalletId = lastReceivewalletId
-        }
-      } catch (error) {
-        log.warn('Access to storage denied when trying to retrieve last received wallet id')
-      } finally {
-        if (!selectedWalletId) {
-          selectWallet(wallets[0].id)
-        }
-      }
-    })
+  export let wallets: Wallet[]
 
   const selectWallet = (id: Wallet['id']) => {
     selectedWalletId = id
 
-    try {
-      storage.write(
-        direction === 'receive' ? STORAGE_KEYS.lastReceiveWallet : STORAGE_KEYS.lastSendWallet,
-        id
-      )
-    } catch (error) {
-      log.warn('Access to storage denied when trying to write last received wallet id')
+    if (autoSelectLast) {
+      try {
+        storage.write(
+          autoSelectLast === 'received'
+            ? STORAGE_KEYS.lastReceiveWallet
+            : STORAGE_KEYS.lastSendWallet,
+          id
+        )
+      } catch (error) {
+        log.warn('Access to storage denied when trying to write last received wallet id')
+      }
     }
+  }
+
+  if (autoSelectLast) {
+    try {
+      const lastUsedWalletId = storage.get(
+        autoSelectLast === 'received' ? STORAGE_KEYS.lastReceiveWallet : STORAGE_KEYS.lastSendWallet
+      )
+
+      if (lastUsedWalletId && wallets.find(({ id }) => id === lastUsedWalletId)) {
+        selectedWalletId = lastUsedWalletId
+      }
+    } catch (error) {
+      log.warn('Access to storage denied when trying to retrieve last received wallet id')
+    }
+  } else {
+    selectWallet(wallets[0].id)
   }
 </script>
 

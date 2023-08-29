@@ -1,8 +1,8 @@
-import type { NodeInterface } from '../interfaces.js'
+import type { SignaturesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import type { CorelnConnectionInterface, CoreLnError, SignMessageResponse } from './types.js'
 
-class Node implements NodeInterface {
+class Signatures implements SignaturesInterface {
   connection: CorelnConnectionInterface
 
   constructor(connection: CorelnConnectionInterface) {
@@ -16,9 +16,9 @@ class Node implements NodeInterface {
         params: { message }
       })
 
-      const { signature } = result as SignMessageResponse
+      const { zbase } = result as SignMessageResponse
 
-      return signature
+      return zbase
     } catch (error) {
       const context = 'signMessage (node)'
 
@@ -30,4 +30,4 @@ class Node implements NodeInterface {
   }
 }
 
-export default Node
+export default Signatures

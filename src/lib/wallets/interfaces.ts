@@ -47,8 +47,8 @@ export interface Connection {
   connect?: () => Promise<Info | null>
   disconnect?: () => void
   rpc?: RpcCall
-  node?: NodeInterface
   balance?: BalanceInterface
+  signatures?: SignaturesInterface
   offers?: OffersInterface
   invoices?: InvoicesInterface
   utxos?: UtxosInterface
@@ -76,9 +76,9 @@ export type RpcCall = (options: {
   reqId?: string
 }) => Promise<unknown>
 
-export interface NodeInterface {
+export interface SignaturesInterface {
   connection: Connection
-  /** Have the node sign a message, used for LNURL Auth */
+  /** Sign a message, used for LNURL Auth */
   signMessage?(message: string): Promise<string>
 }
 

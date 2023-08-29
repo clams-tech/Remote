@@ -3,6 +3,7 @@ import type { Offer } from './@types/offers.js'
 import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
 import { formatMsatString } from './wallets/coreln/utils.js'
+import { msatsToSats } from './conversion.js'
 
 import type {
   DecodedBolt12Invoice,
@@ -10,7 +11,6 @@ import type {
   DecodedBolt12Offer,
   DecodedType
 } from 'bolt12-decoder/@types/types.js'
-import { msatsToSats } from './conversion.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -25,6 +25,7 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
 
     return decoded
   } catch (error) {
+    console.log({ error })
     return null
   }
 }

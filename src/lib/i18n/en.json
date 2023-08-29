@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a class='ml-1' href='/wallets'>wallet</a>."
+      "get_started_hint": "To get started, add a new <a class='ml-1' href='/wallets/add'>wallet</a>."
     },
     "/input": {
       "title": "Input"
@@ -139,6 +139,7 @@
     "image": "Image",
     "nfc": "NFC",
     "unknown": "Unknown",
+    "login": "Login",
     "enter": "Enter",
     "paste": "Paste",
     "state": "State",
@@ -312,7 +313,8 @@
     "fiat_description": "Set your default fiat currency for all amount comparisons.",
     "homescreen": "Homescreen",
     "homescreen_description": "Set which tiles will be displayed on your homescreen.",
-    "no_fiat": "Sats the standard"
+    "no_fiat": "Sats the standard",
+    "lnurl_auth_success": "Successfully logged in!"
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -380,7 +382,8 @@
     "download": "Download Error",
     "bolt12_decode_error": "Failed to decode Bolt12 offer.",
     "bolt12_invalid": "Bolt12 offer is not valid",
-    "recurrence_unsupported": "Recurring Bolt12 offers are not currently supported."
+    "recurrence_unsupported": "Recurring Bolt12 offers are not currently supported.",
+    "lnurl_auth": "There was an error trying to log you in."
   },
   "languages": {
     "en": "English",

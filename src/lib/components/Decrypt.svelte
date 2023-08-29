@@ -11,7 +11,7 @@
   import { onMount } from 'svelte'
   import { createEventDispatcher } from 'svelte'
   import { bytesToHex } from '@noble/hashes/utils'
-  import * as secp256k1 from '@noble/secp256k1'
+  import { secp256k1 } from '@noble/curves/secp256k1'
   import { decryptWithAES } from '$lib/crypto.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'

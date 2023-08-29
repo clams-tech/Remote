@@ -13,7 +13,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { connections$, settings$ } from '$lib/streams.js'
+  import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { btcToSats } from '$lib/conversion.js'
   import { db } from '$lib/db.js'
@@ -107,7 +107,9 @@
     {/if}
 
     <div class="mt-6 flex flex-col gap-y-6">
-      <WalletSelector direction="send" bind:selectedWalletId />
+      {#if $wallets$}
+        <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$wallets$} />
+      {/if}
 
       {#if customAmountRequired}
         <TextInput

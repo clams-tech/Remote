@@ -13,13 +13,9 @@
 
 <button
   on:click
-  class:border-neutral-500={!selected}
+  class:border-purple-300={selected}
   class="rounded-xl border-2 border-neutral-50 flex items-center justify-center px-[1em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
 >
-  <!-- <div class="absolute rounded top-0 right-0 w-full h-full overflow-hidden opacity-30">
-    <img src="/images/rock1.png" class="w-full h-full" alt="texture" />
-  </div> -->
-
   <div class="flex items-center relative">
     {#if connection}
       <div class="flex items-center mr-1">

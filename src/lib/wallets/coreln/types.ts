@@ -11,13 +11,13 @@ import type {
   ChannelsInterface,
   Connection,
   Info,
-  NodeInterface,
   OffersInterface,
   InvoicesInterface,
   RpcCall,
   TransactionsInterface,
   UtxosInterface,
-  ForwardsInterface
+  ForwardsInterface,
+  SignaturesInterface
 } from '../interfaces.js'
 
 export type CommandoMsgs = Observable<
@@ -37,7 +37,7 @@ export interface CorelnConnectionInterface extends Connection {
   >
   commandoMsgs$: CommandoMsgs
   rpc: RpcCall
-  node: NodeInterface
+  signatures: SignaturesInterface
   offers: OffersInterface
   invoices: InvoicesInterface
   utxos: UtxosInterface

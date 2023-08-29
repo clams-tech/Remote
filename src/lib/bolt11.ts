@@ -1,6 +1,6 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { bech32 } from 'bech32'
-import * as secp256k1 from '@noble/secp256k1'
+import { secp256k1 } from '@noble/curves/secp256k1'
 import Big from 'big.js'
 import { Buffer } from 'buffer'
 import { address as bitcoinjsAddress } from 'bitcoinjs-lib'
@@ -327,7 +327,7 @@ function decode(paymentRequest: string): DecodedBolt11Invoice {
 
   return {
     nodeId: pubKey,
-    amount: msatsToSats(msat),
+    amount: msatsToSats(msat === 'any' ? '0' : msat),
     createdAt: timestamp,
     expiresAt,
     description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || '',

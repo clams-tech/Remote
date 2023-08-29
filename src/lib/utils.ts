@@ -80,3 +80,11 @@ export function stripUndefined<
     )
   ) as V
 }
+
+export function firstLetterUpperCase(str: string): string {
+  return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`
+}
+
+export function mainDomain(host: string): string {
+  return host.split('.').reverse().splice(0, 2).reverse().join('.')
+}

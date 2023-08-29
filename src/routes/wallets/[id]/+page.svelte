@@ -93,6 +93,7 @@
   }
 
   const handleConfigurationUpdate = async (configuration: WalletConfiguration) => {
+    console.log({ configuration })
     const { token } = configuration as CoreLnConfiguration
     const session = session$.value as Session
     const wallet = { ...($wallet$ as Wallet), configuration }
@@ -111,15 +112,19 @@
 
     if (oldConnectionIndex !== -1) {
       const oldConnection = currentConnections[oldConnectionIndex]
+      console.log('disconnecting old connection')
       oldConnection.disconnect && oldConnection.disconnect()
     }
 
     try {
+      console.log('CREATING NEW CONNECTION INTERFACE')
       // create a new connection interface
       connection = walletToConnection(wallet, session)
       // connect the new connection interface
+      console.log('CONNECTING')
       connection.connect && (await connection.connect())
     } catch (error) {
+      console.log('FAILED CONNECTION:', error)
       errors$.next(error as AppError)
       return
     }
@@ -166,17 +171,37 @@
     takeUntil(onDestroy$)
   )
 
-  let deletingConnection = false
+  let deletingWallet = false
 
-  const deleteConnection = async () => {
-    deletingConnection = true
+  const deleteWallet = async () => {
+    deletingWallet = true
 
     await db.wallets.delete(id)
 
+    const connections = connections$.value
+    const connectionIndex = connections.findIndex(({ walletId }) => walletId === id)
+
+    if (connectionIndex !== -1) {
+      const connection = connections[connectionIndex]
+
+      // disconnect
+      connection.disconnect && (await connection.disconnect())
+
+      // remove from connections
+      connections.splice(connectionIndex, 1)
+
+      // update connections
+      connections$.next(connections)
+    }
+
     await Promise.all(
-      db.tables
-        .filter(({ name }) => name !== 'connections' && name !== 'metadata')
-        .map(async (table) => table.where('walletId').equals(id).delete())
+      db.tables.map(async (table) => {
+        try {
+          await table.where('walletId').equals(id).delete()
+        } catch (error) {
+          // wallet id is not indexed, all good to swallow error here
+        }
+      })
     )
 
     setTimeout(() => goto('/wallets'), 250)
@@ -379,19 +404,15 @@
 {#if showDeleteModal}
   <Modal on:close={() => (showDeleteModal = false)}>
     <div class="w-full">
-      <SectionHeading
-        text={$translate('app.routes./connections.delete_connection_modal.heading')}
-      />
-      <Paragraph
-        >{$translate('app.routes./connections.delete_connection_modal.paragraph')}</Paragraph
-      >
+      <SectionHeading text={$translate('app.routes./wallets.delete_wallet_modal.heading')} />
+      <Paragraph>{$translate('app.routes./wallets.delete_wallet_modal.paragraph')}</Paragraph>
     </div>
 
     <div class="mt-4 w-full flex justify-end">
       <div class="w-min">
         <Button
-          requesting={deletingConnection}
-          on:click={deleteConnection}
+          requesting={deletingWallet}
+          on:click={deleteWallet}
           warning
           text={$translate('app.labels.delete')}
         >

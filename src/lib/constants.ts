@@ -47,9 +47,9 @@ export const TILE_ICONS: Record<Tile, string> = {
   channels: channels,
   offers: lightningOutline,
   forwards: forward,
+  trades: trade,
   accounting: feeOutline,
   charts: graph,
-  trades: trade,
   settings: settingsOutline
 }
 

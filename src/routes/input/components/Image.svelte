@@ -5,6 +5,7 @@
   import { file } from '$lib/services.js'
   import { createEventDispatcher, onMount } from 'svelte'
   import ParsedInputButton from './ParsedInputButton.svelte'
+  import Spinner from '$lib/components/Spinner.svelte'
 
   const dispatch = createEventDispatcher()
 
@@ -13,6 +14,7 @@
   let imageEl: HTMLImageElement
   let qrWorker: Worker
   let parsed: ParsedInput | null = null
+  let loading = false
 
   onMount(async () => {
     const { default: QrWorker } = await import('$lib/qr.worker?worker')
@@ -42,6 +44,7 @@
   }
 
   const open = async () => {
+    loading = true
     if (window.__TAURI__) {
       const image = await file.open([
         {
@@ -54,6 +57,8 @@
     } else {
       fileInput.click()
     }
+
+    loading = false
   }
 
   const readImage = async () => {
@@ -93,9 +98,13 @@
       class="hidden"
     />
 
-    <button class="w-10 shadow shadow-current rounded-full p-1" on:click={open}>
-      {@html photo}
-    </button>
+    {#if !loading}
+      <button class="w-10 shadow shadow-current rounded-full p-1" on:click={open}>
+        {@html photo}
+      </button>
+    {:else}
+      <Spinner />
+    {/if}
 
     {#if parsed}
       <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />

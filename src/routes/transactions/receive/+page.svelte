@@ -16,7 +16,7 @@
   import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import plus from '$lib/icons/plus.js'
-  import { connections$, settings$ } from '$lib/streams.js'
+  import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
@@ -111,7 +111,9 @@
     <SectionHeading />
   </div>
 
-  <WalletSelector bind:selectedWalletId direction="receive" />
+  {#if $wallets$}
+    <WalletSelector bind:selectedWalletId autoSelectLast="received" wallets={$wallets$} />
+  {/if}
 
   <div class="my-6">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">

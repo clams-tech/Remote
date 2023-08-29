@@ -1,7 +1,7 @@
 import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
 import LnMessage from 'lnmessage'
 import Offers from './offers.js'
-import Node from './node.js'
+import Signatures from './signatures.js'
 import Utxos from './utxos.js'
 import Channels from './channels.js'
 import Transactions from './transactions.js'
@@ -21,7 +21,7 @@ import type {
   BlocksInterface,
   ChannelsInterface,
   Info,
-  NodeInterface,
+  SignaturesInterface,
   OffersInterface,
   InvoicesInterface,
   RpcCall,
@@ -43,7 +43,7 @@ class CoreLightning implements CorelnConnectionInterface {
   connectionStatus$: BehaviorSubject<
     'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
   >
-  node: NodeInterface
+  signatures: SignaturesInterface
   offers: OffersInterface
   invoices: InvoicesInterface
   utxos: UtxosInterface
@@ -114,7 +114,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.connectionStatus$ = socket.connectionStatus$
     this.errors$ = new Subject()
 
-    this.node = new Node(this)
+    this.signatures = new Signatures(this)
     this.offers = new Offers(this)
     this.invoices = new Invoices(this)
     this.utxos = new Utxos(this)
