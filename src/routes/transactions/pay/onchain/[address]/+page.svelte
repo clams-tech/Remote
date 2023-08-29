@@ -20,6 +20,7 @@
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { log } from '$lib/services.js'
+  import { combineLatest, map } from 'rxjs'
 
   export let data: PageData
 
@@ -30,6 +31,15 @@
   let paying = false
   let payingError = ''
   let amountSats = !amount ? 0 : btcToSats(amount)
+
+  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+    map(([wallets, connections]) =>
+      wallets.filter(({ id }) => {
+        const connection = connections.find(({ walletId }) => walletId === id)
+        return !!connection?.transactions?.send
+      })
+    )
+  )
 
   const pay = async () => {
     paying = true
@@ -107,8 +117,10 @@
     {/if}
 
     <div class="mt-6 flex flex-col gap-y-6">
-      {#if $wallets$}
-        <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$wallets$} />
+      {#if $availableWallets$}
+        <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
+      {:else}
+        <Msg message={$translate('app.labels.wallet_transaction_send_unavailable')} type="info" />
       {/if}
 
       {#if customAmountRequired}
@@ -132,7 +144,7 @@
         <Button
           on:click={pay}
           requesting={paying}
-          disabled={amountSats === 0}
+          disabled={amountSats === 0 || !selectedWalletId}
           primary
           text={$translate('app.labels.pay')}
         >

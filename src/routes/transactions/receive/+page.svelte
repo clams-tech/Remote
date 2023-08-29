@@ -20,6 +20,8 @@
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
+  import Msg from '$lib/components/Msg.svelte'
+  import { combineLatest, map } from 'rxjs'
 
   let selectedWalletId: Wallet['id']
   let amount = 0
@@ -29,6 +31,15 @@
 
   let createAddress = false
   let createInvoice = false
+
+  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+    map(([wallets, connections]) =>
+      wallets.filter(({ id }) => {
+        const connection = connections.find(({ walletId }) => walletId === id)
+        return !!connection?.invoices?.create || !connection?.transactions?.receive
+      })
+    )
+  )
 
   const handleselectedWalletIdChange = () => {
     connection = $connections$.find(
@@ -111,8 +122,10 @@
     <SectionHeading />
   </div>
 
-  {#if $wallets$}
-    <WalletSelector bind:selectedWalletId autoSelectLast="received" wallets={$wallets$} />
+  {#if $availableWallets$}
+    <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
+  {:else}
+    <Msg message={$translate('app.labels.wallet_receive_unavailable')} type="info" />
   {/if}
 
   <div class="my-6">

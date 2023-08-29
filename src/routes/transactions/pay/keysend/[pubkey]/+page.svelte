@@ -21,6 +21,7 @@
   import { slide } from 'svelte/transition'
   import { TLV_RECORDS } from '$lib/constants.js'
   import { stringToHex } from '$lib/utils.js'
+  import { combineLatest, map } from 'rxjs'
 
   export let data: PageData
 
@@ -30,6 +31,15 @@
 
   let amountSats = 0
   let message = ''
+
+  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+    map(([wallets, connections]) =>
+      wallets.filter(({ id }) => {
+        const connection = connections.find(({ walletId }) => walletId === id)
+        return !!connection?.invoices?.keysend
+      })
+    )
+  )
 
   const pay = async () => {
     paying = true
@@ -85,8 +95,10 @@
     </SummaryRow>
 
     <div class="mt-6 flex flex-col gap-y-6">
-      {#if $wallets$}
-        <WalletSelector autoSelectLast="sent" wallets={$wallets$} bind:selectedWalletId />
+      {#if $availableWallets$}
+        <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
+      {:else}
+        <Msg message={$translate('app.labels.wallet_keysend_unavailable')} type="info" />
       {/if}
 
       <TextInput
@@ -117,7 +129,7 @@
         <Button
           on:click={pay}
           requesting={paying}
-          disabled={amountSats === 0}
+          disabled={amountSats === 0 || !selectedWalletId}
           primary
           text={$translate('app.labels.pay')}
         >

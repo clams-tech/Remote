@@ -13,15 +13,16 @@
   import CopyValue from '$lib/components/CopyValue.svelte'
   import Calculator from '$lib/components/Calculator.svelte'
   import type { Wallet } from '$lib/@types/wallets.js'
-  import ConnectionSelector from '$lib/components/WalletSelector.svelte'
+  import WalletSelector from '$lib/components/WalletSelector.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import type { AppError } from '$lib/@types/errors.js'
-  import { connections$, settings$ } from '$lib/streams.js'
+  import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
+  import { combineLatest, map } from 'rxjs'
 
   export let data: PageData
 
@@ -29,6 +30,15 @@
   let selectedWalletId: Wallet['id']
   let paying = false
   let payingError = ''
+
+  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+    map(([wallets, connections]) =>
+      wallets.filter(({ id }) => {
+        const connection = connections.find(({ walletId }) => walletId === id)
+        return !!connection?.invoices?.pay
+      })
+    )
+  )
 
   const decoded = decodeBolt11(data.invoice) as DecodedBolt11Invoice
 
@@ -110,7 +120,15 @@
       </SummaryRow>
 
       <div class="mt-6 flex flex-col gap-y-6">
-        <ConnectionSelector direction="send" bind:selectedWalletId />
+        {#if $availableWallets$}
+          <WalletSelector
+            autoSelectLast="sent"
+            bind:selectedWalletId
+            wallets={$availableWallets$}
+          />
+        {:else}
+          <Msg message={$translate('app.labels.wallet_pay_invoice_unavailable')} type="info" />
+        {/if}
 
         {#if !decoded.amount}
           <TextInput
@@ -133,7 +151,7 @@
           <Button
             on:click={pay}
             requesting={paying}
-            disabled={amountSats === 0}
+            disabled={amountSats === 0 || !selectedWalletId}
             primary
             text={$translate('app.labels.pay')}
           >
