@@ -258,7 +258,7 @@ export const calculateBalance = (funds: ListfundsResponse): string => {
   }, Big('0'))
 
   const onChain = funds.outputs.reduce(
-    (total, { amount_msat }) => total.add(formatMsat(amount_msat)),
+    (total, { amount_msat, reserved }) => total.add(reserved ? '0' : formatMsat(amount_msat)),
     Big('0')
   )
 
