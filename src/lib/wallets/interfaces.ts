@@ -4,6 +4,9 @@ import type { BehaviorSubject, Observable, Subject } from 'rxjs'
 import type { Wallet } from '$lib/@types/wallets.js'
 import type { Forward } from '$lib/@types/forwards.js'
 import type { AppError } from '$lib/@types/errors.js'
+import type { Trade } from '$lib/@types/trades.js'
+import type { Withdrawal } from '$lib/@types/withdrawals.js'
+import type { Deposit } from '$lib/@types/deposits.js'
 
 import type {
   Channel,
@@ -27,9 +30,6 @@ import type {
   PayKeysendOptions,
   Invoice
 } from '$lib/@types/invoices.js'
-import type { Trade } from '$lib/@types/trades.js'
-import type { Withdrawal } from '$lib/@types/withdrawals.js'
-import type { Deposit } from '$lib/@types/deposits.js'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -63,6 +63,7 @@ export interface Connection {
 
 export type Info = {
   id: string
+  network: 'bitcoin' | 'regtest' | 'testnet'
   alias?: string
   color?: string
   version?: string

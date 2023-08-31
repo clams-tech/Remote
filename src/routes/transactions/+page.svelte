@@ -18,7 +18,7 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { combineLatest, from, map, takeUntil } from 'rxjs'
+  import { from, map, takeUntil, zip } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
 
   const invoices$ = from(
@@ -71,9 +71,10 @@
   type Payment = InvoiceData | AddressData | TransactionData
   type PaymentsMap = Map<number, Payment[]>
 
-  const dailyPayments$ = combineLatest([invoices$, transactions$, addresses$]).pipe(
+  const dailyPayments$ = zip([invoices$, transactions$, addresses$]).pipe(
     map((payments) => {
-      const paymentMap = payments.flat().reduce((acc, payment) => {
+      // const paymentMap = payments.flat().reduce((acc, payment) => {
+      const paymentMap = payments[1].flat().reduce((acc, payment) => {
         const date = new Date(payment.timestamp * 1000)
         const dateKey = endOfDay(date).getTime() / 1000
         acc.set(dateKey, [...(acc.get(dateKey) || []), payment])

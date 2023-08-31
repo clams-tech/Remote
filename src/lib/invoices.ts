@@ -25,7 +25,6 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
 
     return decoded
   } catch (error) {
-    console.log({ error })
     return null
   }
 }

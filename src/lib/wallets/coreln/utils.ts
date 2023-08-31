@@ -82,11 +82,12 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
       offer_issuer,
       offer_description,
       invreq_payer_note,
+      invoice_node_id,
       offer_node_id
     } = decoded as DecodedBolt12Invoice
 
     createdAt = invoice_created_at || Date.now() / 1000
-    nodeId = offer_node_id
+    nodeId = offer_node_id || (invoice_node_id as string)
 
     offer = {
       id: local_offer_id,
@@ -141,7 +142,7 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
     const decoded = decodeBolt11(bolt11)
 
     if (decoded) {
-      description = decoded.description
+      description = decoded.description || undefined
       nodeId = decoded.nodeId
     } else {
       log.error(`Unable to decode bolt11: ${bolt11}`)
@@ -152,10 +153,10 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
     const { default: decodeBolt12 } = await import('bolt12-decoder')
     const decoded = decodeBolt12(bolt12)
 
-    const { offer_issuer, offer_description, invreq_payer_note, offer_node_id } =
+    const { offer_issuer, offer_description, invreq_payer_note, offer_node_id, invreq_payer_id } =
       decoded as DecodedBolt12Invoice
 
-    nodeId = offer_node_id
+    nodeId = offer_node_id || invreq_payer_id
 
     offer = {
       issuer: offer_issuer,

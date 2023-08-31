@@ -8,6 +8,12 @@ import { formatMsatString } from './utils.js'
 import { Transaction as BitcoinTransaction } from 'bitcoinjs-lib/src/transaction'
 import { fromOutputScript } from 'bitcoinjs-lib/src/address'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
+import { msatsToSats } from '$lib/conversion.js'
+import { initEccLib, networks } from 'bitcoinjs-lib'
+import secp256k1 from '@bitcoinerlab/secp256k1'
+
+// required to be init at least once to derive taproot addresses
+initEccLib(secp256k1)
 
 import type {
   ChainEvent,
@@ -22,7 +28,6 @@ import type {
   ToThemEvent,
   WithdrawResponse
 } from './types.js'
-import { msatsToSats } from '$lib/conversion.js'
 
 class Transactions implements TransactionsInterface {
   connection: CorelnConnectionInterface
@@ -46,10 +51,14 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
+      console.log(transactions)
+      console.log(accountEvents)
+
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
           const bitcoinTransaction = BitcoinTransaction.fromHex(rawtx)
+
           const fees: string[] = []
           let channel: Transaction['channel']
           let timestamp = nowSeconds()
@@ -121,11 +130,32 @@ class Transactions implements TransactionsInterface {
             version,
             rbfEnabled,
             inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
-            outputs: outputs.map(({ index, amount_msat }) => ({
-              index,
-              amount: msatsToSats(formatMsatString(amount_msat)),
-              address: fromOutputScript(bitcoinTransaction.outs[index].script)
-            })),
+            outputs: outputs.map(({ index, amount_msat }) => {
+              let address: string
+
+              try {
+                address = fromOutputScript(bitcoinTransaction.outs[index].script, networks.bitcoin)
+              } catch (error) {
+                address = ''
+                const context = 'get (transactions)'
+
+                this.connection.errors$.next({
+                  key: 'connection_derive_output_address',
+                  detail: {
+                    message: 'Could not derive address from output script',
+                    context,
+                    walletId: this.connection.walletId,
+                    timestamp: nowSeconds()
+                  }
+                })
+              }
+
+              return {
+                index,
+                amount: msatsToSats(formatMsatString(amount_msat)),
+                address
+              }
+            }),
             walletId: this.connection.walletId,
             timestamp,
             channel,
@@ -141,7 +171,6 @@ class Transactions implements TransactionsInterface {
       )
     } catch (error) {
       const context = 'get (transactions)'
-
       const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
 
       this.connection.errors$.next(connectionError)

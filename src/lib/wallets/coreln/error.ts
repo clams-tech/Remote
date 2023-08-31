@@ -7,6 +7,7 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
   switch (coreLnError.code.toString()) {
     /** PAY ERRORS */
     case '205':
+    case '210':
       return 'connection_pay_route_not_found'
     case '206':
       return 'connection_pay_route_too_expensive'
@@ -21,7 +22,6 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
     case '204':
     case '208':
     case '209':
-    case '210':
     case '211':
     case '213':
     case '214':
@@ -78,11 +78,9 @@ const errorToMessageKey = (coreLnError: CoreLnError): string => {
     case '1301':
       return 'connection_sign_message_unknown'
     case '19537':
-      return 'connection_rate_limited'
+      return 'connection_permissions'
     case '-32601':
       return 'connection_not_supported'
-    case '-32602':
-      return 'connection_self_payment_not_supported'
     default:
       return 'connection_unknown'
   }

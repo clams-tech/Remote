@@ -32,7 +32,7 @@ class Channels implements ChannelsInterface {
   public async get(channel?: { id: string; peerId: string }): Promise<Channel[]> {
     try {
       const { version } = await this.connection.info
-      const versionNumber = convertVersionNumber(version)
+      const versionNumber = convertVersionNumber(version as string)
 
       if (versionNumber < 2305) {
         const listPeersResult = await this.connection.rpc({

@@ -23,10 +23,17 @@
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
   import type { Utxo } from '$lib/@types/utxos.js'
-  import type { Metadata } from '$lib/@types/metadata.js'
   import { satsToBtcString } from '$lib/conversion.js'
-  import { deriveInvoiceMovement, deriveTransactionMovement } from '$lib/movement.js'
-  import type { Movement } from '$lib/@types/movement.js'
+  import {
+    deriveInvoiceSummary,
+    deriveReceiveAddressSummary,
+    deriveTransactionSummary,
+    enhanceInputsOutputs,
+    type EnhancedInput,
+    type PaymentSummary,
+    type TransactionSummary,
+    type EnhancedOutput
+  } from '$lib/summary.js'
 
   export let data: PageData
 
@@ -43,7 +50,7 @@
     paymentHash?: string
     paymentPreimage?: string
     txid?: string
-    balanceChange: Movement['balanceChange']
+    amount: number
     fee?: number
     description?: string
     createdAt?: number
@@ -51,19 +58,11 @@
     expiresAt?: number
     peerNodeId?: string
     wallet: Wallet
-    category: Movement['category']
-    from: Movement['from']
-    to: Movement['to']
+    category: TransactionSummary['category']
     offer?: Invoice['offer']
     channel?: Transaction['channel']
-    inputs?: { outpoint: string; utxo?: Utxo }[]
-    outputs?: {
-      amount: number
-      outpoint: string
-      address: string
-      labelKey?: string
-      utxo?: Utxo
-    }[]
+    inputs?: EnhancedInput[]
+    outputs?: EnhancedOutput[]
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -95,7 +94,7 @@
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-      const movement = deriveInvoiceMovement(invoice)
+      const { category } = (await deriveInvoiceSummary(invoice)) as PaymentSummary
 
       details.push({
         type: 'invoice',
@@ -109,7 +108,7 @@
               ]
             : undefined,
         status,
-        balanceChange: movement.balanceChange,
+        amount,
         description,
         createdAt,
         completedAt,
@@ -121,9 +120,7 @@
         paymentHash: hash,
         paymentPreimage: preimage,
         peerNodeId: direction === 'send' ? nodeId : undefined,
-        category: movement.category,
-        from: movement.from,
-        to: movement.to
+        category
       })
     }
 
@@ -177,91 +174,36 @@
         type: 'address',
         qrValues,
         status,
-        balanceChange: amount,
+        amount,
         description: message,
         createdAt,
         completedAt,
         wallet,
         channel: tx?.channel,
         txid,
-        category: 'income',
-        to: walletId,
-        from: undefined
+        category: 'income'
       })
     }
 
     if (transaction) {
-      const { id, walletId, fee, blockheight, inputs, outputs, channel, timestamp } = transaction
+      const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
-      const movement = await deriveTransactionMovement(transaction)
-
-      const formattedInputs = await Promise.all(
-        inputs.map(async ({ index, txid }) => {
-          const outpoint = `${txid}:${index}`
-          const utxo = await db.utxos.get(outpoint)
-          return { outpoint, utxo }
-        })
-      )
-
-      const formattedOutputs = await Promise.all(
-        outputs.map(async ({ index, amount, address }) => {
-          const outpoint = `${id}:${index}`
-          const utxo = await db.utxos.get(outpoint)
-          const inputUtxos = formattedInputs.filter(({ utxo }) => !!utxo)
-
-          let labelKey: string | undefined = undefined
-
-          // we own this output
-          if (utxo) {
-            // no owned inputs, so must be a receive
-            if (!inputUtxos.length) {
-              labelKey = 'receive'
-            } else {
-              const inputUtxoWithSamewallet = inputUtxos.find(
-                (input) => input.utxo?.walletId === utxo?.walletId
-              )
-              // input has the same wallet as this output, so is change
-              if (inputUtxoWithSamewallet) {
-                labelKey = 'change'
-              }
-              // otherwise sent from different wallet, so is transfer
-              else {
-                labelKey = 'transfer'
-              }
-            }
-          }
-          // unknown output so must be send if we own at least one of the inputs
-          else {
-            if (inputUtxos.length) {
-              labelKey = 'send'
-            }
-          }
-
-          return {
-            amount,
-            outpoint,
-            address,
-            utxo,
-            labelKey
-          }
-        })
-      )
+      const { inputs, outputs } = await enhanceInputsOutputs(transaction)
+      const summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee })
 
       details.push({
         type: 'onchain',
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
-        balanceChange: movement.balanceChange,
+        amount: (summary as PaymentSummary).amount,
         fee,
         channel,
         wallet,
         completedAt: typeof blockheight === 'number' ? timestamp : undefined,
         txid: id,
-        inputs: formattedInputs,
-        outputs: formattedOutputs,
-        category: movement.category,
-        from: movement.from,
-        to: movement.to
+        inputs,
+        outputs,
+        category: summary.category
       })
     }
 
@@ -327,7 +269,7 @@
       paymentHash,
       paymentPreimage,
       txid,
-      balanceChange,
+      amount,
       request,
       fee,
       description,
@@ -340,9 +282,7 @@
       channel,
       inputs,
       outputs,
-      category,
-      from,
-      to
+      category
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -371,7 +311,7 @@
       </div>
     {/if}
 
-    {#if balanceChange}
+    {#if amount}
       <div class="flex items-center w-full justify-center text-2xl">
         <div
           class:text-utility-success={category === 'income'}
@@ -381,7 +321,7 @@
           {category === 'income' ? '+' : category === 'expense' ? '-' : ''}
         </div>
 
-        <BitcoinAmount sats={balanceChange} />
+        <BitcoinAmount sats={amount} />
       </div>
     {/if}
 
@@ -455,7 +395,7 @@
         {/if}
 
         <!-- INPUTS -->
-        {#if inputs}
+        <!-- {#if inputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.inputs')}:</span>
             <div class="gap-y-1 flex flex-col text-sm" slot="value">
@@ -486,10 +426,10 @@
               {/each}
             </div>
           </SummaryRow>
-        {/if}
+        {/if} -->
 
         <!-- OUTPUTS -->
-        {#if outputs}
+        <!-- {#if outputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
@@ -533,7 +473,7 @@
               {/each}
             </div>
           </SummaryRow>
-        {/if}
+        {/if} -->
 
         <!-- FEE -->
         {#if fee}

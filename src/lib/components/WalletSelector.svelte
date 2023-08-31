@@ -37,6 +37,8 @@
 
       if (lastUsedWalletId && wallets.find(({ id }) => id === lastUsedWalletId)) {
         selectedWalletId = lastUsedWalletId
+      } else {
+        selectWallet(wallets[0].id)
       }
     } catch (error) {
       log.warn('Access to storage denied when trying to retrieve last received wallet id')

@@ -10,7 +10,6 @@ import type { Connection } from './interfaces.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
-// import { log } from '$lib/services.js'
 
 export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
   {

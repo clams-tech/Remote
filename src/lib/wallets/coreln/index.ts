@@ -32,7 +32,7 @@ import type {
 
 class CoreLightning implements CorelnConnectionInterface {
   walletId: Wallet['id']
-  info: Required<Info>
+  info: Info
   destroy$: Subject<void>
   errors$: Subject<AppError>
   rune: string
@@ -90,13 +90,13 @@ class CoreLightning implements CorelnConnectionInterface {
       const connected = await socket.connect()
 
       if (connected) {
-        const { id, alias, color, version, address } = (await this.rpc({
+        const { id, alias, color, version, address, network } = (await this.rpc({
           method: 'getinfo'
         })) as GetinfoResponse
 
         const { address: host, port: connectionPort } = address[0] || { address: ip, port }
 
-        this.info = { id, host, port: connectionPort, alias, color, version }
+        this.info = { id, host, port: connectionPort, alias, color, version, network }
 
         return this.info
       } else {
@@ -132,9 +132,15 @@ class CoreLightning implements CorelnConnectionInterface {
 
 /** all methods this connection uses for rune creation */
 export const methods = [
+  'listfunds',
   'waitblockheight',
   'getinfo',
   'listpeers',
+  'listnodes',
+  'listpeerchannels',
+  'setchannel',
+  'connect',
+  'fundchannel',
   'listforwards',
   'listinvoices',
   'listpays',
@@ -143,7 +149,6 @@ export const methods = [
   'keysend',
   'waitinvoice',
   'waitanyinvoice',
-  'signmessage',
   'listoffers',
   'listinvoicerequests',
   'offer',
@@ -151,10 +156,12 @@ export const methods = [
   'invoicerequest',
   'disableinvoicerequest',
   'fetchinvoice',
+  'sendinvoice',
+  'signmessage',
   'listtransactions',
+  'bkpr-listaccountevents',
   'newaddr',
-  'withdraw',
-  'listfunds'
+  'withdraw'
 ]
 
 export default CoreLightning

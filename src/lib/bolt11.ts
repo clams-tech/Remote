@@ -330,7 +330,9 @@ function decode(paymentRequest: string): DecodedBolt11Invoice {
     amount: msatsToSats(msat === 'any' ? '0' : msat),
     createdAt: timestamp,
     expiresAt,
-    description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || '',
+    description: (tags.find(({ tagName }) => tagName === 'description')?.data as string) || null,
+    descriptionHash:
+      (tags.find(({ tagName }) => tagName === 'purpose_commit_hash')?.data as string) || null,
     hash: tags.find(({ tagName }) => tagName === 'payment_hash')?.data as string
   }
 }

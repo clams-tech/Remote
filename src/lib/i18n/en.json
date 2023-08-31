@@ -314,7 +314,10 @@
     "homescreen": "Homescreen",
     "homescreen_description": "Set which tiles will be displayed on your homescreen.",
     "no_fiat": "Sats the standard",
-    "lnurl_auth_success": "Successfully logged in!"
+    "lnurl_auth_success": "Successfully logged in!",
+    "comment": "Comment",
+    "lnurl_pay_success": "Payment successful!",
+    "goto_payment": "Go to completed payment"
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -349,10 +352,11 @@
     "connection_transaction_not_found": "Could not find transaction hash.",
     "connection_transactions_get": "Could not get transactions to check for inclusion in a block.",
     "connection_configuration": "There is a problem with the connection configuration.",
-    "connection_rate_limited": "Could not make request due to rate limits.",
+    "connection_permissions": "Could not make request due to a permissions or rate limit error.",
     "connection_not_supported": "Could not make request due to feature not being supported on this connection.",
     "connection_self_payment_not_supported": "Self payments are not supported by this connection.",
     "connection_unsupported_action": "This action is not supported on this connection, please select another connection to continue.",
+    "connection_derive_output_address": "Could not derive an address for an output of an onchain transaction.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "connection_cannot_receive_payment": "The selected wallet connection cannot receive a payment, try selecting another one.",
     "transaction_not_found": "Could not find this transaction...",

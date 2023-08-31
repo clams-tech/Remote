@@ -10,7 +10,6 @@ export const validateConfiguration = (configuration: CoreLnConfiguration, wallet
   } = configuration
 
   if (!address || typeof address !== 'string') {
-    console.log({ address, type, value, token })
     const connectionError: AppError = {
       key: 'connection_configuration',
       detail: {

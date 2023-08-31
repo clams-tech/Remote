@@ -37,19 +37,19 @@
     }
   }
 
-  const enter = () => dispatch('input', input)
+  const enter = () => dispatch('input', parsed)
 
   const handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
-      enter()
+      e.preventDefault()
+      parsed && enter()
     }
   }
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
-
 <div class="w-full relative flex h-full">
   <textarea
+    on:keypress={handleKeyPress}
     bind:value={input}
     bind:this={inputEl}
     class="w-full bg-neutral-900 border-none rounded focus:ring-0 h-full"

@@ -14,98 +14,47 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import { truncateValue } from '$lib/utils.js'
   import { connections$ } from '$lib/streams.js'
-  import type { Movement } from '$lib/@types/movement.js'
-  import { deriveInvoiceMovement, deriveTransactionMovement } from '$lib/movement.js'
+  import {
+    deriveInvoiceSummary,
+    deriveReceiveAddressSummary,
+    deriveTransactionSummary,
+    enhanceInputsOutputs,
+    type TransactionSummary
+  } from '$lib/summary.js'
+  import type { Connection } from '$lib/wallets/interfaces.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
 
-  let formatted = false
   let icon: string
   let status: TransactionStatus
-  let balanceChange: Movement['balanceChange']
-  let channelEvent: Transaction['channel']
-  let description: string | undefined
-  let request: string | undefined
-  let category: Movement['category']
-  let from: Movement['from']
-  let to: Movement['to']
-  let wallet: Wallet
-  let action: string
+  let summary: TransactionSummary
+
+  $: connection = $connections$.find(({ walletId }) => walletId === data.walletId)
 
   const formatData = async () => {
-    wallet = (await db.wallets.get(data.walletId)) as Wallet
-
     if (type === 'invoice') {
-      const {
-        status: invoiceStatus,
-        description: invoiceDescription,
-        offer,
-        request: invoiceRequest
-      } = data as Invoice
-
-      icon = lightning
+      const { status: invoiceStatus } = data as Invoice
       status = invoiceStatus
-
-      const movement = deriveInvoiceMovement(data as Invoice)
-
-      balanceChange = movement.balanceChange
-      from = movement.from
-      to = movement.to
-      category = movement.category
-      description = invoiceDescription || offer?.description
-      request = invoiceRequest
+      icon = lightning
+      summary = await deriveInvoiceSummary(data as Invoice)
     } else if (type === 'address') {
-      const { amount: addressAmount, message: addressDescription, createdAt } = data as Address
       icon = bitcoin
       status = 'pending'
-      category = 'income'
-      from = undefined
-      to = data.walletId
-      balanceChange = addressAmount
-      description = addressDescription
+      summary = await deriveReceiveAddressSummary(data as Address)
     } else if (type === 'transaction') {
-      const { blockheight, receiveAddress, channel } = data as Transaction & {
-        receiveAddress?: Address
-      }
-
+      const { blockheight, timestamp, fee } = data as Transaction
+      const { inputs, outputs } = await enhanceInputsOutputs(data as Transaction)
       icon = bitcoin
-      status = typeof blockheight === 'number' ? 'complete' : 'pending'
-
-      if (receiveAddress && receiveAddress.message) {
-        description = receiveAddress.message
-      }
-
-      channelEvent = channel
-
-      const movement = await deriveTransactionMovement(data as Transaction)
-
-      balanceChange = movement.balanceChange
-      from = movement.from
-      to = movement.to
-      category = movement.category
+      status = blockheight ? 'complete' : 'pending'
+      summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee })
     }
-
-    action =
-      category === 'income'
-        ? 'receive'
-        : category === 'expense'
-        ? 'send'
-        : category === 'transfer'
-        ? 'transfer'
-        : channelEvent
-        ? channelEvent.type === 'open'
-          ? 'channel_open'
-          : 'channel_close'
-        : ''
-
-    formatted = true
   }
 
   formatData()
 </script>
 
-{#if formatted}
+{#if summary}
   <a
     in:fade
     class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900"
@@ -118,130 +67,6 @@
         class:text-bitcoin-yellow={type === 'invoice'}
       >
         {@html icon}
-      </div>
-      <div>
-        <div class="mr-2 font-semibold">
-          {$translate(`app.labels.${action}`)}
-        </div>
-
-        <div class="text-xs font-semibold flex items-center mt-1 lowercase">
-          <div class="border-2 px-1 rounded">
-            {#if action === 'send'}
-              {wallet.label}
-            {:else if action === 'receive' || action === 'transfer'}
-              {#if from}
-                <!-- see if counterparties is one of our wallets -->
-                {#await db.wallets.get(from) then wallet}
-                  {#if wallet}
-                    {wallet.label}
-                  {:else}
-                    {truncateValue(from)}
-                  {/if}
-                {/await}
-              {:else}
-                {$translate('app.labels.unknown')}
-              {/if}
-            {:else if channelEvent}
-              {#await db.channels.get(channelEvent.channelId) then channel}
-                {#if channel}
-                  <!-- did we open the channel? -->
-                  {@const ourwalletThatOpenedTheChannel = $connections$.find(
-                    ({ info }) => info.id === channel?.opener
-                  )}
-
-                  {#if ourwalletThatOpenedTheChannel}
-                    {#await db.wallets.get(ourwalletThatOpenedTheChannel.walletId) then wallet}
-                      {wallet?.label}
-                    {/await}
-                  {:else}
-                    {truncateValue(channel.opener, 6)}
-                  {/if}
-                {/if}
-              {/await}
-            {/if}
-          </div>
-
-          <div class="w-4 mx-1 -rotate-90">{@html arrow}</div>
-
-          <div class="border-2 px-1 rounded">
-            {#if action === 'receive'}
-              {wallet.label}
-            {:else if action === 'send' || action === 'transfer'}
-              {#if to}
-                <!-- see if counterparties is one of our wallets -->
-                {#await db.wallets.get(to) then wallet}
-                  {#if wallet}
-                    {wallet.label}
-                  {:else}
-                    {truncateValue(to)}
-                  {/if}
-                {/await}
-              {:else}
-                {$translate('app.labels.unknown')}
-              {/if}
-            {:else if channelEvent}
-              {#await db.channels.get(channelEvent.channelId) then channel}
-                {#if channel}
-                  <!-- did we open the channel? -->
-                  {@const ourwalletThatOpenedTheChannel = $connections$.find(
-                    ({ info }) => info.id === channel?.opener
-                  )}
-                  {#if ourwalletThatOpenedTheChannel}
-                    {#await db.wallets.get(ourwalletThatOpenedTheChannel.walletId) then wallet}
-                      {wallet?.label}
-                    {/await}
-                  {:else}
-                    {truncateValue(channel.opener, 6)}
-                  {/if}
-                {/if}
-              {/await}
-            {/if}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex items-center">
-      {#if balanceChange}
-        <div>
-          <div class="flex justify-end text-xs">{$translate('app.labels.balance_change')}</div>
-
-          <div class="flex items-center">
-            <div
-              class="mr-1 font-semibold text-lg font-mono"
-              class:text-utility-success={category === 'income'}
-              class:text-utility-error={category === 'expense' ||
-                (category === 'transfer' && balanceChange)}
-            >
-              {category === 'income'
-                ? '+'
-                : category === 'expense' || (category === 'transfer' && balanceChange)
-                ? '-'
-                : ''}
-            </div>
-
-            <BitcoinAmount sats={balanceChange} />
-          </div>
-
-          <div
-            class:text-utility-success={status === 'complete'}
-            class:text-utility-pending={status === 'pending'}
-            class:text-utility-error={status === 'expired' || status === 'failed'}
-            class="flex items-center justify-end text-xs"
-          >
-            <div
-              class:bg-utility-success={status === 'complete'}
-              class:bg-utility-pending={status === 'pending'}
-              class:bg-utility-error={status === 'expired' || status === 'failed'}
-              class="w-1.5 h-1.5 rounded-full mr-1"
-            />
-            <div>{$translate(`app.labels.${status}`)}</div>
-          </div>
-        </div>
-      {/if}
-
-      <div class="flex items-center h-full ml-1">
-        <div class="w-6 flex-shrink-0 -rotate-90">{@html caret}</div>
       </div>
     </div>
   </a>
