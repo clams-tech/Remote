@@ -22,7 +22,6 @@ export type Transaction = {
   channel?: {
     type: 'open' | 'close' | 'force_close'
     amount: number
-    timestamp: number
     id: string
   }
   fee?: number

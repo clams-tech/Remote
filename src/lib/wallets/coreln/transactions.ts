@@ -92,20 +92,22 @@ class Transactions implements TransactionsInterface {
                 }
 
                 if (tag === 'channel_open' && outpoint.includes(hash)) {
+                  timestamp = eventTimestamp
+
                   channel = {
                     type: 'open',
                     amount: msatsToSats(formatMsatString(credit_msat)),
-                    timestamp: eventTimestamp,
                     id: account
                   }
                   return
                 }
 
                 if (tag === 'channel_close' && txid === hash) {
+                  timestamp = eventTimestamp
+
                   channel = {
                     type: 'close',
                     amount: msatsToSats(formatMsatString(debit_msat)),
-                    timestamp: eventTimestamp,
                     id: account
                   }
                   return
