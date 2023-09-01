@@ -80,7 +80,6 @@
       category = summary.category
       fee = summary.fee
       amount = (summary as PaymentSummary).amount
-      console.log({ summaryType })
     }
     dataReady = true
   }
@@ -93,10 +92,10 @@
 {#if dataReady}
   <a
     in:fade
-    class="flex items-start justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 h-[5.5rem]"
+    class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 h-[5.5rem]"
     href={`/transactions/${data.id}?wallet=${data.walletId}`}
   >
-    <div class="flex items-start">
+    <div class="flex items-start h-full">
       <div
         class="w-6 border border-current rounded-full mr-2 flex-shrink-0"
         class:text-bitcoin-orange={type === 'transaction' || type === 'address'}
@@ -125,10 +124,37 @@
       </div>
     </div>
 
-    <div class="flex items-center ml-10">
-      {#if amount}
-        <BitcoinAmount sats={amount} />
-      {/if}
+    <div class="flex items-center ml-4">
+      <div>
+        {#if amount}
+          <div class="flex items-center">
+            <div
+              class="mr-1 font-semibold text-lg font-mono"
+              class:text-utility-success={category === 'income'}
+              class:text-utility-error={category === 'expense'}
+            >
+              {category === 'income' ? '+' : category === 'expense' ? '-' : ''}
+            </div>
+            <BitcoinAmount sats={amount} />
+          </div>
+        {/if}
+
+        <div
+          class:text-utility-success={status === 'complete'}
+          class:text-utility-pending={status === 'pending'}
+          class:text-utility-error={status === 'expired' || status === 'failed'}
+          class="flex items-center justify-end text-xs"
+        >
+          <div
+            class:bg-utility-success={status === 'complete'}
+            class:bg-utility-pending={status === 'pending'}
+            class:bg-utility-error={status === 'expired' || status === 'failed'}
+            class="w-1.5 h-1.5 rounded-full mr-1"
+          />
+          <div>{$translate(`app.labels.${status}`)}</div>
+        </div>
+      </div>
+
       <div class="w-6 -rotate-90">{@html caret}</div>
     </div>
   </a>
