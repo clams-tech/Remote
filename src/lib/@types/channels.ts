@@ -1,15 +1,4 @@
-export type ChannelStatus =
-  | 'OPENING'
-  | 'CHANNEL_AWAITING_LOCKIN'
-  | 'CHANNEL_NORMAL'
-  | 'CHANNEL_SHUTTING_DOWN'
-  | 'CLOSING_SIGEXCHANGE'
-  | 'CLOSING_COMPLETE'
-  | 'AWAITING_UNILATERAL'
-  | 'FUNDING_SPEND_SEEN'
-  | 'ONCHAIN'
-  | 'DUALOPEN_OPEN_INIT'
-  | 'DUALOPEN_AWAITING_LOCKIN'
+export type ChannelStatus = 'active' | 'opening' | 'closing' | 'closed'
 
 export type Channel = {
   /** the wallet this channel belongs to */
@@ -17,39 +6,39 @@ export type Channel = {
   /** full channel id */
   id: string
   /** short channel id */
-  shortId: string | null
+  shortId?: string | null
   /** nodeid of who opened this channel */
-  opener: string
+  opener?: string
   /** funding transaction id */
   fundingTransactionId: string
   /** 0-based index of the output in the funding transaction */
   fundingOutput: number
   /** id of node with which channel is opened */
-  peerId: string
+  peerId?: string
   /** alias of node with which channel is opened */
   peerAlias?: string
   /** currently connected to peer */
   peerConnected: boolean
   status: ChannelStatus
-  balanceLocal: number
-  balanceRemote: number
-  reserveLocal: number
-  reserveRemote: number
+  balanceLocal?: number
+  balanceRemote?: number
+  reserveLocal?: number
+  reserveRemote?: number
   /** amount we charge to use the channel */
-  feeBase: number | null
+  feeBase?: number
   /** amount we charge to use the channel in parts-per-million */
-  feePpm: number
+  feePpm?: number
   /** the min htlc msat size we will forward */
-  htlcMin: number | null
+  htlcMin?: number | null
   /** the max htlc msat size we will forward */
-  htlcMax: number | null
+  htlcMax?: number | null
   /** The bitcoin address we will close to */
-  closeToAddress: string | null
-  /** The bitcoin address we will close to */
-  closeToScriptPubkey: string | null
-  htlcs: HTLC[]
+  closeToAddress?: string
+  htlcs?: HTLC[]
   /** which side closed this channel */
   closer?: 'local' | 'remote'
+  closeCause?: 'unknown' | 'local' | 'user' | 'remote' | 'protocol' | 'onchain'
+  finalToUs?: number
   ourToSelfDelay?: number
   theirToSelfDelay?: number
 }

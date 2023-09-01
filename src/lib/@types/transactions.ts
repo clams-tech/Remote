@@ -19,7 +19,12 @@ export type Transaction = {
     address: string
   }>
   timestamp: number
-  channel?: { type: 'open' | 'close'; amount: number; timestamp: number; channelId: string }
+  channel?: {
+    type: 'open' | 'close' | 'force_close'
+    amount: number
+    timestamp: number
+    id: string
+  }
   fee?: number
 }
 

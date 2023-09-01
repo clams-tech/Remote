@@ -21,6 +21,7 @@ import type {
   ChannelOpenEvent,
   CorelnConnectionInterface,
   CoreLnError,
+  DelayedToUsEvent,
   ListAccountEventsResponse,
   ListTransactionsResponse,
   NewAddrResponse,
@@ -51,9 +52,6 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
-      console.log(transactions)
-      console.log(accountEvents)
-
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
@@ -78,6 +76,7 @@ class Transactions implements TransactionsInterface {
                 | ChannelCloseEvent
                 | OnchainFeeEvent
                 | ToThemEvent
+                | DelayedToUsEvent
 
               const { txid, outpoint } = ev as ChainEvent
 
@@ -97,7 +96,7 @@ class Transactions implements TransactionsInterface {
                     type: 'open',
                     amount: msatsToSats(formatMsatString(credit_msat)),
                     timestamp: eventTimestamp,
-                    channelId: account
+                    id: account
                   }
                   return
                 }
@@ -107,9 +106,15 @@ class Transactions implements TransactionsInterface {
                     type: 'close',
                     amount: msatsToSats(formatMsatString(debit_msat)),
                     timestamp: eventTimestamp,
-                    channelId: account
+                    id: account
                   }
                   return
+                }
+
+                if (tag === 'delayed_to_us' && outpoint.includes(hash)) {
+                  if (channel) {
+                    channel.type = 'force_close'
+                  }
                 }
               } else if (type === 'onchain_fee' && txid === hash) {
                 fees.push(

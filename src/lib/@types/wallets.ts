@@ -14,6 +14,7 @@ export type Wallet = {
   syncing: boolean
   /** data is encrypted with session secret */
   configuration: WalletConfiguration | null
+  nodeId?: string
 }
 
 export type WalletConfiguration = CoreLnConfiguration | XPubConfiguration | MultiSigConfiguration

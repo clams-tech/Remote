@@ -20,7 +20,6 @@ import {
   scan,
   shareReplay,
   skip,
-  startWith,
   Subject,
   take,
   timer,
@@ -61,8 +60,7 @@ export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
 
     return acc
   }, {} as ConnectionErrors),
-  shareReplay(1),
-  startWith({})
+  shareReplay(1)
 )
 
 // when svelte component is destroyed

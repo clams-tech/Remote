@@ -317,7 +317,16 @@
     "lnurl_auth_success": "Successfully logged in!",
     "comment": "Comment",
     "lnurl_pay_success": "Payment successful!",
-    "goto_payment": "Go to completed payment"
+    "goto_payment": "Go to completed payment",
+    "summary_send": "sent",
+    "summary_receive": "received from",
+    "summary_transfer": "transferred to",
+    "summary_withdrawal": "withdrew from",
+    "summary_deposit": "deposited to",
+    "summary_channel_open": "opened a channel with",
+    "summary_channel_close": "closed a channel with",
+    "summary_channel_force_close": "force closed a channel with",
+    "summary_sweep": "swept timelocked funds from force close with"
   },
   "validation": {
     "field_invalid": "Field Invalid",

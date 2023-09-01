@@ -53,8 +53,8 @@ export const listenForConnectionErrors = (connection: Connection) => {
 }
 
 /** decrypts auth token if exists and then returns a connection interface */
-export const getConnection = (connectionDetails: Wallet): Connection => {
-  const { configuration } = connectionDetails
+export const getConnection = (wallet: Wallet): Connection => {
+  const { configuration } = wallet
   const { token } = configuration as CoreLnConfiguration
   const session = session$.value as Session
 
@@ -64,7 +64,7 @@ export const getConnection = (connectionDetails: Wallet): Connection => {
   }
 
   const decryptedWalletDetails = {
-    ...connectionDetails,
+    ...wallet,
     ...(configuration ? { configuration } : {})
   }
 
@@ -86,6 +86,11 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   }
 
   connection.connect && (await connection.connect())
+
+  if (connection.info.id) {
+    await db.wallets.update(wallet.id, { nodeId: connection.info.id })
+  }
+
   listenForConnectionErrors(connection)
 
   return connection

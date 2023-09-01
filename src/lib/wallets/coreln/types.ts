@@ -517,7 +517,15 @@ export type SignMessageResponse = {
 
 export type IncomeEvent = {
   account: string
-  tag: 'deposit' | 'withdrawal' | 'onchain_fee' | 'invoice' | 'invoice_fee' | 'routed' | string
+  tag:
+    | 'deposit'
+    | 'withdrawal'
+    | 'onchain_fee'
+    | 'invoice'
+    | 'invoice_fee'
+    | 'routed'
+    | 'delayed_to_us'
+    | string
   credit_msat: number | string
   debit_msat: number | string
   currency: string
@@ -745,6 +753,31 @@ type PeerChannel = {
   maximum_htlc_out_msat?: number
   their_to_self_delay?: number
   our_to_self_delay?: number
+}
+
+export type ClosedChannel = {
+  channel_id: string
+  opener: string
+  private: boolean
+  total_local_commitments: number
+  total_remote_commitments: number
+  total_htlcs_sent: number
+  funding_txid: string
+  funding_outnum: number
+  leased: boolean
+  total_msat: string
+  final_to_us_msat: string
+  min_to_us_msat: string
+  max_to_us_msat: string
+  close_cause: string
+  peer_id?: string
+  short_channel_id?: string
+  closer?: string
+  funding_fee_paid_msat?: string
+  funding_fee_rcvd_msat?: string
+  funding_pushed_msat?: string
+  last_commitment_txid?: string
+  last_commitment_fee_msat?: string
 }
 
 type HTLC = {
@@ -1064,6 +1097,18 @@ export type ChannelInvoiceEvent = {
   debit_msat: string
 }
 
+export type DelayedToUsEvent = {
+  account: string
+  blockheight: number
+  credit_msat: string
+  currency: string
+  debit_msat: string
+  outpoint: string
+  tag: 'delayed_to_us'
+  timestamp: number
+  type: 'chain'
+}
+
 export type ListAccountEventsResponse = {
   events: (
     | ChainEvent
@@ -1073,6 +1118,7 @@ export type ListAccountEventsResponse = {
     | OnchainFeeEvent
     | ChannelInvoiceEvent
     | ToThemEvent
+    | DelayedToUsEvent
   )[]
 }
 

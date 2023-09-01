@@ -161,7 +161,8 @@ export const methods = [
   'listtransactions',
   'bkpr-listaccountevents',
   'newaddr',
-  'withdraw'
+  'withdraw',
+  'listclosedchannels'
 ]
 
 export default CoreLightning
