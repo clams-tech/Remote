@@ -5,7 +5,7 @@
 
   export let utxo: Utxo
 
-  const padding = utxo.amount.toString().length * 8 - 32
+  const padding = utxo.amount.toString().length * 8 - 24
 </script>
 
 <a
