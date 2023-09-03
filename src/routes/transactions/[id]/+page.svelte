@@ -432,7 +432,7 @@
                 {@const { id, category, utxo } = input}
                 {@const routeProm = getRoute(input)}
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-2"
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-2"
                 >
                   <button
                     on:click={async () => {
@@ -457,7 +457,10 @@
                           {/await}
                         {:else if category === 'channel_close'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias || truncateValue(channel?.peerId || 'id')}
+                            {channel?.peerAlias ||
+                              truncateValue(
+                                channel?.peerId || channel?.id || $translate('app.labels.unknown')
+                              )}
                           {/await}
                         {:else if category === 'withdrawal'}
                           {#await db.withdrawals
@@ -492,11 +495,11 @@
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
               {#each outputs as output}
-                {@const { id, category, utxo, amount } = output}
+                {@const { id, category, utxo, amount, address } = output}
                 {@const routeProm = getRoute(output)}
 
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-4"
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
                   <button
                     on:click={async () => {
@@ -523,7 +526,7 @@
                           {/await}
                         {:else if category === 'settle' || category === 'channel_open'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias || truncateValue(channel?.peerId || 'id')}
+                            {channel?.peerAlias || truncateValue(channel?.peerId || address)}
                           {/await}
                         {:else if category === 'deposit'}
                           {#await db.deposits

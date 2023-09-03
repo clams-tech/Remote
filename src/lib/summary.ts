@@ -66,6 +66,7 @@ export type EnhancedOutput = {
     | 'unknown'
   /** output sats */
   amount: number
+  address: string
   utxo?: Utxo
 }
 
@@ -164,7 +165,7 @@ export const enhanceInputsOutputs = async (
        */
       const { address, index, amount } = output
       const ownedOutputUtxo = await db.utxos.get(`${transaction.id}:${index}`)
-      const closedChannel = await db.channels.where({ closeTo: address }).first()
+      const closedChannelId = inputs.find(({ category }) => category === 'channel_close')?.id
       const ownAtLeastOneInputUtxo = inputs.find(({ utxo }) => !!utxo)
 
       const openedChannel = await db.channels
@@ -180,10 +181,12 @@ export const enhanceInputsOutputs = async (
         })
       }
 
-      const enhanced: EnhancedOutput = closedChannel
-        ? { category: 'settle', id: closedChannel.id, amount, utxo: ownedOutputUtxo }
+      const enhanced: EnhancedOutput = closedChannelId
+        ? ownedOutputUtxo
+          ? { category: 'settle', id: closedChannelId, amount, utxo: ownedOutputUtxo, address }
+          : { category: 'settle', id: closedChannelId, amount, address }
         : openedChannel
-        ? { category: 'channel_open', id: openedChannel.id, amount }
+        ? { category: 'channel_open', id: openedChannel.id, amount, address }
         : ownedOutputUtxo
         ? {
             category: isChangeOutput(inputs, ownedOutputUtxo)
@@ -195,13 +198,14 @@ export const enhanceInputsOutputs = async (
               : 'receive',
             id: sweptFromChannelId || ownedOutputUtxo.walletId,
             utxo: ownedOutputUtxo,
-            amount
+            amount,
+            address
           }
         : deposit
-        ? { category: 'deposit', id: deposit.id, amount }
+        ? { category: 'deposit', id: deposit.id, amount, address }
         : ownAtLeastOneInputUtxo
-        ? { category: 'send', id: address, amount }
-        : { category: 'unknown', id: address, amount }
+        ? { category: 'send', id: address, amount, address }
+        : { category: 'unknown', id: address, amount, address }
 
       return enhanced
     })
