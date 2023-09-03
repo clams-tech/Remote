@@ -127,7 +127,15 @@ export const syncConnectionData = (
 
   const channelsRequest = () =>
     connection.channels
-      ? connection.channels.get().then((channels) => db.channels.bulkPut(channels))
+      ? connection.channels.get().then((channels) =>
+          channels.map((channel) =>
+            // need to update channels as old channels lose data after 100 blocks of being close
+            // so we don't want to overwrite data we already have as it is useful
+            db.channels
+              .update(channel.id, channel)
+              .then((updated) => !updated && db.channels.add(channel))
+          )
+        )
       : Promise.resolve()
 
   requestQueue.push(channelsRequest)

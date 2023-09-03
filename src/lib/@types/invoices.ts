@@ -14,7 +14,7 @@ export type Invoice = {
   hash: string
   walletId: string
   /** BOLT11 | BOLT12 */
-  request: string
+  request?: string
   /** the receiving node id */
   nodeId: string
   description?: string

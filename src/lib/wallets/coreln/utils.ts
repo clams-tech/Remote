@@ -178,7 +178,7 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
     amount: msatsToSats(amount),
     fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amount).toString()),
     direction: 'send',
-    type: bolt11 ? 'bolt11' : 'keysend',
+    type: bolt11 ? 'bolt11' : bolt12 ? 'bolt12' : 'keysend',
     expiresAt: undefined,
     completedAt: timestamp,
     description,
@@ -190,27 +190,20 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
 export function stateToChannelStatus(state: State): ChannelStatus {
   switch (state) {
     case State.Openingd:
-      return 'OPENING'
     case State.ChanneldAwaitingLockin:
-      return 'CHANNEL_AWAITING_LOCKIN'
-    case State.ChanneldNormal:
-      return 'CHANNEL_NORMAL'
-    case State.ChanneldShuttingDown:
-      return 'CHANNEL_SHUTTING_DOWN'
-    case State.ClosingdSigexchange:
-      return 'CLOSING_SIGEXCHANGE'
-    case State.ClosingdComplete:
-      return 'CLOSING_COMPLETE'
-    case State.AwaitingUnilateral:
-      return 'AWAITING_UNILATERAL'
     case State.FundingSpendSeen:
-      return 'FUNDING_SPEND_SEEN'
-    case State.Onchain:
-      return 'ONCHAIN'
     case State.DualopendOpenInit:
-      return 'DUALOPEN_OPEN_INIT'
     case State.DualopendAwaitingLockin:
-      return 'DUALOPEN_AWAITING_LOCKIN'
+    case State.Onchain:
+      return 'opening'
+    case State.ChanneldNormal:
+      return 'active'
+    case State.ChanneldShuttingDown:
+    case State.ClosingdSigexchange:
+    case State.AwaitingUnilateral:
+      return 'closing'
+    case State.ClosingdComplete:
+      return 'closed'
   }
 }
 

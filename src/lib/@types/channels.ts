@@ -20,10 +20,10 @@ export type Channel = {
   /** currently connected to peer */
   peerConnected: boolean
   status: ChannelStatus
-  balanceLocal?: number
-  balanceRemote?: number
-  reserveLocal?: number
-  reserveRemote?: number
+  balanceLocal: number
+  balanceRemote: number
+  reserveLocal: number
+  reserveRemote: number
   /** amount we charge to use the channel */
   feeBase?: number
   /** amount we charge to use the channel in parts-per-million */

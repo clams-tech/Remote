@@ -72,7 +72,11 @@ class Channels implements ChannelsInterface {
               status: 'closed',
               closer,
               closeCause: close_cause,
-              finalToUs: msatsToSats(formatMsatString(final_to_us_msat))
+              finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
+              balanceLocal: 0,
+              balanceRemote: 0,
+              reserveLocal: 0,
+              reserveRemote: 0
             } as Channel
           }
         )

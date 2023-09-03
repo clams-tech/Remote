@@ -9,8 +9,8 @@
   import { translate } from '$lib/i18n/translations.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import caret from '$lib/icons/caret.js'
-  import { formatDate } from '$lib/dates.js'
-  import { truncateValue } from '$lib/utils.js'
+  import { log } from '$lib/services.js'
+  import Summary from './Summary.svelte'
 
   import {
     deriveInvoiceSummary,
@@ -40,14 +40,19 @@
       const { status: invoiceStatus } = data as Invoice
       status = invoiceStatus
       icon = lightning
-      const summary = await deriveInvoiceSummary(data as Invoice)
-      primary = summary.primary
-      secondary = summary.secondary
-      timestamp = summary.timestamp
-      summaryType = summary.type
-      category = summary.category
-      fee = summary.fee
-      amount = (summary as PaymentSummary).amount
+
+      try {
+        const summary = await deriveInvoiceSummary(data as Invoice)
+        primary = summary.primary
+        secondary = summary.secondary
+        timestamp = summary.timestamp
+        summaryType = summary.type
+        category = summary.category
+        fee = summary.fee
+        amount = (summary as PaymentSummary).amount
+      } catch (error) {
+        log.error(`Could not derive summary for invoice id: ${data.id}`)
+      }
     } else if (type === 'address') {
       icon = bitcoin
       status = 'pending'
@@ -104,39 +109,16 @@
         {@html icon}
       </div>
 
-      <div>
-        <div class="">
-          <span class="font-semibold text-purple-100">
-            {primary ? truncateValue(primary, 12) : $translate('app.labels.unknown')}
-          </span>
-          <span class="italic">
-            {$translate(`app.labels.summary_${summaryType}`)}
-          </span>
-
-          <span class="font-semibold text-purple-100">
-            {secondary ? truncateValue(secondary, 12) : $translate('app.labels.unknown')}
-          </span>
-        </div>
-
-        {#await formatDate(timestamp, 'hh:mma') then formattedTime}
-          <div class="text-xs font-semibold mt-1">{formattedTime}</div>
-        {/await}
-      </div>
+      <Summary {primary} {secondary} type={summaryType} {timestamp} />
     </div>
 
     <div class="flex items-center ml-4">
       <div>
         {#if amount}
-          <div class="flex items-center">
-            <div
-              class="mr-1 font-semibold text-lg font-mono"
-              class:text-utility-success={category === 'income'}
-              class:text-utility-error={category === 'expense'}
-            >
-              {category === 'income' ? '+' : category === 'expense' ? '-' : ''}
-            </div>
-            <BitcoinAmount sats={amount} />
+          <div class="w-full flex justify-end text-xs">
+            {$translate(`app.labels.summary_amount_${summaryType}`)}:
           </div>
+          <BitcoinAmount sats={amount} />
         {/if}
 
         <div

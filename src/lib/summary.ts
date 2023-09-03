@@ -2,7 +2,7 @@ import type { Invoice } from '$lib/@types/invoices.js'
 import type { Transaction } from '$lib/@types/transactions.js'
 import { db } from '$lib/db.js'
 import { connections$ } from '$lib/streams.js'
-import { filter, firstValueFrom, from } from 'rxjs'
+import { filter, firstValueFrom, from, map } from 'rxjs'
 import type { Address } from './@types/addresses.js'
 import type { Channel } from './@types/channels.js'
 import type { Deposit } from './@types/deposits.js'
@@ -16,7 +16,8 @@ export type ChannelTransactionSummary = {
   timestamp: number
   primary?: string
   secondary?: string
-  type: 'channel_open' | 'channel_close' | 'channel_force_close'
+  amount?: number
+  type: 'channel_open' | 'channel_close' | 'channel_force_close' | 'channel_mutiple_open'
   category: 'expense' | 'neutral'
   fee: number
 }
@@ -30,7 +31,7 @@ export type ChannelTransactionSummary = {
 export type PaymentSummary = {
   /** the timestamp (unix seconds) of when movement completed or started */
   timestamp: number
-  /** the amount sent, transferred etc. Not available */
+  /** the amount. depends on type as to what the amount is*/
   amount: number
   fee: number
   /** usually one of our wallets */
@@ -46,7 +47,7 @@ export type TransactionSummary = ChannelTransactionSummary | PaymentSummary
 export type EnhancedInput = {
   /** wallet.id, channel.id, withdrawal.id, outpoint */
   id: string
-  category: 'spend' | 'withdrawal' | 'channel_close' | 'unknown'
+  category: 'spend' | 'withdrawal' | 'channel_close' | 'unknown' | 'timelocked'
   utxo?: Utxo
 }
 
@@ -63,6 +64,7 @@ export type EnhancedOutput = {
     | 'channel_open'
     | 'sweep'
     | 'unknown'
+  /** output sats */
   amount: number
   utxo?: Utxo
 }
@@ -172,6 +174,12 @@ export const enhanceInputsOutputs = async (
       const deposit = await db.deposits.where({ destination: address }).first()
       const sweptFromChannelId = await isSweepOutput(transaction.inputs)
 
+      if (sweptFromChannelId) {
+        inputs.forEach((input) => {
+          input.category = 'timelocked'
+        })
+      }
+
       const enhanced: EnhancedOutput = closedChannel
         ? { category: 'settle', id: closedChannel.id, amount, utxo: ownedOutputUtxo }
         : openedChannel
@@ -202,6 +210,9 @@ export const enhanceInputsOutputs = async (
   return { inputs, outputs }
 }
 
+const deriveChannelCapacity = (channel: Channel): number =>
+  channel.balanceLocal + channel.balanceRemote + channel.reserveLocal + channel.reserveRemote
+
 export const deriveTransactionSummary = async ({
   inputs,
   outputs,
@@ -216,7 +227,7 @@ export const deriveTransactionSummary = async ({
   channel: Transaction['channel']
 }): Promise<TransactionSummary> => {
   const channelClose = inputs.find(({ category }) => category === 'channel_close')
-  const channelOpen = outputs.find(({ category }) => category === 'channel_open')
+  const channelOpens = outputs.filter(({ category }) => category === 'channel_open')
 
   if (channelClose) {
     const channel = (await db.channels.get(channelClose.id)) as Channel
@@ -234,24 +245,29 @@ export const deriveTransactionSummary = async ({
     }
   }
 
-  if (channelOpen) {
-    const channel = (await db.channels.get(channelOpen.id)) as Channel
+  if (channelOpens.length) {
+    const channels = (await Promise.all(
+      channelOpens.map((channelOpen) => db.channels.get(channelOpen.id))
+    )) as Channel[]
 
     const channelWallet = (await firstValueFrom(
-      from(liveQuery(() => db.wallets.get(channel.walletId))).pipe(
+      from(liveQuery(() => db.wallets.get(channels[0].walletId))).pipe(
         filter((wallet) => !!wallet?.nodeId)
       )
     )) as Wallet
 
-    const weOpened = channel.opener === channelWallet.nodeId
+    const weOpened = channels[0].opener === channelWallet.nodeId
 
     return {
       timestamp,
       fee: fee || 0,
       category: fee ? 'expense' : 'neutral',
-      type: 'channel_open',
-      primary: weOpened ? channelWallet.label : channel.peerAlias || channel.peerId,
-      secondary: weOpened ? channel.peerAlias || channel.peerId : channelWallet.label
+      type: channels.length > 1 ? 'channel_mutiple_open' : 'channel_open',
+      amount: channels.reduce((total, channel) => total + deriveChannelCapacity(channel), 0),
+      primary: weOpened ? channelWallet.label : channels[0].peerAlias || channels[0].peerId,
+      secondary: weOpened
+        ? channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
+        : channelWallet.label
     }
   }
 
@@ -389,26 +405,55 @@ export const deriveInvoiceSummary = async ({
   createdAt,
   completedAt
 }: Invoice): Promise<TransactionSummary> => {
-  const transfer =
-    direction === 'send' && connections$.value.find(({ info }) => info?.id === nodeId)
+  let transferWallet: Wallet | undefined
+
+  if (direction === 'send') {
+    const lightningConnections = await firstValueFrom(
+      connections$.pipe(
+        filter((connections) => !!connections.length),
+        map((connections) => connections.filter((connection) => !!connection.invoices?.create))
+      )
+    )
+
+    const lightningWallets = await firstValueFrom(
+      from(
+        liveQuery(() =>
+          db.wallets
+            .where('id')
+            .anyOf(lightningConnections.map(({ walletId }) => walletId))
+            .toArray()
+        )
+      ).pipe(filter((wallets) => wallets.every(({ nodeId }) => nodeId)))
+    )
+
+    transferWallet = lightningWallets.find((wallet) => wallet.nodeId === nodeId)
+  }
 
   const nodeIdMetadata = await db.metadata.get(nodeId)
+
   const nodeIdContact = nodeIdMetadata?.contact
     ? await db.contacts.get(nodeIdMetadata.contact)
     : null
-  const requestMetadata = await db.metadata.get(request)
-  const requestContact = requestMetadata?.contact
-    ? await db.contacts.get(requestMetadata.contact)
-    : null
+
+  const requestMetadata = request && (await db.metadata.get(request))
+
+  const requestContact =
+    requestMetadata && requestMetadata.contact
+      ? await db.contacts.get(requestMetadata.contact)
+      : null
+
   const wallet = (await db.wallets.get(walletId)) as Wallet
-  const transferWallet = transfer && (await db.wallets.get(transfer.walletId))
-  const counterparty = requestContact?.name || nodeIdContact?.name || truncateValue(request)
+
+  const counterparty =
+    requestContact?.name ||
+    nodeIdContact?.name ||
+    (request ? truncateValue(request) : truncateValue(nodeId))
 
   return {
     timestamp: completedAt || createdAt,
     fee: fee || 0,
     category: direction === 'receive' ? 'income' : 'expense',
-    type: transfer ? 'transfer' : direction,
+    type: transferWallet ? 'transfer' : direction,
     amount,
     primary: wallet.label,
     secondary: transferWallet ? transferWallet.label : counterparty
