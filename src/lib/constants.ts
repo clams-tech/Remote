@@ -9,6 +9,7 @@ import settingsOutline from '$lib/icons/settings-outline.js'
 import wallet from '$lib/icons/wallet.js'
 import trade from '$lib/icons/trade.js'
 import forward from '$lib/icons/forward.js'
+import type { Network } from './@types/common.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -129,4 +130,11 @@ export const STORAGE_KEYS = {
 
 export const TLV_RECORDS = {
   message: 34349334
+}
+
+export const GENESIS_HASHES: Record<string, Network> = {
+  '00000008819873e925422c1ff0f99f7cc9bbb232af63a077a480a3633bee1ef6': 'signet',
+  '06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f': 'regtest',
+  '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f': 'bitcoin',
+  '000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943': 'testnet'
 }

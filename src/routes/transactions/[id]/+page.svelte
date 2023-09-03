@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, TransactionStatus } from '$lib/@types/common.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
@@ -18,13 +18,14 @@
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { getTestnet, truncateValue } from '$lib/utils.js'
+  import { getNetwork, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
   import type { Deposit } from '$lib/@types/deposits.js'
+  import Summary from '../components/Summary.svelte'
 
   import {
     deriveInvoiceSummary,
@@ -36,7 +37,6 @@
     type TransactionSummary,
     type EnhancedOutput
   } from '$lib/summary.js'
-  import Summary from '../components/Summary.svelte'
 
   export let data: PageData
 
@@ -70,7 +70,7 @@
     primary: TransactionSummary['primary']
     secondary: TransactionSummary['secondary']
     timestamp: TransactionSummary['timestamp']
-    testnet: 'testnet' | 'regtest' | 'signet' | null
+    network: Network
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -135,7 +135,7 @@
         primary,
         secondary,
         timestamp,
-        testnet: getTestnet(request || '')
+        network: getNetwork(request || '')
       })
     }
 
@@ -203,7 +203,7 @@
         primary: summary.primary,
         secondary: summary.secondary,
         timestamp: summary.timestamp,
-        testnet: getTestnet(value)
+        network: getNetwork(value)
       })
     }
 
@@ -230,7 +230,7 @@
         primary: summary.primary,
         secondary: summary.secondary,
         timestamp: summary.timestamp,
-        testnet: getTestnet(transaction.outputs[0].address)
+        network: getNetwork(transaction.outputs[0].address)
       })
     }
 
@@ -327,7 +327,7 @@
       primary,
       secondary,
       summaryType,
-      testnet
+      network
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -340,7 +340,7 @@
       </div>
     {:else}
       <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
-        <Summary {primary} {secondary} type={summaryType} {testnet} {status} />
+        <Summary {primary} {secondary} type={summaryType} {network} {status} />
       </div>
     {/if}
 

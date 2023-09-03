@@ -17,3 +17,5 @@ export type ParsedInput = {
   label?: string | null
   message?: string | null
 }
+
+export type Network = 'testnet' | 'regtest' | 'signet' | 'bitcoin'

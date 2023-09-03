@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, TransactionStatus } from '$lib/@types/common.js'
   import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations.js'
   import type { TransactionSummary } from '$lib/summary.js'
@@ -10,7 +10,7 @@
   export let secondary: TransactionSummary['secondary']
   export let status: TransactionStatus
   export let timestamp: TransactionSummary['timestamp'] = 0
-  export let testnet: 'testnet' | 'regtest' | 'signet' | null = null
+  export let network: Network
 </script>
 
 <div>
@@ -36,9 +36,9 @@
       {/await}
     {/if}
 
-    {#if testnet}
+    {#if network !== 'bitcoin'}
       <div class="text-xs ml-1 px-1 py-0.5 font-semibold bg-neutral-700 rounded-full leading-none">
-        {testnet}
+        {network}
       </div>
     {/if}
   </div>

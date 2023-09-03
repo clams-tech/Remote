@@ -30,6 +30,7 @@ import type {
   PayKeysendOptions,
   Invoice
 } from '$lib/@types/invoices.js'
+import type { Network } from '$lib/@types/common.js'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -63,7 +64,7 @@ export interface Connection {
 
 export type Info = {
   id: string
-  network: 'bitcoin' | 'regtest' | 'testnet'
+  network: Network
   alias?: string
   color?: string
   version?: string

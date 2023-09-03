@@ -143,7 +143,10 @@ class Transactions implements TransactionsInterface {
               let address: string
 
               try {
-                address = fromOutputScript(bitcoinTransaction.outs[index].script, networks[network])
+                address = fromOutputScript(
+                  bitcoinTransaction.outs[index].script,
+                  networks[network === 'signet' ? 'testnet' : network]
+                )
               } catch (error) {
                 address = ''
                 const context = 'get (transactions)'

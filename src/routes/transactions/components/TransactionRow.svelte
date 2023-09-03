@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Address } from '$lib/@types/addresses.js'
-  import type { TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, TransactionStatus } from '$lib/@types/common.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import bitcoin from '$lib/icons/bitcoin.js'
@@ -11,6 +11,7 @@
   import caret from '$lib/icons/caret.js'
   import { log } from '$lib/services.js'
   import Summary from './Summary.svelte'
+  import { getNetwork } from '$lib/utils.js'
 
   import {
     deriveInvoiceSummary,
@@ -20,7 +21,6 @@
     type PaymentSummary,
     type TransactionSummary
   } from '$lib/summary.js'
-  import { getTestnet } from '$lib/utils.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -34,20 +34,14 @@
   let summaryType: TransactionSummary['type']
   let fee: TransactionSummary['fee']
   let amount: PaymentSummary['amount'] | undefined
-
-  const testnet = getTestnet(
-    type === 'invoice'
-      ? (data as Invoice).request || ''
-      : type === 'address'
-      ? (data as Address).value
-      : (data as Transaction).outputs[0].address
-  )
+  let network: Network
 
   const formatData = async () => {
     if (type === 'invoice') {
-      const { status: invoiceStatus } = data as Invoice
+      const { status: invoiceStatus, request } = data as Invoice
       status = invoiceStatus
       icon = lightning
+      network = getNetwork(request || '')
 
       try {
         const summary = await deriveInvoiceSummary(data as Invoice)
@@ -63,6 +57,7 @@
     } else if (type === 'address') {
       icon = bitcoin
       status = 'pending'
+      network = getNetwork((data as Address).value)
       const summary = await deriveReceiveAddressSummary(data as Address)
       primary = summary.primary
       secondary = summary.secondary
@@ -71,8 +66,14 @@
       fee = summary.fee
       amount = (summary as PaymentSummary).amount
     } else if (type === 'transaction') {
-      const { blockheight, timestamp: txTimestamp, channel } = data as Transaction
+      const {
+        blockheight,
+        timestamp: txTimestamp,
+        channel,
+        outputs: transactionOutputs
+      } = data as Transaction
       const { inputs, outputs } = await enhanceInputsOutputs(data as Transaction)
+      network = getNetwork(transactionOutputs[0].address)
       icon = bitcoin
       status = blockheight ? 'complete' : 'pending'
 
@@ -114,7 +115,7 @@
         {@html icon}
       </div>
 
-      <Summary {primary} {secondary} {status} type={summaryType} {timestamp} {testnet} />
+      <Summary {primary} {secondary} {status} type={summaryType} {timestamp} {network} />
     </div>
 
     <div class="flex items-center ml-4">

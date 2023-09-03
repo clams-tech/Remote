@@ -47,7 +47,8 @@ class DB extends Dexie {
         '&id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage',
       labels: '&ref, type, label, spendable, origin',
       metadata: '&id, type, tags, contact',
-      offers: '&id, walletId, bolt12, amount, nodeId, description, type, issuer',
+      offers:
+        '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer]',
       trades: '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination',
       transactions: '&id, walletId, timestamp, direction, channel.type, channel.id',
       utxos: '&id, walletId, txid, timestamp, spendingTxid',
