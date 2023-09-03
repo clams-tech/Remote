@@ -421,9 +421,10 @@ export const deriveInvoiceSummary = async ({
           db.wallets
             .where('id')
             .anyOf(lightningConnections.map(({ walletId }) => walletId))
+            .and((wallet) => !!wallet.nodeId)
             .toArray()
         )
-      ).pipe(filter((wallets) => wallets.every(({ nodeId }) => nodeId)))
+      )
     )
 
     transferWallet = lightningWallets.find((wallet) => wallet.nodeId === nodeId)

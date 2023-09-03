@@ -20,6 +20,7 @@
     type PaymentSummary,
     type TransactionSummary
   } from '$lib/summary.js'
+  import { getTestnet } from '$lib/utils.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -31,9 +32,16 @@
   let secondary: TransactionSummary['secondary']
   let timestamp: TransactionSummary['timestamp']
   let summaryType: TransactionSummary['type']
-  let category: TransactionSummary['category']
   let fee: TransactionSummary['fee']
   let amount: PaymentSummary['amount'] | undefined
+
+  const testnet = getTestnet(
+    type === 'invoice'
+      ? (data as Invoice).request || ''
+      : type === 'address'
+      ? (data as Address).value
+      : (data as Transaction).outputs[0].address
+  )
 
   const formatData = async () => {
     if (type === 'invoice') {
@@ -47,7 +55,6 @@
         secondary = summary.secondary
         timestamp = summary.timestamp
         summaryType = summary.type
-        category = summary.category
         fee = summary.fee
         amount = (summary as PaymentSummary).amount
       } catch (error) {
@@ -61,7 +68,6 @@
       secondary = summary.secondary
       timestamp = summary.timestamp
       summaryType = summary.type
-      category = summary.category
       fee = summary.fee
       amount = (summary as PaymentSummary).amount
     } else if (type === 'transaction') {
@@ -82,7 +88,6 @@
       secondary = summary.secondary
       timestamp = summary.timestamp
       summaryType = summary.type
-      category = summary.category
       fee = summary.fee
       amount = (summary as PaymentSummary).amount
     }
@@ -109,12 +114,12 @@
         {@html icon}
       </div>
 
-      <Summary {primary} {secondary} type={summaryType} {timestamp} />
+      <Summary {primary} {secondary} {status} type={summaryType} {timestamp} {testnet} />
     </div>
 
     <div class="flex items-center ml-4">
       <div>
-        {#if amount}
+        {#if amount && status !== 'expired'}
           <div class="w-full flex justify-end text-xs">
             {$translate(`app.labels.summary_amount_${summaryType}`)}:
           </div>

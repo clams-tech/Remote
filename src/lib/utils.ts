@@ -92,3 +92,19 @@ export function firstLetterUpperCase(str: string): string {
 export function mainDomain(host: string): string {
   return host.split('.').reverse().splice(0, 2).reverse().join('.')
 }
+
+export const getTestnet = (str: string): 'testnet' | 'regtest' | 'signet' | null => {
+  if (str.startsWith('lnbcrt') || str.startsWith('bcrt')) {
+    return 'regtest'
+  }
+
+  if (str.startsWith('lntb') || str.startsWith('tb')) {
+    return 'testnet'
+  }
+
+  if (str.startsWith('lntbs') || str.startsWith('tbs')) {
+    return 'signet'
+  }
+
+  return null
+}

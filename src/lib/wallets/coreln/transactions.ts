@@ -52,6 +52,8 @@ class Transactions implements TransactionsInterface {
         accountEvents = null
       }
 
+      const network = this.connection.info.network
+
       return transactions.map(
         ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
           const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
@@ -141,7 +143,7 @@ class Transactions implements TransactionsInterface {
               let address: string
 
               try {
-                address = fromOutputScript(bitcoinTransaction.outs[index].script, networks.bitcoin)
+                address = fromOutputScript(bitcoinTransaction.outs[index].script, networks[network])
               } catch (error) {
                 address = ''
                 const context = 'get (transactions)'

@@ -18,7 +18,7 @@
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { truncateValue } from '$lib/utils.js'
+  import { getTestnet, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
@@ -70,6 +70,7 @@
     primary: TransactionSummary['primary']
     secondary: TransactionSummary['secondary']
     timestamp: TransactionSummary['timestamp']
+    testnet: 'testnet' | 'regtest' | 'signet' | null
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -133,7 +134,8 @@
         summaryType: type,
         primary,
         secondary,
-        timestamp
+        timestamp,
+        testnet: getTestnet(request || '')
       })
     }
 
@@ -200,7 +202,8 @@
         summaryType: summary.type,
         primary: summary.primary,
         secondary: summary.secondary,
-        timestamp: summary.timestamp
+        timestamp: summary.timestamp,
+        testnet: getTestnet(value)
       })
     }
 
@@ -226,7 +229,8 @@
         summaryType: summary.type,
         primary: summary.primary,
         secondary: summary.secondary,
-        timestamp: summary.timestamp
+        timestamp: summary.timestamp,
+        testnet: getTestnet(transaction.outputs[0].address)
       })
     }
 
@@ -323,7 +327,7 @@
       primary,
       secondary,
       summaryType,
-      timestamp
+      testnet
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -336,7 +340,7 @@
       </div>
     {:else}
       <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
-        <Summary {primary} {secondary} type={summaryType} />
+        <Summary {primary} {secondary} type={summaryType} {testnet} {status} />
       </div>
     {/if}
 
