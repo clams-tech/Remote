@@ -18,7 +18,7 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
-  import { filter, take } from 'rxjs'
+  import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
 
   const clearSession = () => session$.next(null)
@@ -44,16 +44,17 @@
     )
 
     connections.forEach(({ detail, connection }) => {
-      if (connection && connection.connectionStatus$.value === 'connected') {
+      if (connection) {
         syncConnectionData(connection, detail.lastSync)
+        connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
       }
     })
   }
 
   // initialize all connections once after the session is decrypted
-  session$
+  combineLatest([session$, wallets$])
     .pipe(
-      filter((x) => !!x),
+      filter(([session, wallets]) => !!session && !!wallets),
       take(1)
     )
     .subscribe(initializeConnections)

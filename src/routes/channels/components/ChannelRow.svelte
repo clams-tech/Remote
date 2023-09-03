@@ -1,20 +1,15 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations.js'
   import { truncateValue } from '$lib/utils.js'
-  import Big from 'big.js'
-  import { channelStatusTolabel } from '../utils.js'
   import type { Channel } from '$lib/@types/channels.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { wallets$ } from '$lib/streams.js'
 
   export let channel: Channel
 
-  $: balanceTotal = Big(channel.balanceLocal).plus(channel.balanceRemote)
-  $: localPercent = Big(channel.balanceLocal).div(balanceTotal).times(100).toNumber()
-  $: remotePercent = Big(channel.balanceRemote).div(balanceTotal).times(100).toNumber()
-
-  const channelStatusLabel = channelStatusTolabel(channel.status)
-
+  $: balanceTotal = channel.balanceLocal + channel.balanceRemote
+  $: localPercent = (channel.balanceLocal / balanceTotal) * 100
+  $: remotePercent = (channel.balanceRemote / balanceTotal) * 100
   $: wallet = $wallets$?.find((conn) => conn.id === channel.walletId)
 </script>
 
@@ -33,7 +28,10 @@
     </div>
 
     <div class="font-semibold whitespace-nowrap">
-      {(channel.peerAlias || truncateValue(channel.peerId, 6)).toUpperCase()}
+      {(
+        channel.peerAlias ||
+        (channel.peerId ? truncateValue(channel.peerId, 6) : $translate('app.labels.unknown'))
+      ).toUpperCase()}
     </div>
   </div>
 
@@ -48,14 +46,14 @@
     </div>
 
     <div
-      class:text-utility-success={channelStatusLabel === 'active'}
-      class:text-utility-pending={channelStatusLabel === 'pending'}
-      class:text-utility-error={channelStatusLabel === 'closing' || channelStatusLabel === 'closed'}
+      class:text-utility-success={channel.status === 'active'}
+      class:text-utility-pending={channel.status === 'opening'}
+      class:text-utility-error={channel.status === 'closing' || channel.status === 'closed'}
       class="text-sm flex items-center justify-center w-full leading-4"
     >
       <div class="bg-current w-2.5 h-2.5 rounded-full mr-1" />
       <div>
-        {$translate(`app.labels.${channelStatusLabel}`)}
+        {$translate(`app.labels.${channel.status}`)}
       </div>
     </div>
 

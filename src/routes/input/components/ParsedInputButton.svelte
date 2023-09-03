@@ -12,7 +12,7 @@
   disabled={parsed.type === 'unknown'}
   on:click
   transition:slide={{ axis: 'x' }}
-  class="py-1 px-4 shadow shadow-current rounded-full flex items-center bg-neutral-900 whitespace-nowrap"
+  class="py-1 px-4 shadow shadow-current rounded-full flex items-center bg-neutral-900 whitespace-nowrap text-sm"
 >
   <div class="font-semibold mr-1" class:text-utility-error={parsed.type === 'unknown'}>
     {$translate(`app.labels.${parsed.type}`)}:

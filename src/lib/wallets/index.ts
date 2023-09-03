@@ -10,7 +10,6 @@ import type { Connection } from './interfaces.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
-// import { log } from '$lib/services.js'
 
 export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
   {
@@ -54,8 +53,8 @@ export const listenForConnectionErrors = (connection: Connection) => {
 }
 
 /** decrypts auth token if exists and then returns a connection interface */
-export const getConnection = (connectionDetails: Wallet): Connection => {
-  const { configuration } = connectionDetails
+export const getConnection = (wallet: Wallet): Connection => {
+  const { configuration } = wallet
   const { token } = configuration as CoreLnConfiguration
   const session = session$.value as Session
 
@@ -65,7 +64,7 @@ export const getConnection = (connectionDetails: Wallet): Connection => {
   }
 
   const decryptedWalletDetails = {
-    ...connectionDetails,
+    ...wallet,
     ...(configuration ? { configuration } : {})
   }
 
@@ -87,6 +86,11 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   }
 
   connection.connect && (await connection.connect())
+
+  if (connection.info.id) {
+    await db.wallets.update(wallet.id, { nodeId: connection.info.id })
+  }
+
   listenForConnectionErrors(connection)
 
   return connection
@@ -123,7 +127,15 @@ export const syncConnectionData = (
 
   const channelsRequest = () =>
     connection.channels
-      ? connection.channels.get().then((channels) => db.channels.bulkPut(channels))
+      ? connection.channels.get().then((channels) =>
+          channels.map((channel) =>
+            // need to update channels as old channels lose data after 100 blocks of being close
+            // so we don't want to overwrite data we already have as it is useful
+            db.channels
+              .update(channel.id, channel)
+              .then((updated) => !updated && db.channels.add(channel))
+          )
+        )
       : Promise.resolve()
 
   requestQueue.push(channelsRequest)

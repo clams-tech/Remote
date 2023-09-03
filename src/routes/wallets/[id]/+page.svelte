@@ -28,6 +28,7 @@
   import { liveQuery } from 'dexie'
   import type { AppError } from '$lib/@types/errors.js'
   import type { Session } from '$lib/@types/session.js'
+  import type { WalletConfiguration, Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 
   import {
     connect,
@@ -35,8 +36,6 @@
     connectionOptions,
     syncConnectionData
   } from '$lib/wallets/index.js'
-
-  import type { WalletConfiguration, Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 
   export let data: PageData
 
@@ -93,7 +92,6 @@
   }
 
   const handleConfigurationUpdate = async (configuration: WalletConfiguration) => {
-    console.log({ configuration })
     const { token } = configuration as CoreLnConfiguration
     const session = session$.value as Session
     const wallet = { ...($wallet$ as Wallet), configuration }
@@ -112,19 +110,15 @@
 
     if (oldConnectionIndex !== -1) {
       const oldConnection = currentConnections[oldConnectionIndex]
-      console.log('disconnecting old connection')
       oldConnection.disconnect && oldConnection.disconnect()
     }
 
     try {
-      console.log('CREATING NEW CONNECTION INTERFACE')
       // create a new connection interface
       connection = walletToConnection(wallet, session)
       // connect the new connection interface
-      console.log('CONNECTING')
       connection.connect && (await connection.connect())
     } catch (error) {
-      console.log('FAILED CONNECTION:', error)
       errors$.next(error as AppError)
       return
     }
@@ -283,7 +277,7 @@
                         <div
                           transition:slide={{ duration: 250 }}
                           style="width: {$syncProgress$}%;"
-                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-500/70"
+                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-300"
                         />
                       </div>
                     </div>

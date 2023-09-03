@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { satsToBtcString } from '$lib/conversion.js'
+  import { satsToBtcString, satsToMsats } from '$lib/conversion.js'
   import { translate } from '$lib/i18n/translations.js'
   import bitcoin from '$lib/icons/bitcoin.js'
-  import Big from 'big.js'
 
   export let sats: number
 
@@ -31,7 +30,7 @@
 
   <div class="flex">
     <div class="mr-[0.375em] font-mono leading-snug">
-      {@html displayMsat ? Big(sats).div(1000).toString() : formattedBtc}
+      {@html displayMsat ? satsToMsats(sats) : formattedBtc}
     </div>
     <div class="text-[0.75em] text-neutral-50 flex items-end leading-none pb-[0.25em]">
       {$translate(`app.labels.${displayMsat ? 'msat' : 'sats'}`).toLowerCase()}

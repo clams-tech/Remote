@@ -1,6 +1,6 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations'
-  import Auth from '../components/auth.svelte'
+  import Auth from './components/auth.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import { API_URL } from '$lib/constants'
   import type { PageData } from '../$types'
@@ -9,6 +9,8 @@
   import Msg from '$lib/components/Msg.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { firstLetterUpperCase } from '$lib/utils.js'
+  import Pay from './components/pay.svelte'
+  import { msatsToSats } from '$lib/conversion.js'
 
   export let data: PageData
 
@@ -27,15 +29,17 @@
   let metadata: string // Metadata json which must be presented as raw string here, this is required to pass signature verification at a later step
   let commentAllowed: number // length of comment allowed
   let defaultDescription: string // A default withdrawal invoice description
+  let lightningAddress: string | null = null
 
   getUrlDetails()
 
   async function getUrlDetails() {
-    const lightningAddress = decodeLightningAddress(data.lnurl)
+    const decodedLightningAddress = decodeLightningAddress(data.lnurl)
 
     try {
-      if (lightningAddress) {
-        const { username, domain } = lightningAddress
+      if (decodedLightningAddress) {
+        lightningAddress = data.lnurl
+        const { username, domain } = decodedLightningAddress
         url = new URL(`https://${domain}/.well-known/lnurlp/${username}`)
       }
       // bech32 encoded legacy LNURL
@@ -68,8 +72,8 @@
         k1 = result.k1
         action = result.action
         callback = result.callback
-        maxSendable = result.maxSendable
-        minSendable = result.minSendable
+        maxSendable = msatsToSats(result.maxSendable)
+        minSendable = msatsToSats(result.minSendable)
         maxWithdrawable = result.maxWithdrawable
         minWithdrawable = result.minWithdrawable
         metadata = result.metadata
@@ -106,7 +110,15 @@
     {#if tag === 'login'}
       <Auth {url} {k1} />
     {:else if tag === 'payRequest'}
-      <!-- <Pay {url} {callback} {minSendable} {maxSendable} {metadata} {commentAllowed} /> -->
+      <Pay
+        {url}
+        {callback}
+        {minSendable}
+        {maxSendable}
+        {metadata}
+        {commentAllowed}
+        {lightningAddress}
+      />
     {:else if tag === 'withdrawRequest'}
       <!-- <Withdraw {url} {callback} {k1} {minWithdrawable} {maxWithdrawable} {defaultDescription} /> -->
     {:else}

@@ -14,7 +14,8 @@ export type Invoice = {
   hash: string
   walletId: string
   /** BOLT11 | BOLT12 */
-  request: string
+  request?: string
+  /** the receiving node id */
   nodeId: string
   description?: string
   preimage?: string
@@ -74,7 +75,8 @@ export type DecodedBolt11Invoice = {
   expiresAt: number
   amount: number
   hash: string
-  description: string
+  description: string | null
+  descriptionHash: string | null
 }
 
 export type SendPayment = {

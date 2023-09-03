@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, TransactionStatus } from '$lib/@types/common.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
@@ -18,15 +18,25 @@
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { truncateValue } from '$lib/utils.js'
+  import { getNetwork, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
-  import type { Utxo } from '$lib/@types/utxos.js'
-  import type { Metadata } from '$lib/@types/metadata.js'
   import { satsToBtcString } from '$lib/conversion.js'
-  import { deriveInvoiceMovement, deriveTransactionMovement } from '$lib/movement.js'
-  import type { Movement } from '$lib/@types/movement.js'
+  import { goto } from '$app/navigation'
+  import type { Deposit } from '$lib/@types/deposits.js'
+  import Summary from '../components/Summary.svelte'
+
+  import {
+    deriveInvoiceSummary,
+    deriveReceiveAddressSummary,
+    deriveTransactionSummary,
+    enhanceInputsOutputs,
+    type EnhancedInput,
+    type PaymentSummary,
+    type TransactionSummary,
+    type EnhancedOutput
+  } from '$lib/summary.js'
 
   export let data: PageData
 
@@ -43,7 +53,7 @@
     paymentHash?: string
     paymentPreimage?: string
     txid?: string
-    balanceChange: Movement['balanceChange']
+    amount: number
     fee?: number
     description?: string
     createdAt?: number
@@ -51,19 +61,16 @@
     expiresAt?: number
     peerNodeId?: string
     wallet: Wallet
-    category: Movement['category']
-    from: Movement['from']
-    to: Movement['to']
+    category: TransactionSummary['category']
+    summaryType: TransactionSummary['type']
     offer?: Invoice['offer']
     channel?: Transaction['channel']
-    inputs?: { outpoint: string; utxo?: Utxo }[]
-    outputs?: {
-      amount: number
-      outpoint: string
-      address: string
-      labelKey?: string
-      utxo?: Utxo
-    }[]
+    inputs?: EnhancedInput[]
+    outputs?: EnhancedOutput[]
+    primary: TransactionSummary['primary']
+    secondary: TransactionSummary['secondary']
+    timestamp: TransactionSummary['timestamp']
+    network: Network
   }
 
   const transactionDetails$ = liveQuery(async () => {
@@ -95,12 +102,14 @@
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
       const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-      const movement = deriveInvoiceMovement(invoice)
+      const { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary(
+        invoice
+      )) as PaymentSummary
 
       details.push({
         type: 'invoice',
         qrValues:
-          status === 'pending'
+          status === 'pending' && request
             ? [
                 {
                   label: $translate('app.labels.invoice'),
@@ -109,7 +118,7 @@
               ]
             : undefined,
         status,
-        balanceChange: movement.balanceChange,
+        amount,
         description,
         createdAt,
         completedAt,
@@ -121,9 +130,12 @@
         paymentHash: hash,
         paymentPreimage: preimage,
         peerNodeId: direction === 'send' ? nodeId : undefined,
-        category: movement.category,
-        from: movement.from,
-        to: movement.to
+        category,
+        summaryType: type,
+        primary,
+        secondary,
+        timestamp,
+        network: getNetwork(request || '')
       })
     }
 
@@ -162,7 +174,7 @@
         })
       }
 
-      if (invoice && invoice.status === 'pending') {
+      if (invoice && invoice.request && invoice.status === 'pending') {
         searchParams.append('lightning', invoice.request.toUpperCase())
 
         qrValues.push({
@@ -173,95 +185,52 @@
         })
       }
 
+      const summary = await deriveReceiveAddressSummary(address)
+
       details.push({
         type: 'address',
         qrValues,
         status,
-        balanceChange: amount,
+        amount,
         description: message,
         createdAt,
         completedAt,
         wallet,
         channel: tx?.channel,
         txid,
-        category: 'income',
-        to: walletId,
-        from: undefined
+        category: summary.category,
+        summaryType: summary.type,
+        primary: summary.primary,
+        secondary: summary.secondary,
+        timestamp: summary.timestamp,
+        network: getNetwork(value)
       })
     }
 
     if (transaction) {
-      const { id, walletId, fee, blockheight, inputs, outputs, channel, timestamp } = transaction
+      const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
-      const movement = await deriveTransactionMovement(transaction)
-
-      const formattedInputs = await Promise.all(
-        inputs.map(async ({ index, txid }) => {
-          const outpoint = `${txid}:${index}`
-          const utxo = await db.utxos.get(outpoint)
-          return { outpoint, utxo }
-        })
-      )
-
-      const formattedOutputs = await Promise.all(
-        outputs.map(async ({ index, amount, address }) => {
-          const outpoint = `${id}:${index}`
-          const utxo = await db.utxos.get(outpoint)
-          const inputUtxos = formattedInputs.filter(({ utxo }) => !!utxo)
-
-          let labelKey: string | undefined = undefined
-
-          // we own this output
-          if (utxo) {
-            // no owned inputs, so must be a receive
-            if (!inputUtxos.length) {
-              labelKey = 'receive'
-            } else {
-              const inputUtxoWithSamewallet = inputUtxos.find(
-                (input) => input.utxo?.walletId === utxo?.walletId
-              )
-              // input has the same wallet as this output, so is change
-              if (inputUtxoWithSamewallet) {
-                labelKey = 'change'
-              }
-              // otherwise sent from different wallet, so is transfer
-              else {
-                labelKey = 'transfer'
-              }
-            }
-          }
-          // unknown output so must be send if we own at least one of the inputs
-          else {
-            if (inputUtxos.length) {
-              labelKey = 'send'
-            }
-          }
-
-          return {
-            amount,
-            outpoint,
-            address,
-            utxo,
-            labelKey
-          }
-        })
-      )
+      const { inputs, outputs } = await enhanceInputsOutputs(transaction)
+      const summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
 
       details.push({
         type: 'onchain',
         status: typeof blockheight === 'number' ? 'complete' : 'pending',
-        balanceChange: movement.balanceChange,
+        amount: (summary as PaymentSummary).amount,
         fee,
         channel,
         wallet,
         completedAt: typeof blockheight === 'number' ? timestamp : undefined,
         txid: id,
-        inputs: formattedInputs,
-        outputs: formattedOutputs,
-        category: movement.category,
-        from: movement.from,
-        to: movement.to
+        inputs,
+        outputs,
+        category: summary.category,
+        summaryType: summary.type,
+        primary: summary.primary,
+        secondary: summary.secondary,
+        timestamp: summary.timestamp,
+        network: getNetwork(transaction.outputs[0].address)
       })
     }
 
@@ -272,7 +241,7 @@
 
   $: if ($transactionDetails$) {
     const details = $transactionDetails$
-    const completed = details.find(({ status, type }) => status === 'complete')
+    const completed = details.find(({ status }) => status === 'complete')
     const pendingTransaction = details.find(
       ({ type, status }) => type === 'onchain' && status === 'pending'
     )
@@ -305,6 +274,22 @@
     const withdrawalOffer = await db.offers.get({ description, type: 'withdraw', issuer })
     return withdrawalOffer?.id
   }
+
+  const getRoute = async (inputOutput: EnhancedOutput | EnhancedInput) => {
+    switch (inputOutput.category) {
+      case 'channel_open': {
+        return `/channels/${id}`
+      }
+      case 'deposit': {
+        const deposit = (await db.deposits.get(id)) as Deposit
+        return `/wallets/${deposit.walletId}`
+      }
+      case 'transfer':
+      case 'receive': {
+        return `/wallets/${id}`
+      }
+    }
+  }
 </script>
 
 <svelte:head>
@@ -322,13 +307,11 @@
     </div>
   {:else if transactionDetailToShow}
     {@const {
-      type,
       status,
       paymentHash,
       paymentPreimage,
       txid,
-      balanceChange,
-      request,
+      amount,
       fee,
       description,
       createdAt,
@@ -341,8 +324,10 @@
       inputs,
       outputs,
       category,
-      from,
-      to
+      primary,
+      secondary,
+      summaryType,
+      network
     } = transactionDetailToShow}
 
     {#if qrValues.length}
@@ -354,39 +339,23 @@
         {/if}
       </div>
     {:else}
-      <div class="w-full flex justify-center items-center text-3xl font-semibold">
-        <div>
-          {$translate(
-            `app.labels.${
-              channel
-                ? channel.type === 'close'
-                  ? 'channel_close'
-                  : 'channel_open'
-                : type === 'invoice' && !request
-                ? 'keysend'
-                : type
-            }`
-          )}
-        </div>
-      </div>
-    {/if}
-
-    {#if balanceChange}
-      <div class="flex items-center w-full justify-center text-2xl">
-        <div
-          class:text-utility-success={category === 'income'}
-          class:text-utility-error={category === 'expense'}
-          class="font-semibold"
-        >
-          {category === 'income' ? '+' : category === 'expense' ? '-' : ''}
-        </div>
-
-        <BitcoinAmount sats={balanceChange} />
+      <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
+        <Summary {primary} {secondary} type={summaryType} {network} {status} />
       </div>
     {/if}
 
     <div class="w-full flex justify-center mt-2">
-      <div class="w-full max-w-lg">
+      <div class="w-full">
+        <!-- amount -->
+        {#if amount}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.amount')}:</span>
+            <div slot="value">
+              <BitcoinAmount sats={amount} />
+            </div>
+          </SummaryRow>
+        {/if}
+
         <!-- wallet -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
@@ -459,29 +428,61 @@
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.inputs')}:</span>
             <div class="gap-y-1 flex flex-col text-sm" slot="value">
-              {#each inputs as { outpoint, utxo }}
+              {#each inputs as input}
+                {@const { id, category, utxo } = input}
+                {@const routeProm = getRoute(input)}
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-4"
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-2"
                 >
-                  {#if utxo}
-                    <a class="no-underline" href={`/utxos/${outpoint}`}>
-                      <div class="text-xs flex items-center">
-                        <div class="text-utility-error mr-1">
-                          {$translate('app.labels.spent')}:
-                        </div>
-                        <div>
-                          {#await db.wallets.get(utxo.walletId) then wallet}
-                            {wallet?.label}
-                          {/await}
-                        </div>
+                  <button
+                    on:click={async () => {
+                      const route = await routeProm
+                      route && goto(route)
+                    }}
+                  >
+                    <div class="text-xs flex items-center">
+                      <div
+                        class="mr-1"
+                        class:text-utility-pending={category === 'timelocked'}
+                        class:text-utility-error={category === 'channel_close' ||
+                          category === 'spend' ||
+                          category === 'withdrawal'}
+                      >
+                        {$translate(`app.labels.input_${category}`)}:
                       </div>
-
+                      <div>
+                        {#if utxo}
+                          {#await db.wallets.get(utxo.walletId) then wallet}
+                            {wallet?.label || truncateValue(id)}
+                          {/await}
+                        {:else if category === 'channel_close'}
+                          {#await db.channels.get(id) then channel}
+                            {channel?.peerAlias ||
+                              truncateValue(
+                                channel?.peerId || channel?.id || $translate('app.labels.unknown')
+                              )}
+                          {/await}
+                        {:else if category === 'withdrawal'}
+                          {#await db.withdrawals
+                            .get(id)
+                            .then((withdrawal) => withdrawal && db.wallets.get(withdrawal.walletId)) then wallet}
+                            {wallet?.label || truncateValue(id)}
+                          {/await}
+                        {:else}
+                          {truncateValue(id)}
+                        {/if}
+                      </div>
+                    </div>
+                    {#if utxo?.amount}
                       <BitcoinAmount sats={utxo.amount} />
-                    </a>
-                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
-                  {:else}
-                    {truncateValue(outpoint)}
-                  {/if}
+                    {/if}
+                  </button>
+
+                  {#await routeProm then route}
+                    {#if route}
+                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                    {/if}
+                  {/await}
                 </div>
               {/each}
             </div>
@@ -493,42 +494,59 @@
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
-              {#each outputs as { outpoint, utxo, amount, address, labelKey }}
+              {#each outputs as output}
+                {@const { id, category, utxo, amount, address } = output}
+                {@const routeProm = getRoute(output)}
+
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-900 transition-colors py-1 px-4"
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
-                  {#if utxo}
-                    <a class="no-underline" href={`/utxos/${outpoint}`}>
-                      <div class="text-xs flex items-center">
-                        {#if labelKey}
-                          <div class="text-utility-success mr-1">
-                            {$translate(`app.labels.${labelKey}`)}:
-                          </div>
-                        {/if}
-                        <div>
+                  <button
+                    on:click={async () => {
+                      const route = await routeProm
+                      route && goto(route)
+                    }}
+                  >
+                    <div class="text-xs flex items-center">
+                      <div
+                        class="mr-1"
+                        class:text-utility-success={category === 'deposit' ||
+                          category === 'receive' ||
+                          category === 'settle' ||
+                          category === 'sweep' ||
+                          category === 'transfer'}
+                        class:text-utility-error={category === 'send'}
+                      >
+                        {$translate(`app.labels.output_${category}`)}:
+                      </div>
+                      <div>
+                        {#if utxo}
                           {#await db.wallets.get(utxo.walletId) then wallet}
-                            {wallet?.label}
+                            {wallet?.label || truncateValue(id)}
                           {/await}
-                        </div>
-                      </div>
-                      <BitcoinAmount sats={utxo.amount} />
-                    </a>
-                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
-                  {:else}
-                    <div>
-                      <div class="text-xs flex items-center">
-                        {#if labelKey}
-                          <div class="text-utility-error mr-1">
-                            {$translate(`app.labels.${labelKey}`)}:
-                          </div>
+                        {:else if category === 'settle' || category === 'channel_open'}
+                          {#await db.channels.get(id) then channel}
+                            {channel?.peerAlias || truncateValue(channel?.peerId || address)}
+                          {/await}
+                        {:else if category === 'deposit'}
+                          {#await db.deposits
+                            .get(id)
+                            .then((deposit) => deposit && db.wallets.get(deposit.walletId)) then wallet}
+                            {wallet?.label || truncateValue(id)}
+                          {/await}
+                        {:else}
+                          {truncateValue(id)}
                         {/if}
-                        <div>
-                          {truncateValue(address, 6)}
-                        </div>
                       </div>
-                      <BitcoinAmount sats={amount} />
                     </div>
-                  {/if}
+                    <BitcoinAmount sats={amount} />
+                  </button>
+
+                  {#await routeProm then route}
+                    {#if route}
+                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                    {/if}
+                  {/await}
                 </div>
               {/each}
             </div>
@@ -538,9 +556,17 @@
         <!-- FEE -->
         {#if fee}
           <SummaryRow>
-            <span slot="label">{$translate('app.labels.fee')}:</span>
+            <span slot="label"
+              >{$translate(
+                `app.labels.${
+                  (summaryType === 'channel_close' || summaryType === 'channel_force_close') &&
+                  fee < 1
+                    ? 'lost_to_rounding'
+                    : 'fee'
+                }`
+              )}:</span
+            >
             <div class="flex items-center" slot="value">
-              <div class="font-semibold text-utility-error mr-1">-</div>
               <BitcoinAmount sats={fee} />
             </div>
           </SummaryRow>
@@ -550,16 +576,16 @@
         {#if channel}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
-            <a slot="value" href={`/channels/${channel.channelId}`} class="flex items-center">
-              {truncateValue(channel.channelId)}
-              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1 -rotate-90">
+            <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
+              {truncateValue(channel.id)}
+              <div in:fade|local={{ duration: 250 }} class="w-4 -rotate-90">
                 {@html caret}
               </div>
             </a>
           </SummaryRow>
 
-          {#await db.channels.get(channel.channelId) then channelDetails}
-            {#if channelDetails}
+          {#await db.channels.get(channel.id) then channelDetails}
+            {#if channelDetails && channelDetails.peerAlias}
               <SummaryRow>
                 <span slot="label">{$translate('app.labels.channel_peer')}:</span>
                 <span slot="value">

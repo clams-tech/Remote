@@ -14,6 +14,7 @@ import type {
 } from '$lib/@types/channels.js'
 
 import type {
+  ClosedChannel,
   CorelnConnectionInterface,
   CoreLnError,
   FundChannelResponse,
@@ -32,13 +33,61 @@ class Channels implements ChannelsInterface {
   public async get(channel?: { id: string; peerId: string }): Promise<Channel[]> {
     try {
       const { version } = await this.connection.info
-      const versionNumber = convertVersionNumber(version)
+      const versionNumber = convertVersionNumber(version as string)
+
+      const { closedchannels } = (await this.connection.rpc({ method: 'listclosedchannels' })) as {
+        closedchannels: ClosedChannel[]
+      }
+
+      const formattedClosedChannels: Channel[] = await Promise.all(
+        closedchannels.map(
+          async ({
+            channel_id,
+            opener,
+            peer_id,
+            funding_txid,
+            funding_outnum,
+            closer,
+            close_cause,
+            final_to_us_msat
+          }) => {
+            const peer = peer_id
+              ? (
+                  (await this.connection.rpc({
+                    method: 'listnodes',
+                    params: { id: peer_id }
+                  })) as ListNodesResponse
+                ).nodes[0]
+              : undefined
+
+            return {
+              id: channel_id,
+              walletId: this.connection.walletId,
+              opener: opener === 'local' ? this.connection.info.id : peer_id,
+              fundingTransactionId: funding_txid,
+              fundingOutput: funding_outnum,
+              peerId: peer_id,
+              peerAlias: peer?.alias,
+              peerConnected: false,
+              status: 'closed',
+              closer,
+              closeCause: close_cause,
+              finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
+              balanceLocal: 0,
+              balanceRemote: 0,
+              reserveLocal: 0,
+              reserveRemote: 0
+            } as Channel
+          }
+        )
+      )
 
       if (versionNumber < 2305) {
         const listPeersResult = await this.connection.rpc({
           method: 'listpeers',
           params: channel?.peerId ? { id: channel.peerId } : undefined
         })
+
         const { peers } = listPeersResult as ListPeersResponse
 
         const result = await Promise.all(
@@ -85,7 +134,7 @@ class Channels implements ChannelsInterface {
                   fundingTransactionId: funding_txid,
                   fundingOutput: funding_outnum,
                   id: channel_id,
-                  shortId: short_channel_id || null,
+                  shortId: short_channel_id,
                   status: stateToChannelStatus(state),
                   balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
                   balanceRemote: msatsToSats(
@@ -117,7 +166,7 @@ class Channels implements ChannelsInterface {
             })
         )
 
-        const flattened = result.flat()
+        const flattened = result.concat(formattedClosedChannels).flat()
 
         return channel?.id ? flattened.filter(({ id }) => id === channel.id) : flattened
       } else {
@@ -171,7 +220,7 @@ class Channels implements ChannelsInterface {
               fundingTransactionId: funding_txid,
               fundingOutput: funding_outnum,
               id: channel_id,
-              shortId: short_channel_id || null,
+              shortId: short_channel_id,
               status: stateToChannelStatus(state),
               balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
               balanceRemote: msatsToSats(
@@ -181,8 +230,8 @@ class Channels implements ChannelsInterface {
               reserveLocal: msatsToSats(formatMsatString(their_reserve_msat)),
               feeBase: msatsToSats(formatMsatString(fee_base_msat)),
               feePpm: fee_proportional_millionths,
-              closeToAddress: close_to_addr ?? null,
-              closeToScriptPubkey: close_to ?? null,
+              closeToAddress: close_to_addr,
+              closeToScriptPubkey: close_to,
               closer: closer,
               htlcMin: msatsToSats(formatMsatString(minimum_htlc_out_msat)),
               htlcMax: msatsToSats(formatMsatString(maximum_htlc_out_msat)),
@@ -200,9 +249,9 @@ class Channels implements ChannelsInterface {
           })
         )
 
-        return channel?.id
-          ? formattedChannels.filter(({ id }) => id === channel.id)
-          : formattedChannels
+        const allChannels = formattedChannels.concat(formattedClosedChannels)
+
+        return channel?.id ? allChannels.filter(({ id }) => id === channel.id) : allChannels
       }
     } catch (error) {
       const context = 'get (channels)'

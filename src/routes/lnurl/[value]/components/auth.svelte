@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import { API_URL } from '$lib/constants'
   import Button from '$lib/components/Button.svelte'
   import { mainDomain } from '$lib/utils'
-  import { CANONICAL_PHRASE, getAuthSigner } from '../utils'
+  import { CANONICAL_PHRASE, getAuthSigner } from '../../utils'
   import type { Wallet } from '$lib/@types/wallets.js'
   import { connections$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
@@ -38,8 +37,6 @@
       const connection = connections$.value.find(
         ({ walletId }) => walletId === selectedWalletId
       ) as Connection
-
-      console.log(connection)
 
       const signedMessage = await connection.signatures!.signMessage!(CANONICAL_PHRASE)
       const signer = await getAuthSigner(url.host, signedMessage)

@@ -52,7 +52,19 @@
       await goto(`/transactions/pay/onchain/${value}?${searchParams.toString()}`)
     }
   }
+
+  const handleKeyPress = (e: KeyboardEvent) => {
+    const currentIndex = inputs.indexOf(input)
+
+    if (e.key === 'ArrowRight') {
+      input = inputs[currentIndex + 1] || input
+    } else if (e.key === 'ArrowLeft') {
+      input = inputs[currentIndex - 1] || input
+    }
+  }
 </script>
+
+<svelte:window on:keyup={handleKeyPress} />
 
 <Section>
   <SectionHeading icon={scan} />

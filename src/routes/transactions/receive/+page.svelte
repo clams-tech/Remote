@@ -99,8 +99,8 @@
     } catch (error) {
       createPaymentError = error as AppError
     } finally {
-      creatingPayment = false
       await goto(`/transactions/${id}`)
+      creatingPayment = false
     }
   }
 
@@ -133,7 +133,7 @@
       {$translate('app.labels.create')}
     </div>
 
-    <div class="flex items-center border rounded border-neutral-600 px-4 bg-neutral-900">
+    <div class="flex items-center border rounded border-neutral-600 p-4 bg-neutral-900">
       {#if connection && connection.invoices?.create}
         <div in:slide class="flex items-center">
           <Toggle bind:toggled={createInvoice}>

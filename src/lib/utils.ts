@@ -1,8 +1,10 @@
+import decode from 'bolt12-decoder'
 import type { BitcoinExchangeRates } from './@types/settings.js'
-import { API_URL } from './constants.js'
+import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
 import { settings$ } from './streams.js'
 import { Buffer } from 'buffer'
+import type { Network } from './@types/common.js'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -18,8 +20,12 @@ export function routeRequiresSession(path: string): boolean {
   }
 }
 
-export function truncateValue(val: string, length = 9): string {
-  return val.length <= length ? val : `${val.slice(0, length)}...${val.slice(-length)}`
+export function truncateValue(val: string, length = 8, elipsisPosition = 'center'): string {
+  return val.length <= length * 2
+    ? val
+    : elipsisPosition === 'center'
+    ? `${val.slice(0, length)}...${val.slice(-length)}`
+    : `${val.slice(0, length * 2)}...`
 }
 
 export function simpleDeepClone<T>(obj: T): T {
@@ -87,4 +93,28 @@ export function firstLetterUpperCase(str: string): string {
 
 export function mainDomain(host: string): string {
   return host.split('.').reverse().splice(0, 2).reverse().join('.')
+}
+
+export const getNetwork = (str: string): Network => {
+  if (str.startsWith('lnbcrt') || str.startsWith('bcrt')) {
+    return 'regtest'
+  }
+
+  if (str.startsWith('lntb') || str.startsWith('tb')) {
+    return 'testnet'
+  }
+
+  if (str.startsWith('lntbs') || str.startsWith('tbs')) {
+    return 'signet'
+  }
+
+  if (str.startsWith('lno' || str.startsWith('lni') || str.startsWith('lno'))) {
+    const { offer_chains } = decode(str)
+    if (offer_chains && offer_chains.length) {
+      const network = GENESIS_HASHES[offer_chains[0]]
+      if (network) return network
+    }
+  }
+
+  return 'bitcoin'
 }

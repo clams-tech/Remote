@@ -51,7 +51,7 @@
           </div>
         </SummaryRow>
 
-        <SummaryRow>
+        <SummaryRow baseline>
           <div slot="label">{$translate('app.labels.error')}:</div>
           <div slot="value">
             {message}
