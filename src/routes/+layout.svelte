@@ -129,7 +129,7 @@
 
   <div
     in:fade
-    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4"
+    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4 sm:pb-6"
   >
     {#if $session$ || path === '/welcome'}
       <slot />

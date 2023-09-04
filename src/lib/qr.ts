@@ -50,7 +50,7 @@ export const QrCodeUtil = {
         dots.push(
           `
             <rect
-              fill=${i % 2 === 0 ? 'url(#purple)' : edgeColor}
+              fill=${i % 2 === 0 ? '#ffffff' : edgeColor}
               height=${dotSize}
               rx=${dotSize * borderRadius}
               ry=${dotSize * borderRadius}
@@ -122,7 +122,7 @@ export const QrCodeUtil = {
       .forEach(([cx, cys]) => {
         cys.forEach((cy) => {
           dots.push(
-            `<circle cx=${cx} cy=${cy} fill="url(#purple)" r=${cellSize / CIRCLE_SIZE_MODIFIER} />`
+            `<circle cx=${cx} cy=${cy} fill="#ffffff" r=${cellSize / CIRCLE_SIZE_MODIFIER} />`
           )
         })
       })
@@ -166,7 +166,7 @@ export const QrCodeUtil = {
                 x2=${cx}
                 y1=${y1}
                 y2=${y2}
-                stroke="#A066FF"
+                stroke="#ffffff"
                 stroke-width=${cellSize / (CIRCLE_SIZE_MODIFIER / 2)}
                 stroke-linecap="round"
               />

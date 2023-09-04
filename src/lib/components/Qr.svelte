@@ -113,16 +113,19 @@
         class="rounded overflow-hidden flex items-center justify-center relative"
       >
         <svg width={size} height={size}>
-          <defs>
+          <!-- <defs>
             <linearGradient id="purple" x1="25%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#C099FF" stop-opacity="1" />
               <stop offset="100%" stop-color="#904DFF" stop-opacity="1" />
             </linearGradient>
-          </defs>
-          {@html QrCodeUtil.generate(selectedValue.value, size, size / 4)}
+          </defs> -->
+          {@html QrCodeUtil.generate(selectedValue.value, size, size / 5)}
         </svg>
 
-        <div class="absolute" style="width: {size / 4}px; height: {size / 4}px;">
+        <div
+          class="absolute rounded bg-neutral-800"
+          style="width: {size / 6}px; height: {size / 6}px;"
+        >
           {@html clamsIcon}
         </div>
       </button>
