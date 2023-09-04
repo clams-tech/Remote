@@ -437,7 +437,7 @@
                 {@const { id, category, utxo } = input}
                 {@const routeProm = getRoute(input)}
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-2"
+                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
                   <button
                     on:click={async () => {
@@ -509,7 +509,6 @@
                   <button
                     on:click={async () => {
                       const route = await routeProm
-                      console.log({ route })
                       route && goto(route)
                     }}
                   >
@@ -582,15 +581,15 @@
         {#if channel}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
-            <a slot="value" href={`/channels/${channel.channelId}`} class="flex items-center">
-              {truncateValue(channel.channelId)}
+            <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
+              {truncateValue(channel.id)}
               <div in:fade|local={{ duration: 250 }} class="w-4 -rotate-90">
                 {@html caret}
               </div>
             </a>
           </SummaryRow>
 
-          {#await db.channels.get(channel.channelId) then channelDetails}
+          {#await db.channels.get(channel.id) then channelDetails}
             {#if channelDetails && channelDetails.peerAlias}
               <SummaryRow>
                 <span slot="label">{$translate('app.labels.channel_peer')}:</span>
