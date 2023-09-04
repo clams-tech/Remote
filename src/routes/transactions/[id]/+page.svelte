@@ -446,16 +446,10 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div
-                        class="mr-1"
-                        class:text-utility-pending={category === 'timelocked'}
-                        class:text-utility-error={category === 'channel_close' ||
-                          category === 'spend' ||
-                          category === 'withdrawal'}
-                      >
-                        {$translate(`app.labels.input_${category}`)}:
+                      <div class="mr-1">
+                        {$translate(`app.labels.input_${category}`).toLowerCase()}:
                       </div>
-                      <div>
+                      <div class="font-semibold text-purple-100">
                         {#if utxo}
                           {#await db.wallets.get(utxo.walletId) then wallet}
                             {wallet?.label || truncateValue(id)}
@@ -513,20 +507,12 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div
-                        class="mr-1"
-                        class:text-utility-success={category === 'deposit' ||
-                          category === 'receive' ||
-                          category === 'settle' ||
-                          category === 'sweep' ||
-                          category === 'transfer'}
-                        class:text-utility-error={category === 'send'}
-                      >
-                        {$translate(`app.labels.output_${category}`)}:
+                      <div class="mr-1">
+                        {$translate(`app.labels.output_${category}`).toLowerCase()}:
                       </div>
-                      <div>
-                        {#if utxo}
-                          {#await db.wallets.get(utxo.walletId) then wallet}
+                      <div class="font-semibold text-purple-100">
+                        {#if utxo || category === 'timelocked'}
+                          {#await db.wallets.get(utxo?.walletId || id) then wallet}
                             {wallet?.label || truncateValue(id)}
                           {/await}
                         {:else if category === 'settle' || category === 'channel_open'}

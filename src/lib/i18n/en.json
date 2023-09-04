@@ -359,6 +359,7 @@
     "output_send": "Send",
     "output_channel_open": "Channel",
     "output_sweep": "Sweep",
+    "output_timelocked": "Timelocked",
     "output_unknown": "Unknown",
     "summary_amount_channel_open": "Channel capacity",
     "summary_amount_channel_mutiple_open": "Total channels capacity",

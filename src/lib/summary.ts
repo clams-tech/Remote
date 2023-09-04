@@ -55,6 +55,7 @@ export type EnhancedOutput = {
   /** wallet.id, channel.id, deposit.id, address */
   id: string
   category:
+    | 'timelocked'
     | 'receive'
     | 'settle'
     | 'transfer'
@@ -165,7 +166,8 @@ export const enhanceInputsOutputs = async (
        */
       const { address, index, amount } = output
       const ownedOutputUtxo = await db.utxos.get(`${transaction.id}:${index}`)
-      const closedChannelId = inputs.find(({ category }) => category === 'channel_close')?.id
+      const closedChannelId =
+        inputs.find(({ category }) => category === 'channel_close')?.id || null
       const ownAtLeastOneInputUtxo = inputs.find(({ utxo }) => !!utxo)
 
       const openedChannel = await db.channels
@@ -181,9 +183,15 @@ export const enhanceInputsOutputs = async (
         })
       }
 
+      const closedChannel = closedChannelId
+        ? ((await db.channels.get(closedChannelId)) as Channel)
+        : null
+
       const enhanced: EnhancedOutput = closedChannelId
         ? ownedOutputUtxo
           ? { category: 'settle', id: closedChannelId, amount, utxo: ownedOutputUtxo, address }
+          : closedChannel?.finalToUs && Math.floor(closedChannel?.finalToUs) === amount
+          ? { category: 'timelocked', id: closedChannel.walletId, amount, address }
           : { category: 'settle', id: closedChannelId, amount, address }
         : openedChannel
         ? { category: 'channel_open', id: openedChannel.id, amount, address }
