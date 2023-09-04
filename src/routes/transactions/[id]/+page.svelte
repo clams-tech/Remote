@@ -210,9 +210,14 @@
     if (transaction) {
       const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
-      const wallet = (await db.wallets.get(walletId)) as Wallet
       const { inputs, outputs } = await enhanceInputsOutputs(transaction)
       const summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
+
+      const wallet = (
+        summary.type === 'transfer'
+          ? await db.wallets.where({ label: summary.primary }).first()
+          : await db.wallets.get(walletId)
+      ) as Wallet
 
       details.push({
         type: 'onchain',
@@ -278,15 +283,15 @@
   const getRoute = async (inputOutput: EnhancedOutput | EnhancedInput) => {
     switch (inputOutput.category) {
       case 'channel_open': {
-        return `/channels/${id}`
+        return `/channels/${inputOutput.id}`
       }
       case 'deposit': {
-        const deposit = (await db.deposits.get(id)) as Deposit
+        const deposit = (await db.deposits.get(inputOutput.id)) as Deposit
         return `/wallets/${deposit.walletId}`
       }
       case 'transfer':
       case 'receive': {
-        return `/wallets/${id}`
+        return `/wallets/${inputOutput.id}`
       }
     }
   }
@@ -504,6 +509,7 @@
                   <button
                     on:click={async () => {
                       const route = await routeProm
+                      console.log({ route })
                       route && goto(route)
                     }}
                   >
