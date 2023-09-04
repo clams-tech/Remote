@@ -39,7 +39,7 @@ type ConnectionErrors = Record<Wallet['id'], AppError[]>
 
 /** A collection of the last 10 errors for each walletId */
 export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
-  filter((error) => error.key.startsWith('connection_')),
+  filter((error) => error.key?.startsWith('connection_')),
   scan((acc, value) => {
     const { walletId } = value.detail
 

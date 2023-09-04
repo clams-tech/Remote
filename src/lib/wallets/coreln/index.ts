@@ -7,7 +7,12 @@ import Channels from './channels.js'
 import Transactions from './transactions.js'
 import Blocks from './blocks.js'
 import Invoices from './invoices.js'
-import type { CommandoMsgs, CorelnConnectionInterface, GetinfoResponse } from './types.js'
+import type {
+  CommandoMsgs,
+  CoreLnError,
+  CorelnConnectionInterface,
+  GetinfoResponse
+} from './types.js'
 import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { Session } from '$lib/@types/session.js'
 import type { BehaviorSubject } from 'rxjs'
@@ -29,6 +34,7 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
+import handleError from './error.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   walletId: Wallet['id']
@@ -90,15 +96,24 @@ class CoreLightning implements CorelnConnectionInterface {
       const connected = await socket.connect()
 
       if (connected) {
-        const { id, alias, color, version, address, network } = (await this.rpc({
-          method: 'getinfo'
-        })) as GetinfoResponse
+        try {
+          const { id, alias, color, version, address, network } = (await this.rpc({
+            method: 'getinfo'
+          })) as GetinfoResponse
 
-        const { address: host, port: connectionPort } = address[0] || { address: ip, port }
+          const { address: host, port: connectionPort } = address[0] || { address: ip, port }
 
-        this.info = { id, host, port: connectionPort, alias, color, version, network }
+          this.info = { id, host, port: connectionPort, alias, color, version, network }
 
-        return this.info
+          return this.info
+        } catch (error) {
+          const context = 'getinfo (connect)'
+
+          const connectionError = handleError(error as CoreLnError, context, walletId)
+
+          this.errors$.next(connectionError)
+          throw connectionError
+        }
       } else {
         return null
       }

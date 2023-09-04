@@ -20,6 +20,7 @@
   import VirtualList from 'svelte-tiny-virtual-list'
   import { from, map, takeUntil, zip } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
+  import uniqBy from 'lodash.uniqby'
 
   const invoices$ = from(
     liveQuery(async () => {
@@ -34,7 +35,7 @@
 
   const transactions$ = from(
     liveQuery(async () => {
-      const transactions = await db.transactions.toArray()
+      const transactions = await db.transactions.toArray().then((txs) => uniqBy(txs, 'id'))
 
       return Promise.all(
         transactions.map(async (transaction) => {
@@ -62,6 +63,7 @@
 
   type InvoiceData = { type: 'invoice'; data: Invoice; timestamp: number }
   type AddressData = { type: 'address'; data: Address; timestamp: number }
+
   type TransactionData = {
     type: 'transaction'
     data: Transaction & { receiveAddress?: Address }

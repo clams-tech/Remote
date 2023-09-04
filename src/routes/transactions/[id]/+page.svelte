@@ -77,7 +77,7 @@
     const [invoice, address, transaction] = await Promise.all([
       db.invoices.get(id),
       db.addresses.get(id),
-      db.transactions.get(id)
+      db.transactions.where({ id }).first()
     ])
 
     const details: TransactionDetail[] = []
@@ -159,7 +159,7 @@
       let tx: Transaction | null = null
 
       if (txid) {
-        tx = (await db.transactions.get(txid)) as Transaction
+        tx = (await db.transactions.where({ id: txid }).first()) as Transaction
       }
 
       const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
@@ -576,15 +576,15 @@
         {#if channel}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
-            <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
-              {truncateValue(channel.id)}
+            <a slot="value" href={`/channels/${channel.channelId}`} class="flex items-center">
+              {truncateValue(channel.channelId)}
               <div in:fade|local={{ duration: 250 }} class="w-4 -rotate-90">
                 {@html caret}
               </div>
             </a>
           </SummaryRow>
 
-          {#await db.channels.get(channel.id) then channelDetails}
+          {#await db.channels.get(channel.channelId) then channelDetails}
             {#if channelDetails && channelDetails.peerAlias}
               <SummaryRow>
                 <span slot="label">{$translate('app.labels.channel_peer')}:</span>
