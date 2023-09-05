@@ -1,6 +1,5 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations'
-  import Auth from './components/auth.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import { API_URL } from '$lib/constants'
   import type { PageData } from '../$types'
@@ -9,8 +8,10 @@
   import Msg from '$lib/components/Msg.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { firstLetterUpperCase } from '$lib/utils.js'
-  import Pay from './components/pay.svelte'
   import { msatsToSats } from '$lib/conversion.js'
+  import Auth from './components/auth.svelte'
+  import Pay from './components/pay.svelte'
+  import Withdraw from './components/withdraw.svelte'
 
   export let data: PageData
 
@@ -72,10 +73,10 @@
         k1 = result.k1
         action = result.action
         callback = result.callback
-        maxSendable = msatsToSats(result.maxSendable)
-        minSendable = msatsToSats(result.minSendable)
-        maxWithdrawable = result.maxWithdrawable
-        minWithdrawable = result.minWithdrawable
+        maxSendable = result.maxSendable ? msatsToSats(result.maxSendable) : 0
+        minSendable = result.minSendable ? msatsToSats(result.minSendable) : 0
+        maxWithdrawable = result.maxWithdrawable ? msatsToSats(result.maxWithdrawable) : 0
+        minWithdrawable = result.minWithdrawable ? msatsToSats(result.minWithdrawable) : 0
         metadata = result.metadata
         commentAllowed = result.commentAllowed
         defaultDescription = result.defaultDescription
@@ -93,13 +94,15 @@
 
 <svelte:head>
   <title>
-    {$translate('app.titles./lnurl')}
+    {$translate('app.routes./lnurl.title')}
   </title>
 </svelte:head>
 
 <Section>
   <SectionHeading
-    text={`${$translate('app.routes./lnurl.title')} ${tag ? `- ${firstLetterUpperCase(tag)}` : ''}`}
+    text={`${$translate('app.routes./lnurl.title')} ${
+      tag ? `- ${$translate(`app.labels.lnurl_${tag.toLowerCase()}`)}` : ''
+    }`}
   />
 
   {#if parseLnurlError}
@@ -120,7 +123,7 @@
         {lightningAddress}
       />
     {:else if tag === 'withdrawRequest'}
-      <!-- <Withdraw {url} {callback} {k1} {minWithdrawable} {maxWithdrawable} {defaultDescription} /> -->
+      <Withdraw {url} {callback} {k1} {minWithdrawable} {maxWithdrawable} {defaultDescription} />
     {:else}
       <Msg message={$translate('app.errors.lnurl_unsupported_tag', { tag })} type="error" />
     {/if}

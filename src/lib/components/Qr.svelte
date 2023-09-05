@@ -123,7 +123,7 @@
         </svg>
 
         <div
-          class="absolute rounded bg-neutral-800"
+          class="absolute rounded bg-[url('/images/shell2.png')] bg-cover shadow-inner shadow-purple-500"
           style="width: {size / 6}px; height: {size / 6}px;"
         >
           {@html clamsIcon}

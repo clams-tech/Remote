@@ -11,7 +11,6 @@
   import Coin from './components/Coin.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
-  import Big from 'big.js'
   import wallet from '$lib/icons/wallet.js'
 
   const utxos$ = liveQuery(async () => db.utxos.toArray())

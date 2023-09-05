@@ -148,7 +148,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles./channel')}</title>
+  <title>{$translate('app.routes./channel.title')}</title>
 </svelte:head>
 
 <Section>

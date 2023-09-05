@@ -220,14 +220,28 @@
   }
 </script>
 
-<div>
-  <h2 class="uppercase text-xl font-semibold mt-2 mb-4">{serviceName}</h2>
+<div class="flex flex-col gap-y-4">
+  <h2 class="uppercase text-xl font-semibold mt-2">{serviceName}</h2>
+
+  <div class="text-sm font-semibold">
+    {#if minSendable}
+      <div>{$translate('app.labels.min_sendable')}: {minSendable}</div>
+    {/if}
+
+    {#if maxSendable}
+      <div>{$translate('app.labels.max_sendable')}: {maxSendable}</div>
+    {/if}
+  </div>
 
   {#if !paidInvoice}
     <div out:slide={{ axis: 'y' }}>
       {#if $availableWallets$}
         <div class="mb-4">
-          <WalletSelector bind:selectedWalletId wallets={$availableWallets$} />
+          <WalletSelector
+            label={$translate('app.labels.from_wallet')}
+            bind:selectedWalletId
+            wallets={$availableWallets$}
+          />
         </div>
       {/if}
 
