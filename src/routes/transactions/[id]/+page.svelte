@@ -25,7 +25,7 @@
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
   import type { Deposit } from '$lib/@types/deposits.js'
-  import Summary from '../components/Summary.svelte'
+  import Summary from '../Summary.svelte'
 
   import {
     deriveInvoiceSummary,

@@ -3,7 +3,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import channels from '$lib/icons/channels.js'
   import plus from '$lib/icons/plus.js'
-  import ChannelRow from './components/ChannelRow.svelte'
+  import ChannelRow from './ChannelRow.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db.js'

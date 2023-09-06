@@ -4,7 +4,7 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import scan from '$lib/icons/scan.js'
-  import Image from './components/Image.svelte'
+  import Image from './Image.svelte'
   import Scan from './components/Scan.svelte'
   import Text from './components/Text.svelte'
   import NFCComponent from './components/Nfc.svelte'

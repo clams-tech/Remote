@@ -75,7 +75,6 @@
 
   const dailyPayments$ = zip([invoices$, transactions$, addresses$]).pipe(
     map((payments) => {
-      // const paymentMap = payments.flat().reduce((acc, payment) => {
       const paymentMap = payments.flat().reduce((acc, payment) => {
         const date = new Date(payment.timestamp * 1000)
         const dateKey = endOfDay(date).getTime() / 1000

@@ -2,7 +2,7 @@
   import { API_URL } from '$lib/constants'
   import Button from '$lib/components/Button.svelte'
   import { mainDomain } from '$lib/utils'
-  import { CANONICAL_PHRASE, getAuthSigner } from '../../utils'
+  import { CANONICAL_PHRASE, getAuthSigner } from '../utils'
   import type { Wallet } from '$lib/@types/wallets.js'
   import { connections$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'

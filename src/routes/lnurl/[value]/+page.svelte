@@ -9,7 +9,7 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { firstLetterUpperCase } from '$lib/utils.js'
   import { msatsToSats } from '$lib/conversion.js'
-  import Auth from './components/auth.svelte'
+  import Auth from './auth.svelte'
   import Pay from './components/pay.svelte'
   import Withdraw from './components/withdraw.svelte'
 
