@@ -13,6 +13,7 @@ export interface Payload extends Parser.PayloadDefault {
   max?: string
   min?: string
   tag?: string
+  wallet?: string
 }
 
 const config: Config<Payload> = {

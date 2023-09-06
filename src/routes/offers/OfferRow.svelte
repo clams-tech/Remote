@@ -12,8 +12,6 @@
 
   export let offer: Offer
 
-  console.log({ offer })
-
   const offerPayments$ = liveQuery(() => db.invoices.where({ 'offer.id': offer.id }).toArray())
 
   const now$ = timer(0, 1000).pipe(map(nowSeconds))
@@ -26,14 +24,6 @@
       : offer.singleUse && $offerPayments$?.length
       ? 'complete'
       : 'disabled'
-
-  /** What best summarises an offer
-   * Label
-   * Amount
-   * Status (expired, active, complete or disabled)
-   * Type (withdraw or pay)
-   * How many payments have been made to this offer
-   */
 </script>
 
 <a

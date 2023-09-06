@@ -376,7 +376,8 @@
     "summary_amount_deposit": "Deposited",
     "summary_amount_sweep": "Swept",
     "lost_to_rounding": "Lost to rounding",
-    "closed": "Closed"
+    "closed": "Closed",
+    "this_wallet": "This wallet"
   },
   "validation": {
     "field_invalid": "Field Invalid",
@@ -416,8 +417,9 @@
     "connection_self_payment_not_supported": "Self payments are not supported by this connection.",
     "connection_unsupported_action": "This action is not supported on this connection, please select another connection to continue.",
     "connection_derive_output_address": "Could not derive an address for an output of an onchain transaction.",
-    "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "connection_cannot_receive_payment": "The selected wallet connection cannot receive a payment, try selecting another one.",
+    "connection_not_available": "{{wallet}} is not available and connected.",
+    "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
     "transaction_not_found": "Could not find this transaction...",
     "utxo_not_found": "Could not find this UTXO...",
     "nfc_read": "Could not read NFC.",
@@ -450,7 +452,8 @@
     "wallet_transaction_send_unavailable": "You do not have any wallets connected that can send an onchain transaction.",
     "wallet_keysend_unavailable": "You do not have any wallets connected that can send a keysend transaction to a node public key.",
     "wallet_pay_invoice_unavailable": "You do not have any wallets connected that can pay a BOLT11 invoice.",
-    "wallet_receive_unavailable": "You do not have any wallets connected that can receive to a BOLT11 invoice or an onchain address."
+    "wallet_receive_unavailable": "You do not have any wallets connected that can receive to a BOLT11 invoice or an onchain address.",
+    "could_not_find_channel": "Could not find this channel."
   },
   "languages": {
     "en": "English",
