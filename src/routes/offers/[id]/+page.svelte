@@ -3,12 +3,9 @@
   import { translate } from '$lib/i18n/translations'
   import warning from '$lib/icons/warning'
   import type { PageData } from './$types'
-  import { goto } from '$app/navigation'
-  import { connections$, settings$ } from '$lib/streams'
-  import lightningOutline from '$lib/icons/lightning-outline'
+  import { connections$ } from '$lib/streams'
   import { fade } from 'svelte/transition'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
-  import check from '$lib/icons/check'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import { db } from '$lib/db.js'
@@ -20,11 +17,11 @@
   import Button from '$lib/components/Button.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
-  import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import Summary from '../../transactions/Summary.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import caret from '$lib/icons/caret.js'
+  import Qr from '$lib/components/Qr.svelte'
+  import PaymentsList from './PaymentsList.svelte'
 
   export let data: PageData
 
@@ -40,7 +37,9 @@
     })
   )
 
-  const offerPayments$ = liveQuery(() => db.invoices.where({ 'offer.id': data.id }).toArray())
+  const offerPayments$ = liveQuery(() =>
+    db.invoices.where({ 'offer.id': data.id }).reverse().sortBy('completedAt')
+  )
 
   const offerWallet$ = from(offer$).pipe(
     mergeMap((offer) => (offer ? db.wallets.get(offer.walletId) : of(null)))
@@ -106,8 +105,6 @@
 </svelte:head>
 
 <Section>
-  <SectionHeading icon={lightningOutline} text={$translate('app.routes./offer.title')} />
-
   {#if offerNotFound}
     <div class="w-full mt-4">
       <Msg message={$translate('app.errors.could_not_find_offer')} type="error" />
@@ -117,24 +114,46 @@
       <Spinner />
     </div>
   {:else}
-    {@const {
-      label,
-      amount,
-      issuer,
-      walletId,
-      type,
-      description,
-      expiry,
-      bolt12,
-      used,
-      singleUse,
-      denomination
-    } = $offer$}
+    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12 } = $offer$}
     <div class="w-full">
+      {#if status === 'active'}
+        <div class="flex flex-col w-full items-center my-4">
+          <Qr values={[{ label: $translate('app.labels.offer'), value: bolt12 }]} />
+
+          {#if expiry}
+            <ExpiryCountdown {expiry} />
+          {/if}
+        </div>
+      {/if}
+
+      <SummaryRow>
+        <div slot="label">{$translate('app.labels.status')}</div>
+        <div
+          slot="value"
+          class:text-utility-success={status === 'active' || status === 'complete'}
+          class:text-utility-error={status === 'expired' || status === 'disabled'}
+          class="flex items-center justify-end"
+        >
+          <div
+            class:bg-utility-success={status === 'active' || status === 'complete'}
+            class:bg-utility-error={status === 'expired' || status === 'disabled'}
+            class="w-2 h-2 rounded-full mr-1"
+          />
+          <div>{$translate(`app.labels.${status}`)}</div>
+        </div>
+      </SummaryRow>
+
       {#if label}
         <SummaryRow>
           <div slot="label">{$translate('app.labels.label')}:</div>
           <div slot="value">{label}</div>
+        </SummaryRow>
+      {/if}
+
+      {#if description}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.description')}:</div>
+          <div slot="value">{description}</div>
         </SummaryRow>
       {/if}
 
@@ -160,10 +179,36 @@
         </a>
       </SummaryRow>
 
+      <SummaryRow>
+        <div slot="label">{$translate('app.labels.type')}:</div>
+        <div class="flex items-center" slot="value">
+          <div
+            class="w-4 mr-1 -ml-1"
+            class:text-utility-success={type === 'pay'}
+            class:text-utility-error={type === 'withdraw'}
+          >
+            {@html type === 'pay' ? trendingUp : trendingDown}
+          </div>
+
+          <div>{$translate(`app.labels.${type}`)}</div>
+        </div>
+      </SummaryRow>
+
       {#if issuer}
         <SummaryRow>
           <div slot="label">{$translate('app.labels.issuer')}:</div>
           <div slot="value">{issuer}</div>
+        </SummaryRow>
+      {/if}
+
+      {#if $offerPayments$ && $offerPayments$.length}
+        <SummaryRow baseline>
+          <div slot="label">
+            {$translate(`app.labels.${type === 'pay' ? 'payments' : 'withdrawals'}`)}:
+          </div>
+          <div slot="value" class="w-full">
+            <PaymentsList payments={$offerPayments$} />
+          </div>
         </SummaryRow>
       {/if}
     </div>

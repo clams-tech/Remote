@@ -122,10 +122,7 @@
           {@html QrCodeUtil.generate(selectedValue.value, size, size / 5)}
         </svg>
 
-        <div
-          class="absolute rounded bg-[url('/images/shell2.png')] bg-cover shadow-inner shadow-purple-500"
-          style="width: {size / 6}px; height: {size / 6}px;"
-        >
+        <div class="absolute" style="width: {size / 5}px; height: {size / 5}px;">
           {@html clamsIcon}
         </div>
       </button>

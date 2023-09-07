@@ -378,7 +378,9 @@
     "lost_to_rounding": "Lost to rounding",
     "closed": "Closed",
     "this_wallet": "This wallet",
-    "issuer": "Issuer"
+    "issuer": "Issuer",
+    "type": "Type",
+    "payment_status": "{{direction; receive:{{status; pending:Pending Invoice; expired:Expired Invoice; complete:Received}}; send:{{status; pending:Sending; complete:Sent; failed:Failed;}};}}"
   },
   "validation": {
     "field_invalid": "Field Invalid",
