@@ -14,13 +14,17 @@
   import { db } from '$lib/db.js'
   import { liveQuery } from 'dexie'
   import { from, map, mergeMap, of, timer } from 'rxjs'
-  import { nowSeconds } from '$lib/utils.js'
+  import { nowSeconds, truncateValue } from '$lib/utils.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Modal from '$lib/components/Modal.svelte'
   import Button from '$lib/components/Button.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import Summary from '../../transactions/Summary.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import caret from '$lib/icons/caret.js'
 
   export let data: PageData
 
@@ -113,9 +117,55 @@
       <Spinner />
     </div>
   {:else}
-    {@const { label } = $offer$}
+    {@const {
+      label,
+      amount,
+      issuer,
+      walletId,
+      type,
+      description,
+      expiry,
+      bolt12,
+      used,
+      singleUse,
+      denomination
+    } = $offer$}
     <div class="w-full">
-      <div>{label}</div>
+      {#if label}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.label')}:</div>
+          <div slot="value">{label}</div>
+        </SummaryRow>
+      {/if}
+
+      <SummaryRow>
+        <div slot="label">{$translate('app.labels.amount')}:</div>
+        <div slot="value">
+          {#if amount}
+            <BitcoinAmount sats={amount} />
+          {:else}
+            {$translate('app.labels.any')}
+          {/if}
+        </div>
+      </SummaryRow>
+
+      <SummaryRow>
+        <div slot="label">{$translate('app.labels.wallet')}:</div>
+        <a slot="value" href={`/wallets/${walletId}`} class="flex items-center no-underline">
+          {#await db.wallets.get(walletId) then wallet}
+            {wallet?.label || truncateValue(walletId)}
+          {/await}
+
+          <div class="w-4 -rotate-90">{@html caret}</div>
+        </a>
+      </SummaryRow>
+
+      {#if issuer}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.issuer')}:</div>
+          <div slot="value">{issuer}</div>
+        </SummaryRow>
+      {/if}
     </div>
   {/if}
 </Section>

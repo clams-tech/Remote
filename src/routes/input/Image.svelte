@@ -4,7 +4,7 @@
   import { parseInput } from '$lib/input-parser.js'
   import { file } from '$lib/services.js'
   import { createEventDispatcher, onMount } from 'svelte'
-  import ParsedInputButton from './components/ParsedInputButton.svelte'
+  import ParsedInputButton from './ParsedInputButton.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
 
   const dispatch = createEventDispatcher()

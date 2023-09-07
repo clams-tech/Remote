@@ -7,11 +7,10 @@
   import Section from '$lib/components/Section.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import { firstLetterUpperCase } from '$lib/utils.js'
   import { msatsToSats } from '$lib/conversion.js'
   import Auth from './auth.svelte'
-  import Pay from './components/pay.svelte'
-  import Withdraw from './components/withdraw.svelte'
+  import Pay from './pay.svelte'
+  import Withdraw from './withdraw.svelte'
 
   export let data: PageData
 

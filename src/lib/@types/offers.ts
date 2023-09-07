@@ -4,7 +4,7 @@ export type Offer = {
   id: string
   bolt12: string
   type: 'pay' | 'withdraw'
-  denomination: BitcoinDenomination.msats | FiatDenomination
+  denomination: BitcoinDenomination.sats | FiatDenomination
   amount: number
   description: string
   nodeId: string

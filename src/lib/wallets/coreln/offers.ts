@@ -4,6 +4,8 @@ import { invoiceStatusToPaymentStatus, formatMsatString } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
+import { bolt12ToOffer } from '$lib/invoices.js'
+import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 
 import type {
   CreatePayOfferOptions,
@@ -26,8 +28,6 @@ import type {
   OfferSummary,
   SendInvoiceResponse
 } from './types.js'
-import { bolt12ToOffer } from '$lib/invoices.js'
-import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -100,7 +100,7 @@ class Offers implements OffersInterface {
         id: offer_id,
         bolt12,
         type: 'pay',
-        denomination: BitcoinDenomination.msats,
+        denomination: BitcoinDenomination.sats,
         amount,
         description,
         nodeId: this.connection.info.id,
@@ -158,7 +158,7 @@ class Offers implements OffersInterface {
         id: invreq_id,
         bolt12,
         type: 'withdraw',
-        denomination: BitcoinDenomination.msats,
+        denomination: BitcoinDenomination.sats,
         amount,
         description,
         nodeId: this.connection.info.id,

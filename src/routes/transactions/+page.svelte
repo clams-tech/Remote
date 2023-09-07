@@ -9,7 +9,7 @@
   import Spinner from '$lib/components/Spinner.svelte'
   import list from '$lib/icons/list.js'
   import { liveQuery } from 'dexie'
-  import TransactionRow from './components/TransactionRow.svelte'
+  import TransactionRow from './TransactionRow.svelte'
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { endOfDay } from 'date-fns'

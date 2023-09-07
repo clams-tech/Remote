@@ -377,7 +377,8 @@
     "summary_amount_sweep": "Swept",
     "lost_to_rounding": "Lost to rounding",
     "closed": "Closed",
-    "this_wallet": "This wallet"
+    "this_wallet": "This wallet",
+    "issuer": "Issuer"
   },
   "validation": {
     "field_invalid": "Field Invalid",

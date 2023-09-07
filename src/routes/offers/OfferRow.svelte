@@ -28,30 +28,14 @@
 
 <a
   href={`/offers/${offer.id}`}
-  class="w-full flex items-start justify-between no-underline hover:bg-neutral-800 transition-all p-4 rounded h-[80px]"
+  class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[102px]"
 >
   <div>
     <div class="font-semibold">{offer.label || $translate('app.labels.offer')}</div>
 
-    <div
-      class="flex items-center w-min text-xs font-semibold bg-neutral-800 mt-1 rounded-full px-3 h-6"
-    >
-      <div
-        class="w-4 mr-1 -ml-1"
-        class:text-utility-success={offer.type === 'pay'}
-        class:text-utility-error={offer.type === 'withdraw'}
-      >
-        {@html offer.type === 'pay' ? trendingUp : trendingDown}
-      </div>
-
-      <div>{$translate(`app.labels.${offer.type}`)}</div>
-
-      {#if $offerPayments$ && $offerPayments$.length}
-        <div class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-neutral-900">
-          {$offerPayments$.length}
-        </div>
-      {/if}
-    </div>
+    {#if offer.description}
+      <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{offer.description}</div>
+    {/if}
   </div>
 
   <div class="flex items-center ml-4 h-full">
@@ -72,6 +56,30 @@
       {#if offer.amount && status !== 'expired'}
         <BitcoinAmount sats={offer.amount} />
       {/if}
+
+      <div class="w-full flex justify-end mt-1">
+        <div
+          class="flex items-center w-min text-xs font-semibold bg-neutral-800 mt-1 rounded-full px-3 h-6"
+        >
+          <div
+            class="w-4 mr-1 -ml-1"
+            class:text-utility-success={offer.type === 'pay'}
+            class:text-utility-error={offer.type === 'withdraw'}
+          >
+            {@html offer.type === 'pay' ? trendingUp : trendingDown}
+          </div>
+
+          <div>{$translate(`app.labels.${offer.type}`)}</div>
+
+          {#if $offerPayments$ && $offerPayments$.length}
+            <div
+              class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+            >
+              {$offerPayments$.length}
+            </div>
+          {/if}
+        </div>
+      </div>
     </div>
 
     <div class="w-6 -rotate-90">{@html caret}</div>

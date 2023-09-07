@@ -35,7 +35,7 @@
   let innerHeight: number
 
   // need to adjust this if you change the transaction row height
-  const rowSize = 80
+  const rowSize = 102
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
   $: fullHeight = $offers$ ? $offers$.length * rowSize : 0
