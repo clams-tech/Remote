@@ -116,6 +116,20 @@
   {:else}
     {@const { label, amount, issuer, walletId, type, description, expiry, bolt12 } = $offer$}
     <div class="w-full">
+      <div class="text-3xl font-semibold flex items-center justify-center w-full">
+        <div class="flex items-center">
+          <div
+            class="w-10 mr-1 -ml-1"
+            class:text-utility-success={type === 'pay'}
+            class:text-utility-error={type === 'withdraw'}
+          >
+            {@html type === 'pay' ? trendingUp : trendingDown}
+          </div>
+
+          <div>{$translate(`app.labels.${type}`)}</div>
+          <div class="ml-1">{$translate('app.labels.offer').toLowerCase()}</div>
+        </div>
+      </div>
       {#if status === 'active'}
         <div class="flex flex-col w-full items-center my-4">
           <Qr values={[{ label: $translate('app.labels.offer'), value: bolt12 }]} />
@@ -177,21 +191,6 @@
 
           <div class="w-4 -rotate-90">{@html caret}</div>
         </a>
-      </SummaryRow>
-
-      <SummaryRow>
-        <div slot="label">{$translate('app.labels.type')}:</div>
-        <div class="flex items-center" slot="value">
-          <div
-            class="w-4 mr-1 -ml-1"
-            class:text-utility-success={type === 'pay'}
-            class:text-utility-error={type === 'withdraw'}
-          >
-            {@html type === 'pay' ? trendingUp : trendingDown}
-          </div>
-
-          <div>{$translate(`app.labels.${type}`)}</div>
-        </div>
       </SummaryRow>
 
       {#if issuer}

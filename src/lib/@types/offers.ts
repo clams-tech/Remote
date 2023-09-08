@@ -24,6 +24,7 @@ export type CreatePayOfferOptions = {
   issuer?: string
   label?: string
   quantityMax?: number
+  /** relative expiry seconds */
   expiry?: number
   singleUse?: boolean
 }
@@ -33,6 +34,7 @@ export type CreateWithdrawOfferOptions = {
   description: string
   issuer?: string
   label?: string
+  /** relative expiry seconds */
   expiry?: number
   singleUse?: boolean
 }

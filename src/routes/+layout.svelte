@@ -20,6 +20,7 @@
   import plus from '$lib/icons/plus.js'
   import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
+  import { db } from '$lib/db.js'
 
   const clearSession = () => session$.next(null)
 
@@ -32,6 +33,8 @@
     const connections = await Promise.all(
       $wallets$.map(async (wallet) => {
         let connection: Connection | null
+
+        await db.wallets.update(wallet.id, { syncing: false })
 
         try {
           connection = await connect(wallet)

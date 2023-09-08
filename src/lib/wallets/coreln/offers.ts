@@ -81,15 +81,17 @@ class Offers implements OffersInterface {
     try {
       const { amount, description, issuer, label, quantityMax, expiry, singleUse } = options
 
+      const absoluteExpiry = expiry && nowSeconds() + expiry
+
       const result = await this.connection.rpc({
         method: 'offer',
         params: {
-          amount: satsToMsats(amount),
+          amount: amount ? satsToMsats(amount) : 'any',
           description,
           issuer,
           label,
           quantity_max: quantityMax,
-          absolute_expiry: expiry,
+          absolute_expiry: absoluteExpiry,
           single_use: singleUse
         }
       })
@@ -109,7 +111,7 @@ class Offers implements OffersInterface {
         singleUse: single_use,
         active,
         label,
-        expiry,
+        expiry: absoluteExpiry,
         issuer,
         quantityMax
       }
@@ -147,7 +149,7 @@ class Offers implements OffersInterface {
           description,
           issuer,
           label,
-          absolute_expiry: expiry,
+          absolute_expiry: expiry && expiry + nowSeconds(),
           single_use: singleUse
         }
       })

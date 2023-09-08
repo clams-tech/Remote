@@ -335,6 +335,9 @@
       network
     } = transactionDetailToShow}
 
+    <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
+      <Summary {primary} {secondary} type={summaryType} {network} {status} />
+    </div>
     {#if qrValues.length}
       <div class="flex flex-col w-full items-center my-4">
         <Qr values={qrValues} />
@@ -342,10 +345,6 @@
         {#if expiresAt}
           <ExpiryCountdown on:expired={handlePaymentExpire} expiry={expiresAt} />
         {/if}
-      </div>
-    {:else}
-      <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
-        <Summary {primary} {secondary} type={summaryType} {network} {status} />
       </div>
     {/if}
 

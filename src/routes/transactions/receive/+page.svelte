@@ -119,13 +119,13 @@
 
 <Section>
   <div class="flex items-center justify-between mb-2">
-    <SectionHeading />
+    <SectionHeading icon={plus} />
   </div>
 
   {#if $availableWallets$}
     <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
   {:else}
-    <Msg message={$translate('app.labels.wallet_receive_unavailable')} type="info" />
+    <Msg message={$translate('app.errors.wallet_receive_unavailable')} type="info" />
   {/if}
 
   <div class="my-6">
@@ -157,7 +157,7 @@
     bind:value={amount}
     label={$translate('app.labels.amount')}
     name="amount"
-    hint={!amount ? 'Any amount' : ''}
+    hint={!amount ? $translate('app.labels.any_amount') : ''}
     sats={amount}
   />
 
