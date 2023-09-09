@@ -100,6 +100,7 @@ export interface OffersInterface {
   fetchInvoice?(options: FetchInvoiceOptions): Promise<string>
   /** Create an invoice for a BOLT12 Withdraw Offer and send it to be paid */
   sendInvoice?(options: SendInvoiceOptions): Promise<Invoice>
+  payInvoice?(bolt12: string): Promise<Invoice>
 }
 
 export interface InvoicesInterface {

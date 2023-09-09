@@ -22,6 +22,7 @@
   import caret from '$lib/icons/caret.js'
   import Qr from '$lib/components/Qr.svelte'
   import PaymentsList from './PaymentsList.svelte'
+  import { formatDateRelativeToNow } from '$lib/dates.js'
 
   export let data: PageData
 
@@ -114,7 +115,7 @@
       <Spinner />
     </div>
   {:else}
-    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12 } = $offer$}
+    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12, id } = $offer$}
     <div class="w-full">
       <div class="text-3xl font-semibold flex items-center justify-center w-full">
         <div class="flex items-center">
@@ -156,6 +157,17 @@
           <div>{$translate(`app.labels.${status}`)}</div>
         </div>
       </SummaryRow>
+
+      {#if expiry && status === 'expired'}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.expired')}:</div>
+          <div slot="value">
+            {#await formatDateRelativeToNow(expiry) then formatted}
+              {formatted}
+            {/await}
+          </div>
+        </SummaryRow>
+      {/if}
 
       {#if label}
         <SummaryRow>

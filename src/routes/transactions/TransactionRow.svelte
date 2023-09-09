@@ -15,12 +15,12 @@
 
   import {
     deriveInvoiceSummary,
-    deriveReceiveAddressSummary,
     deriveTransactionSummary,
     enhanceInputsOutputs,
     type PaymentSummary,
     type TransactionSummary
   } from '$lib/summary.js'
+  import { db } from '$lib/db.js'
 
   export let type: 'invoice' | 'address' | 'transaction'
   export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
@@ -55,16 +55,18 @@
         log.error(`Could not derive summary for invoice id: ${data.id}`)
       }
     } else if (type === 'address') {
+      const { walletId, createdAt, amount: receiveAmount } = data as Address
+      const wallet = await db.wallets.get(walletId)
+
       icon = bitcoin
       status = 'pending'
       network = getNetwork((data as Address).value)
-      const summary = await deriveReceiveAddressSummary(data as Address)
-      primary = summary.primary
-      secondary = summary.secondary
-      timestamp = summary.timestamp
-      summaryType = summary.type
-      fee = summary.fee
-      amount = (summary as PaymentSummary).amount
+      summaryType = 'receive'
+      primary = wallet?.label
+      secondary = undefined
+      timestamp = createdAt
+      fee = 0
+      amount = receiveAmount
     } else if (type === 'transaction') {
       const {
         blockheight,
@@ -122,7 +124,7 @@
       <div>
         {#if amount && status !== 'expired'}
           <div class="w-full flex justify-end text-xs">
-            {$translate(`app.labels.summary_amount_${summaryType}`)}:
+            {$translate(`app.labels.summary_amount_${summaryType}`, { status })}:
           </div>
           <BitcoinAmount sats={amount} />
         {/if}

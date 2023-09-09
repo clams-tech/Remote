@@ -26,8 +26,11 @@ import type {
   ListInvoiceRequestsResponse,
   ListOffersResponse,
   OfferSummary,
+  PayResponse,
   SendInvoiceResponse
 } from './types.js'
+import { createRandomHex } from '$lib/crypto.js'
+import Big from 'big.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -264,6 +267,47 @@ class Offers implements OffersInterface {
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus, expires_at),
         request: bolt12 as string,
         payIndex: pay_index,
+        walletId: this.connection.walletId
+      }
+    } catch (error) {
+      const context = 'sendInvoice (offers)'
+
+      const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+  async payInvoice(bolt12: string): Promise<Invoice> {
+    try {
+      const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
+
+      const {
+        payment_hash,
+        payment_preimage,
+        created_at,
+        amount_msat,
+        amount_sent_msat,
+        status,
+        destination
+      } = result as PayResponse
+
+      return {
+        id: createRandomHex(),
+        hash: payment_hash,
+        preimage: payment_preimage,
+        nodeId: destination,
+        type: 'bolt12',
+        direction: 'send',
+        amount: msatsToSats(formatMsatString(amount_msat)),
+        completedAt: nowSeconds(),
+        expiresAt: undefined,
+        createdAt: created_at,
+        fee: msatsToSats(
+          Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
+        ),
+        status,
+        request: bolt12,
         walletId: this.connection.walletId
       }
     } catch (error) {

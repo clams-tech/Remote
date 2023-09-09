@@ -36,6 +36,12 @@
     {#if offer.description}
       <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{offer.description}</div>
     {/if}
+
+    <div class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min mt-1 text-sm">
+      {#await db.wallets.get(offer.walletId) then wallet}
+        {wallet?.label}
+      {/await}
+    </div>
   </div>
 
   <div class="flex items-center ml-4 h-full">
@@ -57,9 +63,9 @@
         <BitcoinAmount sats={offer.amount} />
       {/if}
 
-      <div class="w-full flex justify-end mt-1">
+      <div class="w-full flex justify-end">
         <div
-          class="flex items-center w-min text-xs font-semibold bg-neutral-800 mt-1 rounded-full px-3 h-6"
+          class="flex items-center w-min text-xs font-semibold bg-neutral-800 mt-1 rounded-full px-3 h-5"
         >
           <div
             class="w-4 mr-1 -ml-1"
@@ -73,7 +79,7 @@
 
           {#if $offerPayments$ && $offerPayments$.length}
             <div
-              class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+              class="ml-1.5 w-4 h-4 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
             >
               {$offerPayments$.length}
             </div>
@@ -82,6 +88,6 @@
       </div>
     </div>
 
-    <div class="w-6 -rotate-90">{@html caret}</div>
+    <div class="w-6 -rotate-90 -mr-1 ml-1">{@html caret}</div>
   </div>
 </a>

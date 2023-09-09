@@ -29,7 +29,7 @@
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
-      await goto(`/offers/bolt12/${lightning || value}`)
+      await goto(`/offers/offer/${lightning || value}`)
     } else if (type === 'invoice' || lightning) {
       await goto(`/transactions/pay/bolt11/${lightning || value}`)
     } else if (type === 'node_publickey') {
@@ -64,7 +64,7 @@
   }
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <Section>
   <SectionHeading icon={scan} />

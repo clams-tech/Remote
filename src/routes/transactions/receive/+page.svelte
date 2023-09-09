@@ -115,7 +115,7 @@
   }
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <Section>
   <div class="flex items-center justify-between mb-2">

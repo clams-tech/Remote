@@ -31,7 +31,7 @@
   }
 </script>
 
-<svelte:window on:keyup={handleKeyup} />
+<svelte:window on:keyup|stopPropagation={handleKeyup} />
 
 <div class="flex justify-start items-center mr-2 py-2">
   <div class="flex items-center">

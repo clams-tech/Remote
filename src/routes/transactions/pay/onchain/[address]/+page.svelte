@@ -83,7 +83,7 @@
   const handleKeyUp = (e: KeyboardEvent) => e.key === 'Enter' && amountSats !== 0 && pay()
 </script>
 
-<svelte:window on:keyup={handleKeyUp} />
+<svelte:window on:keyup|stopPropagation={handleKeyUp} />
 
 <Section>
   <div class="w-full flex justify-center items-center text-3xl font-semibold">

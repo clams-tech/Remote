@@ -15,7 +15,9 @@
 <div class="flex flex-col w-full">
   <button class="block w-full" on:click={() => (open = !open)}>
     <div class="flex items-center justify-end w-full">
-      <div class="w-6 h-6 flex justify-center items-center rounded-full border border-current mr-2">
+      <div
+        class="w-5 h-5 flex justify-center items-center rounded-full border border-current mr-2 leading-none"
+      >
         {payments.length}
       </div>
       <div class="w-4 transition-all" class:rotate-180={open}>{@html caret}</div>

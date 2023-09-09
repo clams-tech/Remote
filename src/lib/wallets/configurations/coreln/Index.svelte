@@ -75,7 +75,7 @@
   onMount(() => focusConnectionInput && focusConnectionInput())
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <div class="w-full py-2">
   <div class="flex items-center w-full justify-between mb-3">

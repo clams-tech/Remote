@@ -11,6 +11,7 @@ import type { Wallet } from './@types/wallets.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import { truncateValue } from './utils.js'
 import { liveQuery } from 'dexie'
+import { isBolt12Invoice } from './invoices.js'
 
 export type ChannelTransactionSummary = {
   timestamp: number
@@ -419,7 +420,7 @@ export const deriveInvoiceSummary = async ({
 }: Invoice): Promise<TransactionSummary> => {
   let transferWallet: Wallet | undefined
 
-  if (direction === 'send') {
+  if (direction === 'send' || (request && isBolt12Invoice(request))) {
     const lightningConnections = await firstValueFrom(
       connections$.pipe(
         filter((connections) => !!connections.length),
@@ -468,8 +469,12 @@ export const deriveInvoiceSummary = async ({
     category: direction === 'receive' ? 'income' : 'expense',
     type: transferWallet ? 'transfer' : direction,
     amount,
-    primary: wallet.label,
-    secondary: transferWallet ? transferWallet.label : counterparty
+    primary: transferWallet && direction === 'receive' ? transferWallet.label : wallet.label,
+    secondary: transferWallet
+      ? direction === 'receive'
+        ? wallet.label
+        : transferWallet.label
+      : counterparty
   }
 }
 
