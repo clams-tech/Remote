@@ -3,6 +3,7 @@ export type Settings = {
   fiatDenomination: FiatDenomination
   notifications: boolean
   tiles: Tile[]
+  lavaLamp: boolean
 }
 
 export type Tile =

@@ -395,7 +395,9 @@
     "three_days": "3 days",
     "week": "1 week",
     "required": "Required",
-    "payer_note_placeholder": "note to receiver"
+    "payer_note_placeholder": "note to receiver",
+    "lava_lamp": "Lava lamp",
+    "lava_lamp_description": "Turn the laval lamp animation on and off"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

@@ -70,6 +70,8 @@
     toggle('notifications')
   }
 
+  const toggleLavaLamp = () => toggle('lavaLamp')
+
   const showTestNotification = () => {
     if (showingTestNotification?.close) {
       showingTestNotification.close()
@@ -205,6 +207,31 @@
       <div class="max-w-[200px] text-sm">
         {$translate('app.labels.homescreen_description')}
       </div>
+    </button>
+
+    <button on:click={toggleLavaLamp} class="p-4 border rounded-lg break-inside-avoid">
+      <div class="flex items-center justify-between mb-2">
+        <div class="uppercase font-semibold mr-6 leading-none">
+          {$translate('app.labels.lava_lamp')}
+        </div>
+        <div class="mb-0.5">
+          <Toggle bind:toggled={$settings$.lavaLamp} />
+        </div>
+      </div>
+
+      <div class="max-w-[200px] text-sm">
+        {$translate('app.labels.lava_lamp_description')}
+      </div>
+
+      {#if $settings$.notifications}
+        <div transition:slide={{ axis: 'y' }} class="w-full flex justify-end">
+          <button
+            class="mt-2 text-sm font-semibold px-2 border-2 rounded"
+            on:click|stopPropagation={showTestNotification}
+            >{$translate(`app.labels.${showingTestNotification?.close ? 'close' : 'test'}`)}</button
+          >
+        </div>
+      {/if}
     </button>
   </div>
 

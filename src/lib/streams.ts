@@ -31,7 +31,6 @@ import {
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
-
 export const connections$ = new BehaviorSubject<Connection[]>([])
 export const wallets$ = from(liveQuery(() => db.wallets.toArray()))
 

@@ -84,7 +84,8 @@ export const DEFAULT_SETTINGS: Settings = {
     : navigator.language) as Language,
   fiatDenomination: FiatDenomination.usd,
   notifications: false,
-  tiles: TILES
+  tiles: TILES,
+  lavaLamp: true
 }
 
 export const SUPPORTED_LANGUAGES = ['en', 'en-AU', 'en-GB', 'en-US']

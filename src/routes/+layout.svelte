@@ -4,7 +4,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
-  import { errors$, session$, wallets$ } from '$lib/streams.js'
+  import { errors$, session$, settings$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
@@ -89,9 +89,11 @@
 </svelte:head>
 
 <main class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-50 overflow-hidden">
-  <div class="-z-10 overflow-hidden">
-    <Lava />
-  </div>
+  {#if $settings$.lavaLamp}
+    <div transition:fade class="-z-10 overflow-hidden">
+      <Lava />
+    </div>
+  {/if}
 
   <header class="flex w-full items-center justify-between">
     <div class="flex items-center">
