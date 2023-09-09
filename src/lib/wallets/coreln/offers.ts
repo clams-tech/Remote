@@ -4,6 +4,8 @@ import { invoiceStatusToPaymentStatus, formatMsatString } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
+import { bolt12ToOffer } from '$lib/invoices.js'
+import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 
 import type {
   CreatePayOfferOptions,
@@ -24,10 +26,11 @@ import type {
   ListInvoiceRequestsResponse,
   ListOffersResponse,
   OfferSummary,
+  PayResponse,
   SendInvoiceResponse
 } from './types.js'
-import { bolt12ToOffer } from '$lib/invoices.js'
-import { msatsToSats, satsToMsats } from '$lib/conversion.js'
+import { createRandomHex } from '$lib/crypto.js'
+import Big from 'big.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -81,15 +84,17 @@ class Offers implements OffersInterface {
     try {
       const { amount, description, issuer, label, quantityMax, expiry, singleUse } = options
 
+      const absoluteExpiry = expiry && nowSeconds() + expiry
+
       const result = await this.connection.rpc({
         method: 'offer',
         params: {
-          amount: satsToMsats(amount),
+          amount: amount ? satsToMsats(amount) : 'any',
           description,
           issuer,
           label,
           quantity_max: quantityMax,
-          absolute_expiry: expiry,
+          absolute_expiry: absoluteExpiry,
           single_use: singleUse
         }
       })
@@ -100,7 +105,7 @@ class Offers implements OffersInterface {
         id: offer_id,
         bolt12,
         type: 'pay',
-        denomination: BitcoinDenomination.msats,
+        denomination: BitcoinDenomination.sats,
         amount,
         description,
         nodeId: this.connection.info.id,
@@ -109,7 +114,7 @@ class Offers implements OffersInterface {
         singleUse: single_use,
         active,
         label,
-        expiry,
+        expiry: absoluteExpiry,
         issuer,
         quantityMax
       }
@@ -147,7 +152,7 @@ class Offers implements OffersInterface {
           description,
           issuer,
           label,
-          absolute_expiry: expiry,
+          absolute_expiry: expiry && expiry + nowSeconds(),
           single_use: singleUse
         }
       })
@@ -158,7 +163,7 @@ class Offers implements OffersInterface {
         id: invreq_id,
         bolt12,
         type: 'withdraw',
-        denomination: BitcoinDenomination.msats,
+        denomination: BitcoinDenomination.sats,
         amount,
         description,
         nodeId: this.connection.info.id,
@@ -262,6 +267,47 @@ class Offers implements OffersInterface {
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus, expires_at),
         request: bolt12 as string,
         payIndex: pay_index,
+        walletId: this.connection.walletId
+      }
+    } catch (error) {
+      const context = 'sendInvoice (offers)'
+
+      const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+  async payInvoice(bolt12: string): Promise<Invoice> {
+    try {
+      const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
+
+      const {
+        payment_hash,
+        payment_preimage,
+        created_at,
+        amount_msat,
+        amount_sent_msat,
+        status,
+        destination
+      } = result as PayResponse
+
+      return {
+        id: createRandomHex(),
+        hash: payment_hash,
+        preimage: payment_preimage,
+        nodeId: destination,
+        type: 'bolt12',
+        direction: 'send',
+        amount: msatsToSats(formatMsatString(amount_msat)),
+        completedAt: nowSeconds(),
+        expiresAt: undefined,
+        createdAt: created_at,
+        fee: msatsToSats(
+          Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
+        ),
+        status,
+        request: bolt12,
         walletId: this.connection.walletId
       }
     } catch (error) {

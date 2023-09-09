@@ -10,7 +10,7 @@
   import Modal from '$lib/components/Modal.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import edit from '$lib/icons/edit.js'
-  import { filter, map, switchMap, takeUntil, timer } from 'rxjs'
+  import { filter, from, map, mergeMap, switchMap, takeUntil, timer } from 'rxjs'
   import type { Channel } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db.js'
@@ -22,11 +22,9 @@
   import type { AppError } from '$lib/@types/errors.js'
   import caret from '$lib/icons/caret.js'
   import type { Wallet } from '$lib/@types/wallets.js'
-  import type { Transaction } from '$lib/@types/transactions.js'
   import { truncateValue } from '$lib/utils.js'
 
   export let data: PageData // channel id
-  const channels$ = liveQuery(() => db.channels.toArray())
 
   let channel: Channel
   let connection: Connection
@@ -35,44 +33,52 @@
   let feeRateUpdate: number
   let minForwardUpdate: number
   let maxForwardUpdate: number
-  let closingTransaction: Transaction
-
   let loaded = false
+  let couldNotFindChannel: boolean
 
-  $: if ($channels$) {
-    findChannel()
+  const channel$ = from(
+    liveQuery(() =>
+      db.channels.get(data.id).then((channel) => {
+        couldNotFindChannel = !channel
+        return channel
+      })
+    )
+  )
+
+  const closingTransaction$ = channel$.pipe(
+    filter((x) => !!x),
+    mergeMap((channel) =>
+      db.transactions
+        .where({ 'channel.id': channel!.id })
+        .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
+        .first()
+    )
+  )
+
+  $: if ($channel$) {
+    loadData()
   }
 
-  async function findChannel() {
-    channel = $channels$.find((p) => p.id === data.id)!
+  const loadData = async () => {
+    connection = $connections$.find((conn) => conn.walletId === channel.walletId) as Connection
+    wallet = (await db.wallets.get(channel.walletId)) as Wallet
 
-    if (channel) {
-      connection = $connections$.find((conn) => conn.walletId === channel.walletId) as Connection
-      wallet = (await db.wallets.get(channel.walletId)) as Wallet
+    const { feeBase, feePpm, htlcMin, htlcMax } = channel
 
-      closingTransaction = (await db.transactions
-        .where('channel.id')
-        .equals(channel.id)
-        .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
-        .first()) as Transaction
+    if (feeBase) {
+      feeBaseUpdate = feeBase
+    }
 
-      const { feeBase, feePpm, htlcMin, htlcMax } = channel
+    if (feePpm) {
+      feeRateUpdate = feePpm
+    }
 
-      if (feeBase) {
-        feeBaseUpdate = feeBase
-      }
+    if (htlcMin) {
+      minForwardUpdate = htlcMin
+    }
 
-      if (feePpm) {
-        feeRateUpdate = feePpm
-      }
-
-      if (htlcMin) {
-        minForwardUpdate = htlcMin
-      }
-
-      if (htlcMax) {
-        maxForwardUpdate = htlcMax
-      }
+    if (htlcMax) {
+      maxForwardUpdate = htlcMax
     }
 
     loaded = true
@@ -153,7 +159,11 @@
 
 <Section>
   <div class="w-full flex flex-col items-center">
-    {#if !loaded}
+    {#if couldNotFindChannel}
+      <div class="mt-4">
+        <Msg message={$translate('app.errors.could_not_find_channel')} type="error" />
+      </div>
+    {:else if !loaded}
       <Spinner />
     {:else if channel}
       {@const {
@@ -265,14 +275,14 @@
             </SummaryRow>
           {/if}
 
-          {#if closingTransaction}
+          {#if $closingTransaction$}
             <SummaryRow>
               <div slot="label">
                 {$translate('app.labels.closing_transaction')}:
               </div>
               <div slot="value">
-                <a href={`/transactions/${closingTransaction.id}`} class="flex items-center"
-                  >{truncateValue(closingTransaction.id)}
+                <a href={`/transactions/${$closingTransaction$.id}`} class="flex items-center"
+                  >{truncateValue($closingTransaction$.id)}
                   <div class="w-4 -rotate-90">{@html caret}</div>
                 </a>
               </div>

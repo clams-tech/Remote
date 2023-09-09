@@ -2,7 +2,7 @@
   import '../app.css'
   import { page } from '$app/stores'
   import { translate } from '$lib/i18n/translations.js'
-  import clamsIcon from '$lib/icons/clamsIcon.js'
+  import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
   import { errors$, session$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
@@ -20,6 +20,7 @@
   import plus from '$lib/icons/plus.js'
   import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
+  import { db } from '$lib/db.js'
 
   const clearSession = () => session$.next(null)
 
@@ -32,6 +33,8 @@
     const connections = await Promise.all(
       $wallets$.map(async (wallet) => {
         let connection: Connection | null
+
+        await db.wallets.update(wallet.id, { syncing: false })
 
         try {
           connection = await connect(wallet)
@@ -121,7 +124,7 @@
         {/if}
 
         <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
-          >{@html clamsIcon}</button
+          >{@html clamsIconPlain}</button
         >
       </div>
     {/if}

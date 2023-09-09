@@ -53,7 +53,7 @@
   onMount(() => setTimeout(() => input.focus(), 250))
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <Section>
   <div class="w-full flex justify-center mb-8">

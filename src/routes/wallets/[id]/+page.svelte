@@ -36,6 +36,7 @@
     connectionOptions,
     syncConnectionData
   } from '$lib/wallets/index.js'
+  import ShowMoar from '$lib/components/ShowMoar.svelte'
 
   export let data: PageData
 
@@ -201,7 +202,6 @@
     setTimeout(() => goto('/wallets'), 250)
   }
 
-  let expandRecentErrors = false
   let showDeleteModal = false
   let showInfoModal = false
 </script>
@@ -344,27 +344,15 @@
     {/if}
 
     {#if $recentErrors$}
-      <button
-        on:click={() => (expandRecentErrors = !expandRecentErrors)}
-        class="mt-4 flex items-center text-sm cursor-pointer w-full font-semibold"
-      >
-        <div class:-rotate-90={!expandRecentErrors} class="w-3 mr-1 transition-transform">
-          {@html caret}
-        </div>
-
-        <span class="underline">{$translate('app.labels.recent_errors')}</span>
-      </button>
-
-      {#if expandRecentErrors}
-        <div
-          transition:slide={{ duration: 250 }}
-          class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start w-full gap-y-2"
-        >
-          {#each $recentErrors$ as error}
-            <ErrorDetail {error} />
-          {/each}
-        </div>
-      {/if}
+      <div class="text-sm mt-4">
+        <ShowMoar label={$translate('app.labels.recent_errors')}>
+          <div class="mt-2 pl-4 pr-[1px] flex flex-col items-start w-full gap-y-2">
+            {#each $recentErrors$ as error}
+              <ErrorDetail {error} />
+            {/each}
+          </div>
+        </ShowMoar>
+      </div>
     {/if}
   {/if}
 </Section>

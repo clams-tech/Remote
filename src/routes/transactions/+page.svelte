@@ -9,7 +9,7 @@
   import Spinner from '$lib/components/Spinner.svelte'
   import list from '$lib/icons/list.js'
   import { liveQuery } from 'dexie'
-  import TransactionRow from './components/TransactionRow.svelte'
+  import TransactionRow from './TransactionRow.svelte'
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { endOfDay } from 'date-fns'
@@ -75,7 +75,6 @@
 
   const dailyPayments$ = zip([invoices$, transactions$, addresses$]).pipe(
     map((payments) => {
-      // const paymentMap = payments.flat().reduce((acc, payment) => {
       const paymentMap = payments.flat().reduce((acc, payment) => {
         const date = new Date(payment.timestamp * 1000)
         const dateKey = endOfDay(date).getTime() / 1000

@@ -11,6 +11,7 @@
   export let status: TransactionStatus
   export let timestamp: TransactionSummary['timestamp'] = 0
   export let network: Network
+  export let centered = false
 </script>
 
 <div>
@@ -29,7 +30,7 @@
     </span>
   </div>
 
-  <div class="flex items-center">
+  <div class="flex items-center gap-x-1" class:justify-center={centered}>
     {#if timestamp}
       {#await formatDate(timestamp, 'hh:mma') then formattedTime}
         <div class="text-[0.75em] font-semibold mt-1">{formattedTime}</div>
@@ -37,7 +38,7 @@
     {/if}
 
     {#if network !== 'bitcoin'}
-      <div class="text-xs ml-1 px-1 py-0.5 font-semibold bg-neutral-700 rounded-full leading-none">
+      <div class="text-xs px-1 py-0.5 font-semibold bg-neutral-700 rounded-full leading-none">
         {network}
       </div>
     {/if}

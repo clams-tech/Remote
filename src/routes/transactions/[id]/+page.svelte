@@ -25,11 +25,10 @@
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
   import type { Deposit } from '$lib/@types/deposits.js'
-  import Summary from '../components/Summary.svelte'
+  import Summary from '../Summary.svelte'
 
   import {
     deriveInvoiceSummary,
-    deriveReceiveAddressSummary,
     deriveTransactionSummary,
     enhanceInputsOutputs,
     type EnhancedInput,
@@ -185,8 +184,6 @@
         })
       }
 
-      const summary = await deriveReceiveAddressSummary(address)
-
       details.push({
         type: 'address',
         qrValues,
@@ -198,11 +195,11 @@
         wallet,
         channel: tx?.channel,
         txid,
-        category: summary.category,
-        summaryType: summary.type,
-        primary: summary.primary,
-        secondary: summary.secondary,
-        timestamp: summary.timestamp,
+        category: 'income',
+        summaryType: 'receive',
+        primary: wallet.label,
+        secondary: undefined,
+        timestamp: createdAt,
         network: getNetwork(value)
       })
     }
@@ -335,6 +332,9 @@
       network
     } = transactionDetailToShow}
 
+    <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
+      <Summary {primary} {secondary} type={summaryType} {network} {status} centered />
+    </div>
     {#if qrValues.length}
       <div class="flex flex-col w-full items-center my-4">
         <Qr values={qrValues} />
@@ -343,23 +343,21 @@
           <ExpiryCountdown on:expired={handlePaymentExpire} expiry={expiresAt} />
         {/if}
       </div>
-    {:else}
-      <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
-        <Summary {primary} {secondary} type={summaryType} {network} {status} />
-      </div>
     {/if}
 
     <div class="w-full flex justify-center mt-2">
       <div class="w-full">
         <!-- amount -->
-        {#if amount}
-          <SummaryRow>
-            <span slot="label">{$translate('app.labels.amount')}:</span>
-            <div slot="value">
+        <SummaryRow>
+          <span slot="label">{$translate('app.labels.amount')}:</span>
+          <div slot="value">
+            {#if amount === 0}
+              <div>{$translate('app.labels.any_amount')}</div>
+            {:else}
               <BitcoinAmount sats={amount} />
-            </div>
-          </SummaryRow>
-        {/if}
+            {/if}
+          </div>
+        </SummaryRow>
 
         <!-- wallet -->
         <SummaryRow>

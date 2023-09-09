@@ -4,7 +4,7 @@ export type Offer = {
   id: string
   bolt12: string
   type: 'pay' | 'withdraw'
-  denomination: BitcoinDenomination.msats | FiatDenomination
+  denomination: BitcoinDenomination.sats | FiatDenomination
   amount: number
   description: string
   nodeId: string
@@ -24,6 +24,7 @@ export type CreatePayOfferOptions = {
   issuer?: string
   label?: string
   quantityMax?: number
+  /** relative expiry seconds */
   expiry?: number
   singleUse?: boolean
 }
@@ -33,6 +34,7 @@ export type CreateWithdrawOfferOptions = {
   description: string
   issuer?: string
   label?: string
+  /** relative expiry seconds */
   expiry?: number
   singleUse?: boolean
 }

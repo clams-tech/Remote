@@ -4,10 +4,10 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import scan from '$lib/icons/scan.js'
-  import Image from './components/Image.svelte'
-  import Scan from './components/Scan.svelte'
-  import Text from './components/Text.svelte'
-  import NFCComponent from './components/Nfc.svelte'
+  import Image from './Image.svelte'
+  import Scan from './Scan.svelte'
+  import Text from './Text.svelte'
+  import NFCComponent from './Nfc.svelte'
   import { nfc } from '$lib/services.js'
   import { goto } from '$app/navigation'
   import { isBolt12Offer } from '$lib/input-parser.js'
@@ -29,7 +29,7 @@
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
-      await goto(`/offers/bolt12/${lightning || value}`)
+      await goto(`/offers/offer/${lightning || value}`)
     } else if (type === 'invoice' || lightning) {
       await goto(`/transactions/pay/bolt11/${lightning || value}`)
     } else if (type === 'node_publickey') {
@@ -64,7 +64,7 @@
   }
 </script>
 
-<svelte:window on:keyup={handleKeyPress} />
+<svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <Section>
   <SectionHeading icon={scan} />

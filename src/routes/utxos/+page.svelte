@@ -8,7 +8,7 @@
   import { fade, slide } from 'svelte/transition'
   import filter from '$lib/icons/filter.js'
   import { translate } from '$lib/i18n/translations.js'
-  import Coin from './components/Coin.svelte'
+  import Coin from './Coin.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import wallet from '$lib/icons/wallet.js'

@@ -10,6 +10,7 @@ import type { Connection } from './interfaces.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
+import { log } from '$lib/services.js'
 
 export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
   {
@@ -113,71 +114,98 @@ export const syncConnectionData = (
 
   const invoicesRequest = async () =>
     connection.invoices
-      ? connection.invoices.get().then((invoices) => db.invoices.bulkPut(invoices))
+      ? connection.invoices
+          .get()
+          .then((invoices) => db.invoices.bulkPut(invoices))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(invoicesRequest)
 
   const utxosRequest = () =>
     connection.utxos
-      ? connection.utxos.get().then((utxos) => db.utxos.bulkPut(utxos))
+      ? connection.utxos
+          .get()
+          .then((utxos) => db.utxos.bulkPut(utxos))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(utxosRequest)
 
   const channelsRequest = () =>
     connection.channels
-      ? connection.channels.get().then((channels) =>
-          channels.map((channel) =>
-            // need to update channels as old channels lose data after 100 blocks of being close
-            // so we don't want to overwrite data we already have as it is useful
-            db.channels
-              .update(channel.id, channel)
-              .then((updated) => !updated && db.channels.add(channel))
+      ? connection.channels
+          .get()
+          .then((channels) =>
+            channels.map((channel) =>
+              // need to update channels as old channels lose data after 100 blocks of being close
+              // so we don't want to overwrite data we already have as it is useful
+              db.channels
+                .update(channel.id, channel)
+                .then((updated) => !updated && db.channels.add(channel))
+            )
           )
-        )
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(channelsRequest)
 
   const transactionsRequest = () =>
     connection.transactions
-      ? connection.transactions.get().then((transactions) => db.transactions.bulkPut(transactions))
+      ? connection.transactions
+          .get()
+          .then((transactions) => db.transactions.bulkPut(transactions))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(transactionsRequest)
 
   const forwardsRequest = () =>
     connection.forwards
-      ? connection.forwards.get().then((forwards) => db.forwards.bulkPut(forwards))
+      ? connection.forwards
+          .get()
+          .then((forwards) => db.forwards.bulkPut(forwards))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(forwardsRequest)
 
   const offersRequest = () =>
     connection.offers
-      ? connection.offers.get().then((offers) => db.offers.bulkPut(offers))
+      ? connection.offers
+          .get()
+          .then((offers) => db.offers.bulkPut(offers))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(offersRequest)
 
   const tradesRequest = () =>
     connection.trades
-      ? connection.trades.get().then((trades) => db.trades.bulkPut(trades))
+      ? connection.trades
+          .get()
+          .then((trades) => db.trades.bulkPut(trades))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(tradesRequest)
 
   const withdrawalsRequest = () =>
     connection.withdrawals
-      ? connection.withdrawals.get().then((withdrawals) => db.withdrawals.bulkPut(withdrawals))
+      ? connection.withdrawals
+          .get()
+          .then((withdrawals) => db.withdrawals.bulkPut(withdrawals))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(withdrawalsRequest)
 
   const depositsRequest = () =>
     connection.deposits
-      ? connection.deposits.get().then((deposits) => db.deposits.bulkPut(deposits))
+      ? connection.deposits
+          .get()
+          .then((deposits) => db.deposits.bulkPut(deposits))
+          .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(depositsRequest)
@@ -194,10 +222,12 @@ export const syncConnectionData = (
         .sortBy('payIndex')
         .then(([lastPayedInvoice]) => {
           if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-            connection.invoices.listenForAnyInvoicePayment(
-              (invoice) => db.invoices.put(invoice),
-              lastPayedInvoice?.payIndex
-            )
+            connection.invoices
+              .listenForAnyInvoicePayment(
+                (invoice) => db.invoices.put(invoice),
+                lastPayedInvoice?.payIndex
+              )
+              .catch((error) => log.error(error.detail.message))
           }
         })
     }
