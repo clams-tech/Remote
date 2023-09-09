@@ -5,6 +5,7 @@
   import { storage } from '$lib/services.js'
   import { fade } from 'svelte/transition'
   import { settings$, wallets$ } from '$lib/streams.js'
+  import type { Tile } from '$lib/@types/settings.js'
 
   let showGetStartedHint = false
   const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
@@ -16,6 +17,8 @@
   function handleCloseHint() {
     storage.write(STORAGE_KEYS.getStartedHint, 'true')
   }
+
+  const getIcon = (tile: string) => TILE_ICONS[tile as Tile]
 </script>
 
 <div
@@ -25,18 +28,20 @@
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"
   >
-    {#each $settings$.tiles as tile (tile)}
-      {@const route = `/${tile}`}
-      <a
-        href={route}
-        class="aspect-square no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
-      >
-        <div class="w-10 xs:w-12">
-          {@html TILE_ICONS[tile]}
-        </div>
+    {#each Object.entries($settings$.tiles) as [tile, display] (tile)}
+      {#if display}
+        {@const route = `/${tile}`}
+        <a
+          href={route}
+          class="aspect-square no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
+        >
+          <div class="w-10 xs:w-12">
+            {@html getIcon(tile)}
+          </div>
 
-        <div>{$translate(`app.routes.${route}.title`)}</div>
-      </a>
+          <div>{$translate(`app.routes.${route}.title`)}</div>
+        </a>
+      {/if}
     {/each}
   </div>
 </div>

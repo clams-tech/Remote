@@ -7,7 +7,7 @@ import type { AppError } from './@types/errors.js'
 import type { Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
-import { getBitcoinExchangeRate } from './utils.js'
+import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
 import { liveQuery } from 'dexie'
 import { db } from './db.js'
 
@@ -74,13 +74,12 @@ export const onDestroy$ = defer(() => {
 // current bitcoin exchange rates
 export const bitcoinExchangeRates$ = new BehaviorSubject<BitcoinExchangeRates | null>(null)
 
-const storedSettings = typeof window !== 'undefined' && storage.get(STORAGE_KEYS.settings)
+const storedSettings = typeof window !== 'undefined' ? storage.get(STORAGE_KEYS.settings) : null
 
 // app settings
-export const settings$ = new SvelteSubject<Settings>({
-  ...DEFAULT_SETTINGS,
-  ...(storedSettings ? JSON.parse(storedSettings) : {})
-})
+export const settings$ = new SvelteSubject<Settings>(
+  mergeDefaultsWithStoredSettings(DEFAULT_SETTINGS, storedSettings)
+)
 
 // updates settings in storage on change
 settings$

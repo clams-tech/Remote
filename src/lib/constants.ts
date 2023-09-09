@@ -1,13 +1,12 @@
 import { FiatDenomination, type Language, type Settings, type Tile } from './@types/settings.js'
 import channels from '$lib/icons/channels.js'
-import feeOutline from '$lib/icons/fee-outline.js'
-import graph from '$lib/icons/graph.js'
+// import graph from '$lib/icons/graph.js'
+// import trade from '$lib/icons/trade.js'
 import keys from '$lib/icons/keys.js'
 import lightningOutline from '$lib/icons/lightning-outline.js'
 import list from '$lib/icons/list.js'
 import settingsOutline from '$lib/icons/settings-outline.js'
 import wallet from '$lib/icons/wallet.js'
-import trade from '$lib/icons/trade.js'
 import forward from '$lib/icons/forward.js'
 import type { Network } from './@types/common.js'
 
@@ -28,18 +27,18 @@ export const WEEK_IN_SECS = 7 * DAY_IN_SECS
 
 export const DEFAULT_INVOICE_EXPIRY = 60 * MIN_IN_SECS
 
-export const TILES: Tile[] = [
-  'wallets',
-  'transactions',
-  'utxos',
-  'channels',
-  'offers',
-  'forwards',
-  'accounting',
-  'charts',
-  'trades',
-  'settings'
-]
+export const TILES: Record<Tile, boolean> = {
+  wallets: true,
+  transactions: true,
+  utxos: true,
+  channels: true,
+  offers: true,
+  forwards: true,
+  // accounting: true,
+  // charts: true,
+  // trades: true,
+  settings: true
+}
 
 export const TILE_ICONS: Record<Tile, string> = {
   wallets: wallet,
@@ -48,9 +47,9 @@ export const TILE_ICONS: Record<Tile, string> = {
   channels: channels,
   offers: lightningOutline,
   forwards: forward,
-  trades: trade,
-  accounting: feeOutline,
-  charts: graph,
+  // trades: trade,
+  // accounting: feeOutline,
+  // charts: graph,
   settings: settingsOutline
 }
 

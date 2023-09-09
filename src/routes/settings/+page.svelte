@@ -101,28 +101,9 @@
   let showHomescreenModal = false
   const toggleHomescreenModal = () => (showHomescreenModal = !showHomescreenModal)
 
-  const toggleTile = (tile: Tile) => {
-    if ($settings$.tiles.includes(tile)) {
-      $settings$.tiles = $settings$.tiles.filter((t) => t !== tile)
-    } else {
-      $settings$.tiles = [...$settings$.tiles.filter((t) => t !== 'settings'), tile, 'settings']
-    }
+  const toggleTile = (tile: string) => {
+    $settings$.tiles[tile as Tile] = !$settings$.tiles[tile as Tile]
   }
-
-  $: sortedTiles = TILES.filter((t) => t !== 'settings')
-    .reduce(
-      (sorted, tile) => {
-        if ($settings$.tiles.includes(tile)) {
-          sorted[0].push(tile)
-        } else {
-          sorted[1].push(tile)
-        }
-
-        return sorted
-      },
-      [[], []] as [Tile[], Tile[]]
-    )
-    .flat()
 </script>
 
 <svelte:head>
@@ -311,9 +292,7 @@
 {#if showHomescreenModal}
   <Modal on:close={() => (showHomescreenModal = false)}>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
-      {#each sortedTiles as tile (tile)}
-        {@const toggled = $settings$.tiles.includes(tile)}
-
+      {#each Object.entries($settings$.tiles) as [tile, toggled] (tile)}
         <button
           animate:flip={{ duration: 350 }}
           class="w-full disabled:opacity-50"

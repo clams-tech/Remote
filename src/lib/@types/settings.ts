@@ -2,7 +2,7 @@ export type Settings = {
   language: Language
   fiatDenomination: FiatDenomination
   notifications: boolean
-  tiles: Tile[]
+  tiles: Record<Tile, boolean>
   lavaLamp: boolean
 }
 
@@ -13,9 +13,9 @@ export type Tile =
   | 'channels'
   | 'offers'
   | 'forwards'
-  | 'accounting'
-  | 'charts'
-  | 'trades'
+  // | 'accounting'
+  // | 'charts'
+  // | 'trades'
   | 'settings'
 
 export type Language =
