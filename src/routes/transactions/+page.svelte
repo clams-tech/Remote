@@ -197,14 +197,18 @@
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-4 w-min hover:bg-neutral-800"
+      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
       on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
       on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >
-      <div class="w-6">{@html plus}</div>
+      <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+        <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
+      </div>
+
+      <div class="w-6 relative">{@html plus}</div>
 
       {#if !transactionsContainerScrollable || showFullReceiveButton}
-        <div class="ml-1 font-semibold" in:slide|local={{ axis: 'x' }}>
+        <div class="ml-1 font-semibold relative" in:slide|local={{ axis: 'x' }}>
           {$translate('app.labels.receive')}
         </div>
       {/if}

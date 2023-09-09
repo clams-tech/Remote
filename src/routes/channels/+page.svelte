@@ -130,14 +130,18 @@
       class:absolute={channelsContainerScrollable}
       class:px-2={channelsContainerScrollable}
       class:px-4={!channelsContainerScrollable || showFullOpenButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 py-2 shadow shadow-neutral-50 mt-4 w-min hover:bg-neutral-800"
+      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 relative mt-4 w-min hover:bg-neutral-800"
       on:mouseenter={() => channelsContainerScrollable && (showFullOpenButton = true)}
       on:mouseleave={() => channelsContainerScrollable && (showFullOpenButton = false)}
     >
-      <div class="w-6 -ml-1">{@html plus}</div>
+      <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+        <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
+      </div>
+
+      <div class="w-6 -ml-1 relative">{@html plus}</div>
 
       {#if !channelsContainerScrollable || showFullOpenButton}
-        <div class="font-semibold" in:slide|local={{ axis: 'x' }}>
+        <div class="font-semibold relative" in:slide|local={{ axis: 'x' }}>
           {$translate('app.labels.open')}
         </div>
       {/if}
