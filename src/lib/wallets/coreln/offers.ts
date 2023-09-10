@@ -6,6 +6,9 @@ import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { bolt12ToOffer } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
+import { createRandomHex } from '$lib/crypto.js'
+import Big from 'big.js'
+import { log } from '$lib/services.js'
 
 import type {
   CreatePayOfferOptions,
@@ -29,8 +32,6 @@ import type {
   PayResponse,
   SendInvoiceResponse
 } from './types.js'
-import { createRandomHex } from '$lib/crypto.js'
-import Big from 'big.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -49,27 +50,36 @@ class Offers implements OffersInterface {
       const { offers } = offersResponse as ListOffersResponse
       const { invoicerequests } = invoiceRequestsResponse as ListInvoiceRequestsResponse
 
-      const formatted = [...offers, ...invoicerequests].map(async (offer) => {
-        const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
-        const { invreq_id } = offer as InvoiceRequestSummary
+      const formatted = await Promise.all(
+        [...offers, ...invoicerequests].map(async (offer) => {
+          const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
+          const { invreq_id } = offer as InvoiceRequestSummary
 
-        const formattedOffer = await bolt12ToOffer(
-          bolt12,
-          this.connection.walletId,
-          offer_id || invreq_id
-        )
+          try {
+            const formattedOffer = await bolt12ToOffer(
+              bolt12,
+              this.connection.walletId,
+              offer_id || invreq_id
+            )
 
-        return {
-          ...formattedOffer,
-          active,
-          single_use,
-          used,
-          bolt12,
-          label
-        }
-      })
+            return {
+              ...formattedOffer,
+              active,
+              single_use,
+              used,
+              bolt12,
+              label
+            }
+          } catch (error) {
+            const { message } = error as Error
+            log.error(message)
 
-      return Promise.all(formatted)
+            return null
+          }
+        })
+      )
+
+      return formatted.filter((x) => x !== null) as Offer[]
     } catch (error) {
       const context = 'get (offers)'
 
