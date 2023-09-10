@@ -31,9 +31,6 @@
   const offer$ = liveQuery(() =>
     db.offers.get(data.id).then((offer) => {
       offerNotFound = !offer
-
-      if (offer) {
-      }
       return offer
     })
   )
