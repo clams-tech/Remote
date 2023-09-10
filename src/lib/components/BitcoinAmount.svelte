@@ -4,6 +4,7 @@
   import bitcoin from '$lib/icons/bitcoin.js'
 
   export let sats: number
+  export let short = false
 
   // convert to btc
   $: btc = satsToBtcString(sats)
@@ -24,13 +25,13 @@
 </script>
 
 <div class="flex items-center">
-  {#if !displayMsat}
+  {#if !displayMsat && !short}
     <div class="w-[1.25em] text-neutral-50 -ml-1">{@html bitcoin}</div>
   {/if}
 
   <div class="flex">
     <div class="mr-[0.375em] font-mono leading-snug">
-      {@html displayMsat ? satsToMsats(sats) : formattedBtc}
+      {@html displayMsat ? satsToMsats(sats) : short ? sats : formattedBtc}
     </div>
     <div class="text-[0.75em] text-neutral-50 flex items-end leading-none pb-[0.25em]">
       {$translate(`app.labels.${displayMsat ? 'msat' : 'sats'}`).toLowerCase()}
