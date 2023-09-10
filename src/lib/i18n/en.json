@@ -408,7 +408,8 @@
     "out_amount": "Out amount",
     "lets_go": "Let's go!",
     "received_sats": "Received Sats",
-    "invoice_receive_description": "{{wallet}} received {{amount}} sats via {{request}}"
+    "invoice_receive_description": "{{wallet}} received {{amount}} sats via {{request}}",
+    "invoice_description_placeholder": "Description to include in invoice"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

@@ -22,9 +22,13 @@
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import { combineLatest, map } from 'rxjs'
+  import ShowMoar from '$lib/components/ShowMoar.svelte'
+  import ExpirySelector from '$lib/components/ExpirySelector.svelte'
 
   let selectedWalletId: Wallet['id']
   let amount = 0
+  let expiry = DAY_IN_SECS
+  let description = ''
   let creatingPayment = false
   let createPaymentError: AppError | null = null
   let connection: Connection | null
@@ -76,8 +80,8 @@
         const invoice = await connection.invoices.create({
           id,
           amount,
-          description: '',
-          expiry: 2 * DAY_IN_SECS
+          description,
+          expiry
         })
 
         await db.invoices.add(invoice)
@@ -91,7 +95,8 @@
           value: receiveAddress,
           walletId: selectedWalletId,
           createdAt: nowSeconds(),
-          amount
+          amount,
+          message: description
         }
 
         await db.addresses.add(address)
@@ -128,7 +133,7 @@
     <Msg message={$translate('app.errors.wallet_receive_unavailable')} type="info" />
   {/if}
 
-  <div class="my-6">
+  <div class="my-4">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">
       {$translate('app.labels.create')}
     </div>
@@ -160,6 +165,27 @@
     hint={!amount ? $translate('app.labels.any_amount') : ''}
     sats={amount}
   />
+
+  <div class="text-sm mt-4">
+    <ShowMoar label={$translate('app.labels.more_options')}>
+      <div class="w-full flex flex-col gap-y-4">
+        {#if createInvoice}
+          <div transition:slide>
+            <ExpirySelector bind:expiry />
+          </div>
+        {/if}
+
+        <TextInput
+          type="text"
+          label={$translate('app.labels.description')}
+          name="description"
+          bind:value={description}
+          hint={$translate('app.labels.optional')}
+          placeholder={$translate('app.labels.invoice_description_placeholder')}
+        />
+      </div>
+    </ShowMoar>
+  </div>
 
   <div class="w-full flex items-center justify-between mt-6">
     {#if $settings$.fiatDenomination !== 'none'}
