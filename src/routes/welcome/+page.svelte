@@ -8,11 +8,12 @@
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
-  import { session$ } from '$lib/streams.js'
+  import { session$, settings$ } from '$lib/streams.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
-  import { storage } from '$lib/services.js'
+  import { notification, storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
+  import Toggle from '$lib/components/Toggle.svelte'
 
   const translationBase = 'app.routes./welcome'
   const secret = createRandomHex()
@@ -71,10 +72,33 @@
 
   let encryptButton: Button
 
-  function handleKeyPress(e: KeyboardEvent) {
+  const handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       encryptButton.click()
     }
+  }
+
+  let notificationsError = ''
+
+  const toggleNotifications = async () => {
+    notificationsError = ''
+
+    if (!$settings$.notifications) {
+      if (!notification.permission()) {
+        try {
+          const permission = await notification.requestPermission()
+
+          if (permission !== 'granted') {
+            notificationsError = $translate('app.errors.permissions_notifications')
+            return
+          }
+        } catch (error) {
+          notificationsError = $translate('app.errors.permissions_notifications')
+        }
+      }
+    }
+
+    $settings$.notifications = !$settings$.notifications
   }
 </script>
 
@@ -109,12 +133,35 @@
         />
       </div>
 
+      {#if notification.supported()}
+        <div class="mt-4 w-full">
+          <button on:click={toggleNotifications} class="p-4 border rounded-lg break-inside-avoid">
+            <div class="flex items-center justify-between mb-2">
+              <div class="uppercase font-semibold mr-6 leading-none">
+                {$translate('app.labels.notifications')}
+              </div>
+              <div class="mb-0.5">
+                <Toggle bind:toggled={$settings$.notifications} />
+              </div>
+            </div>
+
+            <div class="text-sm">
+              {$translate('app.labels.notifications_description')}
+            </div>
+          </button>
+
+          {#if notificationsError}
+            <Msg type="error" message={notificationsError} />
+          {/if}
+        </div>
+      {/if}
+
       <div class="mt-4 w-full flex justify-end">
         <div class="w-min">
           <Button
             bind:this={encryptButton}
             on:click={encryptAndStoreSecret}
-            text={$translate('app.labels.encrypt')}
+            text={$translate('app.labels.lets_go')}
             primary
             disabled={score === 0}
           />

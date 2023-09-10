@@ -2,7 +2,7 @@ import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
 import { WS_PROXY } from '$lib/constants.js'
-import { nowSeconds, wait } from '$lib/utils.js'
+import { nowSeconds, truncateValue, wait } from '$lib/utils.js'
 import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
@@ -10,7 +10,9 @@ import type { Connection } from './interfaces.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
-import { log } from '$lib/services.js'
+import { log, notification } from '$lib/services.js'
+import { get } from 'svelte/store'
+import { translate } from '$lib/i18n/translations.js'
 
 export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
   {
@@ -216,17 +218,28 @@ export const syncConnectionData = (
   processQueue(requestQueue, progress$).then(() => {
     if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
       db.invoices
-        .where('walletId')
-        .equals(connection.walletId)
+        .where({ walletId: connection.walletId, direction: 'receive' })
+        .filter(({ payIndex }) => typeof payIndex !== 'undefined')
         .reverse()
         .sortBy('payIndex')
         .then(([lastPayedInvoice]) => {
           if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
             connection.invoices
-              .listenForAnyInvoicePayment(
-                (invoice) => db.invoices.put(invoice),
-                lastPayedInvoice?.payIndex
-              )
+              .listenForAnyInvoicePayment(async (invoice) => {
+                const { amount, request, walletId } = invoice
+                const wallet = (await db.wallets.get(walletId)) as Wallet
+
+                notification.create({
+                  heading: get(translate)('app.labels.received_sats'),
+                  message: get(translate)('app.labels.invoice_receive_description', {
+                    amount,
+                    request: request ? truncateValue(request) : 'keysend',
+                    wallet: wallet.label
+                  })
+                })
+
+                await db.invoices.put(invoice)
+              }, lastPayedInvoice?.payIndex)
               .catch((error) => log.error(error.detail.message))
           }
         })

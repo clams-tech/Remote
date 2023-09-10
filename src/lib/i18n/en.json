@@ -94,7 +94,7 @@
     },
     "/welcome": {
       "title": "Welcome",
-      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>, your unified <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> management app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
+      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>, your unified <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
       "passphrase": {
         "weak": "weak 😬",
         "medium": "medium 🤞",
@@ -405,7 +405,10 @@
     "in_channel": "In channel",
     "out_channel": "Out channel",
     "in_amount": "In amount",
-    "out_amount": "Out amount"
+    "out_amount": "Out amount",
+    "lets_go": "Let's go!",
+    "received_sats": "Received Sats",
+    "invoice_receive_description": "{{wallet}} received {{amount}} sats via {{request}}"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

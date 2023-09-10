@@ -34,9 +34,10 @@
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
-      wallets.filter(({ id }) => {
+      wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        return !!connection?.invoices?.keysend
+        const selfPay = nodeId === data.pubkey
+        return !!connection?.invoices?.keysend && !selfPay
       })
     )
   )

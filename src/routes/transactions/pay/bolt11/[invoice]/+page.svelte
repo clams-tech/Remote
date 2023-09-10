@@ -31,16 +31,17 @@
   let paying = false
   let payingError = ''
 
+  const decoded = decodeBolt11(data.invoice) as DecodedBolt11Invoice
+
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
-      wallets.filter(({ id }) => {
+      wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        return !!connection?.invoices?.pay
+        const selfPay = nodeId === decoded?.nodeId
+        return !!connection?.invoices?.pay && !selfPay
       })
     )
   )
-
-  const decoded = decodeBolt11(data.invoice) as DecodedBolt11Invoice
 
   if (!decoded) {
     decodeError = $translate('app.errors.bolt11_decode')

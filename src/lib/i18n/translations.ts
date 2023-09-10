@@ -14,6 +14,8 @@ export interface Payload extends Parser.PayloadDefault {
   min?: string
   tag?: string
   wallet?: string
+  amount?: number
+  request?: string
 }
 
 const config: Config<Payload> = {
