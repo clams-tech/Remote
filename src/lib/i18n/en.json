@@ -62,6 +62,9 @@
     "/forwards": {
       "title": "Forwards"
     },
+    "/forward": {
+      "title": "Forward"
+    },
     "/trades": {
       "title": "Trades"
     },
@@ -398,7 +401,11 @@
     "required": "Required",
     "payer_note_placeholder": "note to receiver",
     "lava_lamp": "Lava lamp",
-    "lava_lamp_description": "Turn the laval lamp animation on and off"
+    "lava_lamp_description": "Turn the laval lamp animation on and off",
+    "in_channel": "In channel",
+    "out_channel": "Out channel",
+    "in_amount": "In amount",
+    "out_amount": "Out amount"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
@@ -467,6 +474,8 @@
     "wallet_pay_invoice_unavailable": "You do not have any wallets connected that can pay a BOLT11 invoice.",
     "wallet_receive_unavailable": "You do not have any wallets connected that can receive to a BOLT11 invoice or an onchain address.",
     "could_not_find_channel": "Could not find this channel.",
+    "could_not_find_forward": "Could not find this forward.",
+    "could_not_find_offer": "Could not find this offer.",
     "wallet_create_offer_unavailable": "You do not have any wallets connected that can create an offer.",
     "fetched_invoice_invalid": "An invalid invoice was returned when trying to pay offer.",
     "fetched_invoice_amount_invalid": "The invoice returned has a different amount than what was requested from the offer."

@@ -17,7 +17,7 @@
 >
   <div class="flex flex-grow items-center gap-x-2 justify-between">
     <div class="flex items-center">
-      <div class="w-8 text-utility-success">{@html arrow}</div>
+      <div class="w-8 text-purple-200">{@html arrow}</div>
       <div class="font-semibold">
         {#await db.channels.where({ shortId: forward.shortIdIn }).first() then inChannel}
           {inChannel?.peerAlias ||
@@ -47,7 +47,7 @@
             truncateValue(outChannel?.peerId || $translate('app.labels.unknown'))}
         {/await}
       </div>
-      <div class="w-8 rotate-180 text-utility-error">{@html arrow}</div>
+      <div class="w-8 rotate-180 text-purple-200">{@html arrow}</div>
     </div>
   </div>
 
