@@ -20,9 +20,11 @@
   $: totalSats =
     $channels$ &&
     $channels$.reduce(
-      (acc, { balanceLocal, reserveLocal, balanceRemote, reserveRemote }) => {
-        acc.sendable = acc.sendable + balanceLocal - reserveLocal
-        acc.receivable = acc.receivable + balanceRemote - reserveRemote
+      (acc, { balanceLocal, reserveLocal, balanceRemote, reserveRemote, status }) => {
+        if (status === 'active') {
+          acc.sendable = acc.sendable + balanceLocal - reserveLocal
+          acc.receivable = acc.receivable + balanceRemote - reserveRemote
+        }
 
         return acc
       },
