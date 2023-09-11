@@ -4,7 +4,6 @@
   import TextInput from '$lib/components/TextInput.svelte'
   import { simpleDeepClone } from '$lib/utils'
   import { slide } from 'svelte/transition'
-  import caret from '$lib/icons/caret.js'
   import AdvancedConnection from './AdvancedConnection.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
   import Button from '$lib/components/Button.svelte'
@@ -17,6 +16,7 @@
   import { methods } from '$lib/wallets/coreln/index.js'
   import { validateNodeAddress } from '$lib/address.js'
   import type { Session } from '$lib/@types/session.js'
+  import ShowMoar from '$lib/components/ShowMoar.svelte'
 
   export let configuration: CoreLnConfiguration
 
@@ -43,7 +43,6 @@
 
   let focusConnectionInput: () => void
   let validAddress = false
-  let expandConnectionSettings = false
 
   $: if (configurationUpdate.address) {
     try {
@@ -53,11 +52,21 @@
     }
   }
 
-  const getRuneCommand = () => {
+  const getClamsRuneCommand = () => {
     const { id } = $session$ as Session
     return `lightning-cli commando-rune restrictions='[["id=${id}"], [${methods.map(
       (method) => `"method=${method}"`
     )}], ["rate=120"]]'`
+  }
+
+  const getAdminRuneCommand = () => {
+    const { id } = $session$ as Session
+    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"]]'`
+  }
+
+  const getReadOnlyRuneCommand = () => {
+    const { id } = $session$ as Session
+    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"], ["method^list", "method^get", "method=summary"], ["method/listdatastore"]]'`
   }
 
   const handleKeyPress = (e: KeyboardEvent) => {
@@ -107,26 +116,11 @@
     bind:focus={focusConnectionInput}
   />
 
-  <button
-    on:click={() => (expandConnectionSettings = !expandConnectionSettings)}
-    class="mt-4 flex items-center text-sm cursor-pointer"
-  >
-    <div class:-rotate-90={!expandConnectionSettings} class="w-3 mr-1 transition-transform">
-      {@html caret}
-    </div>
-
-    <span class="font-semibold underline">{$translate('app.labels.advanced')}</span>
-  </button>
-
-  <!-- ADVANCED SETTINGS -->
-  {#if expandConnectionSettings}
-    <div
-      transition:slide={{ duration: 250 }}
-      class="text-sm mt-2 pl-4 pr-[1px] flex flex-col items-start"
-    >
+  <div class="mt-2 text-xs">
+    <ShowMoar label={$translate('app.labels.advanced')}>
       <AdvancedConnection bind:connection={configurationUpdate.connection} />
-    </div>
-  {/if}
+    </ShowMoar>
+  </div>
 
   <!-- AUTHENTICATION -->
   <div class="w-full mt-4">
@@ -138,10 +132,31 @@
       bind:value={configurationUpdate.token}
     />
 
-    <div class="w-min whitespace-nowrap mt-4">
-      <div class="text-xs font-semibold border rounded py-1 pl-2">
-        <CopyValue value={getRuneCommand()} label={$translate('app.labels.rune_cli')} />
-      </div>
+    <div class="text-xs mt-2">
+      <ShowMoar label={$translate('app.labels.rune_commands')}>
+        <div class="flex items-center gap-2 flex-wrap text-xs font-semibold">
+          <div class="border rounded-xl py-0.5 pl-2 hover:bg-neutral-800 transition-colors">
+            <CopyValue
+              value={getClamsRuneCommand()}
+              label={$translate('app.labels.clams_rune_cli')}
+            />
+          </div>
+
+          <div class="border rounded-xl py-0.5 pl-2 hover:bg-neutral-800 transition-colors">
+            <CopyValue
+              value={getAdminRuneCommand()}
+              label={$translate('app.labels.admin_rune_cli')}
+            />
+          </div>
+
+          <div class="border rounded-xl py-0.5 pl-2 hover:bg-neutral-800 transition-colors">
+            <CopyValue
+              value={getReadOnlyRuneCommand()}
+              label={$translate('app.labels.readonly_rune_cli')}
+            />
+          </div>
+        </div>
+      </ShowMoar>
     </div>
   </div>
 

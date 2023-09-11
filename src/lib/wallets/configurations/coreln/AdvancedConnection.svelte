@@ -115,13 +115,12 @@
         name={advancedConnectOption}
         placeholder={WS_PROXY}
         invalid={customProxyUrlError}
-        micro
       />
     </div>
   {:else if advancedConnectOption === 'directConnection'}
     <div in:fade={{ duration: 250 }} class="mt-2">
       <div
-        class="flex items-center px-3 py-[9px] ring-2 ring-purple-500 border border-neutral-600 rounded"
+        class="flex items-center px-3 py-3 ring-2 ring-purple-500 border border-neutral-600 rounded"
       >
         <label class="flex items-center cursor-pointer">
           <input type="radio" bind:group={connection.value} value="wss:" />
@@ -136,7 +135,7 @@
     </div>
   {:else}
     <div in:fade={{ duration: 250 }} class="mt-2 w-full">
-      <TextInput value={WS_PROXY} name={advancedConnectOption} micro readonly />
+      <TextInput value={WS_PROXY} name={advancedConnectOption} readonly />
     </div>
   {/if}
 </div>

@@ -7,12 +7,6 @@ import Channels from './channels.js'
 import Transactions from './transactions.js'
 import Blocks from './blocks.js'
 import Invoices from './invoices.js'
-import type {
-  CommandoMsgs,
-  CoreLnError,
-  CorelnConnectionInterface,
-  GetinfoResponse
-} from './types.js'
 import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { Session } from '$lib/@types/session.js'
 import type { BehaviorSubject } from 'rxjs'
@@ -21,6 +15,14 @@ import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
 import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
+import handleError from './error.js'
+
+import type {
+  CommandoMsgs,
+  CoreLnError,
+  CorelnConnectionInterface,
+  GetinfoResponse
+} from './types.js'
 
 import type {
   BlocksInterface,
@@ -34,7 +36,6 @@ import type {
   UtxosInterface,
   ForwardsInterface
 } from '../interfaces.js'
-import handleError from './error.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   walletId: Wallet['id']
