@@ -65,19 +65,19 @@
 
     const { feeBase, feePpm, htlcMin, htlcMax } = $channel$ as Channel
 
-    if (feeBase) {
+    if (typeof feeBase === 'number') {
       feeBaseUpdate = feeBase
     }
 
-    if (feePpm) {
+    if (typeof feePpm === 'number') {
       feeRateUpdate = feePpm
     }
 
-    if (htlcMin) {
+    if (typeof htlcMin === 'number') {
       minForwardUpdate = htlcMin
     }
 
-    if (htlcMax) {
+    if (typeof htlcMax === 'number') {
       maxForwardUpdate = htlcMax
     }
 
