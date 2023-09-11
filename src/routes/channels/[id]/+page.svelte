@@ -24,6 +24,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import { truncateValue } from '$lib/utils.js'
   import channels from '$lib/icons/channels.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let data: PageData // channel id
 
@@ -100,10 +101,10 @@
 
   let showFeeUpdateModal = false
   let updating = false
-  let errMsg = ''
+  let requestError: AppError | null = null
 
   async function updateFees() {
-    errMsg = ''
+    requestError = null
     updating = true
 
     try {
@@ -126,13 +127,11 @@
         htlcMin,
         htlcMax
       })
-
-      showFeeUpdateModal = false
     } catch (error) {
-      const { message } = error as { message: string }
-      errMsg = message
+      requestError = error as AppError
     } finally {
       updating = false
+      showFeeUpdateModal = false
     }
   }
 
@@ -140,14 +139,12 @@
 
   async function connectPeer() {
     connecting = true
-    errMsg = ''
+    requestError = null
 
     try {
       await connection.channels?.connect!({ id: $channel$!.peerId! })
       db.channels.update(data.id, { peerConnected: true })
     } catch (error) {
-      const { key } = error as AppError
-      errMsg = $translate(`app.errors.${key}`)
     } finally {
       connecting = false
     }
@@ -456,6 +453,12 @@
       {/if}
     {/if}
   </div>
+
+  {#if requestError}
+    <div in:slide|local={{ duration: 250 }} class="mt-2">
+      <ErrorDetail error={requestError} />
+    </div>
+  {/if}
 </Section>
 
 {#if showFeeUpdateModal}
@@ -504,12 +507,6 @@
           text={$translate('app.labels.update')}
         />
       </div>
-
-      {#if errMsg}
-        <div in:slide|local={{ duration: 250 }} class="mt-2">
-          <Msg type="error" message={errMsg} />
-        </div>
-      {/if}
     </div>
   </Modal>
 {/if}

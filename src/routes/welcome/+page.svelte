@@ -14,13 +14,17 @@
   import { notification, storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import Toggle from '$lib/components/Toggle.svelte'
+  import { slide } from 'svelte/transition'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { AppError } from '$lib/@types/errors.js'
+  import { nowSeconds } from '$lib/utils.js'
 
   const translationBase = 'app.routes./welcome'
   const secret = createRandomHex()
 
   let passphrase: string
   let score: number
-  let errorMsg: string
+  let error: AppError | null = null
 
   const hasUppercase = /[A-Z]+/
   const hasLowerCase = /[a-z]+/
@@ -59,8 +63,16 @@
 
     try {
       storage.write(STORAGE_KEYS.session, JSON.stringify({ secret: encrypted, id: publicKey }))
-    } catch (error) {
-      errorMsg = $translate('app.errors.storage_access')
+    } catch (e) {
+      error = {
+        key: 'storage_access',
+        detail: {
+          timestamp: nowSeconds(),
+          message: 'Could not access storage when trying to store session details',
+          context: 'Storing session'
+        }
+      }
+
       return
     }
 
@@ -92,8 +104,16 @@
             notificationsError = $translate('app.errors.permissions_notifications')
             return
           }
-        } catch (error) {
-          notificationsError = $translate('app.errors.permissions_notifications')
+        } catch (e) {
+          const { message } = e as Error
+          error = {
+            key: 'permissions_notifications',
+            detail: {
+              timestamp: nowSeconds(),
+              message,
+              context: 'Getting notifications permission'
+            }
+          }
         }
       }
     }
@@ -149,10 +169,6 @@
               {$translate('app.labels.notifications_description')}
             </div>
           </button>
-
-          {#if notificationsError}
-            <Msg type="error" message={notificationsError} />
-          {/if}
         </div>
       {/if}
 
@@ -168,9 +184,9 @@
         </div>
       </div>
 
-      {#if errorMsg}
-        <div class="mt-6">
-          <Msg bind:message={errorMsg} type="error" />
+      {#if error}
+        <div class="mt-2" transition:slide={{ axis: 'y' }}>
+          <ErrorDetail {error} />
         </div>
       {/if}
     </div>

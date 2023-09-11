@@ -4,7 +4,7 @@
   import warning from '$lib/icons/warning'
   import type { PageData } from './$types'
   import { connections$ } from '$lib/streams'
-  import { fade } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
@@ -23,6 +23,7 @@
   import Qr from '$lib/components/Qr.svelte'
   import PaymentsList from './PaymentsList.svelte'
   import { formatDateRelativeToNow } from '$lib/dates.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let data: PageData
 
@@ -56,7 +57,7 @@
 
   let showDisableModal = false
   let disablingOffer = false
-  let disableOfferError = ''
+  let disableOfferError: AppError | null = null
 
   function toggleDisableModal() {
     showDisableModal = !showDisableModal
@@ -64,15 +65,19 @@
 
   async function disableOffer() {
     disablingOffer = true
-    disableOfferError = ''
+    disableOfferError = null
 
     const connection = $connections$.find(({ walletId }) => walletId === $offer$?.walletId)
 
     if (!connection) {
-      disableOfferError = $translate('app.errors.connection_not_available', {
-        wallet: $offerWallet$?.label || $translate('app.labels.your_wallet')
-      })
-      return
+      throw {
+        key: 'connection_not_available',
+        detail: {
+          timestamp: nowSeconds(),
+          message: `Could not find connection for wallet: ${$offerWallet$?.label}`,
+          context: 'Disabling offer'
+        }
+      }
     }
 
     try {
@@ -88,8 +93,7 @@
 
       toggleDisableModal()
     } catch (error) {
-      const { key } = error as AppError
-      disableOfferError = $translate(`app.errors.${key}`)
+      disableOfferError = error as AppError
     } finally {
       disablingOffer = false
     }
@@ -251,8 +255,8 @@
       </div>
 
       {#if disableOfferError}
-        <div class="mt-4">
-          <Msg bind:message={disableOfferError} type="error" />
+        <div in:slide class="mt-2">
+          <ErrorDetail bind:error={disableOfferError} />
         </div>
       {/if}
     </div>

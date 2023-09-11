@@ -25,13 +25,15 @@
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db.js'
   import { goto } from '$app/navigation'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { nowSeconds } from '$lib/utils.js'
 
   export let data: PageData
 
   let decodeError = ''
   let selectedWalletId: Wallet['id']
   let requesting = false
-  let requestingError = ''
+  let requestingError: AppError | null = null
   let customAmount: number
   let payerNote: string
 
@@ -57,7 +59,7 @@
     e.key === 'Enter' && ($offer$?.amount || customAmount) && useOffer()
 
   const useOffer = async () => {
-    requestingError = ''
+    requestingError = null
     requesting = true
 
     let invoice: Invoice
@@ -70,7 +72,14 @@
       // handle pay offer
       if ($offer$!.type === 'pay') {
         if (!connection.offers?.fetchInvoice || !connection.offers?.payInvoice) {
-          throw { key: 'connection_unsupported_action' }
+          throw {
+            key: 'connection_unsupported_action',
+            detail: {
+              context: 'pay offer',
+              message: 'Selected connection cannot pay offer.',
+              timestamp: nowSeconds()
+            }
+          }
         }
 
         const fetchedInvoice = await connection.offers.fetchInvoice({
@@ -84,20 +93,39 @@
         try {
           decodedFetchedInvoice = await bolt12ToOffer(fetchedInvoice, '')
         } catch (error) {
-          requestingError = $translate('app.errors.fetched_invoice_invalid')
-          return
+          throw {
+            key: 'fetched_invoice_invalid',
+            detail: {
+              context: 'pay offer',
+              message: 'Fetched invoice is invalid.',
+              timestamp: nowSeconds()
+            }
+          }
         }
 
         if (decodedFetchedInvoice.amount !== ($offer$?.amount || customAmount)) {
-          requestingError = $translate('app.error.fetched_invoice_amount_invalid')
-          return
+          throw {
+            key: 'invoice_amount_invalid',
+            detail: {
+              context: 'pay offer',
+              message: 'Fetched invoice amount does not match original or custom amount.',
+              timestamp: nowSeconds()
+            }
+          }
         }
 
         invoice = await connection.offers.payInvoice(fetchedInvoice)
       } else {
         // handle withdraw offer
         if (!connection.offers?.sendInvoice) {
-          throw { key: 'connection_unsupported_action' }
+          throw {
+            key: 'connection_unsupported_action',
+            detail: {
+              context: 'pay offer',
+              message: 'Selected connection cannot withdraw from offer.',
+              timestamp: nowSeconds()
+            }
+          }
         }
 
         invoice = await connection.offers.sendInvoice({
@@ -109,8 +137,7 @@
       await db.invoices.add(invoice)
       await goto(`/transactions/${invoice.id}`)
     } catch (error) {
-      const { key } = error as AppError
-      requestingError = $translate(`app.errors.${key}`)
+      requestingError = error as AppError
     } finally {
       requesting = false
     }
@@ -231,7 +258,7 @@
 
     {#if requestingError}
       <div in:slide class="mt-4">
-        <Msg type="error" message={requestingError} />
+        <ErrorDetail error={requestingError} />
       </div>
     {/if}
   {/if}

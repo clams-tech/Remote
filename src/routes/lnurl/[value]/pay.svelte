@@ -2,7 +2,7 @@
   import { API_URL } from '$lib/constants'
   import Button from '$lib/components/Button.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { mainDomain } from '$lib/utils'
+  import { mainDomain, nowSeconds } from '$lib/utils'
   import { satsToMsats } from '$lib/conversion.js'
   import decode from '$lib/bolt11.js'
   import { combineLatest, map } from 'rxjs'
@@ -26,6 +26,7 @@
   import CopyValue from '$lib/components/CopyValue.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import caret from '$lib/icons/caret.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let url: URL
   export let callback: string // The URL from LN SERVICE which will accept the pay request parameters
@@ -126,7 +127,7 @@
   }
 
   let requesting = false
-  let requestError = ''
+  let requestError: AppError | null = null
 
   type SuccessMessage = { tag: 'message'; message: string }
   type SuccessUrl = { tag: 'url'; description: string; url: string }
@@ -139,7 +140,7 @@
 
   async function initiatePay() {
     try {
-      requestError = ''
+      requestError = null
       requesting = true
 
       const amountMsats = satsToMsats(amount)
@@ -163,7 +164,14 @@
       }).then((res) => res.json())
 
       if (result.status === 'ERROR') {
-        throw new Error(result.reason)
+        throw {
+          key: 'lnurl_pay_error',
+          detail: {
+            timestamp: nowSeconds(),
+            message: result.reason,
+            context: 'LNURL Pay request invoice'
+          }
+        }
       }
 
       const { pr: paymentRequest, successAction } = result
@@ -172,7 +180,14 @@
       const decoded = decode(paymentRequest)
 
       if (!decoded) {
-        throw new Error($translate('app.errors.invalid_bolt11'))
+        throw {
+          key: 'invalid_bolt11',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Invoice returned from server is not a valid BOLT11',
+            context: 'LNURL Pay request invoice'
+          }
+        }
       }
 
       const { amount: paymentRequestAmount, descriptionHash } = decoded
@@ -180,11 +195,25 @@
       const hashedMetadata = bytesToHex(sha256(metadata))
 
       if (hashedMetadata !== descriptionHash) {
-        throw new Error($translate('app.errors.lnurl_metadata_hash'))
+        throw {
+          key: 'lnurl_metadata_hash',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Invoice returned from server does not have the correct description hash',
+            context: 'LNURL Pay request invoice'
+          }
+        }
       }
 
       if (paymentRequestAmount !== amount) {
-        throw new Error($translate('app.errors.lnurl_pay_amount'))
+        throw {
+          key: 'lnurl_pay_amount',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Invoice returned from server does not have the correct amount',
+            context: 'LNURL Pay request invoice'
+          }
+        }
       }
 
       const connection = connections$.value.find(
@@ -193,16 +222,11 @@
 
       const id = createRandomHex()
 
-      try {
-        paidInvoice = await connection.invoices!.pay!({
-          id,
-          request: paymentRequest,
-          description: metadata
-        })
-      } catch (error) {
-        const { key } = error as AppError
-        throw new Error($translate(`app.errors.${key}`))
-      }
+      paidInvoice = await connection.invoices!.pay!({
+        id,
+        request: paymentRequest,
+        description: metadata
+      })
 
       await db.invoices.add(paidInvoice)
 
@@ -212,8 +236,7 @@
         }).toString(encUtf8)
       }
     } catch (error) {
-      const { message } = error as Error
-      requestError = message
+      requestError = error as AppError
     } finally {
       requesting = false
     }
@@ -326,7 +349,7 @@
 
   {#if requestError}
     <div class="mt-4" transition:slide={{ axis: 'y' }}>
-      <Msg message={requestError} type="error" />
+      <ErrorDetail error={requestError} />
     </div>
   {/if}
 </div>

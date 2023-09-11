@@ -2,7 +2,6 @@
   import type { Session } from '$lib/@types/session.js'
   import Section from '$lib/components/Section.svelte'
   import Button from '$lib/components/Button.svelte'
-  import Msg from '$lib/components/Msg.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
@@ -16,29 +15,51 @@
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import key from '$lib/icons/key.js'
+  import type { AppError } from '$lib/@types/errors.js'
+  import { nowSeconds } from '$lib/utils.js'
+  import ErrorDetail from './ErrorDetail.svelte'
+  import { slide } from 'svelte/transition'
 
   const translationBase = 'app.routes./decrypt'
 
   let passphrase: string
-  let errorMsg: string
+  let appError: AppError | null = null
   let decryptButton: Button
 
   const dispatch = createEventDispatcher()
 
   async function decrypt() {
+    appError = null
+
     try {
       const storedSession = storage.get(STORAGE_KEYS.session) as string
       const session = JSON.parse(storedSession) as Session
-      const decrypted = decryptWithAES(session.secret, passphrase)
+
+      const invalidPassphraseError = {
+        key: 'invalid_passphrase',
+        detail: {
+          context: 'decrypt session',
+          timestamp: nowSeconds(),
+          message: 'Could not decrypt session with passphrase.'
+        }
+      }
+
+      let decrypted: string
+
+      try {
+        decrypted = decryptWithAES(session.secret, passphrase)
+      } catch (error) {
+        throw invalidPassphraseError
+      }
 
       if (!decrypted) {
-        throw new Error('Could not decrypt.')
+        throw invalidPassphraseError
       }
 
       session$.next({ secret: decrypted, id: bytesToHex(secp256k1.getPublicKey(decrypted, true)) })
       dispatch('close')
     } catch (error) {
-      errorMsg = $translate('app.errors.invalid_passphrase')
+      appError = error as AppError
     }
   }
 
@@ -68,7 +89,7 @@
 
   <div class="mt-6 w-full">
     <TextInput
-      on:input={() => (errorMsg = '')}
+      on:input={() => (appError = null)}
       name="passphrase"
       type="password"
       bind:value={passphrase}
@@ -91,7 +112,9 @@
     </div>
   </div>
 
-  <div class="mt-6">
-    <Msg bind:message={errorMsg} type="error" />
-  </div>
+  {#if appError}
+    <div transition:slide={{ axis: 'y' }} class="mt-2">
+      <ErrorDetail bind:error={appError} />
+    </div>
+  {/if}
 </Section>

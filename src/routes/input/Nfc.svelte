@@ -1,18 +1,19 @@
 <script lang="ts">
   import type { ParsedInput } from '$lib/@types/common.js'
-  import Msg from '$lib/components/Msg.svelte'
-  import { translate } from '$lib/i18n/translations.js'
   import nfcIcon from '$lib/icons/nfc.js'
   import { parseInput } from '$lib/input-parser.js'
   import { nfc } from '$lib/services.js'
   import { createEventDispatcher } from 'svelte'
   import { slide } from 'svelte/transition'
   import ParsedInputButton from './ParsedInputButton.svelte'
+  import type { AppError } from '$lib/@types/errors.js'
+  import { nowSeconds } from '$lib/utils.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   const dispatch = createEventDispatcher()
 
   let reading = false
-  let errMsg = ''
+  let err: AppError | null = null
   let parsed: ParsedInput | null = null
 
   const read = async () => {
@@ -23,8 +24,17 @@
       const parsedResults = results.map(parseInput)
       parsed = parsedResults.find(({ type }) => type !== 'unknown') || parsedResults[0]
     } catch (error) {
+      const { message } = error as Error
+      err = {
+        key: 'nfc_read',
+        detail: {
+          timestamp: nowSeconds(),
+          message,
+          context: 'Attempt to read NFC'
+        }
+      }
+    } finally {
       reading = false
-      errMsg = $translate('app.errors.nfc_read')
     }
   }
 </script>
@@ -38,9 +48,9 @@
     >{@html nfcIcon}</button
   >
 
-  {#if errMsg}
-    <div transition:slide class="absolute bottom-2">
-      <Msg type="error" message={errMsg} />
+  {#if err}
+    <div transition:slide={{ axis: 'y' }} class="absolute bottom-2">
+      <ErrorDetail error={err} />
     </div>
   {/if}
 

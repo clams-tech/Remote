@@ -20,14 +20,15 @@
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { TLV_RECORDS } from '$lib/constants.js'
-  import { stringToHex } from '$lib/utils.js'
+  import { nowSeconds, stringToHex } from '$lib/utils.js'
   import { combineLatest, map } from 'rxjs'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let data: PageData
 
   let selectedWalletId: Wallet['id']
   let paying = false
-  let payingError = ''
+  let payingError: AppError | null = null
 
   let amountSats = 0
   let message = ''
@@ -44,7 +45,7 @@
 
   const pay = async () => {
     paying = true
-    payingError = ''
+    payingError = null
 
     try {
       const connection = connections$.value.find(
@@ -52,7 +53,14 @@
       ) as Connection
 
       if (!connection.invoices?.keysend) {
-        throw { key: 'connection_unsupported_action' }
+        throw {
+          key: 'connection_unsupported_action',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Wallet is not able to send keysend payment',
+            context: 'Paying pubkey'
+          }
+        }
       }
 
       const paid = await connection.invoices.keysend({
@@ -65,8 +73,7 @@
       await db.invoices.add(paid)
       await goto(`/transactions/${paid.id}`)
     } catch (error) {
-      const { key } = error as AppError
-      payingError = $translate(`app.errors.${key}`)
+      payingError = error as AppError
     } finally {
       paying = false
     }
@@ -141,8 +148,8 @@
   </div>
 
   {#if payingError}
-    <div in:slide class="mt-4">
-      <Msg type="error" message={payingError} />
+    <div in:slide={{ axis: 'y' }} class="mt-2">
+      <ErrorDetail error={payingError} />
     </div>
   {/if}
 </Section>

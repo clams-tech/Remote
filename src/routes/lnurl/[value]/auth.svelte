@@ -1,7 +1,7 @@
 <script lang="ts">
   import { API_URL } from '$lib/constants'
   import Button from '$lib/components/Button.svelte'
-  import { mainDomain } from '$lib/utils'
+  import { mainDomain, nowSeconds } from '$lib/utils'
   import { CANONICAL_PHRASE, getAuthSigner } from '../utils'
   import type { Wallet } from '$lib/@types/wallets.js'
   import { connections$, wallets$ } from '$lib/streams.js'
@@ -11,13 +11,15 @@
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import { combineLatest, map } from 'rxjs'
   import { slide } from 'svelte/transition'
+  import type { AppError } from '$lib/@types/errors.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let url: URL
   export let k1: string
 
   let authenticating = false
   let authenticationSuccess = false
-  let authenticationError = ''
+  let authenticationError: AppError | null = null
 
   let selectedWalletId: Wallet['id']
 
@@ -33,6 +35,7 @@
   async function auth() {
     try {
       authenticating = true
+      authenticationError = null
 
       const connection = connections$.value.find(
         ({ walletId }) => walletId === selectedWalletId
@@ -47,20 +50,26 @@
       loginURL.searchParams.set('key', signer.publicKey)
       loginURL.searchParams.set('t', Date.now().toString())
 
-      // const authResponse = await fetch(`${API_URL}/http-proxy`, {
-      //   headers: { 'Target-URL': loginURL.toString() }
-      // }).then((res) => res.json())
-
-      // uncomment when testing LNURL locally
-      const authResponse = await fetch(loginURL.toString()).then((res) => res.json())
+      const authResponse = await fetch(`${API_URL}/http-proxy`, {
+        headers: { 'Target-URL': loginURL.toString() }
+      }).then((res) => res.json())
 
       if (authResponse && authResponse.status === 'OK') {
         authenticationSuccess = true
       } else {
-        authenticationError = $translate('app.errors.lnurl_auth')
+        throw new Error(authResponse.reason)
       }
     } catch (error) {
-      authenticationError = $translate('app.errors.lnurl_auth')
+      const { message } = error as Error
+
+      authenticationError = {
+        key: 'lnurl_auth',
+        detail: {
+          timestamp: nowSeconds(),
+          message,
+          context: 'Attempting to LNURL Auth'
+        }
+      }
     } finally {
       authenticating = false
     }
@@ -94,8 +103,8 @@
   {/if}
 
   {#if authenticationError}
-    <div class="mt-4" transition:slide={{ axis: 'y' }}>
-      <Msg message={authenticationError} type="error" />
+    <div class="mt-2" transition:slide={{ axis: 'y' }}>
+      <ErrorDetail error={authenticationError} />
     </div>
   {/if}
 </div>

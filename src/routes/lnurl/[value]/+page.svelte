@@ -11,11 +11,14 @@
   import Auth from './auth.svelte'
   import Pay from './pay.svelte'
   import Withdraw from './withdraw.svelte'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { AppError } from '$lib/@types/errors.js'
+  import { nowSeconds } from '$lib/utils.js'
 
   export let data: PageData
 
   let parsingLnurl = false
-  let parseLnurlError = ''
+  let parseLnurlError: AppError
 
   let url: URL
   let tag: string
@@ -63,9 +66,14 @@
         }).then((res) => res.json())
 
         if (result.status === 'ERROR') {
-          parseLnurlError = result.reason
-          parsingLnurl = false
-          return
+          throw {
+            key: 'lnurl_parse_error',
+            detail: {
+              timestamp: nowSeconds(),
+              context: 'Fetching lnurl details from server',
+              message: result.reason
+            }
+          }
         }
 
         tag = result.tag
@@ -83,8 +91,8 @@
         k1 = url.searchParams.get('k1') || ''
         action = url.searchParams.get('action') || 'login'
       }
-    } catch (e) {
-      parseLnurlError = (e as { message: string }).message
+    } catch (error) {
+      parseLnurlError = error as AppError
     } finally {
       parsingLnurl = false
     }
@@ -105,7 +113,7 @@
   />
 
   {#if parseLnurlError}
-    <Msg message={$translate('app.errors.lnurl_parse_error')} type="error" />
+    <ErrorDetail error={parseLnurlError} />
   {:else if parsingLnurl}
     <Spinner />
   {:else if tag}

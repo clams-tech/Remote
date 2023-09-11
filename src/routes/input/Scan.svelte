@@ -4,18 +4,20 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/components/Spinner.svelte'
   import { parseInput } from '$lib/input-parser.js'
-  import { isDesktop } from '$lib/utils.js'
-  import Msg from '$lib/components/Msg.svelte'
+  import { isDesktop, nowSeconds } from '$lib/utils.js'
   import type { ParsedInput } from '$lib/@types/common.js'
   import ParsedInputButton from './ParsedInputButton.svelte'
   import scan from '$lib/icons/scan.js'
+  import { slide } from 'svelte/transition'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { AppError } from '$lib/@types/errors.js'
 
   const dispatch = createEventDispatcher()
 
   let parsed: ParsedInput | null = null
   let timeout: NodeJS.Timeout
 
-  let cameraError = ''
+  let err: AppError | null = null
 
   const handleScanResult = debounce((val: string) => {
     parsed = parseInput(val)
@@ -35,17 +37,32 @@
   let tickTimeout: NodeJS.Timeout
   let stream: MediaStream
 
-  async function checkCameraSupport(): Promise<boolean> {
+  async function checkCameraSupport(): Promise<void> {
+    const supportError: AppError = {
+      key: 'camera_browser_support',
+      detail: {
+        timestamp: nowSeconds(),
+        context: 'Checking camera support',
+        message: 'Camera access is not supported'
+      }
+    }
+
     if (!navigator.mediaDevices) {
-      return false
+      throw supportError
     }
 
     try {
       const devices = await navigator.mediaDevices.enumerateDevices()
       const cameras = devices.filter((d) => d.kind === 'videoinput')
-      return !!cameras[0]
+
+      if (!cameras[0]) {
+        supportError.detail.message = 'No camera available on device.'
+        throw supportError
+      }
     } catch (error) {
-      return false
+      const { message } = error as Error
+      supportError.detail.message = message
+      throw supportError
     }
   }
 
@@ -55,35 +72,41 @@
 
   const startCamera = async () => {
     loading = true
-    const supported = await checkCameraSupport()
-
-    if (!supported) {
-      cameraError = $translate('app.errors.camera_browser_support')
-      return
-    }
-
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 99999 },
-          height: { ideal: 99999 }
-        },
-        audio: false
-      })
+      await checkCameraSupport()
 
-      video.disablePictureInPicture = true
-      video.playsInline = true
-      video.muted = true
-      video.srcObject = stream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 99999 },
+            height: { ideal: 99999 }
+          },
+          audio: false
+        })
 
-      await video.play()
+        video.disablePictureInPicture = true
+        video.playsInline = true
+        video.muted = true
+        video.srcObject = stream
 
-      setTimeout(startScanRegion, 100)
+        await video.play()
+
+        setTimeout(startScanRegion, 100)
+      } catch (error) {
+        const { message } = error as Error
+
+        throw {
+          key: 'camera_permissions',
+          detail: {
+            timestamp: nowSeconds(),
+            context: 'starting camera',
+            message
+          }
+        }
+      }
     } catch (error) {
-      cameraError = $translate('app.errors.camera_permissions')
-
-      return
+      err = error as AppError
     }
   }
 
@@ -201,9 +224,9 @@
     {/if}
   </div>
 
-  {#if cameraError}
-    <div class="max-w-sm mb-2">
-      <Msg type="error" bind:message={cameraError} closable={false} />
+  {#if err}
+    <div transition:slide={{ axis: 'y' }} class="absolute bottom-2">
+      <ErrorDetail error={err} />
     </div>
   {/if}
 
@@ -211,7 +234,7 @@
     <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
   {/if}
 
-  {#if loading && !cameraError}
+  {#if loading && !err}
     <div class="absolute">
       <Spinner />
     </div>

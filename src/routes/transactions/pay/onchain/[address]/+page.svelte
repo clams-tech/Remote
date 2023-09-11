@@ -21,6 +21,8 @@
   import { slide } from 'svelte/transition'
   import { log } from '$lib/services.js'
   import { combineLatest, map } from 'rxjs'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { nowSeconds } from '$lib/utils.js'
 
   export let data: PageData
 
@@ -29,7 +31,7 @@
 
   let selectedWalletId: Wallet['id']
   let paying = false
-  let payingError = ''
+  let payingError: AppError | null = null
   let amountSats = !amount ? 0 : btcToSats(amount)
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
@@ -43,7 +45,7 @@
 
   const pay = async () => {
     paying = true
-    payingError = ''
+    payingError = null
 
     try {
       const connection = connections$.value.find(
@@ -51,7 +53,14 @@
       ) as Connection
 
       if (!connection.transactions?.send) {
-        throw { key: 'connection_unsupported_action' }
+        throw {
+          key: 'connection_unsupported_action',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Wallet cannot send to an onchain address',
+            context: 'Paying to onchain address'
+          }
+        }
       }
 
       const paid = await connection.transactions.send({
@@ -73,8 +82,7 @@
       await db.transactions.add(paid)
       await goto(`/transactions/${paid.id}`)
     } catch (error) {
-      const { key } = error as AppError
-      payingError = $translate(`app.errors.${key}`)
+      payingError = error as AppError
     } finally {
       paying = false
     }
@@ -155,8 +163,8 @@
   </div>
 
   {#if payingError}
-    <div in:slide class="mt-4">
-      <Msg type="error" message={payingError} />
+    <div in:slide={{ axis: 'y' }} class="mt-2">
+      <ErrorDetail error={payingError} />
     </div>
   {/if}
 </Section>

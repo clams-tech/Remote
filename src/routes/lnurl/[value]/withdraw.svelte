@@ -2,7 +2,7 @@
   import { API_URL } from '$lib/constants'
   import Button from '$lib/components/Button.svelte'
   import { translate } from '$lib/i18n/translations'
-  import { mainDomain } from '$lib/utils'
+  import { mainDomain, nowSeconds } from '$lib/utils'
   import { combineLatest, map } from 'rxjs'
   import { connections$, wallets$ } from '$lib/streams.js'
   import type { Wallet } from '$lib/@types/wallets.js'
@@ -16,6 +16,7 @@
   import { db } from '$lib/db.js'
   import type { AppError } from '$lib/@types/errors.js'
   import { goto } from '$app/navigation'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let url: URL
   export let k1: string
@@ -59,11 +60,11 @@
   }
 
   let requesting = false
-  let requestError = ''
+  let requestError: AppError | null = null
 
   async function initiateWithdraw() {
     try {
-      requestError = ''
+      requestError = null
       requesting = true
 
       const connection = connections$.value.find(
@@ -74,16 +75,11 @@
 
       let invoice: Invoice
 
-      try {
-        invoice = await connection.invoices!.create!({
-          id,
-          amount,
-          description: defaultDescription || `${serviceName} LNURL Withdraw`
-        })
-      } catch (error) {
-        const { key } = error as AppError
-        throw new Error($translate(`app.errors.${key}`))
-      }
+      invoice = await connection.invoices!.create!({
+        id,
+        amount,
+        description: defaultDescription || `${serviceName} LNURL Withdraw`
+      })
 
       await db.invoices.add(invoice)
 
@@ -104,13 +100,19 @@
       }).then((res) => res.json())
 
       if (result.status === 'ERROR') {
-        throw new Error(result.reason)
+        throw {
+          key: 'lnurl_withdraw_error',
+          detail: {
+            timestamp: nowSeconds(),
+            message: result.reason,
+            context: 'Sending invoice for LNURL Withdraw'
+          }
+        }
       }
 
       await goto(`/transactions/${invoice.id}`)
     } catch (error) {
-      const { message } = error as Error
-      requestError = message
+      requestError = error as AppError
     } finally {
       requesting = false
     }
@@ -163,7 +165,7 @@
 
   {#if requestError}
     <div class="mt-4" transition:slide={{ axis: 'y' }}>
-      <Msg message={requestError} type="error" />
+      <ErrorDetail error={requestError} />
     </div>
   {/if}
 </div>

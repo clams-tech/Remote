@@ -18,6 +18,8 @@
   import type { AppError } from '$lib/@types/errors.js'
   import { goto } from '$app/navigation'
   import { db } from '$lib/db.js'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { nowSeconds } from '$lib/utils.js'
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -37,23 +39,28 @@
   let label: string
 
   let creatingOffer = false
-  let createOfferError = ''
+  let createOfferError: AppError | null = null
 
   const createOffer = async () => {
+    createOfferError = null
+    creatingOffer = true
+
     const connection = $connections$.find(({ walletId }) => walletId === selectedWalletId)
 
     if (!connection) {
-      createOfferError = $translate('app.errors.connection_not_available', {
-        wallet: $availableWallets$.find(({ id }) => id === selectedWalletId)?.label
-      })
-
-      return
+      throw {
+        key: 'connection_not_available',
+        detail: {
+          timestamp: nowSeconds(),
+          message: `Could not find a connection for wallet: ${
+            $availableWallets$.find(({ id }) => id === selectedWalletId)?.label
+          }`,
+          context: 'Createing offer'
+        }
+      }
     }
 
-    createOfferError = ''
-    creatingOffer = true
-
-    let offer: Offer
+    let offer: Offer | null
 
     try {
       if (type === 'pay') {
@@ -74,13 +81,16 @@
         })
       }
     } catch (error) {
-      const { key } = error as AppError
-      createOfferError = $translate(`app.errors.${key}`)
-      return
+      createOfferError = error as AppError
+      offer = null
+    } finally {
+      creatingOffer = false
     }
 
-    await db.offers.add(offer)
-    await goto(`/offers/${offer.id}`)
+    if (offer) {
+      await db.offers.add(offer)
+      await goto(`/offers/${offer.id}`)
+    }
   }
 </script>
 
@@ -159,8 +169,8 @@
     {/if}
 
     {#if createOfferError}
-      <div class="mt-2 w-full" in:slide>
-        <Msg type="error" bind:message={createOfferError} />
+      <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>
+        <ErrorDetail error={createOfferError} />
       </div>
     {/if}
   </div>

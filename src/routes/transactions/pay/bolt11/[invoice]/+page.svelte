@@ -23,13 +23,15 @@
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { combineLatest, map } from 'rxjs'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { nowSeconds } from '$lib/utils.js'
 
   export let data: PageData
 
   let decodeError = ''
   let selectedWalletId: Wallet['id']
   let paying = false
-  let payingError = ''
+  let payingError: AppError | null = null
 
   const decoded = decodeBolt11(data.invoice) as DecodedBolt11Invoice
 
@@ -51,7 +53,7 @@
 
   const pay = async () => {
     paying = true
-    payingError = ''
+    payingError = null
 
     try {
       const connection = connections$.value.find(
@@ -59,7 +61,14 @@
       ) as Connection
 
       if (!connection.invoices?.pay) {
-        throw { key: 'connection_unsupported_action' }
+        throw {
+          key: 'connection_unsupported_action',
+          detail: {
+            timestamp: nowSeconds(),
+            message: 'Wallet cannot pay BOLT11 invoice',
+            context: 'Paying BOLT11'
+          }
+        }
       }
 
       const paid = await connection.invoices.pay({
@@ -71,8 +80,7 @@
       await db.invoices.add(paid)
       await goto(`/transactions/${paid.id}`)
     } catch (error) {
-      const { key } = error as AppError
-      payingError = $translate(`app.errors.${key}`)
+      payingError = error as AppError
     } finally {
       paying = false
     }
@@ -163,8 +171,8 @@
     </div>
 
     {#if payingError}
-      <div in:slide class="mt-4">
-        <Msg type="error" message={payingError} />
+      <div in:slide={{ axis: 'y' }} class="mt-2">
+        <ErrorDetail error={payingError} />
       </div>
     {/if}
   {/if}
