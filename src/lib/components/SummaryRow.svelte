@@ -9,7 +9,9 @@
 >
   <span class="mr-2 text-neutral-300 w-1/4 whitespace-nowrap"><slot name="label" /></span>
 
-  <p class="flex items-center justify-end w-3/4 overflow-hidden text-right break-words">
+  <p
+    class="flex items-center justify-end w-3/4 overflow-hidden text-right break-words text-neutral-50"
+  >
     <slot name="value" />
   </p>
 </div>

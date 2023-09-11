@@ -316,7 +316,7 @@ class Channels implements ChannelsInterface {
 
       const result = await this.connection.rpc({
         method: 'fundchannel',
-        params: { id, amount: satsToMsats(amount), announce }
+        params: { id, amount, announce }
       })
 
       const { tx, txid, outnum, channel_id } = result as FundChannelResponse

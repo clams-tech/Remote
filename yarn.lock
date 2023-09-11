@@ -783,10 +783,10 @@ bitcoinjs-lib@^6.1.3:
     typeforce "^1.11.3"
     varuint-bitcoin "^1.1.2"
 
-bolt12-decoder@^0.0.8:
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.8.tgz#89c9cac2762fa112031aeae0aac7c8f4538aa7c4"
-  integrity sha512-p0El5kRieN38K9JcB0aoooLwIeLKgGHUuSi58WpuWvtjlnaF58kP+Fujywt218fq7TDLaAwIHhtEc2vp9wXW2A==
+bolt12-decoder@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/bolt12-decoder/-/bolt12-decoder-0.0.9.tgz#f75e2548d4f0ec94a33cf081069a9646584aa69e"
+  integrity sha512-Wd3G6ydmyy3YdnuKCc5klm3h01Cv8k7Aksi9SdrOS5gbGqY7SP0zk20Ja4oUKnD6iZr0BikV5i8z2afMYzPLrQ==
   dependencies:
     "@noble/hashes" "^1.2.0"
     buffer "^6.0.3"

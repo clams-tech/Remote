@@ -78,12 +78,14 @@
           <span
             class:text-utility-success={status === 'confirmed'}
             class:text-utility-error={status === 'spent'}
-            class:text-utility-pending={status === 'immature' || status === 'unconfirmed'}
+            class:text-utility-pending={status === 'immature' ||
+              status === 'unconfirmed' ||
+              status === 'spent_unconfirmed'}
             class="flex items-center"
             slot="value"
           >
-            {status}
-            {#if status === 'immature' || status === 'unconfirmed'}
+            {$translate(`app.labels.${status}`)}
+            {#if status === 'immature' || status === 'unconfirmed' || status === 'spent_unconfirmed'}
               <div class="ml-1">
                 <Spinner size="1rem" />
               </div>

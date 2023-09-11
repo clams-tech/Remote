@@ -14,7 +14,7 @@
 <button
   on:click
   class:border-purple-300={selected}
-  class="rounded-xl border-2 border-neutral-50 px-[1em] py-[0.75em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
+  class="rounded-xl border-2 border-neutral-50 px-[0.75em] py-[0.5em] bg-neutral-900 hover:bg-neutral-800/70 transition-all relative"
 >
   <div class="relative">
     <div class="font-semibold truncate w-full text-center leading-none">

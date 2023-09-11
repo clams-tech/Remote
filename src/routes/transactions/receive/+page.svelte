@@ -72,10 +72,6 @@
     const id = createRandomHex()
 
     try {
-      if (connection.connect && connection.connectionStatus$.value === 'disconnected') {
-        await connection.connect()
-      }
-
       if (createInvoice && connection.invoices?.create) {
         const invoice = await connection.invoices.create({
           id,

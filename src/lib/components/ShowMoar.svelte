@@ -15,7 +15,7 @@
 </button>
 
 {#if showMoar}
-  <div transition:slide={{ duration: 250 }} class="mt-4">
+  <div transition:slide={{ duration: 250 }} class="mt-2 pl-4">
     <slot />
   </div>
 {/if}

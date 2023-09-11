@@ -23,10 +23,10 @@
   import caret from '$lib/icons/caret.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import { truncateValue } from '$lib/utils.js'
+  import channels from '$lib/icons/channels.js'
 
   export let data: PageData // channel id
 
-  let channel: Channel
   let connection: Connection
   let wallet: Wallet
   let feeBaseUpdate: number
@@ -60,10 +60,10 @@
   }
 
   const loadData = async () => {
-    connection = $connections$.find((conn) => conn.walletId === channel.walletId) as Connection
-    wallet = (await db.wallets.get(channel.walletId)) as Wallet
+    connection = $connections$.find((conn) => conn.walletId === $channel$!.walletId) as Connection
+    wallet = (await db.wallets.get($channel$!.walletId)) as Wallet
 
-    const { feeBase, feePpm, htlcMin, htlcMax } = channel
+    const { feeBase, feePpm, htlcMin, htlcMax } = $channel$ as Channel
 
     if (feeBase) {
       feeBaseUpdate = feeBase
@@ -86,15 +86,16 @@
 
   timer(5000, 10000)
     .pipe(
-      filter(() => !!channel),
+      filter(() => !!$channel$),
       switchMap(async () => {
-        return connection.channels?.get({ id: channel!.id, peerId: channel!.peerId! })
+        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
       }),
+      filter((x) => !!x),
       map((update) => update && update[0]),
       takeUntil(onDestroy$)
     )
     .subscribe((channelUpdate) => {
-      channel = channelUpdate!
+      db.channels.update(data.id, channelUpdate!)
     })
 
   let showFeeUpdateModal = false
@@ -118,8 +119,8 @@
         htlcMax
       })
 
-      await db.channels.update(channel.id, {
-        ...channel,
+      await db.channels.update(data.id, {
+        ...$channel$,
         feeBase,
         feePpm: feeRateUpdate,
         htlcMin,
@@ -142,8 +143,8 @@
     errMsg = ''
 
     try {
-      await connection.channels?.connect!({ id: channel.peerId! })
-      channel.peerConnected = true
+      await connection.channels?.connect!({ id: $channel$!.peerId! })
+      db.channels.update(data.id, { peerConnected: true })
     } catch (error) {
       const { key } = error as AppError
       errMsg = $translate(`app.errors.${key}`)
@@ -165,7 +166,7 @@
       </div>
     {:else if !loaded}
       <Spinner />
-    {:else if channel}
+    {:else if $channel$}
       {@const {
         peerAlias,
         peerId,
@@ -182,20 +183,61 @@
         htlcMin,
         htlcMax,
         closer,
-        finalToUs
-      } = channel}
+        finalToUs,
+        walletId
+      } = $channel$}
 
-      <div class="flex flex-col items-center mb-4">
-        <div class="text-2xl font-semibold">{peerAlias || $translate('app.labels.channel')}</div>
-        {#if peerId}
-          <div class="text-sm pl-2">
-            <CopyValue value={peerId} truncateLength={8} />
+      <div>
+        <div class="w-full flex justify-center items-center text-3xl font-semibold">
+          <div class="w-8 mr-1.5">{@html channels}</div>
+          <div class="flex items-center gap-x-2">
+            <div>
+              {$translate('app.labels.channel_with')}
+            </div>
+            <div class="text-purple-200">
+              {peerAlias || $translate('app.labels.unknown')}
+            </div>
           </div>
-        {/if}
+        </div>
+        <div class="flex items-center w-full justify-center text-2xl">
+          <div class="flex flex-col items-end">
+            <BitcoinAmount sats={balanceLocal + balanceRemote} />
+            <div class="text-xs font-semibold">capacity</div>
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-col w-full overflow-hidden justify-center items-center">
+      <div class="flex flex-col w-full overflow-hidden justify-center items-center mt-2">
         <div class="flex flex-col w-full flex-grow overflow-auto max-w-lg">
+          <SummaryRow>
+            <div slot="label">
+              {$translate('app.labels.wallet')}:
+            </div>
+            <div slot="value">
+              {#await db.wallets.get(walletId) then wallet}
+                {#if wallet}
+                  <a class="flex items-center no-underline" href={`/wallets/${wallet.id}`}>
+                    {wallet.label}
+                    <div class="w-4 -rotate-90">{@html caret}</div>
+                  </a>
+                {:else}
+                  {$translate('app.labels.unknown')}
+                {/if}
+              {/await}
+            </div>
+          </SummaryRow>
+
+          {#if peerId}
+            <SummaryRow>
+              <div slot="label">
+                {$translate('app.labels.peer_id')}:
+              </div>
+              <div slot="value">
+                <CopyValue value={peerId} truncateLength={8} />
+              </div>
+            </SummaryRow>
+          {/if}
+
           <SummaryRow>
             <div slot="label">
               {$translate('app.labels.state')}:
@@ -416,7 +458,7 @@
   </div>
 </Section>
 
-{#if showFeeUpdateModal && channel}
+{#if showFeeUpdateModal}
   <Modal on:close={() => (showFeeUpdateModal = false)}>
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>

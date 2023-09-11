@@ -1,8 +1,7 @@
 import decode from 'bolt12-decoder'
-import type { BitcoinExchangeRates, Settings, Tile } from './@types/settings.js'
+import type { BitcoinExchangeRates, FiatDenomination, Settings, Tile } from './@types/settings.js'
 import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
-import { settings$ } from './streams.js'
 import { Buffer } from 'buffer'
 import type { Network } from './@types/common.js'
 
@@ -37,9 +36,9 @@ export const noop = () => {}
 export const wait = (time: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, time))
 
-export async function getBitcoinExchangeRate(): Promise<BitcoinExchangeRates | null> {
-  const currency = settings$.value.fiatDenomination
-
+export async function getBitcoinExchangeRate(
+  currency: FiatDenomination
+): Promise<BitcoinExchangeRates | null> {
   if (currency === 'none') {
     return null
   }
