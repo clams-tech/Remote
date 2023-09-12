@@ -70,7 +70,11 @@
     showConfiguration = true
   }
 
-  $: walletType = $wallet$ && connectionOptions.find((c) => c.type === $wallet$!.type)
+  $: walletIcon =
+    $wallet$ &&
+    Object.values(connectionOptions)
+      .flat()
+      .find((c) => c.type === $wallet$!.type)?.icon
 
   onMount(() => {
     from(wallet$)
@@ -315,9 +319,9 @@
       </div>
 
       <div class="flex items-end flex-col p-0.5">
-        {#if walletType}
+        {#if walletIcon}
           <div class="w-full flex items-center justify-end">
-            <div class="w-24 mb-2">{@html walletType.icon}</div>
+            <div class="w-24 mb-2">{@html walletIcon}</div>
           </div>
         {/if}
 
