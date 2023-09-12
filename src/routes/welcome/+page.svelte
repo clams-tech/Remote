@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { secp256k1 } from '@noble/curves/secp256k1'
-  import { bytesToHex } from '@noble/hashes/utils'
   import { goto } from '$app/navigation'
   import Section from '$lib/components/Section.svelte'
   import Button from '$lib/components/Button.svelte'
@@ -9,7 +7,7 @@
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { session$, settings$ } from '$lib/streams.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
-  import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
+  import { createSecret, encryptWithAES, getPublicKey } from '$lib/crypto.js'
   import { notification, storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import Toggle from '$lib/components/Toggle.svelte'
@@ -19,7 +17,6 @@
   import { nowSeconds } from '$lib/utils.js'
 
   const translationBase = 'app.routes./welcome'
-  const secret = $session$ ? $session$.secret : createRandomHex()
 
   let passphrase: string
   let score: number
@@ -57,7 +54,8 @@
   }
 
   async function encryptAndStoreSecret() {
-    const publicKey = bytesToHex(secp256k1.getPublicKey(secret, true))
+    const secret = createSecret()
+    const publicKey = getPublicKey(secret)
     const encrypted = encryptWithAES(secret, passphrase)
 
     try {
