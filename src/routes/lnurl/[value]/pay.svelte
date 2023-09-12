@@ -190,20 +190,7 @@
         }
       }
 
-      const { amount: paymentRequestAmount, descriptionHash } = decoded
-
-      const hashedMetadata = bytesToHex(sha256(metadata))
-
-      if (hashedMetadata !== descriptionHash) {
-        throw {
-          key: 'lnurl_metadata_hash',
-          detail: {
-            timestamp: nowSeconds(),
-            message: 'Invoice returned from server does not have the correct description hash',
-            context: 'LNURL Pay request invoice'
-          }
-        }
-      }
+      const { amount: paymentRequestAmount } = decoded
 
       if (paymentRequestAmount !== amount) {
         throw {
