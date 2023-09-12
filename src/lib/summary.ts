@@ -224,7 +224,7 @@ export const enhanceInputsOutputs = async (
 }
 
 const deriveChannelCapacity = (channel: Channel): number =>
-  channel.balanceLocal + channel.balanceRemote + channel.reserveLocal + channel.reserveRemote
+  channel.balanceLocal + channel.balanceRemote
 
 export const deriveTransactionSummary = async ({
   inputs,

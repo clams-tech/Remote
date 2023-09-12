@@ -218,7 +218,7 @@
 
       details.push({
         type: 'onchain',
-        status: typeof blockheight === 'number' ? 'complete' : 'pending',
+        status: blockheight ? 'complete' : 'pending',
         amount: (summary as PaymentSummary).amount,
         fee,
         channel,
