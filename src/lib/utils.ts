@@ -4,6 +4,9 @@ import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
 import { Buffer } from 'buffer'
 import type { Network } from './@types/common.js'
+import { combineLatest, from, map, type Observable } from 'rxjs'
+import { liveQuery } from 'dexie'
+import { db } from './db.js'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -141,4 +144,34 @@ export const mergeDefaultsWithStoredSettings = (
     ...storedSettings,
     tiles: mergedTiles
   }
+}
+
+export const getWalletBalance = (walletId: string): Observable<number | null> => {
+  const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
+    map((channels) =>
+      channels.reduce((total, channel) => {
+        const { balanceLocal } = channel
+        total += balanceLocal
+        return total
+      }, 0)
+    )
+  )
+
+  const utxosBalance = from(liveQuery(() => db.utxos.where({ walletId }).toArray())).pipe(
+    map((utxos) =>
+      utxos.reduce((total, utxo) => {
+        const { status, amount } = utxo
+
+        if (status !== 'spent' && status !== 'spent_unconfirmed') {
+          total += amount
+        }
+
+        return total
+      }, 0)
+    )
+  )
+
+  return combineLatest([channelsBalance$, utxosBalance]).pipe(
+    map(([channelsBalance, utxosBalance]) => channelsBalance + utxosBalance)
+  )
 }

@@ -48,7 +48,6 @@ export interface Connection {
   connect?: () => Promise<Info | null>
   disconnect?: () => void
   rpc?: RpcCall
-  balance?: BalanceInterface
   signatures?: SignaturesInterface
   offers?: OffersInterface
   invoices?: InvoicesInterface
@@ -180,8 +179,4 @@ export interface WithdrawalsInterface {
 
 export interface DepositsInterface {
   get(): Promise<Deposit[]>
-}
-
-export interface BalanceInterface {
-  get(): Promise<number>
 }

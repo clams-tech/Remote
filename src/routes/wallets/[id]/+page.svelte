@@ -14,7 +14,7 @@
   import caret from '$lib/icons/caret.js'
   import { db } from '$lib/db.js'
   import { goto } from '$app/navigation'
-  import { nowSeconds } from '$lib/utils.js'
+  import { getWalletBalance, nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import trashOutline from '$lib/icons/trash-outline.js'
@@ -29,6 +29,8 @@
   import type { AppError } from '$lib/@types/errors.js'
   import type { Session } from '$lib/@types/session.js'
   import type { WalletConfiguration, Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
+  import ShowMoar from '$lib/components/ShowMoar.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
 
   import {
     connect,
@@ -36,7 +38,6 @@
     connectionOptions,
     syncConnectionData
   } from '$lib/wallets/index.js'
-  import ShowMoar from '$lib/components/ShowMoar.svelte'
 
   export let data: PageData
 
@@ -59,6 +60,8 @@
       return wallet
     })
   )
+
+  const walletBalance$ = getWalletBalance(id)
 
   $: connection = $connections$.find((conn) => conn.walletId === id)
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
@@ -253,45 +256,58 @@
           {/if}
 
           {#if $status === 'connected'}
-            <div class="flex flex-wrap gap-1" in:fade={{ duration: 250 }}>
-              <div class="flex flex-col items-center">
-                <div class="relative w-min">
-                  <Button
-                    disabled={$wallet$ && $wallet$.syncing}
-                    on:click={sync}
-                    primary
-                    text={$translate('app.labels.sync')}
-                  >
-                    <div
-                      class:animate-spin={$wallet$ && $wallet$.syncing}
-                      class="w-4 mr-2 -ml-1"
-                      slot="iconLeft"
+            <div>
+              <div class="flex flex-wrap gap-1" in:fade={{ duration: 250 }}>
+                <div class="flex flex-col items-center">
+                  <div class="relative w-min text-sm">
+                    <Button
+                      disabled={$wallet$ && $wallet$.syncing}
+                      on:click={sync}
+                      primary
+                      text={$translate('app.labels.sync')}
                     >
-                      {@html refresh}
-                    </div>
-                  </Button>
-
-                  {#if syncProgress$}
-                    <div class="absolute top-0 left-0 p-1 w-full h-full overflow-hidden">
-                      <div class="w-full h-full rounded-full overflow-hidden relative">
-                        <div
-                          transition:slide={{ duration: 250 }}
-                          style="width: {$syncProgress$}%;"
-                          class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-300"
-                        />
+                      <div
+                        class:animate-spin={$wallet$ && $wallet$.syncing}
+                        class="w-4 mr-2 -ml-1"
+                        slot="iconLeft"
+                      >
+                        {@html refresh}
                       </div>
-                    </div>
-                  {/if}
+                    </Button>
+
+                    {#if syncProgress$}
+                      <div class="absolute top-0 left-0 p-1 w-full h-full overflow-hidden">
+                        <div class="w-full h-full rounded-full overflow-hidden relative">
+                          <div
+                            transition:slide={{ duration: 250 }}
+                            style="width: {$syncProgress$}%;"
+                            class="absolute bottom-0 left-0 h-1.5 transition-all overflow-hidden bg-purple-300"
+                          />
+                        </div>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+
+                <div class="w-min text-sm">
+                  <Button
+                    on:click={() => (showInfoModal = true)}
+                    text={$translate('app.labels.info')}
+                  >
+                    <div slot="iconLeft" class="w-5 mr-1 -ml-2">{@html qr}</div>
+                  </Button>
                 </div>
               </div>
 
-              <div class="w-min">
-                <Button
-                  on:click={() => (showInfoModal = true)}
-                  text={$translate('app.labels.info')}
-                >
-                  <div slot="iconLeft" class="w-5 mr-1 -ml-2">{@html qr}</div>
-                </Button>
+              <div class="w-full flex flex-col items-start mt-1.5 ml-2">
+                {#if $walletBalance$}
+                  <div>
+                    <BitcoinAmount sats={$walletBalance$} />
+                    <div class="text-xs font-semibold -mt-1">
+                      {$translate('app.labels.balance')}
+                    </div>
+                  </div>
+                {/if}
               </div>
             </div>
           {/if}
