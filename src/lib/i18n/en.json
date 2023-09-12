@@ -418,7 +418,9 @@
     "invoice_description_placeholder": "Description to include in invoice",
     "opening": "Opening",
     "peer_id": "Peer Id",
-    "channel_with": "Channel with"
+    "channel_with": "Channel with",
+    "hash": "Hash",
+    "unrestricted": "Unrestricted"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
@@ -493,7 +495,8 @@
     "wallet_create_offer_unavailable": "You do not have any wallets connected that can create an offer.",
     "wallet_channel_open_unavailable": "You do not have any wallets connected that can open an channel.",
     "fetched_invoice_invalid": "An invalid invoice was returned when trying to pay offer.",
-    "fetched_invoice_amount_invalid": "The invoice returned has a different amount than what was requested from the offer."
+    "fetched_invoice_amount_invalid": "The invoice returned has a different amount than what was requested from the offer.",
+    "decode_rune": "Invalid rune."
   },
   "languages": {
     "en": "English",

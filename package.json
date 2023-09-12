@@ -73,7 +73,7 @@
     "lodash.uniqby": "^4.7.0",
     "nouislider": "^15.7.1",
     "qrcode": "^1.5.3",
-    "rune-decoder": "0.0.1",
+    "rune-decoder": "^0.0.1",
     "rxjs": "^7.5.7",
     "svelte-tiny-virtual-list": "^2.0.5",
     "sveltekit-i18n": "^2.3.2",
