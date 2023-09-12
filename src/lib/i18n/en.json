@@ -420,7 +420,11 @@
     "peer_id": "Peer Id",
     "channel_with": "Channel with",
     "hash": "Hash",
-    "unrestricted": "Unrestricted"
+    "unrestricted": "Unrestricted",
+    "lightning": "Lightning",
+    "exchange": "Exchange",
+    "custodial": "Custodial",
+    "custom": "Custom"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

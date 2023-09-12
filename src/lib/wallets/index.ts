@@ -14,12 +14,24 @@ import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
 
-export const connectionOptions: { type: Wallet['type']; icon: string }[] = [
-  {
-    type: 'coreln',
-    icon: coreLnLogo
-  }
-]
+type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
+
+export const connectionOptions: Partial<
+  Record<
+    ConnectionCategory,
+    {
+      type: Wallet['type']
+      icon: string
+    }[]
+  >
+> = {
+  lightning: [
+    {
+      type: 'coreln',
+      icon: coreLnLogo
+    }
+  ]
+}
 
 export const walletToConnection = (wallet: Wallet, session: Session): Connection => {
   switch (wallet.type) {

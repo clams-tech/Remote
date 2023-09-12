@@ -9,7 +9,6 @@
   import keys from '$lib/icons/keys.js'
   import { nowSeconds } from '$lib/utils.js'
   import { createRandomHex } from '$lib/crypto.js'
-
   import { connectionOptions, walletTypeToInitialConfiguration } from '$lib/wallets/index.js'
 
   const translateBase = 'app.routes./wallets/add'
@@ -37,20 +36,29 @@
 
 <Section>
   <SectionHeading icon={keys} />
+
   <Paragraph>{$translate(`${translateBase}.introduction`)}</Paragraph>
 
-  <div
-    class="grid justify-center 2xl:max-w-2xl grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-xl overflow-auto mt-6"
-  >
-    {#each connectionOptions as { icon, type }}
-      <button
-        on:click={() => addWallet(type)}
-        class="aspect-square p-6 no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"
-      >
-        <div class="w-full">
-          {@html icon}
+  <div class="w-full flex flex-col overflow-auto gap-y-4 mt-4 h-full">
+    <div>
+      {#each Object.entries(connectionOptions) as [category, connections]}
+        <div class="font-semibold text-neutral-300 text-sm">
+          {$translate(`app.labels.${category}`)}
         </div>
-      </button>
-    {/each}
+
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          {#each connections as { icon, type }}
+            <button
+              on:click={() => addWallet(type)}
+              class="border-2 rounded-xl hover:bg-neutral-800 transition-all px-4 py-2"
+            >
+              <div class="w-32">
+                {@html icon}
+              </div>
+            </button>
+          {/each}
+        </div>
+      {/each}
+    </div>
   </div>
 </Section>
