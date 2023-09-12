@@ -4,7 +4,6 @@
   import { goto } from '$app/navigation'
   import Section from '$lib/components/Section.svelte'
   import Button from '$lib/components/Button.svelte'
-  import Msg from '$lib/components/Msg.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
@@ -20,7 +19,7 @@
   import { nowSeconds } from '$lib/utils.js'
 
   const translationBase = 'app.routes./welcome'
-  const secret = createRandomHex()
+  const secret = $session$ ? $session$.secret : createRandomHex()
 
   let passphrase: string
   let score: number

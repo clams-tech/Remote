@@ -4,10 +4,10 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
-  import { errors$, session$, settings$, wallets$ } from '$lib/streams.js'
+  import { autoConnectWallet$, errors$, session$, settings$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
-  import { routeRequiresSession } from '$lib/utils.js'
+  import { nowSeconds, routeRequiresSession } from '$lib/utils.js'
   import Button from '$lib/components/Button.svelte'
   import key from '$lib/icons/key.js'
   import Modal from '$lib/components/Modal.svelte'
@@ -21,6 +21,8 @@
   import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
   import { db } from '$lib/db.js'
+  import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
+  import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
 
   const clearSession = () => session$.next(null)
 
@@ -28,6 +30,32 @@
   let routeHistory: string[] = []
 
   $: path = $page.url.pathname
+
+  $: if ($autoConnectWallet$ && $session$) {
+    const { configuration, label, type } = $autoConnectWallet$
+    const { token } = configuration as CoreLnConfiguration
+    const id = createRandomHex()
+
+    const wallet = {
+      id,
+      label,
+      type,
+      createdAt: nowSeconds(),
+      modifiedAt: nowSeconds(),
+      configuration:
+        token && configuration
+          ? { ...configuration, token: encryptWithAES(token, $session$.secret) }
+          : configuration,
+      lastSync: null,
+      syncing: false
+    }
+
+    db.wallets.add(wallet)
+
+    connect(wallet).then((connection) => syncConnectionData(connection, null))
+
+    autoConnectWallet$.next(null)
+  }
 
   const initializeConnections = async () => {
     const connections = await Promise.all(

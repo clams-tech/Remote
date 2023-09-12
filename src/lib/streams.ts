@@ -4,7 +4,7 @@ import type { BitcoinExchangeRates, Settings } from './@types/settings.js'
 import { DEFAULT_SETTINGS, MIN_IN_MS, STORAGE_KEYS } from './constants.js'
 import type { Connection } from './wallets/interfaces.js'
 import type { AppError } from './@types/errors.js'
-import type { Wallet } from './@types/wallets.js'
+import type { AutoConnectWalletOptions, Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
 import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
@@ -29,6 +29,7 @@ import {
 } from 'rxjs'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
+export const autoConnectWallet$ = new BehaviorSubject<AutoConnectWalletOptions | null>(null)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
 export const connections$ = new BehaviorSubject<Connection[]>([])

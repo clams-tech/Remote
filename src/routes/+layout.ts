@@ -1,12 +1,13 @@
 import type { LayoutLoad } from './$types'
 import { locale, loadTranslations } from '$lib/i18n/translations'
-import { session$ } from '$lib/streams.js'
+import { autoConnectWallet$, session$ } from '$lib/streams.js'
 import { goto } from '$app/navigation'
 import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
 import { db } from '$lib/db.js'
-import { storage } from '$lib/services.js'
+import { log, storage } from '$lib/services.js'
 import { STORAGE_KEYS } from '$lib/constants.js'
+import type { WalletType } from '$lib/@types/wallets.js'
 
 export const prerender = true
 export const ssr = false
@@ -19,7 +20,23 @@ export const load: LayoutLoad = async ({ url }) => {
 
   if (browser) {
     await db.open()
-    const { pathname } = url
+    const { pathname, searchParams } = url
+
+    if (pathname === '/wallets/add') {
+      const configurationStr = searchParams.get('configuration')
+      const type = searchParams.get('type') as WalletType
+
+      if (configurationStr && type) {
+        try {
+          const configuration = JSON.parse(configurationStr)
+          const label = searchParams.get('label') as string
+
+          autoConnectWallet$.next({ label, type, configuration })
+        } catch (error) {
+          log.error('Could not parse configuration search parameter for auto connection')
+        }
+      }
+    }
 
     // no session in memory, so check stored session
     if (!session$.value) {

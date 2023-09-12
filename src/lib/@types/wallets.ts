@@ -43,3 +43,9 @@ export type MultiSigConfiguration = {
   quorum: `${number}of${number}`
   xpubs: Array<XPubConfiguration>
 }
+
+export type AutoConnectWalletOptions = {
+  label: Wallet['label']
+  type: Wallet['type']
+  configuration: Wallet['configuration']
+}

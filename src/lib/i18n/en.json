@@ -412,7 +412,7 @@
     "out_channel": "Out channel",
     "in_amount": "In amount",
     "out_amount": "Out amount",
-    "lets_go": "Let's go!",
+    "lets_go": "Let's Go!",
     "received_sats": "Received Sats",
     "invoice_receive_description": "{{wallet}} received {{amount}} sats via {{request}}",
     "invoice_description_placeholder": "Description to include in invoice",
