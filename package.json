@@ -13,6 +13,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "eslint . --fix",
     "format": "prettier --plugin-search-dir . --write .",
+    "test": "vitest",
     "tauri": "tauri",
     "check-unused-exports": "./node_modules/.bin/ts-unused-exports ./tsconfig.json"
   },
@@ -46,7 +47,8 @@
     "ts-unused-exports": "^9.0.5",
     "tslib": "^2.6.0",
     "typescript": "^5.1.6",
-    "vite": "^4.4.2"
+    "vite": "^4.4.2",
+    "vitest": "^0.34.4"
   },
   "type": "module",
   "license": "GPL-3.0",
