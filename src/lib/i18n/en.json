@@ -424,7 +424,8 @@
     "lightning": "Lightning",
     "exchange": "Exchange",
     "custodial": "Custodial",
-    "custom": "Custom"
+    "custom": "Custom",
+    "filters": "Filters"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

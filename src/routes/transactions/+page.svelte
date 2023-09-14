@@ -11,7 +11,6 @@
   import { liveQuery } from 'dexie'
   import TransactionRow from './TransactionRow.svelte'
   import { fade, slide } from 'svelte/transition'
-  import filter from '$lib/icons/filter.js'
   import { endOfDay } from 'date-fns'
   import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
@@ -88,9 +87,6 @@
     takeUntil(onDestroy$)
   )
 
-  let showFilters = false
-  const toggleFilters = () => (showFilters = !showFilters)
-
   let showFullReceiveButton = false
   let transactionsContainer: HTMLDivElement
 
@@ -135,15 +131,7 @@
 <Section>
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={list} />
-
-    <button on:click={toggleFilters} class="w-8">{@html filter}</button>
   </div>
-
-  {#if showFilters}
-    <div in:slide>
-      <!-- @TODO - Checkbox filters -->
-    </div>
-  {/if}
 
   <div class="w-full overflow-hidden flex">
     {#if !$dailyPayments$}
