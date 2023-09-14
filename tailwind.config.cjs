@@ -42,5 +42,5 @@ module.exports = {
   variants: {
     width: ['responsive', 'hover', 'focus']
   },
-  darkMode: 'class'
+  plugins: [require('@tailwindcss/forms')]
 }

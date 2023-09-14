@@ -5,19 +5,16 @@
   import filter from '$lib/icons/filter.js'
   import { inPlaceSort } from 'fast-sort'
   import Modal from './Modal.svelte'
-  import Toggle from './Toggle.svelte'
 
   type T = $$Generic
 
   type Filter = {
     label: string
-    key: string
-    predicate: (val: T[keyof T]) => boolean
-    applied: boolean
+    values: { label: string; checked: boolean; predicate: (val: T) => boolean }[]
   }
 
-  type TagFilter = { tag: string; applied: boolean }
-  type Sorter = { label: string; key: keyof T; direction: 'asc' | 'desc'; applied: boolean }
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: keyof T; direction: 'asc' | 'desc' }
 
   export let items: T[]
   export let filters: Filter[]
@@ -28,12 +25,10 @@
   const cachedMetadata: Partial<Record<string, Metadata | null>> = {}
 
   let showModal = false
+  let selectedSorter: Sorter['key'] = sorters[0].key
 
-  const filterSort = async () => {
-    console.log('filtering and sorting')
+  const filterItems = async () => {
     let processedItems: T[] = []
-
-    console.log({ filters })
 
     // FILTER
     for (const item of items) {
@@ -47,44 +42,42 @@
         cachedMetadata[id] = metadata || null
       }
 
-      const passesAllFilters = !!filters.every(({ key, predicate, applied }) =>
-        applied ? predicate(item[key as keyof T]) : true
-      )
+      const passesAllFilters = filters.every(({ values }) => {
+        const checked = values.filter(({ checked }) => checked)
+        return checked.length ? checked.some(({ predicate }) => predicate(item)) : true
+      })
 
-      const passesAllTagFilters = !!tagFilters.every(({ tag, applied }) =>
-        applied && metadata ? metadata.tags.includes(tag) : true
-      )
+      const passesAllTagFilters = metadata
+        ? tagFilters
+            .filter(({ checked }) => checked)
+            .some(({ tag }) => metadata!.tags.includes(tag))
+        : true
 
       if (passesAllFilters && passesAllTagFilters) {
         processedItems.push(item)
       }
     }
 
-    const appliedSorter = sorters.find(({ applied }) => applied)
-
-    // SORT
-    if (appliedSorter) {
-      inPlaceSort(processedItems)[appliedSorter.direction]((i) => i[appliedSorter.key])
-    }
-
     processed = processedItems
+  }
 
-    console.log({ processed })
+  const sortItems = () => {
+    const sorter = sorters.find(({ key }) => key === selectedSorter)
+
+    if (sorter) {
+      // SORT
+      inPlaceSort(processed)[sorter.direction]((i) => i[sorter.key])
+      processed = processed
+    }
   }
 
   // recalculate on change
   $: if (filters && tagFilters && sorters) {
-    filterSort()
+    filterItems()
   }
 
-  const toggleFilter = (key: Filter['key']) => {
-    filters = filters.map((filter) => {
-      if (filter.key === key) {
-        filter.applied = !filter.applied
-      }
-
-      return filter
-    })
+  $: if (selectedSorter) {
+    sortItems()
   }
 </script>
 
@@ -93,15 +86,65 @@
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
     <div class="h-full overflow-auto w-full">
-      <div class="font-semibold mb-2">{$translate('app.labels.filters')}</div>
+      <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
-      <div class="w-full">
-        {#each filters as { label, applied, key }}
-          <Toggle on:change={() => toggleFilter(key)} toggled={applied}>
-            <div slot="left" class="mr-2">{label}</div>
-          </Toggle>
+      <div class="w-full flex flex-col gap-y-4">
+        {#each filters as { label, values }}
+          <div class="w-full">
+            <div class="font-semibold text-sm text-neutral-300 mb-2">{label}</div>
+            <div
+              class="flex items-center flex-wrap gap-x-4 gap-y-2 bg-neutral-900 px-4 py-3 border border-neutral-600 rounded w-full"
+            >
+              {#each values as value}
+                <div class="cursor-pointer flex items-center">
+                  <input
+                    id={label}
+                    type="checkbox"
+                    bind:checked={value.checked}
+                    class="checked:bg-purple-400 rounded-md"
+                  />
+                  <label class="ml-1" for={label}>{value.label}</label>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
+
+      <div class="w-full flex flex-col gap-y-4">
+        {#each sorters as { label, key, direction }}
+          <div class="w-full">
+            <div class="flex items-center">
+              <input id={label} type="radio" bind:group={selectedSorter} value={key} />
+              <label class="ml-1" for={label}>{label}</label>
+            </div>
+
+            <div class="flex items-center gap-x-2 text-sm ml-4">
+              {#each ['desc', 'asc'] as d}
+                <div class="flex items-center">
+                  <input type="radio" class="w-3 h-3" bind:group={direction} value={d} id={d} />
+                  <label class="ml-1" for={d}>{$translate(`app.labels.${d}`)}</label>
+                </div>
+              {/each}
+            </div>
+          </div>
         {/each}
       </div>
     </div>
   </Modal>
 {/if}
+
+<!-- {#each ['desc', 'asc'] as d}
+                <div class="cursor-pointer flex items-center">
+                  <input
+                    id={d}
+                    type="radio"
+                    bind:group={direction}
+                    value={d}
+                    class="checked:bg-purple-400 rounded-md"
+                  />
+                  <label class="leading-none ml-1" for={d}>{d}</label>
+                </div>
+              {/each} -->

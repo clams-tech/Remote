@@ -21,9 +21,6 @@
   let showFullOpenButton = false
   let offersContainer: HTMLDivElement
 
-  $: offersContainerScrollable =
-    processed && offersContainer ? processed.length * 74 > offersContainer.clientHeight : false
-
   let previousOffset = 0
 
   const handleOffersScroll = (offset: number) => {
@@ -44,20 +41,25 @@
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
   $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
+  $: offersContainerScrollable = processed ? processed.length * 74 > listHeight : false
 
   type Key = keyof Offer
-  type Val = Offer[Key]
-  type Filter = { label: string; applied: boolean; key: Key; predicate: (val: Val) => boolean }
-  type TagFilter = { tag: string; applied: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc'; applied: boolean }
+
+  type Filter = {
+    label: string
+    values: { label: string; checked: boolean; predicate: (val: Offer) => boolean }[]
+  }
+
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
 
   let processed: Offer[] = []
   let filters: Filter[] = []
   let tagFilters: TagFilter[] = []
 
   let sorters: Sorter[] = [
-    { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc', applied: false },
-    { label: $translate('app.labels.expiry'), key: 'expiry', direction: 'desc', applied: false }
+    { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc' },
+    { label: $translate('app.labels.expiry'), key: 'expiry', direction: 'desc' }
   ]
 
   // once we have offers, create filters, tag filters
@@ -82,35 +84,40 @@
 
       const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
 
-      const walletFilters = wallets.reduce((acc, wallet) => {
-        if (wallet) {
-          acc.push({
-            label: wallet.label,
-            applied: true,
-            key: 'walletId',
-            predicate: (walletId) => walletId === wallet.id
-          })
-        }
+      const walletFilter = {
+        label: $translate('app.labels.wallet'),
+        values: wallets.reduce((acc, wallet) => {
+          if (wallet) {
+            acc.push({
+              label: wallet.label,
+              checked: true,
+              predicate: ({ walletId }) => walletId === wallet.id
+            })
+          }
 
-        return acc
-      }, [] as Filter[])
+          return acc
+        }, [] as Filter['values'])
+      }
 
-      tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, applied: true }))
+      tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: true }))
 
       filters = [
         {
-          label: $translate('app.labels.active'),
-          applied: true,
-          key: 'active',
-          predicate: (val) => val === true
+          label: $translate('app.labels.status'),
+          values: [
+            {
+              label: $translate('app.labels.active'),
+              checked: true,
+              predicate: ({ active }) => !!active
+            },
+            {
+              label: $translate('app.labels.expired'),
+              checked: false,
+              predicate: ({ expiry }) => (expiry ? Date.now() / 1000 >= expiry : false)
+            }
+          ]
         },
-        {
-          label: $translate('app.labels.expired'),
-          applied: false,
-          key: 'expiry',
-          predicate: (val) => (val ? (val as number) < Date.now() / 1000 : false)
-        },
-        ...walletFilters
+        walletFilter
       ]
     })
 </script>
@@ -140,7 +147,7 @@
       <div class="w-full mt-4">
         <Msg message={$translate('app.labels.no_offers')} type="info" />
       </div>
-    {:else}
+    {:else if processed}
       <div
         bind:this={offersContainer}
         class="w-full flex flex-col flex-grow overflow-hidden gap-y-2 mt-2"
@@ -151,7 +158,6 @@
           height={listHeight}
           itemCount={processed.length}
           itemSize={rowSize}
-          getKey={(index) => processed[index].id}
         >
           <div slot="item" let:index let:style {style}>
             <OfferRow offer={processed[index]} />
@@ -175,7 +181,9 @@
         <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
       </div>
 
-      <div class="w-6 -ml-1 relative">{@html plus}</div>
+      <div class="w-6 relative" class:-ml-1={!offersContainerScrollable || showFullOpenButton}>
+        {@html plus}
+      </div>
 
       {#if !offersContainerScrollable || showFullOpenButton}
         <div class="font-semibold relative" in:slide|local={{ axis: 'x' }}>

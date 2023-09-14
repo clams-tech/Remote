@@ -12,7 +12,7 @@
     'w-full h-full fixed top-0 left-0 backdrop-blur-sm bg:neutral-50/40 flex flex-col items-center z-50'
 
   const modalStyles =
-    'bg-neutral-900 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[95%] overflow-y-auto min-w-[400px]'
+    'bg-neutral-900 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[95%] overflow-y-auto min-w-[425px]'
 
   function closeModal() {
     dispatch('close')

@@ -425,7 +425,11 @@
     "exchange": "Exchange",
     "custodial": "Custodial",
     "custom": "Custom",
-    "filters": "Filters"
+    "filters": "Filters",
+    "sort": "Sort",
+    "expiry": "Expiry",
+    "desc": "Descending",
+    "asc": "Ascending"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

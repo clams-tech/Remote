@@ -120,10 +120,7 @@
 
   $: listHeight = Math.min(maxHeight, fullHeight)
 
-  $: transactionsContainerScrollable =
-    $dailyPayments$ && transactionsContainer
-      ? fullHeight > transactionsContainer.clientHeight
-      : false
+  $: transactionsContainerScrollable = $dailyPayments$ ? fullHeight > listHeight : false
 </script>
 
 <svelte:window bind:innerHeight />
@@ -193,7 +190,12 @@
         <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
       </div>
 
-      <div class="w-6 relative">{@html plus}</div>
+      <div
+        class="w-6 relative"
+        class:-ml-1={!transactionsContainerScrollable || showFullReceiveButton}
+      >
+        {@html plus}
+      </div>
 
       {#if !transactionsContainerScrollable || showFullReceiveButton}
         <div class="ml-1 font-semibold relative" in:slide|local={{ axis: 'x' }}>

@@ -37,11 +37,6 @@
   let showFullOpenButton = false
   let channelsContainer: HTMLDivElement
 
-  $: channelsContainerScrollable =
-    $channels$ && channelsContainer
-      ? $channels$.length * 74 > channelsContainer.clientHeight
-      : false
-
   let previousOffset = 0
 
   const handleChannelsScroll = (offset: number) => {
@@ -59,6 +54,8 @@
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
   $: fullHeight = $channels$ ? $channels$.length * 84 : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
+
+  $: channelsContainerScrollable = $channels$ ? $channels$.length * 74 > listHeight : false
 </script>
 
 <svelte:window bind:innerHeight />
@@ -140,7 +137,9 @@
         <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
       </div>
 
-      <div class="w-6 -ml-1 relative">{@html plus}</div>
+      <div class="w-6 relative" class:-ml-1={!channelsContainerScrollable || showFullOpenButton}>
+        {@html plus}
+      </div>
 
       {#if !channelsContainerScrollable || showFullOpenButton}
         <div class="font-semibold relative" in:slide|local={{ axis: 'x' }}>
