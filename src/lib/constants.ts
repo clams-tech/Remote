@@ -29,7 +29,7 @@ export const DEFAULT_INVOICE_EXPIRY = 60 * MIN_IN_SECS
 
 export const TILES: Record<Tile, boolean> = {
   wallets: true,
-  transactions: true,
+  payments: true,
   utxos: true,
   channels: true,
   offers: true,
@@ -42,7 +42,7 @@ export const TILES: Record<Tile, boolean> = {
 
 export const TILE_ICONS: Record<Tile, string> = {
   wallets: wallet,
-  transactions: list,
+  payments: list,
   utxos: keys,
   channels: channels,
   offers: lightningOutline,

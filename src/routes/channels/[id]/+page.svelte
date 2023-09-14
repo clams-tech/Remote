@@ -320,7 +320,7 @@
                 {$translate('app.labels.closing_transaction')}:
               </div>
               <div slot="value">
-                <a href={`/transactions/${$closingTransaction$.id}`} class="flex items-center"
+                <a href={`/payments/${$closingTransaction$.id}`} class="flex items-center"
                   >{truncateValue($closingTransaction$.id)}
                   <div class="w-4 -rotate-90">{@html caret}</div>
                 </a>

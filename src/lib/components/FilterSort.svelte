@@ -98,12 +98,12 @@
               {#each values as value}
                 <div class="cursor-pointer flex items-center">
                   <input
-                    id={label}
+                    id={value.label}
                     type="checkbox"
                     bind:checked={value.checked}
-                    class="checked:bg-purple-400 rounded-md"
+                    class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
                   />
-                  <label class="ml-1" for={label}>{value.label}</label>
+                  <label class="ml-1" for={value.label}>{value.label}</label>
                 </div>
               {/each}
             </div>

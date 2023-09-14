@@ -1,0 +1,307 @@
+<script lang="ts">
+  import { db } from '$lib/db.js'
+  import Msg from '$lib/components/Msg.svelte'
+  import Section from '$lib/components/Section.svelte'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import Spinner from '$lib/components/Spinner.svelte'
+  import list from '$lib/icons/list.js'
+  import { liveQuery } from 'dexie'
+  import PaymentRow from './PaymentRow.svelte'
+  import { fade, slide } from 'svelte/transition'
+  import { endOfDay } from 'date-fns'
+  import { inPlaceSort } from 'fast-sort'
+  import { formatDate } from '$lib/dates.js'
+  import plus from '$lib/icons/plus.js'
+  import { translate } from '$lib/i18n/translations.js'
+  import VirtualList from 'svelte-tiny-virtual-list'
+  import { Observable, from, map, takeUntil, zip } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
+  import uniqBy from 'lodash.uniqby'
+  import FilterSort from '$lib/components/FilterSort.svelte'
+  import type { Payment, PaymentStatus } from '$lib/@types/common.js'
+  import { getNetwork } from '$lib/utils.js'
+
+  const invoices$: Observable<Payment[]> = from(
+    liveQuery(async () => {
+      const invoices = await db.invoices.toArray()
+      return invoices.map(
+        ({ id, status, completedAt, createdAt, amount, request, fee, walletId }) => ({
+          id,
+          type: 'invoice' as const,
+          status,
+          timestamp: completedAt || createdAt,
+          walletId,
+          amount,
+          network: request ? getNetwork(request) : 'bitcoin',
+          fee
+        })
+      )
+    })
+  )
+
+  const transactions$: Observable<Payment[]> = from(
+    liveQuery(async () => {
+      const transactions = await db.transactions.toArray().then((txs) => uniqBy(txs, 'id'))
+
+      return transactions.map(({ id, timestamp, blockheight, outputs, fee, walletId }) => ({
+        id,
+        type: 'transaction' as const,
+        status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
+        timestamp,
+        walletId,
+        network: getNetwork(outputs[0].address),
+        fee
+      }))
+    })
+  )
+
+  const addresses$: Observable<Payment[]> = from(
+    liveQuery(async () => {
+      const addresses = await db.addresses.filter(({ txid }) => !txid).toArray()
+      return addresses.map(({ id, createdAt, walletId, amount, value }) => ({
+        id,
+        type: 'address' as const,
+        status: 'waiting' as PaymentStatus,
+        timestamp: createdAt,
+        walletId,
+        amount,
+        network: getNetwork(value)
+      }))
+    })
+  )
+
+  type PaymentsMap = Map<number, Payment[]>
+
+  type Key = keyof Payment
+
+  type Filter = {
+    label: string
+    values: { label: string; checked: boolean; predicate: (val: Payment) => boolean }[]
+  }
+
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
+
+  let processed: Payment[] = []
+  let filters: Filter[] = []
+  let tagFilters: TagFilter[] = []
+
+  let sorters: Sorter[] = [
+    { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' },
+    { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc' },
+    { label: $translate('app.labels.fee'), key: 'fee', direction: 'desc' }
+  ]
+
+  const payments$ = zip([invoices$, transactions$, addresses$]).pipe(
+    map((payments) => payments.flat())
+  )
+
+  payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
+    const walletIdSet = new Set()
+    const tagSet = new Set()
+
+    for (const { walletId, id } of payments) {
+      walletIdSet.add(walletId)
+
+      const metadata = await db.metadata.get(id)
+
+      if (metadata) {
+        metadata.tags.forEach((tag) => tagSet.add(tag))
+      }
+    }
+
+    const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
+
+    const walletFilter = {
+      label: $translate('app.labels.wallet'),
+      values: wallets.reduce((acc, wallet) => {
+        if (wallet) {
+          acc.push({
+            label: wallet.label,
+            checked: true,
+            predicate: ({ walletId }) => walletId === wallet.id
+          })
+        }
+
+        return acc
+      }, [] as Filter['values'])
+    }
+
+    tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: true }))
+
+    filters = [
+      {
+        label: $translate('app.labels.status'),
+        values: [
+          {
+            label: $translate('app.labels.pending'),
+            checked: true,
+            predicate: ({ status }) => status === 'pending'
+          },
+          {
+            label: $translate('app.labels.waiting'),
+            checked: true,
+            predicate: ({ status }) => status === 'waiting'
+          },
+          {
+            label: $translate('app.labels.complete'),
+            checked: true,
+            predicate: ({ status }) => status === 'complete'
+          },
+          {
+            label: $translate('app.labels.expired'),
+            checked: true,
+            predicate: ({ status }) => status === 'expired'
+          },
+          {
+            label: $translate('app.labels.failed'),
+            checked: true,
+            predicate: ({ status }) => status === 'failed'
+          }
+        ]
+      },
+      walletFilter
+    ]
+  })
+
+  type PaymentChunks = [number, Payment[]][]
+  let dailyPaymentChunks: PaymentChunks = []
+
+  $: if (processed) {
+    const map = processed.reduce((acc, payment) => {
+      const date = new Date(payment.timestamp * 1000)
+      const dateKey = endOfDay(date).getTime() / 1000
+      acc.set(dateKey, [...(acc.get(dateKey) || []), payment])
+
+      return acc
+    }, new Map() as PaymentsMap)
+
+    dailyPaymentChunks = inPlaceSort(Array.from(map.entries())).desc(([timestamp]) => timestamp)
+  }
+
+  let showFullReceiveButton = false
+  let transactionsContainer: HTMLDivElement
+
+  // need to adjust this if you change the transaction row height
+  const rowSize = 88
+
+  let previousOffset = 0
+
+  const handleTransactionsScroll = (offset: number) => {
+    if (offset < previousOffset) {
+      showFullReceiveButton = true
+    } else {
+      showFullReceiveButton = false
+    }
+
+    previousOffset = offset
+  }
+
+  const getDaySize = (index: number) => {
+    const payments = dailyPaymentChunks[index][1]
+    return payments.length * rowSize + 24 + 8
+  }
+
+  let innerHeight: number
+
+  $: maxHeight = innerHeight - 80 - 56 - 24
+
+  $: fullHeight = dailyPaymentChunks
+    ? dailyPaymentChunks.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
+    : 0
+
+  $: listHeight = Math.min(maxHeight, fullHeight)
+  $: transactionsContainerScrollable = dailyPaymentChunks ? fullHeight > listHeight : false
+
+  let virtualList: VirtualList
+
+  $: if (filters && virtualList) {
+    virtualList.recomputeSizes(0)
+  }
+</script>
+
+<svelte:window bind:innerHeight />
+
+<Section>
+  <div class="w-full flex items-center justify-between">
+    <SectionHeading icon={list} />
+    {#if $payments$}
+      <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
+    {/if}
+  </div>
+
+  <div class="w-full overflow-hidden flex">
+    {#if !$payments$}
+      <div in:fade={{ duration: 250 }} class="mt-4 w-full flex justify-center">
+        <Spinner />
+      </div>
+    {:else if !$payments$.length}
+      <div class="mt-4 w-full">
+        <Msg type="info" closable={false} message={$translate('app.labels.no_transactions')} />
+      </div>
+    {:else}
+      <div
+        bind:this={transactionsContainer}
+        in:fade={{ duration: 250 }}
+        class="w-full flex flex-col overflow-hidden gap-y-2"
+      >
+        <VirtualList
+          bind:this={virtualList}
+          on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
+          width="100%"
+          height={listHeight}
+          itemCount={dailyPaymentChunks.length}
+          itemSize={getDaySize}
+        >
+          <div slot="item" let:index let:style {style}>
+            <div class="pt-1 pl-1">
+              {#await formatDate(dailyPaymentChunks[index][0]) then formattedDate}
+                <div
+                  class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
+                >
+                  {formattedDate}
+                </div>
+              {/await}
+              <div class="rounded overflow-hidden">
+                <div class="overflow-hidden rounded">
+                  {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
+                    <PaymentRow {payment} />
+                  {/each}
+                </div>
+              </div>
+            </div>
+          </div>
+        </VirtualList>
+      </div>
+    {/if}
+  </div>
+
+  <div class="w-full flex justify-end">
+    <a
+      href="/transactions/receive"
+      class:absolute={transactionsContainerScrollable}
+      class:px-2={transactionsContainerScrollable}
+      class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
+      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
+      on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
+      on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
+    >
+      <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+        <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
+      </div>
+
+      <div
+        class="w-6 relative"
+        class:-ml-1={!transactionsContainerScrollable || showFullReceiveButton}
+      >
+        {@html plus}
+      </div>
+
+      {#if !transactionsContainerScrollable || showFullReceiveButton}
+        <div class="ml-1 font-semibold relative" in:slide|local={{ axis: 'x' }}>
+          {$translate('app.labels.receive')}
+        </div>
+      {/if}
+    </a>
+  </div>
+</Section>

@@ -108,12 +108,7 @@
             {
               label: $translate('app.labels.active'),
               checked: true,
-              predicate: ({ active }) => !!active
-            },
-            {
-              label: $translate('app.labels.expired'),
-              checked: false,
-              predicate: ({ expiry }) => (expiry ? Date.now() / 1000 >= expiry : false)
+              predicate: ({ active, expiry }) => !!active && (!expiry || Date.now() / 1000 < expiry)
             }
           ]
         },

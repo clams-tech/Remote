@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type { Network, TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, PaymentStatus } from '$lib/@types/common.js'
   import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations.js'
-  import type { TransactionSummary } from '$lib/summary.js'
+  import type { PaymentSummary } from '$lib/summary.js'
   import { truncateValue } from '$lib/utils.js'
 
-  export let primary: TransactionSummary['primary']
-  export let type: TransactionSummary['type']
-  export let secondary: TransactionSummary['secondary']
-  export let status: TransactionStatus
-  export let timestamp: TransactionSummary['timestamp'] = 0
+  export let primary: PaymentSummary['primary']
+  export let type: PaymentSummary['type']
+  export let secondary: PaymentSummary['secondary']
+  export let status: PaymentStatus
+  export let timestamp: PaymentSummary['timestamp'] = 0
   export let network: Network
   export let centered = false
 </script>

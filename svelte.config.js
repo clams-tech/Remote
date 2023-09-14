@@ -39,12 +39,12 @@ const config = {
         '/channels/[id]',
         '/input',
         '/settings',
-        '/transactions',
-        '/transactions/pay/bolt11/[invoice]',
-        '/transactions/pay/keysend/[pubkey]',
-        '/transactions/pay/onchain/[address]',
-        '/transactions/receive',
-        '/transactions/[id]',
+        '/payments',
+        '/payments/pay/bolt11/[invoice]',
+        '/payments/pay/keysend/[pubkey]',
+        '/payments/pay/onchain/[address]',
+        '/payments/receive',
+        '/payments/[id]',
         '/utxos',
         '/utxos/[id]'
       ]

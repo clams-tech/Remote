@@ -62,12 +62,6 @@ class Offers implements OffersInterface {
               offer_id || invreq_id
             )
 
-            console.log({
-              active,
-              expiry: formattedOffer.expiry,
-              expired: formattedOffer.expiry ? Date.now() / 1000 > formattedOffer.expiry : false
-            })
-
             return {
               ...formattedOffer,
               active,

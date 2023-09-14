@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Network, TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, PaymentStatus } from '$lib/@types/common.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
@@ -29,11 +29,11 @@
 
   import {
     deriveInvoiceSummary,
-    deriveTransactionSummary,
+    derivePaymentSummary,
     enhanceInputsOutputs,
     type EnhancedInput,
     type PaymentSummary,
-    type TransactionSummary,
+    type PaymentSummary,
     type EnhancedOutput
   } from '$lib/summary.js'
 
@@ -47,7 +47,7 @@
   type TransactionDetail = {
     type: 'invoice' | 'address' | 'onchain'
     qrValues?: QRValue[]
-    status: TransactionStatus
+    status: PaymentStatus
     request?: string
     paymentHash?: string
     paymentPreimage?: string
@@ -60,15 +60,15 @@
     expiresAt?: number
     peerNodeId?: string
     wallet: Wallet
-    category: TransactionSummary['category']
-    summaryType: TransactionSummary['type']
+    category: PaymentSummary['category']
+    summaryType: PaymentSummary['type']
     offer?: Invoice['offer']
     channel?: Transaction['channel']
     inputs?: EnhancedInput[]
     outputs?: EnhancedOutput[]
-    primary: TransactionSummary['primary']
-    secondary: TransactionSummary['secondary']
-    timestamp: TransactionSummary['timestamp']
+    primary: PaymentSummary['primary']
+    secondary: PaymentSummary['secondary']
+    timestamp: PaymentSummary['timestamp']
     network: Network
   }
 
@@ -208,7 +208,7 @@
       const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
       const { inputs, outputs } = await enhanceInputsOutputs(transaction)
-      const summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
+      const summary = await derivePaymentSummary({ inputs, outputs, timestamp, fee, channel })
 
       const wallet = (
         summary.type === 'transfer'

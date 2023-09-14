@@ -1,6 +1,5 @@
 <script lang="ts">
-  import type { Address } from '$lib/@types/addresses.js'
-  import type { Network, TransactionStatus } from '$lib/@types/common.js'
+  import type { Payment } from '$lib/@types/common.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import bitcoin from '$lib/icons/bitcoin.js'
@@ -11,93 +10,68 @@
   import caret from '$lib/icons/caret.js'
   import { log } from '$lib/services.js'
   import Summary from './Summary.svelte'
-  import { getNetwork } from '$lib/utils.js'
+  import { db } from '$lib/db.js'
 
   import {
     deriveInvoiceSummary,
-    deriveTransactionSummary,
+    derivePaymentSummary,
     enhanceInputsOutputs,
-    type PaymentSummary,
-    type TransactionSummary
+    type PaymentSummary
   } from '$lib/summary.js'
-  import { db } from '$lib/db.js'
 
-  export let type: 'invoice' | 'address' | 'transaction'
-  export let data: Invoice | Address | (Transaction & { receiveAddress?: Address })
+  export let payment: Payment
 
+  let { type, network, timestamp, amount, fee, id, walletId, status } = payment
   let dataReady = false
   let icon: string
-  let status: TransactionStatus
-  let primary: TransactionSummary['primary']
-  let secondary: TransactionSummary['secondary']
-  let timestamp: TransactionSummary['timestamp']
-  let summaryType: TransactionSummary['type']
-  let fee: TransactionSummary['fee']
-  let amount: PaymentSummary['amount'] | undefined
-  let network: Network
+  let primary: PaymentSummary['primary']
+  let secondary: PaymentSummary['secondary']
+  let summaryType: PaymentSummary['type']
 
   const formatData = async () => {
     if (type === 'invoice') {
-      const { status: invoiceStatus, request } = data as Invoice
-      status = invoiceStatus
       icon = lightning
-      network = getNetwork(request || '')
+      const invoice = (await db.invoices.get(id)) as Invoice
 
       try {
-        const summary = await deriveInvoiceSummary(data as Invoice)
+        const summary = await deriveInvoiceSummary(invoice)
         primary = summary.primary
         secondary = summary.secondary
-        timestamp = summary.timestamp
         summaryType = summary.type
-        fee = summary.fee
-        amount = (summary as PaymentSummary).amount
       } catch (error) {
-        log.error(`Could not derive summary for invoice id: ${data.id}`)
+        log.error(`Could not derive summary for invoice id: ${id}`)
       }
     } else if (type === 'address') {
-      const { walletId, createdAt, amount: receiveAmount } = data as Address
       const wallet = await db.wallets.get(walletId)
 
       icon = bitcoin
-      status = 'pending'
-      network = getNetwork((data as Address).value)
       summaryType = 'receive'
       primary = wallet?.label
       secondary = undefined
-      timestamp = createdAt
-      fee = 0
-      amount = receiveAmount
     } else if (type === 'transaction') {
-      const {
-        blockheight,
-        timestamp: txTimestamp,
-        channel,
-        outputs: transactionOutputs
-      } = data as Transaction
-      const { inputs, outputs } = await enhanceInputsOutputs(data as Transaction)
-      network = getNetwork(transactionOutputs[0].address)
+      const transaction = (await db.transactions.where({ id, walletId }).first()) as Transaction
+      const { inputs, outputs } = await enhanceInputsOutputs(transaction)
       icon = bitcoin
-      status = blockheight ? 'complete' : 'pending'
 
-      const summary = await deriveTransactionSummary({
+      const summary = await derivePaymentSummary({
         inputs,
         outputs,
         fee,
-        timestamp: txTimestamp,
-        channel
+        timestamp,
+        channel: transaction.channel
       })
 
       primary = summary.primary
       secondary = summary.secondary
-      timestamp = summary.timestamp
       summaryType = summary.type
       fee = summary.fee
-      amount = (summary as PaymentSummary).amount
+      amount = summary.amount
     }
+
     dataReady = true
   }
 
-  $: if (data) {
+  $: if (payment) {
     formatData()
   }
 </script>
@@ -106,7 +80,7 @@
   <a
     in:fade
     class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 h-[5.5rem]"
-    href={`/transactions/${data.id}?wallet=${data.walletId}`}
+    href={`/payments/${id}?wallet=${walletId}`}
   >
     <div class="flex items-start h-full">
       <div

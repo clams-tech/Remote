@@ -71,7 +71,7 @@
       })
 
       await db.invoices.add(paid)
-      await goto(`/transactions/${paid.id}`)
+      await goto(`/payments/${paid.id}`)
     } catch (error) {
       payingError = error as AppError
     } finally {

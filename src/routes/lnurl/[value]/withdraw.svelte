@@ -110,7 +110,7 @@
         }
       }
 
-      await goto(`/transactions/${invoice.id}`)
+      await goto(`/payments/${invoice.id}`)
     } catch (error) {
       requestError = error as AppError
     } finally {

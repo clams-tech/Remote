@@ -10,9 +10,12 @@
   import NFCComponent from './Nfc.svelte'
   import { nfc } from '$lib/services.js'
   import { goto } from '$app/navigation'
-  import { isBolt12Offer } from '$lib/input-parser.js'
+  import { isBolt12Offer, parseInput } from '$lib/input-parser.js'
+  import type { PageData } from './$types.js'
 
   type InputKey = 'scan' | 'text' | 'image' | 'nfc'
+
+  export let data: PageData
 
   let input: InputKey = 'scan'
 
@@ -31,9 +34,9 @@
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
       await goto(`/offers/offer/${lightning || value}`)
     } else if (type === 'invoice' || lightning) {
-      await goto(`/transactions/pay/bolt11/${lightning || value}`)
+      await goto(`/payments/pay/bolt11/${lightning || value}`)
     } else if (type === 'node_publickey') {
-      await goto(`/transactions/pay/keysend/${value}`)
+      await goto(`/payments/pay/keysend/${value}`)
     } else if (type === 'onchain') {
       const searchParams = new URLSearchParams()
 
@@ -49,7 +52,15 @@
         searchParams.append('message', message)
       }
 
-      await goto(`/transactions/pay/onchain/${value}?${searchParams.toString()}`)
+      await goto(`/payments/pay/onchain/${value}?${searchParams.toString()}`)
+    }
+  }
+
+  if (data.value) {
+    const parsed = parseInput(data.value)
+
+    if (parsed.type !== 'unknown') {
+      handleInput(parsed)
     }
   }
 

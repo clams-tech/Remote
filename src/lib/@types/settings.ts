@@ -8,7 +8,7 @@ export type Settings = {
 
 export type Tile =
   | 'wallets'
-  | 'transactions'
+  | 'payments'
   | 'utxos'
   | 'channels'
   | 'offers'

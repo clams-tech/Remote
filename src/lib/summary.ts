@@ -13,7 +13,7 @@ import { truncateValue } from './utils.js'
 import { liveQuery } from 'dexie'
 import { isBolt12Invoice } from './invoices.js'
 
-export type ChannelTransactionSummary = {
+export type ChannelPaymentSummary = {
   timestamp: number
   primary?: string
   secondary?: string
@@ -43,7 +43,7 @@ export type PaymentSummary = {
   category: 'expense' | 'income'
 }
 
-export type TransactionSummary = ChannelTransactionSummary | PaymentSummary
+export type PaymentSummary = ChannelPaymentSummary | PaymentSummary
 
 export type EnhancedInput = {
   /** wallet.id, channel.id, withdrawal.id, outpoint */
@@ -226,7 +226,7 @@ export const enhanceInputsOutputs = async (
 const deriveChannelCapacity = (channel: Channel): number =>
   channel.balanceLocal + channel.balanceRemote
 
-export const deriveTransactionSummary = async ({
+export const derivePaymentSummary = async ({
   inputs,
   outputs,
   fee,
@@ -238,7 +238,7 @@ export const deriveTransactionSummary = async ({
   fee: Transaction['fee']
   timestamp: Transaction['timestamp']
   channel: Transaction['channel']
-}): Promise<TransactionSummary> => {
+}): Promise<PaymentSummary> => {
   const channelClose = inputs.find(({ category }) => category === 'channel_close')
   const channelOpens = outputs.filter(({ category }) => category === 'channel_open')
 
@@ -417,7 +417,7 @@ export const deriveInvoiceSummary = async ({
   walletId,
   createdAt,
   completedAt
-}: Invoice): Promise<TransactionSummary> => {
+}: Invoice): Promise<PaymentSummary> => {
   let transferWallet: Wallet | undefined
 
   if (direction === 'send' || (request && isBolt12Invoice(request))) {
@@ -482,7 +482,7 @@ export const deriveReceiveAddressSummary = async ({
   createdAt,
   amount,
   walletId
-}: Address): Promise<TransactionSummary> => {
+}: Address): Promise<PaymentSummary> => {
   const wallet = (await db.wallets.get(walletId)) as Wallet
 
   return {

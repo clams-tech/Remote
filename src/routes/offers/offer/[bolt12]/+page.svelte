@@ -135,7 +135,7 @@
       }
 
       await db.invoices.add(invoice)
-      await goto(`/transactions/${invoice.id}`)
+      await goto(`/payments/${invoice.id}`)
     } catch (error) {
       requestingError = error as AppError
     } finally {
