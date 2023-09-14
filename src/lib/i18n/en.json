@@ -429,7 +429,8 @@
     "sort": "Sort",
     "expiry": "Expiry",
     "desc": "Descending",
-    "asc": "Ascending"
+    "asc": "Ascending",
+    "date": "Date"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

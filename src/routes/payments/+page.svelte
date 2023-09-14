@@ -87,9 +87,7 @@
   let tagFilters: TagFilter[] = []
 
   let sorters: Sorter[] = [
-    { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' },
-    { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc' },
-    { label: $translate('app.labels.fee'), key: 'fee', direction: 'desc' }
+    { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
 
   const payments$ = zip([invoices$, transactions$, addresses$]).pipe(
@@ -176,7 +174,9 @@
       return acc
     }, new Map() as PaymentsMap)
 
-    dailyPaymentChunks = inPlaceSort(Array.from(map.entries())).desc(([timestamp]) => timestamp)
+    dailyPaymentChunks = inPlaceSort(Array.from(map.entries()))[sorters[0].direction](
+      ([timestamp]) => timestamp
+    )
   }
 
   let showFullReceiveButton = false
@@ -215,7 +215,7 @@
 
   let virtualList: VirtualList
 
-  $: if (filters && virtualList) {
+  $: if (filters && sorters && virtualList) {
     virtualList.recomputeSizes(0)
   }
 </script>
@@ -243,7 +243,7 @@
       <div
         bind:this={transactionsContainer}
         in:fade={{ duration: 250 }}
-        class="w-full flex flex-col overflow-hidden gap-y-2"
+        class="w-full flex flex-col overflow-hidden gap-y-2 rounded"
       >
         <VirtualList
           bind:this={virtualList}
@@ -252,6 +252,7 @@
           height={listHeight}
           itemCount={dailyPaymentChunks.length}
           itemSize={getDaySize}
+          getKey={(index) => dailyPaymentChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
