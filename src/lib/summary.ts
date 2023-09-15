@@ -2,16 +2,16 @@ import type { Invoice } from '$lib/@types/invoices.js'
 import type { Transaction } from '$lib/@types/transactions.js'
 import { db } from '$lib/db.js'
 import { connections$ } from '$lib/streams.js'
-import { filter, firstValueFrom, from, map } from 'rxjs'
-import type { Address } from './@types/addresses.js'
+import { filter, firstValueFrom, map } from 'rxjs'
 import type { Channel } from './@types/channels.js'
 import type { Deposit } from './@types/deposits.js'
 import type { Utxo } from './@types/utxos.js'
 import type { Wallet } from './@types/wallets.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import { truncateValue } from './utils.js'
-import { liveQuery } from 'dexie'
-import { isBolt12Invoice } from './invoices.js'
+import Dexie from 'dexie'
+import { bolt12ToOffer, isBolt12Invoice } from './invoices.js'
+import type { Address } from './@types/addresses.js'
 
 export type ChannelPaymentSummary = {
   timestamp: number
@@ -29,7 +29,7 @@ export type ChannelPaymentSummary = {
  * Alice transferred 2100 sats to Bob
  * Carol closed a channel with Bob
  */
-export type PaymentSummary = {
+export type TransactionSummary = {
   /** the timestamp (unix seconds) of when movement completed or started */
   timestamp: number
   /** the amount. depends on type as to what the amount is*/
@@ -40,10 +40,10 @@ export type PaymentSummary = {
   /** usually a counterparty */
   secondary?: string
   type: 'send' | 'receive' | 'transfer' | 'withdrawal' | 'deposit' | 'sweep'
-  category: 'expense' | 'income'
+  category: 'expense' | 'income' | 'neutral'
 }
 
-export type PaymentSummary = ChannelPaymentSummary | PaymentSummary
+export type PaymentSummary = ChannelPaymentSummary | TransactionSummary
 
 export type EnhancedInput = {
   /** wallet.id, channel.id, withdrawal.id, outpoint */
@@ -226,7 +226,7 @@ export const enhanceInputsOutputs = async (
 const deriveChannelCapacity = (channel: Channel): number =>
   channel.balanceLocal + channel.balanceRemote
 
-export const derivePaymentSummary = async ({
+export const deriveTransactionSummary = ({
   inputs,
   outputs,
   fee,
@@ -239,176 +239,186 @@ export const derivePaymentSummary = async ({
   timestamp: Transaction['timestamp']
   channel: Transaction['channel']
 }): Promise<PaymentSummary> => {
-  const channelClose = inputs.find(({ category }) => category === 'channel_close')
-  const channelOpens = outputs.filter(({ category }) => category === 'channel_open')
+  return db.transaction(
+    'r',
+    db.channels,
+    db.wallets,
+    db.withdrawals,
+    db.deposits,
+    db.metadata,
+    // eslint-disable-next-line
+    // @ts-ignore
+    db.contacts,
+    async () => {
+      const channelClose = inputs.find(({ category }) => category === 'channel_close')
+      const channelOpens = outputs.filter(({ category }) => category === 'channel_open')
 
-  if (channelClose) {
-    const channel = (await db.channels.get(channelClose.id)) as Channel
-    const channelWallet = (await db.wallets.get(channel.walletId)) as Wallet
+      if (channelClose) {
+        const channel = (await db.channels.get(channelClose.id)) as Channel
+        const channelWallet = (await db.wallets.get(channel.walletId)) as Wallet
 
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: fee ? 'expense' : 'neutral',
-      type: transactionChannel?.type === 'force_close' ? 'channel_force_close' : 'channel_close',
-      primary:
-        channel.closer === 'local' ? channelWallet.label : channel.peerAlias || channel.peerId,
-      secondary:
-        channel.closer === 'local' ? channel.peerAlias || channel.peerId : channelWallet.label
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: fee ? 'expense' : 'neutral',
+          type:
+            transactionChannel?.type === 'force_close' ? 'channel_force_close' : 'channel_close',
+          primary:
+            channel.closer === 'local' ? channelWallet.label : channel.peerAlias || channel.peerId,
+          secondary:
+            channel.closer === 'local' ? channel.peerAlias || channel.peerId : channelWallet.label
+        }
+      }
+
+      if (channelOpens.length) {
+        const channels = (await Promise.all(
+          channelOpens.map((channelOpen) => db.channels.get(channelOpen.id))
+        )) as Channel[]
+
+        const channelWallet = await db.wallets.get(channels[0].walletId)
+
+        const weOpened = channels[0].opener === channelWallet?.nodeId
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: fee ? 'expense' : 'neutral',
+          type: channels.length > 1 ? 'channel_mutiple_open' : 'channel_open',
+          amount: channels.reduce((total, channel) => total + deriveChannelCapacity(channel), 0),
+          primary: weOpened ? channelWallet?.label : channels[0].peerAlias || channels[0].peerId,
+          secondary: weOpened
+            ? channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
+            : channelWallet?.label
+        }
+      }
+
+      const withdrawal = inputs.find(({ category }) => category === 'withdrawal')
+
+      if (withdrawal) {
+        const withdrawalDetails = (await db.withdrawals.get(withdrawal.id)) as Withdrawal
+        const withdrawalWallet = (await db.wallets.get(withdrawalDetails.walletId)) as Wallet
+
+        const withdrawalUtxo = outputs.find(
+          ({ utxo }) => utxo?.address === withdrawalDetails.destination
+        )?.utxo as Utxo
+
+        const destinationWallet = (await db.wallets.get(withdrawalUtxo.walletId)) as Wallet
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: 'expense',
+          type: 'withdrawal',
+          amount: withdrawalUtxo.amount,
+          secondary: withdrawalWallet.label,
+          primary: destinationWallet.label
+        }
+      }
+
+      const deposit = outputs.find(({ category }) => category === 'deposit')
+
+      if (deposit) {
+        const depositDetails = (await db.deposits.get(deposit.id)) as Deposit
+        const depositWallet = (await db.wallets.get(depositDetails.walletId)) as Wallet
+        const sourceUtxo = inputs.find(({ utxo }) => !utxo)?.utxo as Utxo
+        const sourceWallet = (await db.wallets.get(sourceUtxo.walletId)) as Wallet
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: 'expense',
+          type: 'deposit',
+          amount: depositDetails.amount,
+          primary: sourceWallet.label,
+          secondary: depositWallet.label
+        }
+      }
+
+      const transfer = outputs.find(({ category }) => category === 'transfer')
+
+      if (transfer) {
+        const sourceInput = inputs.find(
+          ({ utxo }) => utxo?.walletId !== transfer.utxo?.walletId
+        ) as EnhancedInput
+
+        const sourceWallet = (await db.wallets.get(sourceInput.utxo?.walletId)) as Wallet
+        const destinationWallet = (await db.wallets.get(transfer.utxo?.walletId)) as Wallet
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: 'expense',
+          type: 'transfer',
+          amount: transfer.amount,
+          primary: sourceWallet.label,
+          secondary: destinationWallet.label
+        }
+      }
+
+      const send = outputs.find(({ category }) => category === 'send')
+
+      if (send) {
+        const sourceInput = inputs.find(({ utxo }) => !!utxo) as EnhancedInput
+        const sourceWallet = (await db.wallets.get(sourceInput.utxo?.walletId)) as Wallet
+        const destinationAddress = send.id
+        const destinationMetadata = await db.metadata.get(destinationAddress)
+        const destinationContact = destinationMetadata?.contact
+          ? await db.contacts.get(destinationMetadata.contact)
+          : null
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: 'expense',
+          type: 'send',
+          amount: send.amount,
+          primary: sourceWallet.label,
+          secondary: destinationContact?.name || truncateValue(destinationAddress)
+        }
+      }
+
+      const sweep = outputs.find(({ category }) => category === 'sweep')
+
+      if (sweep) {
+        const wallet = (await db.wallets.get(sweep.utxo?.walletId)) as Wallet
+        const sweptChannel = (await db.channels.get(sweep.id)) as Channel
+
+        return {
+          timestamp,
+          fee: fee || 0,
+          category: 'expense',
+          type: 'sweep',
+          amount: sweep.amount,
+          primary: wallet.label,
+          secondary:
+            sweptChannel.peerAlias ||
+            (sweptChannel.peerId ? truncateValue(sweptChannel.peerId) : undefined)
+        }
+      }
+
+      const receive = outputs.find(({ category }) => category === 'receive') as EnhancedOutput
+      const receiveWallet = (await db.wallets.get(receive.utxo?.walletId)) as Wallet
+      const sourceAddress = receive.utxo?.address as string
+      const sourceMetadata = await db.metadata.get(sourceAddress)
+
+      const sourceContact = sourceMetadata?.contact
+        ? await db.contacts.get(sourceMetadata.contact)
+        : null
+
+      return {
+        timestamp,
+        fee: 0,
+        category: 'income',
+        type: 'receive',
+        amount: receive.amount,
+        secondary: sourceContact?.name || truncateValue(sourceAddress),
+        primary: receiveWallet.label
+      }
     }
-  }
-
-  if (channelOpens.length) {
-    const channels = (await Promise.all(
-      channelOpens.map((channelOpen) => db.channels.get(channelOpen.id))
-    )) as Channel[]
-
-    const channelWallet = (await firstValueFrom(
-      from(liveQuery(() => db.wallets.get(channels[0].walletId))).pipe(
-        filter((wallet) => !!wallet?.nodeId)
-      )
-    )) as Wallet
-
-    const weOpened = channels[0].opener === channelWallet.nodeId
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: fee ? 'expense' : 'neutral',
-      type: channels.length > 1 ? 'channel_mutiple_open' : 'channel_open',
-      amount: channels.reduce((total, channel) => total + deriveChannelCapacity(channel), 0),
-      primary: weOpened ? channelWallet.label : channels[0].peerAlias || channels[0].peerId,
-      secondary: weOpened
-        ? channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
-        : channelWallet.label
-    }
-  }
-
-  const withdrawal = inputs.find(({ category }) => category === 'withdrawal')
-
-  if (withdrawal) {
-    const withdrawalDetails = (await db.withdrawals.get(withdrawal.id)) as Withdrawal
-    const withdrawalWallet = (await db.wallets.get(withdrawalDetails.walletId)) as Wallet
-
-    const withdrawalUtxo = outputs.find(
-      ({ utxo }) => utxo?.address === withdrawalDetails.destination
-    )?.utxo as Utxo
-
-    const destinationWallet = (await db.wallets.get(withdrawalUtxo.walletId)) as Wallet
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: 'expense',
-      type: 'withdrawal',
-      amount: withdrawalUtxo.amount,
-      secondary: withdrawalWallet.label,
-      primary: destinationWallet.label
-    }
-  }
-
-  const deposit = outputs.find(({ category }) => category === 'deposit')
-
-  if (deposit) {
-    const depositDetails = (await db.deposits.get(deposit.id)) as Deposit
-    const depositWallet = (await db.wallets.get(depositDetails.walletId)) as Wallet
-    const sourceUtxo = inputs.find(({ utxo }) => !utxo)?.utxo as Utxo
-    const sourceWallet = (await db.wallets.get(sourceUtxo.walletId)) as Wallet
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: 'expense',
-      type: 'deposit',
-      amount: depositDetails.amount,
-      primary: sourceWallet.label,
-      secondary: depositWallet.label
-    }
-  }
-
-  const transfer = outputs.find(({ category }) => category === 'transfer')
-
-  if (transfer) {
-    const sourceInput = inputs.find(
-      ({ utxo }) => utxo?.walletId !== transfer.utxo?.walletId
-    ) as EnhancedInput
-
-    const sourceWallet = (await db.wallets.get(sourceInput.utxo?.walletId)) as Wallet
-    const destinationWallet = (await db.wallets.get(transfer.utxo?.walletId)) as Wallet
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: 'expense',
-      type: 'transfer',
-      amount: transfer.amount,
-      primary: sourceWallet.label,
-      secondary: destinationWallet.label
-    }
-  }
-
-  const send = outputs.find(({ category }) => category === 'send')
-
-  if (send) {
-    const sourceInput = inputs.find(({ utxo }) => !!utxo) as EnhancedInput
-    const sourceWallet = (await db.wallets.get(sourceInput.utxo?.walletId)) as Wallet
-    const destinationAddress = send.id
-    const destinationMetadata = await db.metadata.get(destinationAddress)
-    const destinationContact = destinationMetadata?.contact
-      ? await db.contacts.get(destinationMetadata.contact)
-      : null
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: 'expense',
-      type: 'send',
-      amount: send.amount,
-      primary: sourceWallet.label,
-      secondary: destinationContact?.name || truncateValue(destinationAddress)
-    }
-  }
-
-  const sweep = outputs.find(({ category }) => category === 'sweep')
-
-  if (sweep) {
-    const wallet = (await db.wallets.get(sweep.utxo?.walletId)) as Wallet
-    const sweptChannel = (await db.channels.get(sweep.id)) as Channel
-
-    return {
-      timestamp,
-      fee: fee || 0,
-      category: 'expense',
-      type: 'sweep',
-      amount: sweep.amount,
-      primary: wallet.label,
-      secondary:
-        sweptChannel.peerAlias ||
-        (sweptChannel.peerId ? truncateValue(sweptChannel.peerId) : undefined)
-    }
-  }
-
-  const receive = outputs.find(({ category }) => category === 'receive') as EnhancedOutput
-  const receiveWallet = (await db.wallets.get(receive.utxo?.walletId)) as Wallet
-  const sourceAddress = receive.utxo?.address as string
-  const sourceMetadata = await db.metadata.get(sourceAddress)
-
-  const sourceContact = sourceMetadata?.contact
-    ? await db.contacts.get(sourceMetadata.contact)
-    : null
-
-  return {
-    timestamp,
-    fee: 0,
-    category: 'income',
-    type: 'receive',
-    amount: receive.amount,
-    secondary: sourceContact?.name || truncateValue(sourceAddress),
-    primary: receiveWallet.label
-  }
+  )
 }
 
-export const deriveInvoiceSummary = async ({
+export const deriveInvoiceSummary = ({
   direction,
   amount,
   fee,
@@ -418,67 +428,71 @@ export const deriveInvoiceSummary = async ({
   createdAt,
   completedAt
 }: Invoice): Promise<PaymentSummary> => {
-  let transferWallet: Wallet | undefined
+  return db.transaction('r', db.wallets, db.contacts, db.metadata, async () => {
+    let transferWallet: Wallet | undefined
 
-  if (direction === 'send' || (request && isBolt12Invoice(request))) {
-    const lightningConnections = await firstValueFrom(
-      connections$.pipe(
-        filter((connections) => !!connections.length),
-        map((connections) => connections.filter((connection) => !!connection.invoices?.create))
-      )
-    )
+    const wallet = (await db.wallets.get(walletId)) as Wallet
 
-    const lightningWallets = await firstValueFrom(
-      from(
-        liveQuery(() =>
-          db.wallets
-            .where('id')
-            .anyOf(lightningConnections.map(({ walletId }) => walletId))
-            .and((wallet) => !!wallet.nodeId)
-            .toArray()
+    const lightningConnections = await Dexie.waitFor(
+      firstValueFrom(
+        connections$.pipe(
+          filter((connections) => !!connections.length),
+          map((connections) => connections.filter((connection) => !!connection.invoices?.create))
         )
       )
     )
 
-    transferWallet = lightningWallets.find((wallet) => wallet.nodeId === nodeId)
-  }
+    const lightningWallets = await db.wallets
+      .where('id')
+      .anyOf(lightningConnections.map(({ walletId }) => walletId))
+      .and((wallet) => !!wallet.nodeId)
+      .toArray()
 
-  const nodeIdMetadata = await db.metadata.get(nodeId)
+    if (request && isBolt12Invoice(request)) {
+      const offerDetails = await Dexie.waitFor(bolt12ToOffer(request, walletId))
 
-  const nodeIdContact = nodeIdMetadata?.contact
-    ? await db.contacts.get(nodeIdMetadata.contact)
-    : null
+      transferWallet = lightningWallets.find(
+        (wallet) => wallet.nodeId === (offerDetails.sendNodeId || offerDetails.receiveNodeId)
+      )
+    } else if (direction === 'send') {
+      transferWallet = lightningWallets.find((wallet) => wallet.nodeId === nodeId)
+    }
 
-  const requestMetadata = request && (await db.metadata.get(request))
+    const nodeIdMetadata = await db.metadata.get(nodeId)
 
-  const requestContact =
-    requestMetadata && requestMetadata.contact
-      ? await db.contacts.get(requestMetadata.contact)
+    const nodeIdContact = nodeIdMetadata?.contact
+      ? await db.contacts.get(nodeIdMetadata.contact)
       : null
 
-  const wallet = (await db.wallets.get(walletId)) as Wallet
+    const requestMetadata = request && (await db.metadata.get(request))
 
-  const counterparty =
-    requestContact?.name ||
-    nodeIdContact?.name ||
-    (request ? truncateValue(request) : truncateValue(nodeId))
+    const requestContact =
+      requestMetadata && requestMetadata.contact
+        ? await db.contacts.get(requestMetadata.contact)
+        : null
 
-  return {
-    timestamp: completedAt || createdAt,
-    fee: fee || 0,
-    category: direction === 'receive' ? 'income' : 'expense',
-    type: transferWallet ? 'transfer' : direction,
-    amount,
-    primary: transferWallet && direction === 'receive' ? transferWallet.label : wallet.label,
-    secondary: transferWallet
-      ? direction === 'receive'
-        ? wallet.label
-        : transferWallet.label
-      : counterparty
-  }
+    const counterparty =
+      requestContact?.name ||
+      nodeIdContact?.name ||
+      (request ? truncateValue(request) : truncateValue(nodeId))
+
+    return {
+      timestamp: completedAt || createdAt,
+      fee: fee || 0,
+      category: direction === 'receive' ? 'income' : 'expense',
+      type: transferWallet ? 'transfer' : direction,
+      amount,
+      primary: transferWallet && direction === 'receive' ? transferWallet.label : wallet.label,
+      secondary: transferWallet
+        ? direction === 'receive'
+          ? wallet.label
+          : transferWallet.label
+        : counterparty
+    }
+  })
 }
 
-export const deriveReceiveAddressSummary = async ({
+export const deriveAddressSummary = async ({
   createdAt,
   amount,
   walletId
@@ -492,6 +506,6 @@ export const deriveReceiveAddressSummary = async ({
     type: 'receive',
     amount,
     primary: wallet.label,
-    secondary: ''
+    secondary: undefined
   }
 }

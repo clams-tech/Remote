@@ -1,4 +1,6 @@
 <script lang="ts">
+  import debounce from 'lodash.debounce'
+
   import { translate } from '$lib/i18n/translations.js'
   import type { Metadata } from '$lib/@types/metadata.js'
   import { db } from '$lib/db.js'
@@ -22,12 +24,16 @@
   export let sorters: Sorter[]
   export let processed: T[]
 
+  processed = items
+
   const cachedMetadata: Partial<Record<string, Metadata | null>> = {}
 
   let showModal = false
   let selectedSorter: Sorter['key'] = sorters[0].key
+  let filtering = false
 
   const filterItems = async () => {
+    filtering = true
     let processedItems: T[] = []
 
     // FILTER
@@ -59,6 +65,7 @@
     }
 
     processed = processedItems
+    filtering = false
   }
 
   const sortItems = () => {
@@ -71,9 +78,11 @@
     }
   }
 
+  const debouncedFilterItems = debounce(filterItems, 100)
+
   // recalculate on change
   $: if (filters && tagFilters && sorters) {
-    filterItems()
+    debouncedFilterItems()
   }
 
   $: if (selectedSorter) {

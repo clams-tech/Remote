@@ -430,7 +430,12 @@
     "expiry": "Expiry",
     "desc": "Descending",
     "asc": "Ascending",
-    "date": "Date"
+    "date": "Date",
+    "network": "Network",
+    "bitcoin": "Bitcoin",
+    "regtest": "Regtest",
+    "testnet": "Testnet",
+    "payment": "Payment"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
@@ -464,8 +469,8 @@
     "connection_cannot_receive_payment": "The selected wallet connection cannot receive a payment, try selecting another one.",
     "connection_not_available": "The selected wallet is not available and connected.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
-    "transaction_not_found": "Could not find this transaction...",
-    "utxo_not_found": "Could not find this UTXO...",
+    "payment_not_found": "Could not find this payment.",
+    "utxo_not_found": "Could not find this UTXO.",
     "nfc_read": "Could not read NFC.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",

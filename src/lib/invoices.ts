@@ -53,7 +53,8 @@ export async function bolt12ToOffer(
   const issuer = offer_issuer
 
   let denomination: BitcoinDenomination.sats | FiatDenomination
-  let nodeId: string
+  let sendNodeId: string | undefined
+  let receiveNodeId: string | undefined
   let quantityMax: number | undefined
   let amount: number
   let id = offerId || ''
@@ -62,15 +63,16 @@ export async function bolt12ToOffer(
     const { invreq_amount, invreq_payer_id, invreq_id } = decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.sats
     amount = msatsToSats(formatMsatString(invreq_amount))
-    nodeId = invreq_payer_id
+    sendNodeId = offer_node_id
+    receiveNodeId = invreq_payer_id
     quantityMax = offer_quantity_max
     id = invreq_id
   } else {
-    const { invreq_amount } = decoded as DecodedBolt12Invoice
+    const { invreq_amount, invoice_node_id } = decoded as DecodedBolt12Invoice
     const { offer_id } = decoded as DecodedBolt12Offer
     denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
     amount = msatsToSats(formatMsatString(offer_amount || invreq_amount))
-    nodeId = offer_node_id
+    receiveNodeId = offer_node_id || invoice_node_id
     quantityMax = offer_quantity_max
     id = offer_id || id
   }
@@ -85,7 +87,8 @@ export async function bolt12ToOffer(
     issuer,
     denomination,
     amount,
-    nodeId,
+    sendNodeId,
+    receiveNodeId,
     quantityMax
   }
 }

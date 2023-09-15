@@ -49,7 +49,7 @@
     map(([offer, wallets, connections]) =>
       wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        const selfPay = nodeId === offer?.nodeId
+        const selfPay = nodeId === offer?.receiveNodeId || nodeId === offer?.sendNodeId
         return !!connection?.invoices?.pay && !selfPay
       })
     )
@@ -152,7 +152,7 @@
   {:else if !$offer$}
     <Spinner />
   {:else}
-    {@const { type, amount, description, nodeId, expiry, issuer } = $offer$}
+    {@const { type, amount, description, receiveNodeId, expiry, issuer } = $offer$}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold">
       <div class="w-8 mr-1.5 -ml-2">{@html lightning}</div>
@@ -175,10 +175,12 @@
         </div>
       </SummaryRow>
 
-      <SummaryRow>
-        <div slot="label">{$translate('app.labels.destination')}:</div>
-        <div slot="value"><CopyValue value={nodeId} truncateLength={9} /></div>
-      </SummaryRow>
+      {#if type === 'pay' && receiveNodeId}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.destination')}:</div>
+          <div slot="value"><CopyValue value={receiveNodeId} truncateLength={9} /></div>
+        </SummaryRow>
+      {/if}
 
       {#if issuer}
         <SummaryRow>

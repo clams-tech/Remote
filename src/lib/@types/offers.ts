@@ -7,8 +7,9 @@ export type Offer = {
   denomination: BitcoinDenomination.sats | FiatDenomination
   amount: number
   description: string
-  nodeId: string
   walletId: string
+  receiveNodeId?: string
+  sendNodeId?: string
   used?: boolean
   singleUse?: boolean
   active?: boolean

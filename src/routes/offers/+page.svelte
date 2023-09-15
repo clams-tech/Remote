@@ -90,7 +90,7 @@
           if (wallet) {
             acc.push({
               label: wallet.label,
-              checked: true,
+              checked: false,
               predicate: ({ walletId }) => walletId === wallet.id
             })
           }
@@ -107,7 +107,7 @@
           values: [
             {
               label: $translate('app.labels.active'),
-              checked: true,
+              checked: false,
               predicate: ({ active, expiry }) => !!active && (!expiry || Date.now() / 1000 < expiry)
             }
           ]

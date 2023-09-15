@@ -26,16 +26,18 @@
   import { goto } from '$app/navigation'
   import type { Deposit } from '$lib/@types/deposits.js'
   import Summary from '../Summary.svelte'
+  import Dexie from 'dexie'
 
   import {
     deriveInvoiceSummary,
-    derivePaymentSummary,
+    deriveTransactionSummary,
     enhanceInputsOutputs,
     type EnhancedInput,
     type PaymentSummary,
-    type PaymentSummary,
-    type EnhancedOutput
+    type EnhancedOutput,
+    type TransactionSummary
   } from '$lib/summary.js'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
 
   export let data: PageData
 
@@ -100,9 +102,16 @@
       } = invoice
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
-      const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-      const { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary(
-        invoice
+
+      const withdrawalOfferId = offer
+        ? await Dexie.waitFor(tryFindWithdrawalOfferId(offer))
+        : undefined
+
+      const formattedOffer =
+        offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
+
+      const { category, type, primary, secondary, timestamp } = (await Dexie.waitFor(
+        deriveInvoiceSummary({ ...invoice, offer: formattedOffer })
       )) as PaymentSummary
 
       details.push({
@@ -123,7 +132,7 @@
         completedAt,
         expiresAt,
         wallet,
-        offer: offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer,
+        offer: formattedOffer,
         fee,
         request,
         paymentHash: hash,
@@ -207,8 +216,10 @@
     if (transaction) {
       const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
-      const { inputs, outputs } = await enhanceInputsOutputs(transaction)
-      const summary = await derivePaymentSummary({ inputs, outputs, timestamp, fee, channel })
+      const { inputs, outputs } = await Dexie.waitFor(enhanceInputsOutputs(transaction))
+      const summary = await Dexie.waitFor(
+        deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
+      )
 
       const wallet = (
         summary.type === 'transfer'
@@ -219,7 +230,7 @@
       details.push({
         type: 'onchain',
         status: blockheight ? 'complete' : 'pending',
-        amount: (summary as PaymentSummary).amount,
+        amount: (summary as TransactionSummary).amount,
         fee,
         channel,
         wallet,
@@ -304,8 +315,9 @@
       <Spinner />
     </div>
   {:else if !$transactionDetails$.length}
+    <SectionHeading text={$translate('app.labels.payment')} />
     <div class="mt-4">
-      <Msg type="error" closable={false} message={$translate('app.errors.transaction_not_found')} />
+      <Msg type="error" closable={false} message={$translate('app.errors.payment_not_found')} />
     </div>
   {:else if transactionDetailToShow}
     {@const {

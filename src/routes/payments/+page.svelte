@@ -14,59 +14,105 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { Observable, from, map, takeUntil, zip } from 'rxjs'
+  import { from, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
   import uniqBy from 'lodash.uniqby'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Payment, PaymentStatus } from '$lib/@types/common.js'
   import { getNetwork } from '$lib/utils.js'
+  import type { Invoice } from '$lib/@types/invoices.js'
+  import type { Transaction } from '$lib/@types/transactions.js'
+  import type { Address } from '$lib/@types/addresses.js'
 
-  const invoices$: Observable<Payment[]> = from(
-    liveQuery(async () => {
-      const invoices = await db.invoices.toArray()
-      return invoices.map(
-        ({ id, status, completedAt, createdAt, amount, request, fee, walletId }) => ({
-          id,
-          type: 'invoice' as const,
-          status,
-          timestamp: completedAt || createdAt,
-          walletId,
-          amount,
-          network: request ? getNetwork(request) : 'bitcoin',
-          fee
-        })
-      )
-    })
-  )
+  import {
+    deriveAddressSummary,
+    deriveInvoiceSummary,
+    deriveTransactionSummary,
+    enhanceInputsOutputs,
+    type PaymentSummary
+  } from '$lib/summary.js'
 
-  const transactions$: Observable<Payment[]> = from(
-    liveQuery(async () => {
-      const transactions = await db.transactions.toArray().then((txs) => uniqBy(txs, 'id'))
+  const payments$ = from(
+    liveQuery(() => {
+      return db.transaction('r', db.invoices, db.transactions, db.addresses, async () => {
+        const invoices = db.invoices
+          .toArray()
+          .then((invs) =>
+            Array.from(
+              invs
+                .reduce((acc, inv) => {
+                  const current = acc.get(inv.hash)
 
-      return transactions.map(({ id, timestamp, blockheight, outputs, fee, walletId }) => ({
-        id,
-        type: 'transaction' as const,
-        status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
-        timestamp,
-        walletId,
-        network: getNetwork(outputs[0].address),
-        fee
-      }))
-    })
-  )
+                  // if duplicates (we are both parties to invoice), keep the sender copy
+                  if (!current || current.direction === 'receive') {
+                    acc.set(inv.hash, inv)
+                  }
 
-  const addresses$: Observable<Payment[]> = from(
-    liveQuery(async () => {
-      const addresses = await db.addresses.filter(({ txid }) => !txid).toArray()
-      return addresses.map(({ id, createdAt, walletId, amount, value }) => ({
-        id,
-        type: 'address' as const,
-        status: 'waiting' as PaymentStatus,
-        timestamp: createdAt,
-        walletId,
-        amount,
-        network: getNetwork(value)
-      }))
+                  return acc
+                }, new Map<string, Invoice>())
+                .values()
+            )
+          )
+          .then((invs) =>
+            invs.map((data) => {
+              const { id, status, completedAt, createdAt, amount, request, fee, walletId, offer } =
+                data
+              return {
+                id,
+                type: 'invoice' as const,
+                status,
+                timestamp: completedAt || createdAt,
+                walletId,
+                amount,
+                network: request ? getNetwork(request) : 'bitcoin',
+                fee,
+                offer: !!offer,
+                data
+              }
+            })
+          )
+
+        const transactions = db.transactions
+          .toArray()
+          .then((txs) => uniqBy(txs, 'id'))
+          .then((txs) =>
+            txs.map((data) => {
+              const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
+              return {
+                id,
+                type: 'transaction' as const,
+                status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
+                timestamp,
+                walletId,
+                network: getNetwork(outputs[0].address),
+                fee,
+                channel: !!channel,
+                data
+              }
+            })
+          )
+
+        const addresses = db.addresses
+          .filter(({ txid }) => !txid)
+          .toArray()
+          .then((addrs) =>
+            addrs.map((data) => {
+              const { id, createdAt, walletId, amount, value } = data
+              return {
+                id,
+                type: 'address' as const,
+                status: 'waiting' as PaymentStatus,
+                timestamp: createdAt,
+                walletId,
+                amount,
+                network: getNetwork(value),
+                data
+              }
+            })
+          )
+
+        return Promise.all([invoices, transactions, addresses]).then((results) => results.flat())
+      })
     })
   )
 
@@ -90,10 +136,6 @@
     { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
 
-  const payments$ = zip([invoices$, transactions$, addresses$]).pipe(
-    map((payments) => payments.flat())
-  )
-
   payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
     const walletIdSet = new Set()
     const tagSet = new Set()
@@ -116,7 +158,7 @@
         if (wallet) {
           acc.push({
             label: wallet.label,
-            checked: true,
+            checked: false,
             predicate: ({ walletId }) => walletId === wallet.id
           })
         }
@@ -133,39 +175,84 @@
         values: [
           {
             label: $translate('app.labels.pending'),
-            checked: true,
+            checked: false,
             predicate: ({ status }) => status === 'pending'
           },
           {
             label: $translate('app.labels.waiting'),
-            checked: true,
+            checked: false,
             predicate: ({ status }) => status === 'waiting'
           },
           {
             label: $translate('app.labels.complete'),
-            checked: true,
+            checked: false,
             predicate: ({ status }) => status === 'complete'
           },
           {
             label: $translate('app.labels.expired'),
-            checked: true,
+            checked: false,
             predicate: ({ status }) => status === 'expired'
           },
           {
             label: $translate('app.labels.failed'),
-            checked: true,
+            checked: false,
             predicate: ({ status }) => status === 'failed'
           }
         ]
       },
-      walletFilter
+      {
+        label: $translate('app.labels.type'),
+        values: [
+          {
+            label: $translate('app.labels.lightning'),
+            checked: false,
+            predicate: ({ type }) => type === 'invoice'
+          },
+          {
+            label: $translate('app.labels.onchain'),
+            checked: false,
+            predicate: ({ type }) => type === 'transaction' || type === 'address'
+          },
+          {
+            label: $translate('app.labels.channel'),
+            checked: false,
+            predicate: ({ channel }) => !!channel
+          },
+          {
+            label: $translate('app.labels.offer'),
+            checked: false,
+            predicate: ({ offer }) => !!offer
+          }
+        ]
+      },
+      walletFilter,
+      {
+        label: $translate('app.labels.network'),
+        values: [
+          {
+            label: $translate('app.labels.bitcoin'),
+            checked: false,
+            predicate: ({ network }) => network === 'bitcoin'
+          },
+          {
+            label: $translate('app.labels.regtest'),
+            checked: false,
+            predicate: ({ network }) => network === 'regtest'
+          },
+          {
+            label: $translate('app.labels.testnet'),
+            checked: false,
+            predicate: ({ network }) => network === 'testnet'
+          }
+        ]
+      }
     ]
   })
 
   type PaymentChunks = [number, Payment[]][]
   let dailyPaymentChunks: PaymentChunks = []
 
-  $: if (processed) {
+  const sortDailyChunks = () => {
     const map = processed.reduce((acc, payment) => {
       const date = new Date(payment.timestamp * 1000)
       const dateKey = endOfDay(date).getTime() / 1000
@@ -177,6 +264,10 @@
     dailyPaymentChunks = inPlaceSort(Array.from(map.entries()))[sorters[0].direction](
       ([timestamp]) => timestamp
     )
+  }
+
+  $: if (processed) {
+    sortDailyChunks()
   }
 
   let showFullReceiveButton = false
@@ -217,6 +308,36 @@
 
   $: if (filters && sorters && virtualList) {
     virtualList.recomputeSizes(0)
+  }
+
+  const summaryCache: Record<string, PaymentSummary> = {}
+
+  const getSummary = async (payment: Payment): Promise<PaymentSummary> => {
+    const cached = summaryCache[payment.id]
+
+    if (cached) return cached
+
+    if (payment.type === 'transaction') {
+      const { inputs, outputs } = await enhanceInputsOutputs(payment.data as Transaction)
+      const summary = await deriveTransactionSummary({
+        inputs,
+        outputs,
+        fee: payment.fee,
+        timestamp: payment.timestamp,
+        channel: (payment.data as Transaction).channel
+      })
+
+      summaryCache[payment.id] = summary
+      return summary
+    } else if (payment.type === 'invoice') {
+      const summary = await deriveInvoiceSummary(payment.data as Invoice)
+      summaryCache[payment.id] = summary
+      return summary
+    } else {
+      const summary = await deriveAddressSummary(payment.data as Address)
+      summaryCache[payment.id] = summary
+      return summary
+    }
   }
 </script>
 
@@ -266,7 +387,9 @@
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
-                    <PaymentRow {payment} />
+                    {#await getSummary(payment) then summary}
+                      <PaymentRow {payment} {summary} />
+                    {/await}
                   {/each}
                 </div>
               </div>
