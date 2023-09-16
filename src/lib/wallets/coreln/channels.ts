@@ -4,6 +4,7 @@ import handleError from './error.js'
 import { stateToChannelStatus } from './utils.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 import Big from 'big.js'
+import { log } from '$lib/services.js'
 
 import type {
   Channel,
@@ -35,52 +36,56 @@ class Channels implements ChannelsInterface {
       const { version } = await this.connection.info
       const versionNumber = convertVersionNumber(version as string)
 
-      const { closedchannels } = (await this.connection.rpc({ method: 'listclosedchannels' })) as {
-        closedchannels: ClosedChannel[]
-      }
+      let closedChannels: Channel[] = []
 
-      const formattedClosedChannels: Channel[] = await Promise.all(
-        closedchannels.map(
-          async ({
-            channel_id,
-            opener,
-            peer_id,
-            funding_txid,
-            funding_outnum,
-            closer,
-            close_cause,
-            final_to_us_msat
-          }) => {
-            const peer = peer_id
-              ? (
-                  (await this.connection.rpc({
-                    method: 'listnodes',
-                    params: { id: peer_id }
-                  })) as ListNodesResponse
-                ).nodes[0]
-              : undefined
+      try {
+        const result = await this.connection.rpc({ method: 'listclosedchannels' })
 
-            return {
-              id: channel_id,
-              walletId: this.connection.walletId,
-              opener: opener === 'local' ? this.connection.info.id : peer_id,
-              fundingTransactionId: funding_txid,
-              fundingOutput: funding_outnum,
-              peerId: peer_id,
-              peerAlias: peer?.alias,
-              peerConnected: false,
-              status: 'closed',
+        closedChannels = await Promise.all(
+          (result as { closedchannels: ClosedChannel[] }).closedchannels.map(
+            async ({
+              channel_id,
+              opener,
+              peer_id,
+              funding_txid,
+              funding_outnum,
               closer,
-              closeCause: close_cause,
-              finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
-              balanceLocal: 0,
-              balanceRemote: 0,
-              reserveLocal: 0,
-              reserveRemote: 0
-            } as Channel
-          }
+              close_cause,
+              final_to_us_msat
+            }) => {
+              const peer = peer_id
+                ? (
+                    (await this.connection.rpc({
+                      method: 'listnodes',
+                      params: { id: peer_id }
+                    })) as ListNodesResponse
+                  ).nodes[0]
+                : undefined
+
+              return {
+                id: channel_id,
+                walletId: this.connection.walletId,
+                opener: opener === 'local' ? this.connection.info.id : peer_id,
+                fundingTransactionId: funding_txid,
+                fundingOutput: funding_outnum,
+                peerId: peer_id,
+                peerAlias: peer?.alias,
+                peerConnected: false,
+                status: 'closed',
+                closer,
+                closeCause: close_cause,
+                finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
+                balanceLocal: 0,
+                balanceRemote: 0,
+                reserveLocal: 0,
+                reserveRemote: 0
+              } as Channel
+            }
+          )
         )
-      )
+      } catch (error) {
+        log.error((error as Error).message)
+      }
 
       if (versionNumber < 2305) {
         const listPeersResult = await this.connection.rpc({
@@ -166,7 +171,7 @@ class Channels implements ChannelsInterface {
             })
         )
 
-        const flattened = result.concat(formattedClosedChannels).flat()
+        const flattened = result.concat(closedChannels).flat()
 
         return channel?.id ? flattened.filter(({ id }) => id === channel.id) : flattened
       } else {
@@ -249,7 +254,7 @@ class Channels implements ChannelsInterface {
           })
         )
 
-        const allChannels = formattedChannels.concat(formattedClosedChannels)
+        const allChannels = formattedChannels.concat(closedChannels)
 
         return channel?.id ? allChannels.filter(({ id }) => id === channel.id) : allChannels
       }
