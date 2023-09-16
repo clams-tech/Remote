@@ -156,16 +156,3 @@
     </div>
   </Modal>
 {/if}
-
-<!-- {#each ['desc', 'asc'] as d}
-                <div class="cursor-pointer flex items-center">
-                  <input
-                    id={d}
-                    type="radio"
-                    bind:group={direction}
-                    value={d}
-                    class="checked:bg-purple-400 rounded-md"
-                  />
-                  <label class="leading-none ml-1" for={d}>{d}</label>
-                </div>
-              {/each} -->
