@@ -54,7 +54,8 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
     description,
     expires_at,
     pay_index,
-    local_offer_id
+    local_offer_id,
+    payer_note
   } = invoice
 
   let createdAt: number = new Date().getTime() / 1000
@@ -88,13 +89,13 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
     } = decoded as DecodedBolt12Invoice
 
     createdAt = invoice_created_at || Date.now() / 1000
-    nodeId = offer_node_id || invreq_payer_id || (invoice_node_id as string)
+    nodeId = invreq_payer_id || (invoice_node_id as string) || offer_node_id
 
     offer = {
       id: local_offer_id,
       issuer: offer_issuer,
       description: offer_description,
-      payerNote: invreq_payer_note
+      payerNote: invreq_payer_note || payer_note
     }
   }
 

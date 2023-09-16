@@ -1,4 +1,8 @@
-export type TransactionStatus = 'waiting' | 'pending' | 'complete' | 'expired' | 'failed'
+import type { Address } from './addresses.js'
+import type { Invoice } from './invoices.js'
+import type { Transaction } from './transactions.js'
+
+export type PaymentStatus = 'waiting' | 'pending' | 'complete' | 'expired' | 'failed'
 
 export type ParsedInput = {
   type:
@@ -19,3 +23,17 @@ export type ParsedInput = {
 }
 
 export type Network = 'testnet' | 'regtest' | 'signet' | 'bitcoin'
+
+export type Payment = {
+  id: string
+  type: 'invoice' | 'address' | 'transaction'
+  status: PaymentStatus
+  timestamp: number
+  network: Network
+  walletId: string
+  data: Invoice | Transaction | Address
+  fee?: number
+  amount?: number
+  offer?: boolean
+  channel?: boolean
+}

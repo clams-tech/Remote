@@ -29,17 +29,17 @@
     {
       "name": "Clams",
       "protocol": "bitcoin",
-      "url": "/transactions/send/%s"
+      "url": "/input?value=%s"
     },
     {
       "name": "Clams",
       "protocol": "web+lightning",
-      "url": "/transactions/send/%s"
+      "url": "/input?value=%s"
     },
     {
       "name": "Clams",
       "protocol": "web+lnurl",
-      "url": "/lnurl/%s"
+      "url": "/input?value=%s"
     }
   ]
 }

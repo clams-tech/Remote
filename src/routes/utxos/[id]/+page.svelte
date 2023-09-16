@@ -124,7 +124,7 @@
         <!-- TXID -->
         <SummaryRow>
           <div slot="label">{$translate('app.labels.receive_transaction')}</div>
-          <a class="no-underline flex items-center" href={`/transactions/${txid}`} slot="value"
+          <a class="no-underline flex items-center" href={`/payments/${txid}`} slot="value"
             >{truncateValue(txid)}
             <div class="-rotate-90 w-6 ml-1">{@html caret}</div>
           </a>
@@ -156,7 +156,7 @@
             <div slot="label">{$translate('app.labels.spend_transaction')}</div>
             <a
               class="no-underline flex items-center"
-              href={`/transactions/${spendingTxid}`}
+              href={`/payments/${spendingTxid}`}
               slot="value"
               >{truncateValue(spendingTxid)}
               <div class="-rotate-90 w-6 ml-1">{@html caret}</div>

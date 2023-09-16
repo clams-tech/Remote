@@ -100,7 +100,7 @@
     } catch (error) {
       createPaymentError = error as AppError
     } finally {
-      await goto(`/transactions/${id}`)
+      await goto(`/payments/${id}`)
       creatingPayment = false
     }
   }

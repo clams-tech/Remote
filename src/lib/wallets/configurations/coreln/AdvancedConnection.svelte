@@ -65,7 +65,7 @@
   }
 </script>
 
-<div class="w-full">
+<div class="w-full text-sm">
   <div class="flex border rounded-md">
     <label
       class="flex items-center justify-center px-2 py-2 rounded-md cursor-pointer w-1/3"

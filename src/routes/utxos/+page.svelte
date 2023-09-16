@@ -5,15 +5,18 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import { liveQuery } from 'dexie'
-  import { fade, slide } from 'svelte/transition'
-  import filter from '$lib/icons/filter.js'
+  import { fade } from 'svelte/transition'
   import { translate } from '$lib/i18n/translations.js'
   import Coin from './Coin.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import wallet from '$lib/icons/wallet.js'
+  import type { Utxo } from '$lib/@types/utxos.js'
+  import FilterSort from '$lib/components/FilterSort.svelte'
+  import { filter, from, takeUntil } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
 
-  const utxos$ = liveQuery(async () => db.utxos.toArray())
+  const utxos$ = from(liveQuery(async () => db.utxos.toArray()))
 
   $: totals = $utxos$
     ? $utxos$.reduce(
@@ -22,6 +25,7 @@
 
           if (status !== 'spent' && status !== 'spent_unconfirmed') {
             acc.balance += amount
+            acc.num += 1
 
             if (status !== 'immature') {
               acc.sendable += amount
@@ -30,26 +34,115 @@
 
           return acc
         },
-        { balance: 0, sendable: 0 }
+        { balance: 0, sendable: 0, num: 0 }
       )
     : null
 
-  let showFilters = false
-  const toggleFilters = () => (showFilters = !showFilters)
+  type Key = keyof Utxo
+
+  type Filter = {
+    label: string
+    values: { label: string; checked: boolean; predicate: (val: Utxo) => boolean }[]
+  }
+
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
+
+  let processed: Utxo[] = []
+  let filters: Filter[] = []
+  let tagFilters: TagFilter[] = []
+
+  let sorters: Sorter[] = [
+    { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' },
+    { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc' }
+  ]
+
+  // once we have offers, create filters, tag filters
+  utxos$
+    .pipe(
+      filter((x) => !!x),
+      takeUntil(onDestroy$)
+    )
+    .subscribe(async (utxos) => {
+      const walletIdSet = new Set()
+      const tagSet = new Set()
+
+      for (const { walletId, id } of utxos) {
+        walletIdSet.add(walletId)
+
+        const metadata = await db.metadata.get(id)
+
+        if (metadata) {
+          metadata.tags.forEach((tag) => tagSet.add(tag))
+        }
+      }
+
+      const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
+
+      const walletFilter = {
+        label: $translate('app.labels.wallet'),
+        values: wallets.reduce((acc, wallet) => {
+          if (wallet) {
+            acc.push({
+              label: wallet.label,
+              checked: false,
+              predicate: ({ walletId }) => walletId === wallet.id
+            })
+          }
+
+          return acc
+        }, [] as Filter['values'])
+      }
+
+      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+        tag: tag as string,
+        checked: false
+      }))
+
+      filters = [
+        {
+          label: $translate('app.labels.status'),
+          values: [
+            {
+              label: $translate('app.labels.unconfirmed'),
+              checked: true,
+              predicate: ({ status }) => status === 'unconfirmed'
+            },
+            {
+              label: $translate('app.labels.confirmed'),
+              checked: true,
+              predicate: ({ status }) => status === 'confirmed'
+            },
+            {
+              label: $translate('app.labels.spent'),
+              checked: false,
+              predicate: ({ status }) => status === 'spent'
+            },
+            {
+              label: $translate('app.labels.spent_unconfirmed'),
+              checked: false,
+              predicate: ({ status }) => status === 'spent_unconfirmed'
+            },
+            {
+              label: $translate('app.labels.immature'),
+              checked: true,
+              predicate: ({ status }) => status === 'immature'
+            }
+          ]
+        },
+        walletFilter
+      ]
+    })
 </script>
 
 <Section>
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={wallet} />
 
-    <button on:click={toggleFilters} class="w-8">{@html filter}</button>
+    {#if $utxos$}
+      <FilterSort items={$utxos$} bind:filters bind:tagFilters bind:sorters bind:processed />
+    {/if}
   </div>
-
-  {#if showFilters}
-    <div in:slide>
-      <!-- @TODO - Checkbox filters -->
-    </div>
-  {/if}
 
   <div class="w-full overflow-hidden flex">
     {#if !$utxos$}
@@ -65,7 +158,7 @@
         <div class="w-full mb-4">
           <SummaryRow>
             <div slot="label">{$translate('app.labels.total')}:</div>
-            <div slot="value">{$utxos$.length} utxos</div>
+            <div slot="value">{totals?.num} utxos</div>
           </SummaryRow>
 
           <SummaryRow>
@@ -90,7 +183,7 @@
         <div
           class="w-full flex items-center justify-center flex-wrap flex-grow overflow-auto gap-2"
         >
-          {#each $utxos$ as utxo}
+          {#each processed as utxo}
             <Coin {utxo} />
           {/each}
         </div>

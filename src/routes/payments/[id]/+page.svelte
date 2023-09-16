@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Network, TransactionStatus } from '$lib/@types/common.js'
+  import type { Network, PaymentStatus } from '$lib/@types/common.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
@@ -26,6 +26,7 @@
   import { goto } from '$app/navigation'
   import type { Deposit } from '$lib/@types/deposits.js'
   import Summary from '../Summary.svelte'
+  import Dexie from 'dexie'
 
   import {
     deriveInvoiceSummary,
@@ -33,9 +34,10 @@
     enhanceInputsOutputs,
     type EnhancedInput,
     type PaymentSummary,
-    type TransactionSummary,
-    type EnhancedOutput
+    type EnhancedOutput,
+    type TransactionSummary
   } from '$lib/summary.js'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
 
   export let data: PageData
 
@@ -47,7 +49,7 @@
   type TransactionDetail = {
     type: 'invoice' | 'address' | 'onchain'
     qrValues?: QRValue[]
-    status: TransactionStatus
+    status: PaymentStatus
     request?: string
     paymentHash?: string
     paymentPreimage?: string
@@ -60,15 +62,15 @@
     expiresAt?: number
     peerNodeId?: string
     wallet: Wallet
-    category: TransactionSummary['category']
-    summaryType: TransactionSummary['type']
+    category: PaymentSummary['category']
+    summaryType: PaymentSummary['type']
     offer?: Invoice['offer']
     channel?: Transaction['channel']
     inputs?: EnhancedInput[]
     outputs?: EnhancedOutput[]
-    primary: TransactionSummary['primary']
-    secondary: TransactionSummary['secondary']
-    timestamp: TransactionSummary['timestamp']
+    primary: PaymentSummary['primary']
+    secondary: PaymentSummary['secondary']
+    timestamp: PaymentSummary['timestamp']
     network: Network
   }
 
@@ -100,9 +102,16 @@
       } = invoice
 
       const wallet = (await db.wallets.get(walletId)) as Wallet
-      const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-      const { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary(
-        invoice
+
+      const withdrawalOfferId = offer
+        ? await Dexie.waitFor(tryFindWithdrawalOfferId(offer))
+        : undefined
+
+      const formattedOffer =
+        offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
+
+      const { category, type, primary, secondary, timestamp } = (await Dexie.waitFor(
+        deriveInvoiceSummary({ ...invoice, offer: formattedOffer })
       )) as PaymentSummary
 
       details.push({
@@ -123,7 +132,7 @@
         completedAt,
         expiresAt,
         wallet,
-        offer: offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer,
+        offer: formattedOffer,
         fee,
         request,
         paymentHash: hash,
@@ -207,8 +216,10 @@
     if (transaction) {
       const { id, walletId, fee, blockheight, channel, timestamp } = transaction
 
-      const { inputs, outputs } = await enhanceInputsOutputs(transaction)
-      const summary = await deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
+      const { inputs, outputs } = await Dexie.waitFor(enhanceInputsOutputs(transaction))
+      const summary = await Dexie.waitFor(
+        deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
+      )
 
       const wallet = (
         summary.type === 'transfer'
@@ -219,7 +230,7 @@
       details.push({
         type: 'onchain',
         status: blockheight ? 'complete' : 'pending',
-        amount: (summary as PaymentSummary).amount,
+        amount: (summary as TransactionSummary).amount,
         fee,
         channel,
         wallet,
@@ -304,8 +315,9 @@
       <Spinner />
     </div>
   {:else if !$transactionDetails$.length}
+    <SectionHeading text={$translate('app.labels.payment')} />
     <div class="mt-4">
-      <Msg type="error" closable={false} message={$translate('app.errors.transaction_not_found')} />
+      <Msg type="error" closable={false} message={$translate('app.errors.payment_not_found')} />
     </div>
   {:else if transactionDetailToShow}
     {@const {
@@ -450,20 +462,22 @@
                       <div class="font-semibold text-purple-100">
                         {#if utxo}
                           {#await db.wallets.get(utxo.walletId) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else if category === 'channel_close'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias ||
+                            {channel?.peerAlias?.toUpperCase() ||
                               truncateValue(
-                                channel?.peerId || channel?.id || $translate('app.labels.unknown')
+                                channel?.peerId ||
+                                  channel?.id ||
+                                  $translate('app.labels.unknown').toUpperCase()
                               )}
                           {/await}
                         {:else if category === 'withdrawal'}
                           {#await db.withdrawals
                             .get(id)
                             .then((withdrawal) => withdrawal && db.wallets.get(withdrawal.walletId)) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else}
                           {truncateValue(id)}
@@ -511,17 +525,18 @@
                       <div class="font-semibold text-purple-100">
                         {#if utxo || category === 'timelocked'}
                           {#await db.wallets.get(utxo?.walletId || id) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else if category === 'settle' || category === 'channel_open'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias || truncateValue(channel?.peerId || address)}
+                            {channel?.peerAlias?.toUpperCase() ||
+                              truncateValue(channel?.peerId || address)}
                           {/await}
                         {:else if category === 'deposit'}
                           {#await db.deposits
                             .get(id)
                             .then((deposit) => deposit && db.wallets.get(deposit.walletId)) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else}
                           {truncateValue(id)}

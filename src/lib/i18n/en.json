@@ -10,17 +10,17 @@
     "/offers": {
       "title": "Offers"
     },
-    "/transactions": {
-      "title": "Transactions"
+    "/payments": {
+      "title": "Payments"
     },
-    "/transactions/receive": {
+    "/payments/receive": {
       "title": "Receive"
     },
-    "/transactions/send": {
+    "/payments/send": {
       "title": "Send"
     },
-    "/transaction": {
-      "title": "Transaction"
+    "/payment": {
+      "title": "Payment"
     },
     "/utxos": {
       "title": "UTXOs"
@@ -218,7 +218,7 @@
     "add_wallet": "You do not have a wallet connected. <a href='/wallets/add'>Create a new wallet connection</a> to get started.",
     "no_channels": "You have no channels, try syncing your wallets or open a new channel.",
     "no_offers": "You have no offers, try syncing your wallets or create a new offer.",
-    "no_transactions": "No payments here, try adding a wallet connection and syncing it.",
+    "no_payments": "No payments here, try adding a wallet connection and syncing it.",
     "no_utxos": "No utxos here, try adding a wallet connection and syncing it.",
     "no_forwards": "No forwards here, ensure that you have a lightning wallet connected and you have more than on open channel.",
     "destination": "Destination",
@@ -424,7 +424,24 @@
     "lightning": "Lightning",
     "exchange": "Exchange",
     "custodial": "Custodial",
-    "custom": "Custom"
+    "custom": "Custom",
+    "filters": "Filters",
+    "sort": "Sort",
+    "expiry": "Expiry",
+    "desc": "Descending",
+    "asc": "Ascending",
+    "date": "Date",
+    "network": "Network",
+    "bitcoin": "Bitcoin",
+    "regtest": "Regtest",
+    "testnet": "Testnet",
+    "payment": "Payment",
+    "closing": "Closing",
+    "local_balance": "Local balance",
+    "remote_balance": "Remote balance",
+    "settled": "Settled",
+    "offered": "Offered",
+    "local_failed": "Local failed"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
@@ -458,8 +475,8 @@
     "connection_cannot_receive_payment": "The selected wallet connection cannot receive a payment, try selecting another one.",
     "connection_not_available": "The selected wallet is not available and connected.",
     "invalid_passphrase": "The provided passphrase is incorrect and could not decrypt the session.",
-    "transaction_not_found": "Could not find this transaction...",
-    "utxo_not_found": "Could not find this UTXO...",
+    "payment_not_found": "Could not find this payment.",
+    "utxo_not_found": "Could not find this UTXO.",
     "nfc_read": "Could not read NFC.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",

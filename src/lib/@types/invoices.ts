@@ -1,9 +1,9 @@
 import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
-import type { TransactionStatus } from './common.js'
+import type { PaymentStatus } from './common.js'
 
 export type Invoice = {
   id: string
-  status: TransactionStatus
+  status: PaymentStatus
   direction: PaymentDirection
   amount: number
   fee?: number
