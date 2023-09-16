@@ -255,7 +255,7 @@
   {/if}
 
   {#if decodeRuneError}
-    <div in:slide={{ axis: 'y' }}>
+    <div class="mt-2" in:slide={{ axis: 'y' }}>
       <Msg type="error" bind:message={decodeRuneError} />
     </div>
   {/if}
