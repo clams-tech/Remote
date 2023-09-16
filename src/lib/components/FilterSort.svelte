@@ -34,6 +34,7 @@
   let showModal = false
   let selectedSorter: Sorter['key'] = sorters[0].key
   let filtering = false
+  let sorting = false
 
   const filterItems = async () => {
     filtering = true
@@ -75,20 +76,22 @@
     const sorter = sorters.find(({ key }) => key === selectedSorter)
 
     if (sorter) {
+      sorting = true
       // SORT
       inPlaceSort(processed)[sorter.direction]((i) => i[sorter.key])
       processed = processed
+      sorting = false
     }
   }
 
   const debouncedFilterItems = debounce(filterItems, 100)
 
   // recalculate on change
-  $: if (filters && tagFilters && sorters) {
+  $: if (filters && tagFilters && sorters && !sorting) {
     debouncedFilterItems()
   }
 
-  $: if (selectedSorter) {
+  $: if (selectedSorter && !filtering) {
     sortItems()
   }
 </script>

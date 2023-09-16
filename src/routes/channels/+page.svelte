@@ -11,13 +11,16 @@
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import filter from '$lib/icons/filter.js'
   import { fade, slide } from 'svelte/transition'
   import VirtualList from 'svelte-tiny-virtual-list'
+  import { filter, from, takeUntil } from 'rxjs'
+  import type { Channel } from '$lib/@types/channels.js'
+  import { onDestroy$ } from '$lib/streams.js'
+  import FilterSort from '$lib/components/FilterSort.svelte'
 
-  const channels$ = liveQuery(() => db.channels.toArray())
+  const channels$ = from(liveQuery(() => db.channels.toArray()))
 
-  $: totalSats =
+  $: totals =
     $channels$ &&
     $channels$.reduce(
       (acc, { balanceLocal, reserveLocal, balanceRemote, reserveRemote, status }) => {
@@ -26,13 +29,14 @@
           acc.receivable = acc.receivable + balanceRemote - reserveRemote
         }
 
+        if (status !== 'closed') {
+          acc.channels += 1
+        }
+
         return acc
       },
-      { sendable: 0, receivable: 0 }
+      { sendable: 0, receivable: 0, channels: 0 }
     )
-
-  let showFilters = false
-  const toggleFilters = () => (showFilters = !showFilters)
 
   let showFullOpenButton = false
   let channelsContainer: HTMLDivElement
@@ -50,12 +54,109 @@
   }
 
   let innerHeight: number
+  let rowSize = 84
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = $channels$ ? $channels$.length * 84 : 0
+  $: fullHeight = $channels$ ? $channels$.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
+  $: channelsContainerScrollable = $channels$ ? $channels$.length * rowSize > listHeight : false
 
-  $: channelsContainerScrollable = $channels$ ? $channels$.length * 74 > listHeight : false
+  type Key = keyof Channel
+
+  type Filter = {
+    label: string
+    values: { label: string; checked: boolean; predicate: (val: Channel) => boolean }[]
+  }
+
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
+
+  let processed: Channel[] = []
+  let filters: Filter[] = []
+  let tagFilters: TagFilter[] = []
+
+  let sorters: Sorter[] = [
+    { label: $translate('app.labels.local_balance'), key: 'balanceLocal', direction: 'desc' },
+    { label: $translate('app.labels.remote_balance'), key: 'balanceRemote', direction: 'desc' }
+  ]
+
+  // once we have offers, create filters, tag filters
+  channels$
+    .pipe(
+      filter((x) => !!x),
+      takeUntil(onDestroy$)
+    )
+    .subscribe(async (offers) => {
+      const walletIdSet = new Set()
+      const tagSet = new Set()
+
+      for (const { walletId, id } of offers) {
+        walletIdSet.add(walletId)
+
+        const metadata = await db.metadata.get(id)
+
+        if (metadata) {
+          metadata.tags.forEach((tag) => tagSet.add(tag))
+        }
+      }
+
+      const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
+
+      const walletFilter = {
+        label: $translate('app.labels.wallet'),
+        values: wallets.reduce((acc, wallet) => {
+          if (wallet) {
+            acc.push({
+              label: wallet.label,
+              checked: false,
+              predicate: ({ walletId }) => walletId === wallet.id
+            })
+          }
+
+          return acc
+        }, [] as Filter['values'])
+      }
+
+      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+        tag: tag as string,
+        checked: false
+      }))
+
+      filters = [
+        {
+          label: $translate('app.labels.status'),
+          values: [
+            {
+              label: $translate('app.labels.active'),
+              checked: true,
+              predicate: ({ status }) => status === 'active'
+            },
+            {
+              label: $translate('app.labels.opening'),
+              checked: true,
+              predicate: ({ status }) => status === 'opening'
+            },
+            {
+              label: $translate('app.labels.closing'),
+              checked: true,
+              predicate: ({ status }) => status === 'closing'
+            },
+            {
+              label: $translate('app.labels.closed'),
+              checked: false,
+              predicate: ({ status }) => status === 'closed'
+            }
+          ]
+        },
+        walletFilter
+      ]
+    })
+
+  let virtualList: VirtualList
+
+  $: if (virtualList && processed) {
+    setTimeout(() => virtualList.recomputeSizes(0), 25)
+  }
 </script>
 
 <svelte:window bind:innerHeight />
@@ -63,12 +164,10 @@
 <Section>
   <div class="flex items-center justify-between w-full">
     <SectionHeading icon={channels} />
-    <button on:click={toggleFilters} class="w-8">{@html filter}</button>
+    {#if $channels$}
+      <FilterSort items={$channels$} bind:filters bind:tagFilters bind:sorters bind:processed />
+    {/if}
   </div>
-
-  {#if showFilters}
-    <!-- @TODO -->
-  {/if}
 
   <div class="w-full overflow-hidden flex flex-grow">
     {#if !$channels$}
@@ -84,20 +183,20 @@
         <div class="w-full mb-2">
           <SummaryRow>
             <div slot="label">{$translate('app.labels.total')}:</div>
-            <div slot="value">{$channels$.length} channels</div>
+            <div slot="value">{totals.channels} channels</div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.sendable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totalSats.sendable} />
+              <BitcoinAmount sats={totals.sendable} />
             </div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.receivable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totalSats.receivable} />
+              <BitcoinAmount sats={totals.receivable} />
             </div>
           </SummaryRow>
         </div>
@@ -107,15 +206,15 @@
           class="w-full flex flex-col flex-grow overflow-hidden gap-y-2"
         >
           <VirtualList
+            bind:this={virtualList}
             on:afterScroll={(e) => handleChannelsScroll(e.detail.offset)}
             width="100%"
             height={listHeight}
-            itemCount={$channels$.length}
-            itemSize={84}
-            getKey={(index) => $channels$[index].id}
+            itemCount={processed.length}
+            itemSize={rowSize}
           >
             <div slot="item" let:index let:style {style}>
-              <ChannelRow channel={$channels$[index]} />
+              <ChannelRow channel={processed[index]} />
             </div>
           </VirtualList>
         </div>
@@ -123,13 +222,13 @@
     {/if}
   </div>
 
-  <div class="w-full flex justify-end">
+  <div class="w-full flex justify-end mt-2">
     <a
       href="/channels/open"
       class:absolute={channelsContainerScrollable}
       class:px-2={channelsContainerScrollable}
       class:px-4={!channelsContainerScrollable || showFullOpenButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 relative mt-4 w-min hover:bg-neutral-800"
+      class="bottom-2 right- no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 relative mt-4 w-min hover:bg-neutral-800"
       on:mouseenter={() => channelsContainerScrollable && (showFullOpenButton = true)}
       on:mouseleave={() => channelsContainerScrollable && (showFullOpenButton = false)}
     >

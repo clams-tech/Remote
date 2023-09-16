@@ -118,6 +118,12 @@
         walletFilter
       ]
     })
+
+  let virtualList: VirtualList
+
+  $: if (virtualList && processed) {
+    setTimeout(() => virtualList.recomputeSizes(0), 25)
+  }
 </script>
 
 <svelte:head>
@@ -151,6 +157,7 @@
         class="w-full flex flex-col flex-grow overflow-hidden gap-y-2 mt-2"
       >
         <VirtualList
+          bind:this={virtualList}
           on:afterScroll={(e) => handleOffersScroll(e.detail.offset)}
           width="100%"
           height={listHeight}

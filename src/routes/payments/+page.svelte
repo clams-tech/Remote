@@ -328,8 +328,8 @@
 
   let virtualList: VirtualList
 
-  $: if (filters && sorters && virtualList) {
-    virtualList.recomputeSizes(0)
+  $: if (virtualList && processed) {
+    setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
 
   const summaryCache: Record<string, PaymentSummary> = {}

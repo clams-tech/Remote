@@ -435,7 +435,10 @@
     "bitcoin": "Bitcoin",
     "regtest": "Regtest",
     "testnet": "Testnet",
-    "payment": "Payment"
+    "payment": "Payment",
+    "closing": "Closing",
+    "local_balance": "Local balance",
+    "remote_balance": "Remote balance"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
