@@ -29,7 +29,15 @@
       {@html icon}
     </div>
 
-    <Summary {primary} {secondary} {status} type={summaryType} {timestamp} {network} />
+    <Summary
+      {primary}
+      {secondary}
+      {status}
+      type={summaryType}
+      {timestamp}
+      {network}
+      displayNetwork
+    />
   </div>
 
   <div class="flex items-center ml-4">

@@ -16,7 +16,6 @@
   import VirtualList from 'svelte-tiny-virtual-list'
   import { from, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
-  import uniqBy from 'lodash.uniqby'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Payment, PaymentStatus } from '$lib/@types/common.js'
   import { getNetwork } from '$lib/utils.js'
@@ -34,7 +33,7 @@
 
   const payments$ = from(
     liveQuery(() => {
-      return db.transaction('r', db.invoices, db.transactions, db.addresses, async () => {
+      return db.transaction('r', db.invoices, db.transactions, db.addresses, db.utxos, async () => {
         const invoices = db.invoices
           .toArray()
           .then((invs) =>
@@ -74,7 +73,30 @@
 
         const transactions = db.transactions
           .toArray()
-          .then((txs) => uniqBy(txs, 'id'))
+          // @ts-ignore
+          .then(async (txs) => {
+            const deduped: Map<string, Transaction> = new Map()
+
+            for (const tx of txs) {
+              const current = deduped.get(tx.id)
+
+              // dedupes txs and prefers the tx where the wallet is the sender (spender of an input utxo)
+              if (current) {
+                const utxo = await db.utxos
+                  .where('id')
+                  .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
+                  .first()
+
+                if (utxo?.walletId !== tx.walletId) {
+                  deduped.set(tx.id, tx)
+                }
+              } else {
+                deduped.set(tx.id, tx)
+              }
+            }
+
+            return Array.from(deduped.values())
+          })
           .then((txs) =>
             txs.map((data) => {
               const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
@@ -167,7 +189,7 @@
       }, [] as Filter['values'])
     }
 
-    tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: true }))
+    tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: false }))
 
     filters = [
       {
@@ -347,7 +369,14 @@
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={list} />
     {#if $payments$}
-      <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <FilterSort
+        quickLoad
+        items={$payments$}
+        bind:filters
+        bind:tagFilters
+        bind:sorters
+        bind:processed
+      />
     {/if}
   </div>
 

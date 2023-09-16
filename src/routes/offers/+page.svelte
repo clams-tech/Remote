@@ -99,7 +99,10 @@
         }, [] as Filter['values'])
       }
 
-      tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: true }))
+      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+        tag: tag as string,
+        checked: false
+      }))
 
       filters = [
         {

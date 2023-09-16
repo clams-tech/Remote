@@ -12,12 +12,15 @@
   export let timestamp: PaymentSummary['timestamp'] = 0
   export let network: Network
   export let centered = false
+  export let displayNetwork = false
 </script>
 
 <div>
   <div>
     <span class="font-semibold text-purple-100">
-      {primary ? truncateValue(primary, 12) : $translate('app.labels.unknown')}
+      {primary
+        ? truncateValue(primary, 12).toUpperCase()
+        : $translate('app.labels.unknown').toUpperCase()}
     </span>
     <span class="italic">
       {$translate(`app.labels.summary_${type}_${status}`)}
@@ -25,8 +28,12 @@
 
     <span class="font-semibold text-purple-100">
       {secondary
-        ? truncateValue(secondary, 12, type === 'channel_mutiple_open' ? 'end' : 'center')
-        : $translate('app.labels.unknown')}
+        ? truncateValue(
+            secondary,
+            12,
+            type === 'channel_mutiple_open' ? 'end' : 'center'
+          ).toUpperCase()
+        : $translate('app.labels.unknown').toUpperCase()}
     </span>
   </div>
 
@@ -37,8 +44,8 @@
       {/await}
     {/if}
 
-    {#if network !== 'bitcoin'}
-      <div class="text-xs px-1 py-0.5 font-semibold bg-neutral-700 rounded-full leading-none">
+    {#if network !== 'bitcoin' && displayNetwork}
+      <div class="text-xs px-2 py-1 font-semibold bg-neutral-700 rounded-full leading-none">
         {network}
       </div>
     {/if}

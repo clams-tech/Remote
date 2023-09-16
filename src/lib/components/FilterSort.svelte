@@ -23,8 +23,11 @@
   export let tagFilters: TagFilter[]
   export let sorters: Sorter[]
   export let processed: T[]
+  export let quickLoad = false
 
-  processed = items
+  if (quickLoad) {
+    processed = items
+  }
 
   const cachedMetadata: Partial<Record<string, Metadata | null>> = {}
 
@@ -105,14 +108,14 @@
               class="flex items-center flex-wrap gap-x-4 gap-y-2 bg-neutral-900 px-4 py-3 border border-neutral-600 rounded w-full"
             >
               {#each values as value}
-                <div class="cursor-pointer flex items-center">
+                <div class="flex items-center">
                   <input
                     id={value.label}
                     type="checkbox"
                     bind:checked={value.checked}
                     class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
                   />
-                  <label class="ml-1" for={value.label}>{value.label}</label>
+                  <label class="ml-1 cursor-pointer" for={value.label}>{value.label}</label>
                 </div>
               {/each}
             </div>
@@ -133,8 +136,14 @@
             <div class="flex items-center gap-x-2 text-sm ml-4">
               {#each ['desc', 'asc'] as d}
                 <div class="flex items-center">
-                  <input type="radio" class="w-3 h-3" bind:group={direction} value={d} id={d} />
-                  <label class="ml-1" for={d}>{$translate(`app.labels.${d}`)}</label>
+                  <input
+                    type="radio"
+                    class="w-3 h-3"
+                    bind:group={direction}
+                    value={d}
+                    id={`${d}:${label}`}
+                  />
+                  <label class="ml-1" for={`${d}:${label}`}>{$translate(`app.labels.${d}`)}</label>
                 </div>
               {/each}
             </div>

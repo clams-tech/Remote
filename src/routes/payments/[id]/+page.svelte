@@ -462,20 +462,22 @@
                       <div class="font-semibold text-purple-100">
                         {#if utxo}
                           {#await db.wallets.get(utxo.walletId) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else if category === 'channel_close'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias ||
+                            {channel?.peerAlias?.toUpperCase() ||
                               truncateValue(
-                                channel?.peerId || channel?.id || $translate('app.labels.unknown')
+                                channel?.peerId ||
+                                  channel?.id ||
+                                  $translate('app.labels.unknown').toUpperCase()
                               )}
                           {/await}
                         {:else if category === 'withdrawal'}
                           {#await db.withdrawals
                             .get(id)
                             .then((withdrawal) => withdrawal && db.wallets.get(withdrawal.walletId)) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else}
                           {truncateValue(id)}
@@ -523,17 +525,18 @@
                       <div class="font-semibold text-purple-100">
                         {#if utxo || category === 'timelocked'}
                           {#await db.wallets.get(utxo?.walletId || id) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else if category === 'settle' || category === 'channel_open'}
                           {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias || truncateValue(channel?.peerId || address)}
+                            {channel?.peerAlias?.toUpperCase() ||
+                              truncateValue(channel?.peerId || address)}
                           {/await}
                         {:else if category === 'deposit'}
                           {#await db.deposits
                             .get(id)
                             .then((deposit) => deposit && db.wallets.get(deposit.walletId)) then wallet}
-                            {wallet?.label || truncateValue(id)}
+                            {wallet?.label?.toUpperCase() || truncateValue(id)}
                           {/await}
                         {:else}
                           {truncateValue(id)}
