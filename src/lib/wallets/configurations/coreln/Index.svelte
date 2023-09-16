@@ -72,7 +72,7 @@
 
   const getReadOnlyRuneCommand = () => {
     const { id } = $session$ as Session
-    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"], ["method^list", "method^get", "method=summary"], ["method/listdatastore"]]'`
+    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"], ["method^list", "method^get", "method=summary", "method^bkpr"], ["method/listdatastore"]]'`
   }
 
   const handleKeyPress = (e: KeyboardEvent) => {
