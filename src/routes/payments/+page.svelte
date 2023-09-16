@@ -393,7 +393,7 @@
       <div
         bind:this={transactionsContainer}
         in:fade={{ duration: 250 }}
-        class="w-full flex flex-col overflow-hidden gap-y-2 rounded"
+        class="w-full flex flex-col overflow-hidden gap-y-2 rounded mt-2"
       >
         <VirtualList
           bind:this={virtualList}

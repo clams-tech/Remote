@@ -7,51 +7,71 @@
   import caret from '$lib/icons/caret.js'
   import channels from '$lib/icons/channels.js'
   import { truncateValue } from '$lib/utils.js'
+  import { liveQuery } from 'dexie'
+  import { from } from 'rxjs'
 
   export let forward: Forward
+
+  const data$ = from(
+    liveQuery(() =>
+      db.transaction('r', db.channels, db.wallets, async () => {
+        const [wallet, channelIn, channelOut] = await Promise.all([
+          db.wallets.get(forward.walletId),
+          db.channels.where({ shortId: forward.shortIdIn }).first(),
+          db.channels.where({ shortId: forward.shortIdOut }).first()
+        ])
+
+        return {
+          wallet,
+          channelInAlias:
+            wallet?.nodeId === channelIn?.peerId
+              ? (await db.wallets.get(channelIn?.walletId))?.label
+              : channelIn?.peerAlias || (channelIn?.peerId && truncateValue(channelIn?.peerId)),
+          channelOutAlias:
+            wallet?.nodeId === channelOut?.peerId
+              ? (await db.wallets.get(channelOut?.walletId))?.label
+              : channelOut?.peerAlias || (channelOut?.peerId && truncateValue(channelOut?.peerId))
+        }
+      })
+    )
+  )
 </script>
 
 <a
   href={`/forwards/${forward.id}`}
-  class="w-full flex items-center no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded"
+  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded"
 >
-  <div class="flex flex-grow items-center gap-x-2 justify-between">
+  {#if $data$}
     <div class="flex items-center">
-      <div class="w-8 text-purple-200">{@html arrow}</div>
+      <div class="w-6 text-utility-success">{@html arrow}</div>
       <div class="font-semibold">
-        {#await db.channels.where({ shortId: forward.shortIdIn }).first() then inChannel}
-          {inChannel?.peerAlias ||
-            truncateValue(inChannel?.peerId || $translate('app.labels.unknown'))}
-        {/await}
+        {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
       </div>
-      <div class="w-8 ml-1">{@html channels}</div>
+      <div class="w-6 mx-1">{@html channels}</div>
+      <div class="font-semibold">{$data$.wallet?.label?.toUpperCase()}</div>
+      <div class="w-6 mx-1">{@html channels}</div>
+      <div class="font-semibold">
+        {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
+      </div>
+      <div class="w-6 rotate-180 text-utility-error">{@html arrow}</div>
     </div>
 
-    <div class="flex flex-col justify-center items-center">
-      <div class="font-semibold">
-        {#await db.wallets.get(forward.walletId) then wallet}
-          {wallet?.label}
-        {/await}
-      </div>
-      <div class="flex items-center">
-        <span class="text-utility-success mr-1">+</span>
+    <div class="flex items-center h-full">
+      <div>
+        <div class="w-full flex justify-end -mb-1 text-xs">{$translate('app.labels.fee')}:</div>
         <BitcoinAmount sats={forward.fee} short />
+        <div class="w-full flex justify-end text-xs">
+          <div
+            class:text-utility-success={forward.status === 'settled'}
+            class:utility-pending={forward.status === 'offered'}
+            class:text-utility-error={forward.status === 'failed' ||
+              forward.status === 'local_failed'}
+          >
+            {$translate(`app.labels.${forward.status}`)}
+          </div>
+        </div>
       </div>
+      <div class="w-6 -rotate-90 -mr-1 ml-1">{@html caret}</div>
     </div>
-
-    <div class="flex items-center">
-      <div class="w-8 mr-1">{@html channels}</div>
-      <div class="font-semibold">
-        {#await db.channels.where({ shortId: forward.shortIdOut }).first() then outChannel}
-          {outChannel?.peerAlias ||
-            truncateValue(outChannel?.peerId || $translate('app.labels.unknown'))}
-        {/await}
-      </div>
-      <div class="w-8 rotate-180 text-purple-200">{@html arrow}</div>
-    </div>
-  </div>
-
-  <div class="flex items-center h-full">
-    <div class="w-6 -rotate-90 -mr-1 ml-1">{@html caret}</div>
-  </div>
+  {/if}
 </a>

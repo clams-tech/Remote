@@ -438,7 +438,10 @@
     "payment": "Payment",
     "closing": "Closing",
     "local_balance": "Local balance",
-    "remote_balance": "Remote balance"
+    "remote_balance": "Remote balance",
+    "settled": "Settled",
+    "offered": "Offered",
+    "local_failed": "Local failed"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

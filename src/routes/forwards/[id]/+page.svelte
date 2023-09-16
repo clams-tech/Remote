@@ -47,9 +47,29 @@
       <Spinner />
     </div>
   {:else}
-    {@const { shortIdIn, shortIdOut, walletId, fee, in: amountIn, out: amountOut } = $forward$}
+    {@const {
+      shortIdIn,
+      shortIdOut,
+      walletId,
+      fee,
+      in: amountIn,
+      out: amountOut,
+      status
+    } = $forward$}
     <div class="w-full">
       <SectionHeading text={$translate('app.routes./forward.title')} icon={forward} />
+
+      <SummaryRow>
+        <div slot="label">{$translate('app.labels.status')}:</div>
+        <div
+          class:text-utility-success={status === 'settled'}
+          class:utility-pending={status === 'offered'}
+          class:text-utility-error={status === 'failed' || status === 'local_failed'}
+          slot="value"
+        >
+          {$translate(`app.labels.${status}`)}
+        </div>
+      </SummaryRow>
 
       <SummaryRow>
         <div slot="label">{$translate('app.labels.wallet')}:</div>

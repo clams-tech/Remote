@@ -1,6 +1,5 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations'
-  import lightningOutline from '$lib/icons/lightning-outline'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { liveQuery } from 'dexie'
@@ -11,14 +10,18 @@
   import VirtualList from 'svelte-tiny-virtual-list'
   import ForwardRow from './ForwardRow.svelte'
   import forward from '$lib/icons/forward.js'
+  import type { Forward } from '$lib/@types/forwards.js'
+  import { filter, from, takeUntil } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
+  import FilterSort from '$lib/components/FilterSort.svelte'
 
-  const forwards$ = liveQuery(() => db.forwards.toArray())
+  const forwards$ = from(liveQuery(() => db.forwards.toArray()))
 
   let showFullOpenButton = false
   let forwardsContainer: HTMLDivElement
 
   // need to adjust this if you change the transaction row height
-  const rowSize = 80
+  const rowSize = 82
 
   let previousOffset = 0
 
@@ -37,6 +40,105 @@
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
   $: fullHeight = $forwards$ ? $forwards$.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
+
+  type Key = keyof Forward
+
+  type Filter = {
+    label: string
+    values: { label: string; checked: boolean; predicate: (val: Forward) => boolean }[]
+  }
+
+  type TagFilter = { tag: string; checked: boolean }
+  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
+
+  let processed: Forward[] = []
+  let filters: Filter[] = []
+  let tagFilters: TagFilter[] = []
+
+  let sorters: Sorter[] = [
+    { label: $translate('app.labels.date'), key: 'completedAt', direction: 'desc' },
+    { label: $translate('app.labels.fee'), key: 'fee', direction: 'desc' },
+    { label: $translate('app.labels.in'), key: 'in', direction: 'desc' },
+    { label: $translate('app.labels.out'), key: 'out', direction: 'desc' }
+  ]
+
+  // once we have offers, create filters, tag filters
+  forwards$
+    .pipe(
+      filter((x) => !!x),
+      takeUntil(onDestroy$)
+    )
+    .subscribe(async (offers) => {
+      const walletIdSet = new Set()
+      const tagSet = new Set()
+
+      for (const { walletId, id } of offers) {
+        walletIdSet.add(walletId)
+
+        const metadata = await db.metadata.get(id)
+
+        if (metadata) {
+          metadata.tags.forEach((tag) => tagSet.add(tag))
+        }
+      }
+
+      const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
+
+      const walletFilter = {
+        label: $translate('app.labels.wallet'),
+        values: wallets.reduce((acc, wallet) => {
+          if (wallet) {
+            acc.push({
+              label: wallet.label,
+              checked: false,
+              predicate: ({ walletId }) => walletId === wallet.id
+            })
+          }
+
+          return acc
+        }, [] as Filter['values'])
+      }
+
+      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+        tag: tag as string,
+        checked: false
+      }))
+
+      filters = [
+        {
+          label: $translate('app.labels.status'),
+          values: [
+            {
+              label: $translate('app.labels.settled'),
+              checked: true,
+              predicate: ({ status }) => status === 'settled'
+            },
+            {
+              label: $translate('app.labels.offered'),
+              checked: true,
+              predicate: ({ status }) => status === 'offered'
+            },
+            {
+              label: $translate('app.labels.failed'),
+              checked: false,
+              predicate: ({ status }) => status === 'failed'
+            },
+            {
+              label: $translate('app.labels.local_failed'),
+              checked: false,
+              predicate: ({ status }) => status === 'local_failed'
+            }
+          ]
+        },
+        walletFilter
+      ]
+    })
+
+  let virtualList: VirtualList
+
+  $: if (virtualList && processed) {
+    setTimeout(() => virtualList.recomputeSizes(0), 25)
+  }
 </script>
 
 <svelte:head>
@@ -48,7 +150,13 @@
 <svelte:window bind:innerHeight />
 
 <Section>
-  <SectionHeading icon={forward} />
+  <div class="flex items-center justify-between">
+    <SectionHeading icon={forward} />
+
+    {#if $forwards$}
+      <FilterSort items={$forwards$} bind:filters bind:tagFilters bind:sorters bind:processed />
+    {/if}
+  </div>
 
   <div class="w-full overflow-hidden flex flex-grow">
     {#if !$forwards$}
@@ -65,15 +173,16 @@
         class="w-full flex flex-col flex-grow overflow-hidden gap-y-2 mt-2"
       >
         <VirtualList
+          bind:this={virtualList}
           on:afterScroll={(e) => handleForwardsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
-          itemCount={$forwards$.length}
+          itemCount={processed.length}
           itemSize={rowSize}
-          getKey={(index) => $forwards$[index].id}
+          getKey={(index) => processed[index].id}
         >
           <div slot="item" let:index let:style {style}>
-            <ForwardRow forward={$forwards$[index]} />
+            <ForwardRow forward={processed[index]} />
           </div>
         </VirtualList>
       </div>
