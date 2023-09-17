@@ -19,7 +19,7 @@
   <div>
     <span class="font-semibold text-purple-100">
       {primary
-        ? truncateValue(primary, 12).toUpperCase()
+        ? truncateValue(primary, 6).toUpperCase()
         : $translate('app.labels.unknown').toUpperCase()}
     </span>
     <span class="italic">
@@ -30,7 +30,7 @@
       {secondary
         ? truncateValue(
             secondary,
-            12,
+            6,
             type === 'channel_mutiple_open' ? 'end' : 'center'
           ).toUpperCase()
         : $translate('app.labels.unknown').toUpperCase()}
