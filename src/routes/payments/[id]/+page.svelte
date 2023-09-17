@@ -221,11 +221,14 @@
         deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
       )
 
-      const wallet = (
-        summary.type === 'transfer'
-          ? await db.wallets.where({ label: summary.primary }).first()
-          : await db.wallets.get(walletId)
-      ) as Wallet
+      // const wallet = (
+      //   summary.type === 'transfer'
+      //     ? await db.wallets.where({ label: summary.primary }).first()
+      //     : await db.wallets.get(walletId)
+      // ) as Wallet
+      const wallet = (await db.wallets.get(walletId)) as Wallet
+      console.log(JSON.stringify(transaction))
+      console.log(JSON.stringify(wallet))
 
       details.push({
         type: 'onchain',
@@ -299,7 +302,7 @@
       }
       case 'transfer':
       case 'receive': {
-        return `/wallets/${inputOutput.id}`
+        return inputOutput.utxo ? `/utxos/${inputOutput.utxo.id}` : `/wallets/${inputOutput.id}`
       }
     }
   }

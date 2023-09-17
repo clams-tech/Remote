@@ -25,6 +25,8 @@
   const utxo$ = from(liveQuery(() => db.utxos.get(id)))
   let utxoNotFound = false
 
+  $: console.log(JSON.stringify($utxo$))
+
   utxo$.pipe(take(1)).subscribe((utxo) => {
     if (!utxo) {
       utxoNotFound = true

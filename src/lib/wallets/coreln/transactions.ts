@@ -64,6 +64,7 @@ class Transactions implements TransactionsInterface {
           let timestamp = nowSeconds()
 
           if (accountEvents) {
+            console.log({ accountEvents })
             accountEvents.events.forEach((ev) => {
               const {
                 type,

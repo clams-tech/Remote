@@ -37,6 +37,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-svelte3": "^4.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
+    "fake-indexeddb": "^4.0.2",
     "postcss": "^8.4.24",
     "prettier": "^2.8.8",
     "prettier-plugin-svelte": "^2.10.1",

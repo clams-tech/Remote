@@ -12,71 +12,109 @@ import { truncateValue } from './utils.js'
 import Dexie from 'dexie'
 import { bolt12ToOffer, isBolt12Invoice } from './invoices.js'
 import type { Address } from './@types/addresses.js'
+import { get } from 'svelte/store'
+import { translate } from './i18n/translations.js'
+import type { Contact } from './@types/contacts.js'
 
-export type ChannelPaymentSummary = {
+export type CounterPart =
+  | { type: 'wallet'; value: Wallet }
+  | { type: 'channel_peer'; value: Channel['peerAlias'] | Channel['peerId'] }
+  | { type: 'contact'; value: Contact }
+  | { type: 'unknown'; value: string }
+
+export type ChannelTransactionSummary = {
   timestamp: number
-  primary?: string
-  secondary?: string
-  amount?: number
+  primary: CounterPart
+  secondary: CounterPart
+  channel: Channel
   type: 'channel_open' | 'channel_close' | 'channel_force_close' | 'channel_mutiple_open'
   category: 'expense' | 'neutral'
   fee: number
 }
 
-/** a summary of any funds movement designed to be rendered as human readable sentences:
- * Bob withdrew 500 sats from Exchange
- * Bob deposited 21000 sats to Stacker News
- * Alice transferred 2100 sats to Bob
- * Carol closed a channel with Bob
- */
-export type TransactionSummary = {
-  /** the timestamp (unix seconds) of when movement completed or started */
+export type RegularTransactionSummary = {
   timestamp: number
-  /** the amount. depends on type as to what the amount is*/
   amount: number
   fee: number
-  /** usually one of our wallets */
-  primary?: string
-  /** usually a counterparty */
-  secondary?: string
+  primary: CounterPart
+  secondary: CounterPart
   type: 'send' | 'receive' | 'transfer' | 'withdrawal' | 'deposit' | 'sweep'
   category: 'expense' | 'income' | 'neutral'
+  inputs: EnhancedInput[]
+  outputs: EnhancedOutput[]
 }
 
-export type PaymentSummary = ChannelPaymentSummary | TransactionSummary
+export type TransactionSummary = ChannelTransactionSummary | RegularTransactionSummary
 
-export type EnhancedInput = {
-  /** wallet.id, channel.id, withdrawal.id, outpoint */
-  id: string
-  category: 'spend' | 'withdrawal' | 'channel_close' | 'unknown' | 'timelocked'
-  utxo?: Utxo
+export type ChannelCloseInput = {
+  outpoint: string
+  type: 'channel_close'
+  channel: Channel
 }
 
-export type EnhancedOutput = {
-  /** wallet.id, channel.id, deposit.id, address */
-  id: string
-  category:
-    | 'timelocked'
-    | 'receive'
-    | 'settle'
-    | 'transfer'
-    | 'change'
-    | 'deposit'
-    | 'send'
-    | 'channel_open'
-    | 'sweep'
-    | 'unknown'
-  /** output sats */
+export type WithdrawalInput = {
+  outpoint: string
+  type: 'withdrawal'
+  withdrawal: Withdrawal
+}
+
+export type SpendInput = {
+  outpoint: string
+  type: 'spend'
+  utxo: Utxo
+}
+
+export type EnhancedInput =
+  | ChannelCloseInput
+  | WithdrawalInput
+  | SpendInput
+  | {
+      outpoint: string
+      type: 'unknown' | 'timelocked'
+    }
+
+export type OutputCommon = {
+  outpoint: string
   amount: number
   address: string
-  utxo?: Utxo
 }
 
+export type UtxoOutput = OutputCommon & {
+  type: 'receive' | 'change' | 'settle' | 'sweep' | 'timelocked'
+  utxo: Utxo
+}
+
+export type ChannelOpenOutput = OutputCommon & {
+  type: 'channel_open'
+  channel: Channel
+}
+
+export type DepositOutput = OutputCommon & {
+  type: 'deposit'
+  deposit: Deposit
+}
+
+export type TransferOutput = OutputCommon & {
+  type: 'transfer'
+  wallet: Wallet
+}
+
+export type UnknownOutput = OutputCommon & {
+  type: 'send' | 'unknown'
+}
+
+export type EnhancedOutput =
+  | UtxoOutput
+  | ChannelOpenOutput
+  | DepositOutput
+  | TransferOutput
+  | UnknownOutput
+
 const isChangeOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
-  !!inputs.find((input) => input.utxo?.walletId === utxo.walletId)
+  !!inputs.find((input) => input.type === 'spend' && input.utxo.walletId === utxo.walletId)
 
 const isTransferOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
-  !!inputs.find((input) => input.utxo && input.utxo.walletId !== utxo.walletId)
+  !!inputs.find((input) => input.type === 'spend' && input.utxo.walletId !== utxo.walletId)
 
 const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | undefined> => {
   /**
@@ -91,7 +129,7 @@ const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | un
     .equals('force_close')
     .toArray()
 
-  let channelId: string | undefined
+  let forceClosedChannelId: Channel['id'] | undefined
 
   forceClosedTransactions.forEach(({ outputs, id, channel }) => {
     outputs.forEach(({ index }) => {
@@ -99,146 +137,26 @@ const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | un
       inputs.forEach((input) => {
         const inputOutpoint = `${input.txid}:${input.index}`
         if (inputOutpoint === forceCloseOutputOutpoint) {
-          channelId = channel?.id
+          forceClosedChannelId = channel?.id
         }
       })
     })
   })
 
-  return channelId
-}
-
-export const enhanceInputsOutputs = async (
-  transaction: Transaction
-): Promise<{
-  inputs: EnhancedInput[]
-  outputs: EnhancedOutput[]
-}> => {
-  const inputs: EnhancedInput[] = await Promise.all(
-    transaction.inputs.map(async (input) => {
-      /** Possibilities:
-       * we own the input (spend)
-       * the input was a channel 2of2 multisig (closing channel tx)(channel)
-       * the input was owned by a custodian and we withdrew to self custody (requires looking at outputs address to match with withdrawal destination)(withdrawal)
-       * we don't know about this input (return outpoint))(unknown)
-       */
-
-      const { txid, index } = input
-      const ownedInputUtxo = await db.utxos.get(`${txid}:${index}`)
-
-      const closedChannel = await db.channels
-        .where({ fundingTransactionId: txid, fundingOutput: index })
-        .first()
-
-      const withdrawal = await db.withdrawals
-        .where('destination')
-        .anyOf(transaction.outputs.map(({ address }) => address))
-        .first()
-
-      const enhanced: EnhancedInput = closedChannel
-        ? {
-            category: 'channel_close',
-            id: closedChannel.id
-          }
-        : withdrawal
-        ? { category: 'withdrawal', id: withdrawal.id }
-        : ownedInputUtxo
-        ? {
-            category: 'spend',
-            id: ownedInputUtxo.walletId,
-            utxo: ownedInputUtxo
-          }
-        : { category: 'unknown', id: `${txid}:${index}` }
-
-      return enhanced
-    })
-  )
-
-  const outputs: EnhancedOutput[] = await Promise.all(
-    transaction.outputs.map(async (output) => {
-      /** Possibilities:
-       * we own the output (receive)
-       * we own the output and we own an input from the same wallet (change) (requires looking at inputs)
-       * we own the output and we own an input but not from the same wallet (transfer) (requires looking at inputs)
-       * the output was to a channel 2of2 multisig (opening channel tx)(channelOpen)
-       * the output was to a close to address for a channel close(channelClose)
-       * the output address matches with a deposit to a custodian (deposit)
-       * we don't know about this output (return address)(unknown)
-       */
-      const { address, index, amount } = output
-      const ownedOutputUtxo = await db.utxos.get(`${transaction.id}:${index}`)
-      const closedChannelId =
-        inputs.find(({ category }) => category === 'channel_close')?.id || null
-      const ownAtLeastOneInputUtxo = inputs.find(({ utxo }) => !!utxo)
-
-      const openedChannel = await db.channels
-        .where({ fundingTransactionId: transaction.id, fundingOutput: index })
-        .first()
-
-      const deposit = await db.deposits.where({ destination: address }).first()
-      const sweptFromChannelId = await isSweepOutput(transaction.inputs)
-
-      if (sweptFromChannelId) {
-        inputs.forEach((input) => {
-          input.category = 'timelocked'
-        })
-      }
-
-      const closedChannel = closedChannelId
-        ? ((await db.channels.get(closedChannelId)) as Channel)
-        : null
-
-      const enhanced: EnhancedOutput = closedChannelId
-        ? ownedOutputUtxo
-          ? { category: 'settle', id: closedChannelId, amount, utxo: ownedOutputUtxo, address }
-          : closedChannel?.finalToUs && Math.floor(closedChannel?.finalToUs) === amount
-          ? { category: 'timelocked', id: closedChannel.walletId, amount, address }
-          : { category: 'settle', id: closedChannelId, amount, address }
-        : openedChannel
-        ? { category: 'channel_open', id: openedChannel.id, amount, address }
-        : ownedOutputUtxo
-        ? {
-            category: isChangeOutput(inputs, ownedOutputUtxo)
-              ? 'change'
-              : isTransferOutput(inputs, ownedOutputUtxo)
-              ? 'transfer'
-              : sweptFromChannelId
-              ? 'sweep'
-              : 'receive',
-            id: sweptFromChannelId || ownedOutputUtxo.walletId,
-            utxo: ownedOutputUtxo,
-            amount,
-            address
-          }
-        : deposit
-        ? { category: 'deposit', id: deposit.id, amount, address }
-        : ownAtLeastOneInputUtxo
-        ? { category: 'send', id: address, amount, address }
-        : { category: 'unknown', id: address, amount, address }
-
-      return enhanced
-    })
-  )
-
-  return { inputs, outputs }
+  return forceClosedChannelId
 }
 
 const deriveChannelCapacity = (channel: Channel): number =>
   channel.balanceLocal + channel.balanceRemote
 
 export const deriveTransactionSummary = ({
+  id,
   inputs,
   outputs,
   fee,
   timestamp,
   channel: transactionChannel
-}: {
-  inputs: EnhancedInput[]
-  outputs: EnhancedOutput[]
-  fee: Transaction['fee']
-  timestamp: Transaction['timestamp']
-  channel: Transaction['channel']
-}): Promise<PaymentSummary> => {
+}: Transaction): Promise<TransactionSummary> => {
   return db.transaction(
     'r',
     db.channels,
@@ -249,33 +167,158 @@ export const deriveTransactionSummary = ({
     // eslint-disable-next-line
     // @ts-ignore
     db.contacts,
+    db.utxos,
     async () => {
-      const channelClose = inputs.find(({ category }) => category === 'channel_close')
-      const channelOpens = outputs.filter(({ category }) => category === 'channel_open')
+      const enhancedInputs: EnhancedInput[] = await Promise.all(
+        inputs.map(async (input) => {
+          /** Possibilities:
+           * we own the input (spend)
+           * the input was a channel 2of2 multisig (closing channel tx)(channel)
+           * the input was owned by a custodian and we withdrew to self custody (requires looking at outputs address to match with withdrawal destination)(withdrawal)
+           * we don't know about this input (return outpoint))(unknown)
+           */
+
+          const { txid, index } = input
+          const ownedInputUtxo = await db.utxos.get(`${txid}:${index}`)
+          const outpoint = `${txid}:${index}`
+
+          const closedChannel = await db.channels
+            .where({ fundingTransactionId: txid, fundingOutput: index })
+            .first()
+
+          const withdrawal = await db.withdrawals
+            .where('destination')
+            .anyOf(outputs.map(({ address }) => address))
+            .first()
+
+          const enhanced: EnhancedInput = closedChannel
+            ? {
+                outpoint,
+                type: 'channel_close',
+                channel: closedChannel
+              }
+            : withdrawal
+            ? { outpoint, type: 'withdrawal', withdrawal }
+            : ownedInputUtxo
+            ? {
+                type: 'spend',
+                outpoint,
+                utxo: ownedInputUtxo
+              }
+            : { type: 'unknown', outpoint }
+
+          return enhanced
+        })
+      )
+
+      const enhancedOutputs: EnhancedOutput[] = await Promise.all(
+        outputs.map(async (output) => {
+          /** Possibilities:
+           * we own the output (receive)
+           * we own the output and we own an input from the same wallet (change) (requires looking at inputs)
+           * we own the output and we own an input but not from the same wallet (transfer) (requires looking at inputs)
+           * the output was to a channel 2of2 multisig (opening channel tx)(channelOpen)
+           * the output was to a close to address for a channel close(channelClose)
+           * the output address matches with a deposit to a custodian (deposit)
+           * we don't know about this output (return address)(unknown)
+           */
+          const { address, index, amount } = output
+          const outpoint = `${id}:${index}`
+          const ownedOutputUtxo = await db.utxos.get(outpoint)
+
+          const closedChannel = (
+            enhancedInputs.find(({ type }) => type === 'channel_close') as ChannelCloseInput
+          )?.channel
+
+          const ownedInputUtxo = enhancedInputs.find((input) => input.type === 'spend')
+
+          const openedChannel = await db.channels
+            .where({ fundingTransactionId: id, fundingOutput: index })
+            .first()
+
+          const deposit = await db.deposits.where({ destination: address }).first()
+          const sweptFromChannelId = await isSweepOutput(inputs)
+          const sweptChannel = sweptFromChannelId
+            ? await db.channels.get(sweptFromChannelId)
+            : undefined
+
+          if (sweptFromChannelId) {
+            enhancedInputs.forEach((input) => {
+              input.type = 'timelocked'
+            })
+          }
+
+          const enhanced: EnhancedOutput = closedChannel
+            ? ownedOutputUtxo
+              ? {
+                  type: 'settle',
+                  channel: closedChannel,
+                  amount,
+                  utxo: ownedOutputUtxo,
+                  address,
+                  outpoint
+                }
+              : closedChannel?.finalToUs && Math.floor(closedChannel?.finalToUs) === amount
+              ? { type: 'timelocked', channel: closedChannel, amount, address, outpoint }
+              : { type: 'settle', channel: closedChannel, amount, address, outpoint }
+            : openedChannel
+            ? { type: 'channel_open', channel: openedChannel, amount, address, outpoint }
+            : ownedOutputUtxo
+            ? {
+                type: isChangeOutput(enhancedInputs, ownedOutputUtxo)
+                  ? 'change'
+                  : isTransferOutput(enhancedInputs, ownedOutputUtxo)
+                  ? 'transfer'
+                  : sweptFromChannelId
+                  ? 'sweep'
+                  : 'receive',
+                channel: sweptChannel,
+                utxo: ownedOutputUtxo,
+                amount,
+                address,
+                outpoint
+              }
+            : deposit
+            ? { type: 'deposit', deposit, amount, address, outpoint }
+            : ownedInputUtxo
+            ? { type: 'send', amount, address, outpoint }
+            : { type: 'unknown', amount, address, outpoint }
+
+          return enhanced
+        })
+      )
+
+      const channelClose = enhancedInputs.find(({ type }) => type === 'channel_close') as
+        | ChannelCloseInput
+        | undefined
+      const channelOpens = enhancedOutputs.filter(({ type }) => type === 'channel_open')
 
       if (channelClose) {
-        const channel = (await db.channels.get(channelClose.id)) as Channel
+        const { channel } = channelClose
         const channelWallet = (await db.wallets.get(channel.walletId)) as Wallet
+        const channelPartnerWallet =
+          channel.peerId && (await db.wallets.where({ nodeId: channel.peerId }).first())
 
         return {
           timestamp,
+          primary:
+            channel.closer === 'local'
+              ? { type: 'wallet', value: channelWallet }
+              : { type: 'channelPar' },
+          secondary:
+            channel.closer === 'local'
+              ? channelPartnerWallet
+                ? { type: 'wallet', value: channelPartnerWallet }
+                : { type: 'channel_peer', value: channel?.peerAlias || channel?.peerId }
+              : { type: 'wallet', value: channelWallet },
           fee: fee || 0,
           category: fee ? 'expense' : 'neutral',
-          type:
-            transactionChannel?.type === 'force_close' ? 'channel_force_close' : 'channel_close',
-          primary:
-            channel.closer === 'local' ? channelWallet.label : channel.peerAlias || channel.peerId,
-          secondary:
-            channel.closer === 'local' ? channel.peerAlias || channel.peerId : channelWallet.label
+          type: transactionChannel?.type === 'force_close' ? 'channel_force_close' : 'channel_close'
         }
       }
 
       if (channelOpens.length) {
-        const channels = (await Promise.all(
-          channelOpens.map((channelOpen) => db.channels.get(channelOpen.id))
-        )) as Channel[]
-
-        const channelWallet = await db.wallets.get(channels[0].walletId)
+        const channelWallet = await db.wallets.get(channelOpens[0].channel.walletId)
 
         const weOpened = channels[0].opener === channelWallet?.nodeId
 
@@ -411,8 +454,8 @@ export const deriveTransactionSummary = ({
         category: 'income',
         type: 'receive',
         amount: receive.amount,
-        secondary: sourceContact?.name || truncateValue(sourceAddress),
-        primary: receiveWallet.label
+        primary: receiveWallet.label,
+        secondary: sourceContact?.name || get(translate)('app.labels.unknown')
       }
     }
   )

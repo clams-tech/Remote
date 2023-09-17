@@ -46,6 +46,8 @@
     )
   )
 
+  $: console.log(JSON.stringify($channel$))
+
   const closingTransaction$ = channel$.pipe(
     filter((x) => !!x),
     mergeMap((channel) =>

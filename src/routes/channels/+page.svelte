@@ -189,14 +189,14 @@
           <SummaryRow>
             <div slot="label">{$translate('app.labels.sendable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totals.sendable} />
+              <BitcoinAmount sats={totals.sendable < 0 ? 0 : totals.sendable} />
             </div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.receivable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totals.receivable} />
+              <BitcoinAmount sats={totals.receivable < 0 ? 0 : totals.receivable} />
             </div>
           </SummaryRow>
         </div>
