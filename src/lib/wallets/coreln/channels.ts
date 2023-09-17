@@ -65,7 +65,7 @@ class Channels implements ChannelsInterface {
               return {
                 id: channel_id,
                 walletId: this.connection.walletId,
-                opener: opener === 'local' ? this.connection.info.id : peer_id,
+                opener,
                 fundingTransactionId: funding_txid,
                 fundingOutput: funding_outnum,
                 peerId: peer_id,
@@ -132,7 +132,7 @@ class Channels implements ChannelsInterface {
 
                 return {
                   walletId: this.connection.walletId,
-                  opener: opener === 'local' ? this.connection.info.id : id,
+                  opener,
                   peerId: id,
                   peerConnected: connected,
                   peerAlias: peer?.alias,
@@ -218,7 +218,7 @@ class Channels implements ChannelsInterface {
 
             return {
               walletId: this.connection.walletId,
-              opener: opener === 'local' ? this.connection.info.id : peer_id,
+              opener,
               peerId: peer_id,
               peerConnected: peer_connected,
               peerAlias: peer?.alias,
