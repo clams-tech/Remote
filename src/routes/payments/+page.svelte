@@ -387,7 +387,7 @@
       </div>
     {:else if !$payments$.length}
       <div class="mt-4 w-full">
-        <Msg type="info" closable={false} message={$translate('app.labels.no_transactions')} />
+        <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
       </div>
     {:else}
       <div
