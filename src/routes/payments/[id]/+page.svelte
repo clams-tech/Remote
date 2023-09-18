@@ -315,6 +315,7 @@
       case 'settle':
       case 'sweep':
       case 'change':
+      case 'spend':
       case 'transfer':
       case 'receive': {
         return `/utxos/${inputOutput.utxo.id}`
@@ -468,6 +469,7 @@
               {#each inputs as input}
                 {@const { type } = input}
                 {@const route = getRoute(input)}
+
                 <div
                   class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
