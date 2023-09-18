@@ -57,9 +57,9 @@
   let rowSize = 84
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = $channels$ ? $channels$.length * rowSize : 0
+  $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
-  $: channelsContainerScrollable = $channels$ ? $channels$.length * rowSize > listHeight : false
+  $: channelsContainerScrollable = processed ? processed.length * rowSize > listHeight : false
 
   type Key = keyof Channel
 
@@ -145,6 +145,11 @@
               label: $translate('app.labels.closed'),
               checked: false,
               predicate: ({ status }) => status === 'closed'
+            },
+            {
+              label: $translate('app.labels.force_closed'),
+              checked: false,
+              predicate: ({ status }) => status === 'force_closed'
             }
           ]
         },

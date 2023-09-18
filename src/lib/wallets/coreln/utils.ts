@@ -190,13 +190,13 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
 }
 
 export function stateToChannelStatus(state: State): ChannelStatus {
+  console.log({ state })
   switch (state) {
     case State.Openingd:
     case State.ChanneldAwaitingLockin:
     case State.FundingSpendSeen:
     case State.DualopendOpenInit:
     case State.DualopendAwaitingLockin:
-    case State.Onchain:
       return 'opening'
     case State.ChanneldNormal:
       return 'active'
@@ -204,6 +204,8 @@ export function stateToChannelStatus(state: State): ChannelStatus {
     case State.ClosingdSigexchange:
     case State.AwaitingUnilateral:
       return 'closing'
+    case State.Onchain:
+      return 'force_closed'
     case State.ClosingdComplete:
       return 'closed'
   }

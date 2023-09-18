@@ -299,9 +299,13 @@ export const deriveTransactionSummary = ({
             : undefined
 
           if (forceClosedChannelId) {
+            console.log({ forceClosedChannelId, inputOutpoint })
             enhancedInputs.forEach((input) => {
+              console.log(input)
               if (input.outpoint === inputOutpoint) {
-                input = { ...input, type: 'timelocked', channel: sweptChannel as Channel }
+                console.log('RELABELING')
+                input.type = 'timelocked'
+                ;(input as ChannelCloseInput).channel = sweptChannel as Channel
               }
             })
           }

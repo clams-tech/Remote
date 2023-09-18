@@ -48,7 +48,9 @@
     <div
       class:text-utility-success={channel.status === 'active'}
       class:text-utility-pending={channel.status === 'opening'}
-      class:text-utility-error={channel.status === 'closing' || channel.status === 'closed'}
+      class:text-utility-error={channel.status === 'closing' ||
+        channel.status === 'closed' ||
+        channel.status === 'force_closed'}
       class="text-sm flex items-center justify-center w-full leading-4"
     >
       <div class="bg-current w-2.5 h-2.5 rounded-full mr-1" />

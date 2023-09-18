@@ -251,13 +251,15 @@
               slot="value"
               class:text-utility-success={status === 'active'}
               class:text-utility-pending={status === 'opening'}
-              class:text-utility-error={status === 'closing' || status === 'closed'}
+              class:text-utility-error={status === 'closing' ||
+                status === 'closed' ||
+                status === 'force_closed'}
             >
               {$translate(`app.labels.${status}`)}
             </div>
           </SummaryRow>
 
-          {#if status !== 'closed'}
+          {#if status !== 'closed' && status !== 'force_closed'}
             <SummaryRow>
               <div slot="label">
                 {$translate('app.labels.peer_connection')}:

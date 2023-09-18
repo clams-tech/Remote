@@ -1,4 +1,4 @@
-export type ChannelStatus = 'active' | 'opening' | 'closing' | 'closed'
+export type ChannelStatus = 'active' | 'opening' | 'closing' | 'closed' | 'force_closed'
 
 export type Channel = {
   /** the wallet this channel belongs to */

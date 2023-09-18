@@ -3,7 +3,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
-  import { formatDate } from '$lib/dates.js'
+  import { formatDate, formatDateRelativeToNow } from '$lib/dates.js'
   import { db } from '$lib/db.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
@@ -27,6 +27,7 @@
   import Summary from '../Summary.svelte'
   import Dexie from 'dexie'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import { from, type Observable } from 'rxjs'
 
   import {
     deriveInvoiceSummary,
@@ -35,9 +36,11 @@
     type PaymentSummary,
     type EnhancedOutput,
     deriveAddressSummary,
-    type RegularTransactionSummary
+    type RegularTransactionSummary,
+    type ChannelTransactionSummary
   } from '$lib/summary.js'
-  import { from, type Observable } from 'rxjs'
+  import type { Channel } from '$lib/@types/channels.js'
+  import { MIN_IN_SECS } from '$lib/constants.js'
 
   export let data: PageData
 
@@ -65,7 +68,7 @@
     category: PaymentSummary['category']
     summaryType: PaymentSummary['type']
     offer?: Invoice['offer']
-    channel?: Transaction['channel']
+    channels?: Channel[]
     inputs?: EnhancedInput[]
     outputs?: EnhancedOutput[]
     primary: PaymentSummary['primary']
@@ -221,7 +224,6 @@
               createdAt,
               completedAt,
               wallet,
-              channel: tx?.channel,
               txid,
               category: 'income',
               summaryType: 'receive',
@@ -233,7 +235,7 @@
           }
 
           if (transaction) {
-            const { id, walletId, fee, blockheight, channel, timestamp } = transaction
+            const { id, walletId, fee, blockheight, timestamp } = transaction
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const summary = await deriveTransactionSummary(transaction)
 
@@ -244,7 +246,7 @@
               status: blockheight ? 'complete' : 'pending',
               amount,
               fee,
-              channel,
+              channels: (summary as ChannelTransactionSummary).channels,
               wallet,
               completedAt: typeof blockheight === 'number' ? timestamp : undefined,
               txid: id,
@@ -355,7 +357,7 @@
       peerNodeId,
       wallet,
       offer,
-      channel,
+      channels,
       inputs,
       outputs,
       category,
@@ -485,8 +487,15 @@
                       <div class="font-semibold text-purple-100 uppercase">
                         {#if type === 'timelocked' || type === 'channel_close'}
                           {@const { channel } = input}
-                          {channel.peerAlias ||
-                            truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                          {#if channel.peerId}
+                            {#await db.wallets
+                              .where({ nodeId: channel.peerId })
+                              .first() then peerWallet}
+                              {peerWallet?.label ||
+                                channel.peerAlias ||
+                                truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                            {/await}
+                          {/if}
                         {:else if type === 'withdrawal'}
                           {@const { withdrawal } = input}
                           {#await db.wallets.get(withdrawal.walletId) then wallet}
@@ -603,7 +612,10 @@
         {/if}
 
         <!-- CHANNEL -->
-        {#if channel}
+        {#if channels}
+          {@const [channel] = channels}
+          {@const { ourToSelfDelay, closer, status } = channel}
+
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
             <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
@@ -614,16 +626,34 @@
             </a>
           </SummaryRow>
 
-          {#await db.channels.get(channel.id) then channelDetails}
-            {#if channelDetails && channelDetails.peerAlias}
+          {#await db.wallets.where({ nodeId: channel.peerId }).first() then peerWallet}
+            {#if peerWallet || channel.peerAlias}
               <SummaryRow>
                 <span slot="label">{$translate('app.labels.channel_peer')}:</span>
                 <span slot="value">
-                  {channelDetails.peerAlias}
+                  {peerWallet?.label || channel.peerAlias}
                 </span>
               </SummaryRow>
             {/if}
           {/await}
+
+          {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.can_sweep')}:</span>
+              <div slot="value">
+                <div>
+                  {ourToSelfDelay}
+                  {$translate('app.labels.blocks')}
+                </div>
+
+                {#await formatDateRelativeToNow(Date.now() / 1000 + ourToSelfDelay * 10 * MIN_IN_SECS) then date}
+                  <div class="text-xs">
+                    (estimated {date})
+                  </div>
+                {/await}
+              </div>
+            </SummaryRow>
+          {/if}
         {/if}
 
         <!-- OFFER -->
