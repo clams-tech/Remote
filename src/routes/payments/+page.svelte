@@ -27,7 +27,6 @@
     deriveAddressSummary,
     deriveInvoiceSummary,
     deriveTransactionSummary,
-    enhanceInputsOutputs,
     type PaymentSummary
   } from '$lib/summary.js'
 
@@ -340,15 +339,7 @@
     if (cached) return cached
 
     if (payment.type === 'transaction') {
-      const { inputs, outputs } = await enhanceInputsOutputs(payment.data as Transaction)
-      const summary = await deriveTransactionSummary({
-        inputs,
-        outputs,
-        fee: payment.fee,
-        timestamp: payment.timestamp,
-        channel: (payment.data as Transaction).channel
-      })
-
+      const summary = await deriveTransactionSummary(payment.data as Transaction)
       summaryCache[payment.id] = summary
       return summary
     } else if (payment.type === 'invoice') {

@@ -168,7 +168,29 @@ export const syncConnectionData = (
     connection.transactions
       ? connection.transactions
           .get()
-          .then((transactions) => db.transactions.bulkPut(transactions))
+          .then(async (transactions) => {
+            const addressesWithoutTxid = await db.addresses
+              .where({ walletId: connection.walletId })
+              .filter(({ txid }) => !txid)
+              .toArray()
+
+            // update all addresses that have a corresponding tx
+            await Promise.all(
+              addressesWithoutTxid.map((address) => {
+                const tx = transactions.find(({ outputs }) =>
+                  outputs.find((output) => output.address === address.value)
+                )
+
+                if (tx) {
+                  return db.addresses.update(address.id, { txid: tx.id, completedAt: tx.timestamp })
+                }
+
+                return Promise.resolve()
+              })
+            )
+
+            return db.transactions.bulkPut(transactions)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 

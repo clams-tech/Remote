@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import 'fake-indexeddb/auto'
-import { deriveTransactionSummary, enhanceInputsOutputs } from '$lib/summary.js'
+import { deriveTransactionSummary } from '$lib/summary.js'
 import { db } from '$lib/db.js'
 import type { Wallet } from '$lib/@types/wallets.js'
 import type { Transaction } from '$lib/@types/transactions.js'
@@ -138,35 +138,8 @@ test('Summarise a onchain receive transaction with unknown input', async () => {
   await db.wallets.add(aliceWallet)
   await db.transactions.add(onchainReceiveTransaction)
   await db.utxos.add(utxoForOnchainReceiveTransaction)
-
-  const { inputs, outputs } = await enhanceInputsOutputs(onchainReceiveTransaction)
-
-  expect(inputs).toStrictEqual([
-    {
-      category: 'unknown',
-      id: 'bc9c62d7be920e3134cdb5451c60bb75e9a41f1192b4571f1a32bb885d8b4cc0:0'
-    }
-  ])
-
-  expect(outputs).toStrictEqual([
-    {
-      category: 'unknown',
-      id: onchainReceiveTransaction.outputs[0].address,
-      amount: onchainReceiveTransaction.outputs[0].amount,
-      address: onchainReceiveTransaction.outputs[0].address
-    },
-    {
-      category: 'receive',
-      id: utxoForOnchainReceiveTransaction.walletId,
-      utxo: utxoForOnchainReceiveTransaction,
-      amount: onchainReceiveTransaction.outputs[1].amount,
-      address: onchainReceiveTransaction.outputs[1].address
-    }
-  ])
-
-  const { fee, timestamp, channel } = onchainReceiveTransaction
-
-  const summary = await deriveTransactionSummary({ inputs, outputs, fee, timestamp, channel })
+  const { timestamp } = onchainReceiveTransaction
+  const summary = await deriveTransactionSummary(onchainReceiveTransaction)
 
   expect(summary).toStrictEqual({
     timestamp,
@@ -175,7 +148,28 @@ test('Summarise a onchain receive transaction with unknown input', async () => {
     type: 'receive',
     amount: utxoForOnchainReceiveTransaction.amount,
     primary: aliceWallet.label,
-    secondary: ''
+    secondary: '',
+    inputs: [
+      {
+        category: 'unknown',
+        id: 'bc9c62d7be920e3134cdb5451c60bb75e9a41f1192b4571f1a32bb885d8b4cc0:0'
+      }
+    ],
+    outputs: [
+      {
+        category: 'unknown',
+        id: onchainReceiveTransaction.outputs[0].address,
+        amount: onchainReceiveTransaction.outputs[0].amount,
+        address: onchainReceiveTransaction.outputs[0].address
+      },
+      {
+        category: 'receive',
+        id: utxoForOnchainReceiveTransaction.walletId,
+        utxo: utxoForOnchainReceiveTransaction,
+        amount: onchainReceiveTransaction.outputs[1].amount,
+        address: onchainReceiveTransaction.outputs[1].address
+      }
+    ]
   })
 })
 
@@ -184,36 +178,8 @@ test('Summarise a onchain send transaction to unknown recipient', async () => {
   await db.wallets.add(aliceWallet)
   await db.transactions.bulkAdd([onchainReceiveTransaction, onchainSendTransaction])
   await db.utxos.bulkAdd([utxoForOnchainReceiveTransaction, utxoChangeFromOnchainSendTransaction])
-
-  const { inputs, outputs } = await enhanceInputsOutputs(onchainSendTransaction)
-
-  expect(inputs).toStrictEqual([
-    {
-      category: 'spend',
-      id: utxoForOnchainReceiveTransaction.walletId,
-      utxo: utxoForOnchainReceiveTransaction
-    }
-  ])
-
-  expect(outputs).toStrictEqual([
-    {
-      category: 'change',
-      id: utxoChangeFromOnchainSendTransaction.walletId,
-      utxo: utxoChangeFromOnchainSendTransaction,
-      amount: onchainSendTransaction.outputs[0].amount,
-      address: onchainSendTransaction.outputs[0].address
-    },
-    {
-      category: 'send',
-      id: onchainSendTransaction.outputs[1].address,
-      amount: onchainSendTransaction.outputs[1].amount,
-      address: onchainSendTransaction.outputs[1].address
-    }
-  ])
-
-  const { fee, timestamp, channel } = onchainSendTransaction
-
-  const summary = await deriveTransactionSummary({ inputs, outputs, fee, timestamp, channel })
+  const { timestamp } = onchainSendTransaction
+  const summary = await deriveTransactionSummary(onchainSendTransaction)
 
   expect(summary).toStrictEqual({
     timestamp,
@@ -222,7 +188,29 @@ test('Summarise a onchain send transaction to unknown recipient', async () => {
     type: 'send',
     amount: onchainSendTransaction.outputs[1].amount,
     primary: aliceWallet.label,
-    secondary: truncateValue(onchainSendTransaction.outputs[1].address)
+    secondary: truncateValue(onchainSendTransaction.outputs[1].address),
+    inputs: [
+      {
+        category: 'spend',
+        id: utxoForOnchainReceiveTransaction.walletId,
+        utxo: utxoForOnchainReceiveTransaction
+      }
+    ],
+    outputs: [
+      {
+        category: 'change',
+        id: utxoChangeFromOnchainSendTransaction.walletId,
+        utxo: utxoChangeFromOnchainSendTransaction,
+        amount: onchainSendTransaction.outputs[0].amount,
+        address: onchainSendTransaction.outputs[0].address
+      },
+      {
+        category: 'send',
+        id: onchainSendTransaction.outputs[1].address,
+        amount: onchainSendTransaction.outputs[1].amount,
+        address: onchainSendTransaction.outputs[1].address
+      }
+    ]
   })
 })
 
@@ -230,42 +218,15 @@ test('Summarise a onchain send transaction transfer to another owned wallet', as
   await clearDb()
   await db.wallets.bulkAdd([aliceWallet, bobWallet])
   await db.transactions.bulkAdd([onchainReceiveTransaction, onchainSendTransaction])
+
   await db.utxos.bulkAdd([
     utxoForOnchainReceiveTransaction,
     utxoChangeFromOnchainSendTransaction,
     utxoBobReceivedOnchainSendTransaction
   ])
 
-  const { inputs, outputs } = await enhanceInputsOutputs(onchainSendTransaction)
-
-  expect(inputs).toStrictEqual([
-    {
-      category: 'spend',
-      id: utxoForOnchainReceiveTransaction.walletId,
-      utxo: utxoForOnchainReceiveTransaction
-    }
-  ])
-
-  expect(outputs).toStrictEqual([
-    {
-      category: 'change',
-      id: utxoChangeFromOnchainSendTransaction.walletId,
-      utxo: utxoChangeFromOnchainSendTransaction,
-      amount: onchainSendTransaction.outputs[0].amount,
-      address: onchainSendTransaction.outputs[0].address
-    },
-    {
-      category: 'transfer',
-      id: bobWallet.id,
-      amount: onchainSendTransaction.outputs[1].amount,
-      address: onchainSendTransaction.outputs[1].address,
-      utxo: utxoBobReceivedOnchainSendTransaction
-    }
-  ])
-
-  const { fee, timestamp, channel } = onchainSendTransaction
-
-  const summary = await deriveTransactionSummary({ inputs, outputs, fee, timestamp, channel })
+  const { timestamp } = onchainSendTransaction
+  const summary = await deriveTransactionSummary(onchainSendTransaction)
 
   expect(summary).toStrictEqual({
     timestamp,
@@ -274,7 +235,30 @@ test('Summarise a onchain send transaction transfer to another owned wallet', as
     type: 'transfer',
     amount: onchainSendTransaction.outputs[1].amount,
     primary: aliceWallet.label,
-    secondary: bobWallet.label
+    secondary: bobWallet.label,
+    inputs: [
+      {
+        category: 'spend',
+        id: utxoForOnchainReceiveTransaction.walletId,
+        utxo: utxoForOnchainReceiveTransaction
+      }
+    ],
+    outputs: [
+      {
+        category: 'change',
+        id: utxoChangeFromOnchainSendTransaction.walletId,
+        utxo: utxoChangeFromOnchainSendTransaction,
+        amount: onchainSendTransaction.outputs[0].amount,
+        address: onchainSendTransaction.outputs[0].address
+      },
+      {
+        category: 'transfer',
+        id: bobWallet.id,
+        amount: onchainSendTransaction.outputs[1].amount,
+        address: onchainSendTransaction.outputs[1].address,
+        utxo: utxoBobReceivedOnchainSendTransaction
+      }
+    ]
   })
 })
 
@@ -327,7 +311,7 @@ const changeUtxoFromChannelOpen = {
 
 const aliceBobChannel = {
   walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
-  opener: '02a9805541255ca61273a5c61b5e633a2e1ac38d68bcd6b2106f9acd888d9f2150',
+  opener: 'local',
   peerId: '021bac0a6a6e0d2fba61dc423b57cc44abc8b216c8ebd1a9ddeb6f32bb7c0ea721',
   peerConnected: true,
   fundingTransactionId: '873a28ae6a025174aee74915094049242b976ab9b35bbd18c936a9620bd20e38',
@@ -356,37 +340,8 @@ test('Summarise a onchain transaction that opens a channel to a node', async () 
   await db.transactions.bulkAdd([aliceOpenChannelTransaction])
   await db.utxos.bulkAdd([utxoChangeFromOnchainSendTransaction, changeUtxoFromChannelOpen])
   await db.channels.bulkAdd([aliceBobChannel])
-
-  const { inputs, outputs } = await enhanceInputsOutputs(onchainSendTransaction)
-
-  expect(inputs).toStrictEqual([
-    {
-      category: 'spend',
-      id: utxoChangeFromOnchainSendTransaction.walletId,
-      utxo: utxoChangeFromOnchainSendTransaction
-    }
-  ])
-
-  expect(outputs).toStrictEqual([
-    {
-      category: 'change',
-      id: utxoChangeFromOnchainSendTransaction.walletId,
-      utxo: utxoChangeFromOnchainSendTransaction,
-      amount: onchainSendTransaction.outputs[0].amount,
-      address: onchainSendTransaction.outputs[0].address
-    },
-    {
-      category: 'transfer',
-      id: bobWallet.id,
-      amount: onchainSendTransaction.outputs[1].amount,
-      address: onchainSendTransaction.outputs[1].address,
-      utxo: utxoBobReceivedOnchainSendTransaction
-    }
-  ])
-
-  const { fee, timestamp, channel } = onchainSendTransaction
-
-  const summary = await deriveTransactionSummary({ inputs, outputs, fee, timestamp, channel })
+  const { timestamp } = onchainSendTransaction
+  const summary = await deriveTransactionSummary(onchainSendTransaction)
 
   expect(summary).toStrictEqual({
     timestamp,
@@ -395,6 +350,29 @@ test('Summarise a onchain transaction that opens a channel to a node', async () 
     type: 'transfer',
     amount: onchainSendTransaction.outputs[1].amount,
     primary: aliceWallet.label,
-    secondary: bobWallet.label
+    secondary: bobWallet.label,
+    inputs: [
+      {
+        category: 'spend',
+        id: utxoChangeFromOnchainSendTransaction.walletId,
+        utxo: utxoChangeFromOnchainSendTransaction
+      }
+    ],
+    outputs: [
+      {
+        category: 'change',
+        id: utxoChangeFromOnchainSendTransaction.walletId,
+        utxo: utxoChangeFromOnchainSendTransaction,
+        amount: onchainSendTransaction.outputs[0].amount,
+        address: onchainSendTransaction.outputs[0].address
+      },
+      {
+        category: 'transfer',
+        id: bobWallet.id,
+        amount: onchainSendTransaction.outputs[1].amount,
+        address: onchainSendTransaction.outputs[1].address,
+        utxo: utxoBobReceivedOnchainSendTransaction
+      }
+    ]
   })
 })

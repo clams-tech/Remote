@@ -53,6 +53,8 @@ export type AddressSummary = SummaryCommon & {
   amount: number
 }
 
+export type PaymentSummary = TransactionSummary | InvoiceSummary | AddressSummary
+
 export type ChannelCloseInput = {
   outpoint: string
   type: 'channel_close'
@@ -71,13 +73,20 @@ export type SpendInput = {
   utxo: Utxo
 }
 
+export type TimelockedInput = {
+  outpoint: string
+  type: 'timelocked'
+  channel: Channel
+}
+
 export type EnhancedInput =
   | ChannelCloseInput
   | WithdrawalInput
   | SpendInput
+  | TimelockedInput
   | {
       outpoint: string
-      type: 'unknown' | 'timelocked'
+      type: 'unknown'
     }
 
 export type OutputCommon = {
@@ -87,7 +96,7 @@ export type OutputCommon = {
 }
 
 export type UtxoOutput = OutputCommon & {
-  type: 'receive' | 'change' | 'timelocked' | 'transfer'
+  type: 'receive' | 'change' | 'transfer'
   utxo: Utxo
 }
 
@@ -137,7 +146,9 @@ const isChangeOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
 const isTransferOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
   !!inputs.find((input) => input.type === 'spend' && input.utxo.walletId !== utxo.walletId)
 
-const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | undefined> => {
+const isSweepOutput = async (
+  inputs: Transaction['inputs']
+): Promise<{ forceClosedChannelId: string | undefined; outpoint: string | undefined }> => {
   /**
    * if transaction is a receive (don't know the input utxo)
    * lookup all transactions that have transaction.channel.type === 'force_close'
@@ -151,6 +162,7 @@ const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | un
     .toArray()
 
   let forceClosedChannelId: Channel['id'] | undefined
+  let outpoint: string | undefined
 
   forceClosedTransactions.forEach(({ outputs, id, channel }) => {
     outputs.forEach(({ index }) => {
@@ -159,12 +171,13 @@ const isSweepOutput = async (inputs: Transaction['inputs']): Promise<string | un
         const inputOutpoint = `${input.txid}:${input.index}`
         if (inputOutpoint === forceCloseOutputOutpoint) {
           forceClosedChannelId = channel?.id
+          outpoint = inputOutpoint
         }
       })
     })
   })
 
-  return forceClosedChannelId
+  return { forceClosedChannelId, outpoint }
 }
 
 export const deriveTransactionSummary = ({
@@ -187,6 +200,7 @@ export const deriveTransactionSummary = ({
     // @ts-ignore
     db.contacts,
     db.utxos,
+    db.transactions,
     async () => {
       const enhancedInputs: EnhancedInput[] = await Promise.all(
         inputs.map(async (input) => {
@@ -278,15 +292,17 @@ export const deriveTransactionSummary = ({
             return { type: 'channel_open', channel: openedChannel, amount, address, outpoint }
           }
 
-          const sweptFromChannelId = await isSweepOutput(inputs)
+          const { forceClosedChannelId, outpoint: inputOutpoint } = await isSweepOutput(inputs)
 
-          const sweptChannel = sweptFromChannelId
-            ? await db.channels.get(sweptFromChannelId)
+          const sweptChannel = forceClosedChannelId
+            ? await db.channels.get(forceClosedChannelId)
             : undefined
 
-          if (sweptFromChannelId) {
+          if (forceClosedChannelId) {
             enhancedInputs.forEach((input) => {
-              input.type = 'timelocked'
+              if (input.outpoint === inputOutpoint) {
+                input = { ...input, type: 'timelocked', channel: sweptChannel as Channel }
+              }
             })
           }
 
@@ -368,24 +384,43 @@ export const deriveTransactionSummary = ({
         const channelWallet = (await db.wallets.get(firstChannelOpen.channel.walletId)) as Wallet
         const weOpened = firstChannelOpen.channel.opener === 'local'
 
+        const channelPartnerWallet =
+          channels[0].peerId && (await db.wallets.where({ nodeId: channels[0].peerId }).first())
+
+        let primary: CounterPart
+        let secondary: CounterPart
+        let counterparty: CounterPart
+
+        if (channels.length > 1) {
+          counterparty = {
+            type: 'channel_peer',
+            value: channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
+          }
+        } else if (channelPartnerWallet) {
+          counterparty = { type: 'wallet', value: channelPartnerWallet }
+        } else {
+          counterparty = {
+            type: 'channel_peer',
+            value: firstChannelOpen.channel.peerAlias || firstChannelOpen.channel.peerId
+          }
+        }
+
+        if (weOpened) {
+          primary = { type: 'wallet', value: channelWallet }
+          secondary = counterparty
+        } else {
+          primary = counterparty
+          secondary = { type: 'wallet', value: channelWallet }
+        }
+
         const channelOpenSummary: ChannelTransactionSummary = {
           timestamp,
           fee: fee || 0,
           category: weOpened && fee ? 'expense' : 'neutral',
           type: channelOpens.length > 1 ? 'channel_mutiple_open' : 'channel_open',
           channels,
-          primary: weOpened
-            ? { type: 'wallet', value: channelWallet }
-            : {
-                type: 'channel_peer',
-                value: firstChannelOpen.channel.peerAlias || firstChannelOpen.channel.peerId
-              },
-          secondary: weOpened
-            ? {
-                type: 'channel_peer',
-                value: channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
-              }
-            : { type: 'wallet', value: channelWallet },
+          primary,
+          secondary,
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }
