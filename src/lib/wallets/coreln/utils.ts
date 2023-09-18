@@ -190,7 +190,6 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
 }
 
 export function stateToChannelStatus(state: State): ChannelStatus {
-  console.log({ state })
   switch (state) {
     case State.Openingd:
     case State.ChanneldAwaitingLockin:

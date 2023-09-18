@@ -28,6 +28,11 @@
   import Dexie from 'dexie'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { from, type Observable } from 'rxjs'
+  import channelIcon from '$lib/icons/channels.js'
+  import type { Channel } from '$lib/@types/channels.js'
+  import { MIN_IN_SECS } from '$lib/constants.js'
+  import keys from '$lib/icons/keys.js'
+  import walletIcon from '$lib/icons/wallet.js'
 
   import {
     deriveInvoiceSummary,
@@ -39,8 +44,6 @@
     type RegularTransactionSummary,
     type ChannelTransactionSummary
   } from '$lib/summary.js'
-  import type { Channel } from '$lib/@types/channels.js'
-  import { MIN_IN_SECS } from '$lib/constants.js'
 
   export let data: PageData
 
@@ -235,6 +238,7 @@
           }
 
           if (transaction) {
+            console.log(JSON.stringify(transaction))
             const { id, walletId, fee, blockheight, timestamp } = transaction
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const summary = await deriveTransactionSummary(transaction)
@@ -308,6 +312,7 @@
   const getRoute = (inputOutput: EnhancedOutput | EnhancedInput) => {
     switch (inputOutput.type) {
       case 'timelocked':
+      case 'channel_close':
       case 'channel_open': {
         return `/channels/${inputOutput.channel.id}`
       }
@@ -484,7 +489,7 @@
                       <div class="mr-1">
                         {$translate(`app.labels.input_${type}`).toLowerCase()}:
                       </div>
-                      <div class="font-semibold text-purple-100 uppercase">
+                      <div class="font-semibold text-purple-100 uppercase flex items-center">
                         {#if type === 'timelocked' || type === 'channel_close'}
                           {@const { channel } = input}
                           {#if channel.peerId}
@@ -495,17 +500,20 @@
                                 channel.peerAlias ||
                                 truncateValue(channel.peerId || $translate('app.labels.unknown'))}
                             {/await}
+                            <div class="w-4 ml-0.5">{@html channelIcon}</div>
                           {/if}
                         {:else if type === 'withdrawal'}
                           {@const { withdrawal } = input}
                           {#await db.wallets.get(withdrawal.walletId) then wallet}
                             {wallet?.label}
                           {/await}
+                          <div class="w-4 ml-0.5">{@html walletIcon}</div>
                         {:else if type === 'spend'}
                           {@const { utxo } = input}
                           {#await db.wallets.get(utxo.walletId) then wallet}
                             {wallet?.label}
                           {/await}
+                          <div class="w-4 ml-0.5">{@html keys}</div>
                         {:else}
                           {$translate('app.labels.unknown')}
                         {/if}
@@ -547,12 +555,13 @@
                       <div class="mr-1">
                         {$translate(`app.labels.output_${type}`).toLowerCase()}:
                       </div>
-                      <div class="font-semibold text-purple-100 uppercase">
+                      <div class="font-semibold text-purple-100 uppercase flex items-center">
                         {#if type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep' || type === 'settle'}
                           {@const { utxo } = output}
                           {#await db.wallets.get(utxo.walletId) then wallet}
                             {wallet?.label}
                           {/await}
+                          <div class="w-4 ml-0.5">{@html keys}</div>
                         {:else if type === 'timelocked' || type === 'channel_open'}
                           {@const { channel } = output}
                           {#if channel.peerId}
@@ -569,12 +578,14 @@
                                   )}
                               {/if}
                             {/await}
+                            <div class="w-4 ml-0.5">{@html channelIcon}</div>
                           {/if}
                         {:else if type === 'deposit'}
                           {@const { deposit } = output}
                           {#await db.wallets.get(deposit.walletId) then wallet}
                             {wallet?.label}
                           {/await}
+                          <div class="w-4 ml-0.5">{@html walletIcon}</div>
                         {:else}
                           {truncateValue(address)}
                         {/if}

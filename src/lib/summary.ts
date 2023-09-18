@@ -279,7 +279,10 @@ export const deriveTransactionSummary = ({
                 address,
                 outpoint
               }
-            } else if (closedChannel.finalToUs && Math.floor(closedChannel.finalToUs) === amount) {
+            } else if (
+              (closedChannel.finalToUs && Math.floor(closedChannel.finalToUs) === amount) ||
+              closedChannel.balanceLocal - (fee || 0) === amount
+            ) {
               return { type: 'timelocked', channel: closedChannel, amount, address, outpoint }
             }
           }
@@ -299,11 +302,8 @@ export const deriveTransactionSummary = ({
             : undefined
 
           if (forceClosedChannelId) {
-            console.log({ forceClosedChannelId, inputOutpoint })
             enhancedInputs.forEach((input) => {
-              console.log(input)
               if (input.outpoint === inputOutpoint) {
-                console.log('RELABELING')
                 input.type = 'timelocked'
                 ;(input as ChannelCloseInput).channel = sweptChannel as Channel
               }

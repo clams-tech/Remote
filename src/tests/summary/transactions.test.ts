@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import 'fake-indexeddb/auto'
-import { deriveTransactionSummary } from '$lib/summary.js'
+import { deriveTransactionSummary, type TransactionSummary } from '$lib/summary.js'
 import { db } from '$lib/db.js'
 import type { Wallet } from '$lib/@types/wallets.js'
 import type { Transaction } from '$lib/@types/transactions.js'
@@ -335,7 +335,7 @@ const aliceBobChannel = {
   htlcs: []
 } as Channel
 
-test('Summarise a onchain transaction that opens a channel to a node', async () => {
+test('Summarise a onchain transaction that opens a channel to a node we dont own', async () => {
   await clearDb()
   await db.wallets.bulkAdd([aliceWallet])
   await db.transactions.bulkAdd([aliceOpenChannelTransaction])
@@ -376,4 +376,179 @@ test('Summarise a onchain transaction that opens a channel to a node', async () 
       }
     ]
   })
+})
+
+test('Summarise a onchain transaction that opens a channel to a node we own', async () => {
+  await clearDb()
+  await db.wallets.bulkAdd([aliceWallet, bobWallet])
+  await db.transactions.bulkAdd([aliceOpenChannelTransaction])
+  await db.utxos.bulkAdd([utxoChangeFromOnchainSendTransaction, changeUtxoFromChannelOpen])
+  await db.channels.bulkAdd([aliceBobChannel])
+  const { timestamp } = aliceOpenChannelTransaction
+  const summary = await deriveTransactionSummary(aliceOpenChannelTransaction)
+
+  expect(summary).toStrictEqual({
+    timestamp,
+    fee: aliceOpenChannelTransaction.fee,
+    category: 'expense',
+    type: 'channel_open',
+    primary: { type: 'wallet', value: aliceWallet },
+    secondary: { type: 'wallet', value: bobWallet },
+    channels: [aliceBobChannel],
+    inputs: [
+      {
+        type: 'spend',
+        outpoint: `${aliceOpenChannelTransaction.inputs[0].txid}:${aliceOpenChannelTransaction.inputs[0].index}`,
+        utxo: utxoChangeFromOnchainSendTransaction
+      }
+    ],
+    outputs: [
+      {
+        type: 'change',
+        outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.outputs[0].index}`,
+        utxo: changeUtxoFromChannelOpen,
+        amount: aliceOpenChannelTransaction.outputs[0].amount,
+        address: aliceOpenChannelTransaction.outputs[0].address
+      },
+      {
+        type: 'channel_open',
+        outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.outputs[1].index}`,
+        amount: aliceOpenChannelTransaction.outputs[1].amount,
+        address: aliceOpenChannelTransaction.outputs[1].address,
+        channel: aliceBobChannel
+      }
+    ]
+  })
+})
+
+const forceCloseAliceBobChannelTransaction = {
+  id: 'e6af046acd8e48146bd701bc8e9b4f520e060498956a9fe7f7f340d794d2ccc3',
+  rawtx:
+    '02000000000101380ed20b62a936c918bd5bb3b96a972b244940091549e7ae7451026aae283a870100000000f925a7800109c62d0000000000220020f356abfdce0ce316a632e4eaa4ab629b5ffd4b19832d1504be2b9bedf653415d0400463043021f7aa04ae3c175a07356ff5711224a5b14c281b3c5ec0038459ef1e8fa57132302206835245775b920aacb3b620fbb6f8aec5c25bd9452e3f789135dfd5ebf1e8e6801473044022062c7710a3e20fca5b579864590176aac42678d1d786516b3259324558eaa72d7022029c3ff7080e0656f484b805d7aecdfc42312533520ec0dae47f1100edb3e8d85014752210289385a7595dfb6892290ffae66d450db3b207d90498454459395564ac0148e512102ffee367745223fb0a42dbf413e42121903fe648eaf74bdddf4f340815d28fbe952aeb1bb4e20',
+  blockheight: 115,
+  txindex: 1,
+  locktime: 542030769,
+  version: 2,
+  rbfEnabled: true,
+  inputs: [
+    {
+      txid: '873a28ae6a025174aee74915094049242b976ab9b35bbd18c936a9620bd20e38',
+      index: 1,
+      sequence: 2158437881
+    }
+  ],
+  outputs: [
+    {
+      index: 0,
+      amount: 2999817,
+      address: 'bcrt1q7dt2hlwwpn33df3jun42f2mznd0l6jcesvk32p979wd7majng9wsjgqhkq'
+    }
+  ],
+  walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
+  timestamp: 1695000722,
+  channel: {
+    type: 'force_close',
+    amount: 3000000,
+    id: '380ed20b62a936c918bd5bb3b96a972b244940091549e7ae7451026aae283a86'
+  },
+  fee: 183
+} as Transaction
+
+const aliceBobChannelClosed = {
+  walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
+  opener: 'local',
+  peerId: '021bac0a6a6e0d2fba61dc423b57cc44abc8b216c8ebd1a9ddeb6f32bb7c0ea721',
+  peerConnected: false,
+  fundingTransactionId: '873a28ae6a025174aee74915094049242b976ab9b35bbd18c936a9620bd20e38',
+  fundingOutput: 1,
+  id: '380ed20b62a936c918bd5bb3b96a972b244940091549e7ae7451026aae283a86',
+  shortId: '110x1x1',
+  status: 'force_closed',
+  balanceLocal: 3000000,
+  balanceRemote: 0,
+  reserveRemote: 30000,
+  reserveLocal: 30000,
+  feeBase: 0.001,
+  feePpm: 10,
+  closeToAddress: 'bcrt1qn6ce0vcagfvkt4ygyck6vj6lcts0g45h5ylhvt',
+  closeToScriptPubkey: '00149eb197b31d425965d488262da64b5fc2e0f45697',
+  closer: 'local',
+  htlcMin: 0,
+  htlcMax: 2970000,
+  ourToSelfDelay: 6,
+  theirToSelfDelay: 6,
+  htlcs: []
+} as Channel
+
+const sweepFromForceCloseTransaction = {
+  id: '7cd0d909db47985fe42f77560c27ddb24a04bc944c1a7651e11305631a702571',
+  rawtx:
+    '02000000000101c3ccd294d740f3f7e79f6a959804060e524f9b8ebc01d76b14488ecd6a04afe60000000000060000000190c52d00000000001600149eb197b31d425965d488262da64b5fc2e0f456970347304402206dc1536ea64f0101f0e5ba1d19f73da0cd44aed3d899016dec1d67410082eafd02207b6df4ed454f8ad4a252e981a3f69ead01935c3e66daf3bc9a9a1de5e209222601004b632103c34b165dc7948120d6ec92e3a18566df6f4aca8b495c139975ebaf0b9201dd896756b27521031fcafcbf2c843866333e703b12a40c47afc1420e3e87d6558ef551d2d11071b468ac00000000',
+  blockheight: 121,
+  txindex: 1,
+  locktime: 0,
+  version: 2,
+  rbfEnabled: true,
+  inputs: [
+    {
+      txid: 'e6af046acd8e48146bd701bc8e9b4f520e060498956a9fe7f7f340d794d2ccc3',
+      index: 0,
+      sequence: 6
+    }
+  ],
+  outputs: [{ index: 0, amount: 2999696, address: 'bcrt1qn6ce0vcagfvkt4ygyck6vj6lcts0g45h5ylhvt' }],
+  walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
+  timestamp: 1695002003,
+  fee: 121
+} as Transaction
+
+const aliceUtxoFromSweep = {
+  id: '7cd0d909db47985fe42f77560c27ddb24a04bc944c1a7651e11305631a702571:0',
+  txid: '7cd0d909db47985fe42f77560c27ddb24a04bc944c1a7651e11305631a702571',
+  output: 0,
+  amount: 2999696,
+  scriptpubkey: '00149eb197b31d425965d488262da64b5fc2e0f45697',
+  address: 'bcrt1qn6ce0vcagfvkt4ygyck6vj6lcts0g45h5ylhvt',
+  status: 'confirmed',
+  blockHeight: 121,
+  walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
+  timestamp: 1695002003
+} as Utxo
+
+test('Summarise a onchain transaction that force closes a channel to a node we own', async () => {
+  await clearDb()
+  await db.wallets.bulkAdd([aliceWallet, bobWallet])
+  await db.transactions.bulkAdd([aliceOpenChannelTransaction, forceCloseAliceBobChannelTransaction])
+  await db.utxos.bulkAdd([utxoChangeFromOnchainSendTransaction, changeUtxoFromChannelOpen])
+  await db.channels.bulkAdd([aliceBobChannelClosed])
+  const { timestamp, fee } = forceCloseAliceBobChannelTransaction
+  const summary = await deriveTransactionSummary(forceCloseAliceBobChannelTransaction)
+
+  const expectedSummary: TransactionSummary = {
+    timestamp,
+    fee: fee || 0,
+    category: 'expense',
+    type: 'channel_force_close',
+    primary: { type: 'wallet', value: aliceWallet },
+    secondary: { type: 'wallet', value: bobWallet },
+    channels: [aliceBobChannelClosed],
+    inputs: [
+      {
+        type: 'channel_close',
+        outpoint: `${forceCloseAliceBobChannelTransaction.inputs[0].txid}:${forceCloseAliceBobChannelTransaction.inputs[0].index}`,
+        channel: aliceBobChannelClosed
+      }
+    ],
+    outputs: [
+      {
+        type: 'timelocked',
+        outpoint: `${forceCloseAliceBobChannelTransaction.id}:${forceCloseAliceBobChannelTransaction.outputs[0].index}`,
+        amount: forceCloseAliceBobChannelTransaction.outputs[0].amount,
+        address: forceCloseAliceBobChannelTransaction.outputs[0].address,
+        channel: aliceBobChannelClosed
+      }
+    ]
+  }
+
+  expect(summary).toStrictEqual(expectedSummary)
 })
