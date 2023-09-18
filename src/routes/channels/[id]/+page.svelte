@@ -1,6 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import { connections$, onDestroy$ } from '$lib/streams'
+  import { connections$, onDestroy$, wallets$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
   import CopyValue from '$lib/components/CopyValue.svelte'
@@ -44,6 +44,10 @@
         return channel
       })
     )
+  )
+
+  $: peerWallet = $wallets$?.find(
+    (wallet) => $channel$?.peerId && $channel$.peerId === wallet.nodeId
   )
 
   $: console.log(JSON.stringify($channel$))
@@ -194,7 +198,9 @@
               {$translate('app.labels.channel_with')}
             </div>
             <div class="text-purple-200">
-              {peerAlias || $translate('app.labels.unknown')}
+              {peerWallet?.label ||
+                peerAlias ||
+                truncateValue(peerId || $translate('app.labels.unknown'), 6)}
             </div>
           </div>
         </div>
