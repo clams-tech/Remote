@@ -159,11 +159,13 @@ export const syncConnectionData = (
               channels.map(async (channel) => {
                 // need to update channels as old channels lose data after 100 blocks of being close
                 // so we don't want to overwrite data we already have as it is useful
-                await db.channels.update(channel.id, channel).then(async (updated) => {
-                  if (!updated) {
-                    await db.channels.add(channel)
-                  }
-                })
+                await db.channels
+                  .update(`[${channel.id}+${channel.walletId}]`, channel)
+                  .then(async (updated) => {
+                    if (!updated) {
+                      await db.channels.add(channel)
+                    }
+                  })
               })
             )
           })

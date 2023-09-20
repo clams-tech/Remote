@@ -356,7 +356,7 @@
             </SummaryRow>
           {/if}
 
-          {#if status !== 'closed'}
+          {#if status !== 'closed' && status !== 'force_closed'}
             <SummaryRow>
               <div slot="label">
                 {$translate('app.labels.outbound')}:
@@ -461,7 +461,7 @@
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}
-              text={$translate('app.labels.update_settings')}
+              text={$translate('app.labels.update')}
             >
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
             </Button>

@@ -114,7 +114,7 @@ export type TimelockedForcCloseOutput = OutputCommon & {
 export type SettledChannelOutput = OutputCommon & {
   type: 'settle'
   channel: Channel
-  utxo: Utxo
+  utxo?: Utxo
 }
 
 export type ChannelOpenOutput = OutputCommon & {
@@ -196,9 +196,9 @@ export const deriveTransactionSummary = ({
     db.withdrawals,
     db.deposits,
     db.metadata,
+    db.contacts,
     // eslint-disable-next-line
     // @ts-ignore
-    db.contacts,
     db.utxos,
     db.transactions,
     async () => {
@@ -284,6 +284,8 @@ export const deriveTransactionSummary = ({
               closedChannel.balanceLocal - (fee || 0) === amount
             ) {
               return { type: 'timelocked', channel: closedChannel, amount, address, outpoint }
+            } else {
+              return { type: 'settle', channel: closedChannel, address, outpoint, amount }
             }
           }
 

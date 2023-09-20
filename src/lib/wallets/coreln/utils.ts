@@ -189,25 +189,35 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
   }
 }
 
-export function stateToChannelStatus(state: State): ChannelStatus {
-  switch (state) {
-    case State.Openingd:
-    case State.ChanneldAwaitingLockin:
-    case State.FundingSpendSeen:
-    case State.DualopendOpenInit:
-    case State.DualopendAwaitingLockin:
-      return 'opening'
-    case State.ChanneldNormal:
-      return 'active'
-    case State.ChanneldShuttingDown:
-    case State.ClosingdSigexchange:
-    case State.AwaitingUnilateral:
-      return 'closing'
-    case State.Onchain:
-      return 'force_closed'
-    case State.ClosingdComplete:
-      return 'closed'
-  }
+export function stateToChannelStatus(
+  stateChanges:
+    | {
+        timestamp: string
+        old_state: State
+        new_state: State
+        cause: Cause
+        message: string
+      }[]
+    | State
+): ChannelStatus {
+  // switch (state) {
+  //   case State.Openingd:
+  //   case State.ChanneldAwaitingLockin:
+  //   case State.FundingSpendSeen:
+  //   case State.DualopendOpenInit:
+  //   case State.DualopendAwaitingLockin:
+  //     return 'opening'
+  //   case State.ChanneldNormal:
+  //     return 'active'
+  //   case State.ChanneldShuttingDown:
+  //   case State.ClosingdSigexchange:
+  //   case State.AwaitingUnilateral:
+  //     return 'closing'
+  //   case State.Onchain:
+  //     return 'force_closed'
+  //   case State.ClosingdComplete:
+  //     return 'closed'
+  // }
 }
 
 export function convertVersionNumber(version: string): number {

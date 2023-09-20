@@ -210,8 +210,6 @@ class Channels implements ChannelsInterface {
               state_changes
             } = channel
 
-            console.log({ state_changes })
-
             const {
               nodes: [peer]
             } = (await this.connection.rpc({
@@ -229,7 +227,7 @@ class Channels implements ChannelsInterface {
               fundingOutput: funding_outnum,
               id: channel_id,
               shortId: short_channel_id,
-              status: stateToChannelStatus(state),
+              status: stateToChannelStatus(state_changes || state),
               balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
               balanceRemote: msatsToSats(
                 Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
