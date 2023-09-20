@@ -25,11 +25,11 @@
           wallet,
           channelInAlias:
             wallet?.nodeId === channelIn?.peerId
-              ? (await db.wallets.get(channelIn?.walletId))?.label
+              ? (await db.wallets.get(channelIn!.walletId))?.label
               : channelIn?.peerAlias || (channelIn?.peerId && truncateValue(channelIn?.peerId)),
           channelOutAlias:
             wallet?.nodeId === channelOut?.peerId
-              ? (await db.wallets.get(channelOut?.walletId))?.label
+              ? (await db.wallets.get(channelOut!.walletId))?.label
               : channelOut?.peerAlias || (channelOut?.peerId && truncateValue(channelOut?.peerId))
         }
       })

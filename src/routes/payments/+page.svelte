@@ -27,7 +27,6 @@
     deriveAddressSummary,
     deriveInvoiceSummary,
     deriveTransactionSummary,
-    enhanceInputsOutputs,
     type PaymentSummary
   } from '$lib/summary.js'
 
@@ -82,12 +81,13 @@
 
               // dedupes txs and prefers the tx where the wallet is the sender (spender of an input utxo)
               if (current) {
-                const utxo = await db.utxos
+                const spentInputUtxo = await db.utxos
                   .where('id')
                   .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
                   .first()
 
-                if (utxo?.walletId !== tx.walletId) {
+                // favour spender
+                if (spentInputUtxo?.walletId === tx.walletId) {
                   deduped.set(tx.id, tx)
                 }
               } else {
@@ -159,7 +159,7 @@
   ]
 
   payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
-    const walletIdSet = new Set()
+    const walletIdSet = new Set<string>()
     const tagSet = new Set()
 
     for (const { walletId, id } of payments) {
@@ -340,15 +340,7 @@
     if (cached) return cached
 
     if (payment.type === 'transaction') {
-      const { inputs, outputs } = await enhanceInputsOutputs(payment.data as Transaction)
-      const summary = await deriveTransactionSummary({
-        inputs,
-        outputs,
-        fee: payment.fee,
-        timestamp: payment.timestamp,
-        channel: (payment.data as Transaction).channel
-      })
-
+      const summary = await deriveTransactionSummary(payment.data as Transaction)
       summaryCache[payment.id] = summary
       return summary
     } else if (payment.type === 'invoice') {

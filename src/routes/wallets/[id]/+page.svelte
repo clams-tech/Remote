@@ -304,7 +304,7 @@
               </div>
 
               <div class="w-full flex flex-col items-start mt-1.5 ml-2">
-                {#if $walletBalance$}
+                {#if typeof $walletBalance$ === 'number'}
                   <div>
                     <BitcoinAmount sats={$walletBalance$} />
                     <div class="text-xs font-semibold -mt-1">

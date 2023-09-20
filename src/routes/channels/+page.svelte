@@ -18,7 +18,26 @@
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
 
-  const channels$ = from(liveQuery(() => db.channels.toArray()))
+  const channels$ = from(
+    liveQuery(() =>
+      db.channels.toArray().then((channels) =>
+        Array.from(
+          channels
+            .reduce((acc, channel) => {
+              const channelWithSameId = acc.get(channel.id)
+
+              // if duplicates (we are both parties to channel), keep the local opener copy
+              if (!channelWithSameId || channelWithSameId.opener !== 'local') {
+                acc.set(channel.id, channel)
+              }
+
+              return acc
+            }, new Map<string, Channel>())
+            .values()
+        )
+      )
+    )
+  )
 
   $: totals =
     $channels$ &&
@@ -29,7 +48,7 @@
           acc.receivable = acc.receivable + balanceRemote - reserveRemote
         }
 
-        if (status !== 'closed') {
+        if (status !== 'closed' && status !== 'force_closed') {
           acc.channels += 1
         }
 
@@ -57,9 +76,9 @@
   let rowSize = 84
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = $channels$ ? $channels$.length * rowSize : 0
+  $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
-  $: channelsContainerScrollable = $channels$ ? $channels$.length * rowSize > listHeight : false
+  $: channelsContainerScrollable = processed ? processed.length * rowSize > listHeight : false
 
   type Key = keyof Channel
 
@@ -87,7 +106,7 @@
       takeUntil(onDestroy$)
     )
     .subscribe(async (offers) => {
-      const walletIdSet = new Set()
+      const walletIdSet = new Set<string>()
       const tagSet = new Set()
 
       for (const { walletId, id } of offers) {
@@ -145,6 +164,11 @@
               label: $translate('app.labels.closed'),
               checked: false,
               predicate: ({ status }) => status === 'closed'
+            },
+            {
+              label: $translate('app.labels.force_closed'),
+              checked: false,
+              predicate: ({ status }) => status === 'force_closed'
             }
           ]
         },
@@ -182,21 +206,21 @@
       <div class="w-full flex flex-col h-full overflow-hidden">
         <div class="w-full mb-2">
           <SummaryRow>
-            <div slot="label">{$translate('app.labels.total')}:</div>
+            <div slot="label">{$translate('app.labels.active')}:</div>
             <div slot="value">{totals.channels} channels</div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.sendable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totals.sendable} />
+              <BitcoinAmount sats={totals.sendable < 0 ? 0 : totals.sendable} />
             </div>
           </SummaryRow>
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.receivable')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totals.receivable} />
+              <BitcoinAmount sats={totals.receivable < 0 ? 0 : totals.receivable} />
             </div>
           </SummaryRow>
         </div>

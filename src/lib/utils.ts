@@ -150,14 +150,20 @@ export const getWalletBalance = (walletId: string): Observable<number | null> =>
   const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
     map((channels) =>
       channels.reduce((total, channel) => {
-        const { balanceLocal } = channel
-        total += balanceLocal
+        const { balanceLocal, status } = channel
+
+        if (status === 'active' || status === 'opening') {
+          total += balanceLocal
+        }
+
         return total
       }, 0)
     )
   )
 
-  const utxosBalance = from(liveQuery(() => db.utxos.where({ walletId }).toArray())).pipe(
+  const utxosBalance = from(
+    liveQuery(() => db.utxos.where('walletId').equals(walletId).toArray())
+  ).pipe(
     map((utxos) =>
       utxos.reduce((total, utxo) => {
         const { status, amount } = utxo

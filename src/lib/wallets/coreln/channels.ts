@@ -65,7 +65,7 @@ class Channels implements ChannelsInterface {
               return {
                 id: channel_id,
                 walletId: this.connection.walletId,
-                opener: opener === 'local' ? this.connection.info.id : peer_id,
+                opener,
                 fundingTransactionId: funding_txid,
                 fundingOutput: funding_outnum,
                 peerId: peer_id,
@@ -127,12 +127,13 @@ class Channels implements ChannelsInterface {
                   minimum_htlc_out_msat,
                   maximum_htlc_out_msat,
                   our_to_self_delay,
-                  their_to_self_delay
+                  their_to_self_delay,
+                  state_changes
                 } = channel
 
                 return {
                   walletId: this.connection.walletId,
-                  opener: opener === 'local' ? this.connection.info.id : id,
+                  opener,
                   peerId: id,
                   peerConnected: connected,
                   peerAlias: peer?.alias,
@@ -140,7 +141,7 @@ class Channels implements ChannelsInterface {
                   fundingOutput: funding_outnum,
                   id: channel_id,
                   shortId: short_channel_id,
-                  status: stateToChannelStatus(state),
+                  status: stateToChannelStatus(state_changes?.length ? state_changes : state),
                   balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
                   balanceRemote: msatsToSats(
                     Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
@@ -183,7 +184,7 @@ class Channels implements ChannelsInterface {
         const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
 
         const formattedChannels = await Promise.all(
-          channels.map(async (channel) => {
+          channels.map(async (chan) => {
             const {
               peer_id,
               peer_connected,
@@ -206,8 +207,9 @@ class Channels implements ChannelsInterface {
               minimum_htlc_out_msat,
               maximum_htlc_out_msat,
               our_to_self_delay,
-              their_to_self_delay
-            } = channel
+              their_to_self_delay,
+              state_changes
+            } = chan
 
             const {
               nodes: [peer]
@@ -218,7 +220,7 @@ class Channels implements ChannelsInterface {
 
             return {
               walletId: this.connection.walletId,
-              opener: opener === 'local' ? this.connection.info.id : peer_id,
+              opener,
               peerId: peer_id,
               peerConnected: peer_connected,
               peerAlias: peer?.alias,
@@ -226,7 +228,7 @@ class Channels implements ChannelsInterface {
               fundingOutput: funding_outnum,
               id: channel_id,
               shortId: short_channel_id,
-              status: stateToChannelStatus(state),
+              status: stateToChannelStatus(state_changes?.length ? state_changes : state),
               balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
               balanceRemote: msatsToSats(
                 Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()

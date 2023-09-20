@@ -17,23 +17,34 @@
 
 <div>
   <div>
-    <span class="font-semibold text-purple-100">
-      {primary
-        ? truncateValue(primary, 6).toUpperCase()
-        : $translate('app.labels.unknown').toUpperCase()}
+    <span class="font-semibold text-purple-100 uppercase">
+      {#if primary.type === 'wallet'}
+        {primary.value.label}
+      {:else if primary.type === 'contact'}
+        {primary.value.name}
+      {:else if primary.type === 'channel_peer'}
+        {primary.value ? truncateValue(primary.value) : $translate('app.labels.unknown')}
+      {:else}
+        {$translate('app.labels.unknown')}
+      {/if}
     </span>
+
     <span class="italic">
       {$translate(`app.labels.summary_${type}_${status}`)}
     </span>
 
-    <span class="font-semibold text-purple-100">
-      {secondary
-        ? truncateValue(
-            secondary,
-            6,
-            type === 'channel_mutiple_open' ? 'end' : 'center'
-          ).toUpperCase()
-        : $translate('app.labels.unknown').toUpperCase()}
+    <span class="font-semibold text-purple-100 uppercase">
+      {#if secondary.type === 'wallet'}
+        {secondary.value.label}
+      {:else if secondary.type === 'contact'}
+        {secondary.value.name}
+      {:else if secondary.type === 'channel_peer'}
+        {secondary.value
+          ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
+          : $translate('app.labels.unknown')}
+      {:else}
+        {$translate('app.labels.unknown')}
+      {/if}
     </span>
   </div>
 

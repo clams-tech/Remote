@@ -61,7 +61,6 @@
     const connections = await Promise.all(
       $wallets$.map(async (wallet) => {
         let connection: Connection | null
-
         await db.wallets.update(wallet.id, { syncing: false })
 
         try {
@@ -70,10 +69,10 @@
           connection = null
           errors$.next(error as AppError)
         }
+
         return { detail: wallet, connection }
       })
     )
-
     connections.forEach(({ detail, connection }) => {
       if (connection) {
         syncConnectionData(connection, detail.lastSync)

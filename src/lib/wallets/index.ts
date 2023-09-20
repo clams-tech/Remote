@@ -7,12 +7,12 @@ import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { Connection } from './interfaces.js'
-import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
 import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
+import { decryptWithAES } from '$lib/crypto.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -121,7 +121,7 @@ export const syncConnectionData = (
   db.wallets.update(connection.walletId, { syncing: true })
 
   // queue of requests to make
-  const requestQueue = []
+  const requestQueue: Array<() => Promise<void>> = []
 
   // progress percent
   const progress$ = new Subject<number>()
@@ -130,7 +130,9 @@ export const syncConnectionData = (
     connection.invoices
       ? connection.invoices
           .get()
-          .then((invoices) => db.invoices.bulkPut(invoices))
+          .then(async (invoices) => {
+            await db.invoices.bulkPut(invoices)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -140,7 +142,9 @@ export const syncConnectionData = (
     connection.utxos
       ? connection.utxos
           .get()
-          .then((utxos) => db.utxos.bulkPut(utxos))
+          .then(async (utxos) => {
+            await db.utxos.bulkPut(utxos)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -150,15 +154,21 @@ export const syncConnectionData = (
     connection.channels
       ? connection.channels
           .get()
-          .then((channels) =>
-            channels.map((channel) =>
-              // need to update channels as old channels lose data after 100 blocks of being close
-              // so we don't want to overwrite data we already have as it is useful
-              db.channels
-                .update(channel.id, channel)
-                .then((updated) => !updated && db.channels.add(channel))
+          .then(async (channels) => {
+            await Promise.all(
+              channels.map(async (channel) => {
+                // need to update channels as old channels lose data after 100 blocks of being close
+                // so we don't want to overwrite data we already have as it is useful
+                await db.channels
+                  .update(`[${channel.id}+${channel.walletId}]`, channel)
+                  .then(async (updated) => {
+                    if (!updated) {
+                      await db.channels.add(channel)
+                    }
+                  })
+              })
             )
-          )
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -168,7 +178,29 @@ export const syncConnectionData = (
     connection.transactions
       ? connection.transactions
           .get()
-          .then((transactions) => db.transactions.bulkPut(transactions))
+          .then(async (transactions) => {
+            const addressesWithoutTxid = await db.addresses
+              .where({ walletId: connection.walletId })
+              .filter(({ txid }) => !txid)
+              .toArray()
+
+            // update all addresses that have a corresponding tx
+            await Promise.all(
+              addressesWithoutTxid.map((address) => {
+                const tx = transactions.find(({ outputs }) =>
+                  outputs.find((output) => output.address === address.value)
+                )
+
+                if (tx) {
+                  return db.addresses.update(address.id, { txid: tx.id, completedAt: tx.timestamp })
+                }
+
+                return Promise.resolve()
+              })
+            )
+
+            await db.transactions.bulkPut(transactions)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -178,7 +210,9 @@ export const syncConnectionData = (
     connection.forwards
       ? connection.forwards
           .get()
-          .then((forwards) => db.forwards.bulkPut(forwards))
+          .then(async (forwards) => {
+            await db.forwards.bulkPut(forwards)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -188,7 +222,9 @@ export const syncConnectionData = (
     connection.offers
       ? connection.offers
           .get()
-          .then((offers) => db.offers.bulkPut(offers))
+          .then(async (offers) => {
+            await db.offers.bulkPut(offers)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -198,7 +234,9 @@ export const syncConnectionData = (
     connection.trades
       ? connection.trades
           .get()
-          .then((trades) => db.trades.bulkPut(trades))
+          .then(async (trades) => {
+            await db.trades.bulkPut(trades)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -208,7 +246,9 @@ export const syncConnectionData = (
     connection.withdrawals
       ? connection.withdrawals
           .get()
-          .then((withdrawals) => db.withdrawals.bulkPut(withdrawals))
+          .then(async (withdrawals) => {
+            await db.withdrawals.bulkPut(withdrawals)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -218,7 +258,9 @@ export const syncConnectionData = (
     connection.deposits
       ? connection.deposits
           .get()
-          .then((deposits) => db.deposits.bulkPut(deposits))
+          .then(async (deposits) => {
+            await db.deposits.bulkPut(deposits)
+          })
           .catch((error) => log.error(error.detail.message))
       : Promise.resolve()
 
@@ -270,7 +312,7 @@ export const syncConnectionData = (
   return progress$.asObservable()
 }
 
-type Request = () => Promise<void | void[]>
+type Request = () => Promise<void>
 
 const processQueue = async (queue: Request[], progress$: Subject<number>) => {
   // wait before making next request

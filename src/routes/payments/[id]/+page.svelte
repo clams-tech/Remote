@@ -3,7 +3,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
-  import { formatDate } from '$lib/dates.js'
+  import { formatDate, formatDateRelativeToNow } from '$lib/dates.js'
   import { db } from '$lib/db.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
@@ -24,20 +24,25 @@
   import caret from '$lib/icons/caret.js'
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
-  import type { Deposit } from '$lib/@types/deposits.js'
   import Summary from '../Summary.svelte'
-  import Dexie from 'dexie'
+  import SectionHeading from '$lib/components/SectionHeading.svelte'
+  import { from, type Observable } from 'rxjs'
+  import channelIcon from '$lib/icons/channels.js'
+  import type { Channel } from '$lib/@types/channels.js'
+  import { MIN_IN_SECS } from '$lib/constants.js'
+  import keys from '$lib/icons/keys.js'
+  import walletIcon from '$lib/icons/wallet.js'
 
   import {
     deriveInvoiceSummary,
     deriveTransactionSummary,
-    enhanceInputsOutputs,
     type EnhancedInput,
     type PaymentSummary,
     type EnhancedOutput,
-    type TransactionSummary
+    deriveAddressSummary,
+    type RegularTransactionSummary,
+    type ChannelTransactionSummary
   } from '$lib/summary.js'
-  import SectionHeading from '$lib/components/SectionHeading.svelte'
 
   export let data: PageData
 
@@ -65,190 +70,214 @@
     category: PaymentSummary['category']
     summaryType: PaymentSummary['type']
     offer?: Invoice['offer']
-    channel?: Transaction['channel']
+    channels?: Channel[]
     inputs?: EnhancedInput[]
     outputs?: EnhancedOutput[]
     primary: PaymentSummary['primary']
     secondary: PaymentSummary['secondary']
     timestamp: PaymentSummary['timestamp']
     network: Network
+    blockHeight?: number | null
   }
 
-  const transactionDetails$ = liveQuery(async () => {
-    const [invoice, address, transaction] = await Promise.all([
-      db.invoices.get(id),
-      db.addresses.get(id),
-      db.transactions.where({ id }).first()
-    ])
+  const transactionDetails$: Observable<TransactionDetail[]> = from(
+    liveQuery(async () => {
+      return db.transaction(
+        'r',
+        db.invoices,
+        db.addresses,
+        db.transactions,
+        db.wallets,
+        db.channels,
+        db.withdrawals,
+        // @ts-ignore
+        db.deposits,
+        db.metadata,
+        db.contacts,
+        db.utxos,
+        db.offers,
+        async (): Promise<TransactionDetail[]> => {
+          const [invoice, address, transactions] = await Promise.all([
+            db.invoices.get(id),
+            db.addresses.get(id),
+            db.transactions.where({ id }).toArray()
+          ])
 
-    const details: TransactionDetail[] = []
+          const details: TransactionDetail[] = []
 
-    if (invoice) {
-      const {
-        request,
-        status,
-        amount,
-        description,
-        createdAt,
-        completedAt,
-        walletId,
-        offer,
-        direction,
-        expiresAt,
-        fee,
-        hash,
-        preimage,
-        nodeId
-      } = invoice
+          if (invoice) {
+            const {
+              request,
+              status,
+              amount,
+              description,
+              createdAt,
+              completedAt,
+              walletId,
+              offer,
+              direction,
+              expiresAt,
+              fee,
+              hash,
+              preimage,
+              nodeId
+            } = invoice
 
-      const wallet = (await db.wallets.get(walletId)) as Wallet
+            const wallet = (await db.wallets.get(walletId)) as Wallet
+            const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
 
-      const withdrawalOfferId = offer
-        ? await Dexie.waitFor(tryFindWithdrawalOfferId(offer))
-        : undefined
+            const formattedOffer =
+              offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
 
-      const formattedOffer =
-        offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
+            const { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary({
+              ...invoice,
+              offer: formattedOffer
+            })) as PaymentSummary
 
-      const { category, type, primary, secondary, timestamp } = (await Dexie.waitFor(
-        deriveInvoiceSummary({ ...invoice, offer: formattedOffer })
-      )) as PaymentSummary
+            details.push({
+              type: 'invoice',
+              qrValues:
+                status === 'pending' && request
+                  ? [
+                      {
+                        label: $translate('app.labels.invoice'),
+                        value: `lightning:${request.toUpperCase()}`
+                      }
+                    ]
+                  : undefined,
+              status,
+              amount,
+              description,
+              createdAt,
+              completedAt,
+              expiresAt,
+              wallet,
+              offer: formattedOffer,
+              fee,
+              request,
+              paymentHash: hash,
+              paymentPreimage: preimage,
+              peerNodeId: direction === 'send' ? nodeId : undefined,
+              category,
+              summaryType: type,
+              primary,
+              secondary,
+              timestamp,
+              network: getNetwork(request || '')
+            })
+          }
 
-      details.push({
-        type: 'invoice',
-        qrValues:
-          status === 'pending' && request
-            ? [
-                {
-                  label: $translate('app.labels.invoice'),
-                  value: `lightning:${request.toUpperCase()}`
-                }
-              ]
-            : undefined,
-        status,
-        amount,
-        description,
-        createdAt,
-        completedAt,
-        expiresAt,
-        wallet,
-        offer: formattedOffer,
-        fee,
-        request,
-        paymentHash: hash,
-        paymentPreimage: preimage,
-        peerNodeId: direction === 'send' ? nodeId : undefined,
-        category,
-        summaryType: type,
-        primary,
-        secondary,
-        timestamp,
-        network: getNetwork(request || '')
-      })
-    }
+          if (address) {
+            const { value, walletId, createdAt, amount, txid, message, completedAt, label } =
+              address
+            const wallet = (await db.wallets.get(walletId)) as Wallet
+            const searchParams = new URLSearchParams()
 
-    if (address) {
-      const { value, walletId, createdAt, amount, txid, message, completedAt, label } = address
-      const wallet = (await db.wallets.get(walletId)) as Wallet
-      const searchParams = new URLSearchParams()
+            if (amount && amount !== 0) {
+              searchParams.append('amount', satsToBtcString(amount))
+            }
 
-      if (amount && amount !== 0) {
-        searchParams.append('amount', satsToBtcString(amount))
-      }
+            if (label) {
+              searchParams.append('label', label)
+            }
 
-      if (label) {
-        searchParams.append('label', label)
-      }
+            if (message) {
+              searchParams.append('message', message)
+            }
 
-      if (message) {
-        searchParams.append('message', message)
-      }
+            let tx: Transaction | null = null
 
-      let tx: Transaction | null = null
+            if (txid) {
+              tx = (await db.transactions.where({ id: txid, walletId }).first()) as Transaction
+            }
 
-      if (txid) {
-        tx = (await db.transactions.where({ id: txid }).first()) as Transaction
-      }
+            const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
+            const qrValues: QRValue[] = []
 
-      const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
-      const qrValues: QRValue[] = []
+            if (status === 'waiting') {
+              qrValues.push({
+                label: $translate('app.labels.address'),
+                value: `bitcoin:${value.toUpperCase()}${
+                  Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
+                }`
+              })
+            }
 
-      if (status === 'waiting') {
-        qrValues.push({
-          label: $translate('app.labels.address'),
-          value: `bitcoin:${value.toUpperCase()}${
-            Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
-          }`
-        })
-      }
+            if (invoice && invoice.request && invoice.status === 'pending') {
+              searchParams.append('lightning', invoice.request.toUpperCase())
 
-      if (invoice && invoice.request && invoice.status === 'pending') {
-        searchParams.append('lightning', invoice.request.toUpperCase())
+              qrValues.push({
+                label: $translate('app.labels.unified'),
+                value: `bitcoin:${value.toUpperCase()}${
+                  Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
+                }`
+              })
+            }
 
-        qrValues.push({
-          label: $translate('app.labels.unified'),
-          value: `bitcoin:${value.toUpperCase()}${
-            Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
-          }`
-        })
-      }
+            const summary = await deriveAddressSummary(address)
 
-      details.push({
-        type: 'address',
-        qrValues,
-        status,
-        amount,
-        description: message,
-        createdAt,
-        completedAt,
-        wallet,
-        channel: tx?.channel,
-        txid,
-        category: 'income',
-        summaryType: 'receive',
-        primary: wallet.label,
-        secondary: undefined,
-        timestamp: createdAt,
-        network: getNetwork(value)
-      })
-    }
+            details.push({
+              type: 'address',
+              qrValues,
+              status,
+              amount,
+              description: message,
+              createdAt,
+              completedAt,
+              wallet,
+              txid,
+              category: 'income',
+              summaryType: 'receive',
+              primary: summary.primary,
+              secondary: summary.secondary,
+              timestamp: createdAt,
+              network: getNetwork(value)
+            })
+          }
 
-    if (transaction) {
-      const { id, walletId, fee, blockheight, channel, timestamp } = transaction
+          if (transactions.length) {
+            const spentInputUtxo = await db.utxos
+              .where('id')
+              .anyOf(transactions[0].inputs.map(({ txid, index }) => `${txid}:${index}`))
+              .first()
 
-      const { inputs, outputs } = await Dexie.waitFor(enhanceInputsOutputs(transaction))
-      const summary = await Dexie.waitFor(
-        deriveTransactionSummary({ inputs, outputs, timestamp, fee, channel })
-      )
 
-      const wallet = (
-        summary.type === 'transfer'
-          ? await db.wallets.where({ label: summary.primary }).first()
-          : await db.wallets.get(walletId)
-      ) as Wallet
+            const transaction =
+              transactions.find(({ walletId }) => walletId === spentInputUtxo?.walletId) ||
+              transactions[0]
 
-      details.push({
-        type: 'onchain',
-        status: blockheight ? 'complete' : 'pending',
-        amount: (summary as TransactionSummary).amount,
-        fee,
-        channel,
-        wallet,
-        completedAt: typeof blockheight === 'number' ? timestamp : undefined,
-        txid: id,
-        inputs,
-        outputs,
-        category: summary.category,
-        summaryType: summary.type,
-        primary: summary.primary,
-        secondary: summary.secondary,
-        timestamp: summary.timestamp,
-        network: getNetwork(transaction.outputs[0].address)
-      })
-    }
+            const { id, walletId, fee, blockheight, timestamp } = transaction
+            const wallet = (await db.wallets.get(walletId)) as Wallet
+            const summary = await deriveTransactionSummary(transaction)
 
-    return details
-  })
+            const { amount, inputs, outputs } = summary as RegularTransactionSummary
+
+            details.push({
+              type: 'onchain',
+              status: blockheight ? 'complete' : 'pending',
+              amount,
+              fee,
+              channels: (summary as ChannelTransactionSummary).channels,
+              wallet,
+              completedAt: typeof blockheight === 'number' ? timestamp : undefined,
+              txid: id,
+              inputs,
+              outputs,
+              category: summary.category,
+              summaryType: summary.type,
+              primary: summary.primary,
+              secondary: summary.secondary,
+              timestamp: summary.timestamp,
+              network: getNetwork(transaction.outputs[0].address),
+              blockHeight: blockheight
+            })
+          }
+
+          return details
+        }
+      ) as Promise<TransactionDetail[]>
+    })
+  )
 
   let transactionDetailToShow: TransactionDetail | undefined
 
@@ -288,19 +317,29 @@
     return withdrawalOffer?.id
   }
 
-  const getRoute = async (inputOutput: EnhancedOutput | EnhancedInput) => {
-    switch (inputOutput.category) {
+  const getRoute = (inputOutput: EnhancedOutput | EnhancedInput) => {
+    switch (inputOutput.type) {
+      case 'timelocked':
+      case 'channel_close':
       case 'channel_open': {
-        return `/channels/${inputOutput.id}`
+        return `/channels/${inputOutput.channel.id}`
       }
       case 'deposit': {
-        const deposit = (await db.deposits.get(inputOutput.id)) as Deposit
-        return `/wallets/${deposit.walletId}`
+        return `/deposits/${inputOutput.deposit.id}`
       }
+      case 'sweep':
+      case 'change':
+      case 'spend':
       case 'transfer':
       case 'receive': {
-        return `/wallets/${inputOutput.id}`
+        return `/utxos/${inputOutput.utxo.id}`
       }
+      case 'settle':
+        return inputOutput.utxo ? `/utxos/${inputOutput.utxo.id}` : `/channels/${inputOutput.channel.id}`
+      case 'withdrawal':
+        return `/wallets/${inputOutput.withdrawal.walletId}`
+        case 'deposit':
+        return `/wallets/${inputOutput.deposit.walletId}`
     }
   }
 </script>
@@ -334,14 +373,15 @@
       peerNodeId,
       wallet,
       offer,
-      channel,
+      channels,
       inputs,
       outputs,
       category,
       primary,
       secondary,
       summaryType,
-      network
+      network,
+      blockHeight
     } = transactionDetailToShow}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
@@ -359,19 +399,19 @@
 
     <div class="w-full flex justify-center mt-2">
       <div class="w-full">
-        <!-- amount -->
-        <SummaryRow>
-          <span slot="label">{$translate('app.labels.amount')}:</span>
-          <div slot="value">
-            {#if amount === 0}
-              <div>{$translate('app.labels.any_amount')}</div>
-            {:else}
-              <BitcoinAmount sats={amount} />
-            {/if}
-          </div>
-        </SummaryRow>
+        {#if typeof amount === 'number'}
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.amount')}:</span>
+            <div slot="value">
+              {#if amount === 0}
+                <div>{$translate('app.labels.any_amount')}</div>
+              {:else}
+                <BitcoinAmount sats={amount} />
+              {/if}
+            </div>
+          </SummaryRow>
+        {/if}
 
-        <!-- wallet -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
           <a href={`/wallets/${wallet.id}`} slot="value" class="no-underline flex items-center"
@@ -380,7 +420,6 @@
           >
         </SummaryRow>
 
-        <!-- STATUS -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.status')}:</span>
           <span
@@ -411,7 +450,6 @@
           </span>
         </SummaryRow>
 
-        <!-- TXID -->
         {#if txid}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.txid')}:</span>
@@ -430,7 +468,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- DESCRIPTION -->
         {#if description && !offer?.description}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.description')}:</span>
@@ -438,126 +475,156 @@
           </SummaryRow>
         {/if}
 
-        <!-- INPUTS -->
         {#if inputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.inputs')}:</span>
             <div class="gap-y-1 flex flex-col text-sm" slot="value">
               {#each inputs as input}
-                {@const { id, category, utxo } = input}
-                {@const routeProm = getRoute(input)}
+                {@const { type, outpoint } = input}
+                {@const route = getRoute(input)}
+
                 <div
                   class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
                   <button
-                    on:click={async () => {
-                      const route = await routeProm
+                    on:click={() => {
                       route && goto(route)
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1">
-                        {$translate(`app.labels.input_${category}`).toLowerCase()}:
+                      <div class="mr-1 flex items-center">
+                        {#if type !== 'unknown'}
+                        <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_close' || type === 'timelocked' ? channelIcon : type === 'spend' ? keys : type === 'withdrawal' ? walletIcon : ''}</div>
+                        {/if}
+                        {$translate(`app.labels.input_${type}`).toLowerCase()}:
                       </div>
-                      <div class="font-semibold text-purple-100">
-                        {#if utxo}
+                      <div class="font-semibold text-purple-100 uppercase flex items-center">
+                        {#if type === 'timelocked' || type === 'channel_close'}
+                          {@const { channel } = input}
+                          {#if channel.peerId}
+                            {#await db.wallets
+                              .where({ nodeId: channel.peerId })
+                              .first() then peerWallet}
+                              {peerWallet?.label ||
+                                channel.peerAlias ||
+                                truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                            {/await}
+                          {/if}
+                        {:else if type === 'withdrawal'}
+                          {@const { withdrawal } = input}
+                          {#await db.wallets.get(withdrawal.walletId) then wallet}
+                            {wallet?.label}
+                          {/await}
+                        {:else if type === 'spend'}
+                          {@const { utxo } = input}
                           {#await db.wallets.get(utxo.walletId) then wallet}
-                            {wallet?.label?.toUpperCase() || truncateValue(id)}
-                          {/await}
-                        {:else if category === 'channel_close'}
-                          {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias?.toUpperCase() ||
-                              truncateValue(
-                                channel?.peerId ||
-                                  channel?.id ||
-                                  $translate('app.labels.unknown').toUpperCase()
-                              )}
-                          {/await}
-                        {:else if category === 'withdrawal'}
-                          {#await db.withdrawals
-                            .get(id)
-                            .then((withdrawal) => withdrawal && db.wallets.get(withdrawal.walletId)) then wallet}
-                            {wallet?.label?.toUpperCase() || truncateValue(id)}
+                            {wallet?.label}
                           {/await}
                         {:else}
-                          {truncateValue(id)}
+                          {truncateValue(outpoint)}
                         {/if}
                       </div>
                     </div>
-                    {#if utxo?.amount}
-                      <BitcoinAmount sats={utxo.amount} />
+
+                    {#if type === 'spend'}
+                      <BitcoinAmount sats={input.utxo.amount} />
                     {/if}
                   </button>
 
-                  {#await routeProm then route}
-                    {#if route}
-                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
-                    {/if}
-                  {/await}
+                  {#if route}
+                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                  {/if}
                 </div>
               {/each}
             </div>
           </SummaryRow>
         {/if}
 
-        <!-- OUTPUTS -->
         {#if outputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
               {#each outputs as output}
-                {@const { id, category, utxo, amount, address } = output}
-                {@const routeProm = getRoute(output)}
+                {@const { type, amount, address } = output}
+                {@const route = getRoute(output)}
 
                 <div
                   class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
                   <button
                     on:click={async () => {
-                      const route = await routeProm
                       route && goto(route)
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1">
-                        {$translate(`app.labels.output_${category}`).toLowerCase()}:
+                      <div class="mr-1 flex items-center">
+                        {#if type !== 'unknown' && type !== 'send'}
+                          <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_open' || type === 'timelocked' || (type === 'settle' && !output.utxo) ? channelIcon : type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep' || (type === 'settle' && output.utxo) ? keys : type === 'deposit' ? walletIcon : ''}</div>
+                        {/if}
+
+                        {$translate(`app.labels.output_${type}`).toLowerCase()}:
                       </div>
-                      <div class="font-semibold text-purple-100">
-                        {#if utxo || category === 'timelocked'}
-                          {#await db.wallets.get(utxo?.walletId || id) then wallet}
-                            {wallet?.label?.toUpperCase() || truncateValue(id)}
+                      <div class="font-semibold text-purple-100 uppercase flex items-center">
+                        {#if type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep'}
+                          {@const { utxo } = output}
+                          {#await db.wallets.get(utxo.walletId) then wallet}
+                            {wallet?.label}
                           {/await}
-                        {:else if category === 'settle' || category === 'channel_open'}
-                          {#await db.channels.get(id) then channel}
-                            {channel?.peerAlias?.toUpperCase() ||
-                              truncateValue(channel?.peerId || address)}
+                        {:else if type === 'settle'}
+                        {@const { utxo } = output}
+                        {#if utxo}
+                        {#await db.wallets.get(utxo.walletId) then wallet}
+                          {wallet?.label}
+                        {/await}
+                        {:else}
+                        {@const {channel} = output}
+                          {#await db.wallets.where({nodeId: channel.peerId}).first() then wallet}
+                            {#if wallet}
+                              {wallet.label}
+                            {:else}
+                          {channel.peerAlias || truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                          {/if}
                           {/await}
-                        {:else if category === 'deposit'}
-                          {#await db.deposits
-                            .get(id)
-                            .then((deposit) => deposit && db.wallets.get(deposit.walletId)) then wallet}
-                            {wallet?.label?.toUpperCase() || truncateValue(id)}
+                        {/if}
+                        {:else if type === 'timelocked' || type === 'channel_open'}
+                          {@const { channel } = output}
+                          {#if channel.peerId}
+                            {#await db.wallets
+                              .where({ nodeId: channel.peerId })
+                              .first() then peerWallet}
+                              {#if peerWallet}
+                                {peerWallet.label}
+                              {:else}
+                                {channel.peerAlias ||
+                                  truncateValue(
+                                    channel.peerId || $translate('app.labels.unknown'),
+                                    6
+                                  )}
+                              {/if}
+                            {/await}
+                          {/if}
+                        {:else if type === 'deposit'}
+                          {@const { deposit } = output}
+                          {#await db.wallets.get(deposit.walletId) then wallet}
+                            {wallet?.label}
                           {/await}
                         {:else}
-                          {truncateValue(id)}
+                          {truncateValue(address)}
                         {/if}
                       </div>
                     </div>
                     <BitcoinAmount sats={amount} />
                   </button>
 
-                  {#await routeProm then route}
-                    {#if route}
-                      <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
-                    {/if}
-                  {/await}
+                  {#if route}
+                    <div class="w-4 ml-1 -mr-2 -rotate-90">{@html caret}</div>
+                  {/if}
                 </div>
               {/each}
             </div>
           </SummaryRow>
         {/if}
 
-        <!-- FEE -->
         {#if fee}
           <SummaryRow>
             <span slot="label"
@@ -576,8 +643,19 @@
           </SummaryRow>
         {/if}
 
-        <!-- CHANNEL -->
-        {#if channel}
+        {#if blockHeight}
+        <SummaryRow>
+          <span slot="label">{$translate('app.labels.included_in_block')}:</span>
+          <div slot="value">
+            {blockHeight}
+          </div>
+        </SummaryRow>
+        {/if}
+
+        {#if channels}
+          {@const [channel] = channels}
+          {@const { ourToSelfDelay, closer, status } = channel}
+
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
             <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
@@ -588,19 +666,36 @@
             </a>
           </SummaryRow>
 
-          {#await db.channels.get(channel.id) then channelDetails}
-            {#if channelDetails && channelDetails.peerAlias}
+          {#await db.wallets.where({ nodeId: channel.peerId }).first() then peerWallet}
+            {#if peerWallet || channel.peerAlias}
               <SummaryRow>
                 <span slot="label">{$translate('app.labels.channel_peer')}:</span>
                 <span slot="value">
-                  {channelDetails.peerAlias}
+                  {peerWallet?.label || channel.peerAlias}
                 </span>
               </SummaryRow>
             {/if}
           {/await}
+
+          {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
+            <SummaryRow>
+              <span slot="label">{$translate('app.labels.can_sweep')}:</span>
+              <div slot="value">
+                <div>
+                  {ourToSelfDelay}
+                  {$translate('app.labels.blocks')}
+                </div>
+
+                {#await formatDateRelativeToNow(Date.now() / 1000 + ourToSelfDelay * 10 * MIN_IN_SECS) then date}
+                  <div class="text-xs">
+                    (estimated {date})
+                  </div>
+                {/await}
+              </div>
+            </SummaryRow>
+          {/if}
         {/if}
 
-        <!-- OFFER -->
         {#if offer}
           {@const { id, issuer, payerNote, description } = offer}
           {#if id}
@@ -643,7 +738,6 @@
           {/if}
         {/if}
 
-        <!-- TIMESTAMP -->
         {#if completedAt}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.completed_at')}:</span>
@@ -664,7 +758,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- DESTINATION -->
         {#if peerNodeId}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.destination')}:</span>
@@ -674,7 +767,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- PAYMENT HASH -->
         {#if paymentHash}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.payment_hash')}:</span>
@@ -684,7 +776,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- PAYMENT PREIMAGE -->
         {#if paymentPreimage}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.payment_preimage')}:</span>

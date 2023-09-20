@@ -387,6 +387,7 @@
     "summary_amount_sweep": "{{status; pending:Sweeping; waiting:Sweeping; complete:Swept; failed:Attempted;}}",
     "lost_to_rounding": "Lost to rounding",
     "closed": "Closed",
+    "force_closed": "Force closed",
     "this_wallet": "This wallet",
     "issuer": "Issuer",
     "type": "Type",
@@ -441,7 +442,10 @@
     "remote_balance": "Remote balance",
     "settled": "Settled",
     "offered": "Offered",
-    "local_failed": "Local failed"
+    "local_failed": "Local failed",
+    "can_sweep": "Can sweep",
+    "blocks": "Blocks",
+    "included_in_block": "Included in block"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

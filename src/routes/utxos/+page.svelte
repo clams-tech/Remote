@@ -64,7 +64,7 @@
       takeUntil(onDestroy$)
     )
     .subscribe(async (utxos) => {
-      const walletIdSet = new Set()
+      const walletIdSet = new Set<string>()
       const tagSet = new Set()
 
       for (const { walletId, id } of utxos) {

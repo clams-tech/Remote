@@ -11,6 +11,7 @@
   $: localPercent = (channel.balanceLocal / balanceTotal) * 100
   $: remotePercent = (channel.balanceRemote / balanceTotal) * 100
   $: wallet = $wallets$?.find((conn) => conn.id === channel.walletId)
+  $: peerWallet = $wallets$?.find((conn) => channel.peerId && conn.nodeId === channel.peerId)
 </script>
 
 <a
@@ -18,8 +19,8 @@
   class="w-full pb-3 pt-2.5 border-b border-neutral-400 block no-underline hover:bg-neutral-800 transition-all"
 >
   <div class="flex items-center gap-x-2">
-    <div class="font-semibold whitespace-nowrap">
-      {wallet?.label.toUpperCase()}
+    <div class="font-semibold whitespace-nowrap uppercase">
+      {wallet?.label}
     </div>
 
     <div class:gap-x-1={localPercent && remotePercent} class="flex items-center w-full">
@@ -27,11 +28,10 @@
       <div style="width: {remotePercent}%;" class="h-3 rounded-full bg-purple-100 shadow" />
     </div>
 
-    <div class="font-semibold whitespace-nowrap">
-      {(
+    <div class="font-semibold whitespace-nowrap uppercase">
+      {peerWallet?.label ||
         channel.peerAlias ||
-        (channel.peerId ? truncateValue(channel.peerId, 6) : $translate('app.labels.unknown'))
-      ).toUpperCase()}
+        (channel.peerId ? truncateValue(channel.peerId, 6) : $translate('app.labels.unknown'))}
     </div>
   </div>
 
@@ -48,7 +48,9 @@
     <div
       class:text-utility-success={channel.status === 'active'}
       class:text-utility-pending={channel.status === 'opening'}
-      class:text-utility-error={channel.status === 'closing' || channel.status === 'closed'}
+      class:text-utility-error={channel.status === 'closing' ||
+        channel.status === 'closed' ||
+        channel.status === 'force_closed'}
       class="text-sm flex items-center justify-center w-full leading-4"
     >
       <div class="bg-current w-2.5 h-2.5 rounded-full mr-1" />

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import { connections$, onDestroy$ } from '$lib/streams'
+  import { connections$, onDestroy$, wallets$ } from '$lib/streams'
   import { translate } from '$lib/i18n/translations'
   import type { PageData } from './$types'
   import CopyValue from '$lib/components/CopyValue.svelte'
@@ -39,18 +39,25 @@
 
   const channel$ = from(
     liveQuery(() =>
-      db.channels.get(data.id).then((channel) => {
-        couldNotFindChannel = !channel
-        return channel
-      })
+      db.channels
+        .where({ id: data.id, opener: 'local' })
+        .first()
+        .then((channel) => {
+          couldNotFindChannel = !channel
+          return channel
+        })
     )
+  )
+
+  $: peerWallet = $wallets$?.find(
+    (wallet) => $channel$?.peerId && $channel$.peerId === wallet.nodeId
   )
 
   const closingTransaction$ = channel$.pipe(
     filter((x) => !!x),
     mergeMap((channel) =>
       db.transactions
-        .where({ 'channel.id': channel!.id })
+        .where({ 'channel.id': channel!.id, walletId: channel?.walletId })
         .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
         .first()
     )
@@ -59,6 +66,22 @@
   $: if ($channel$) {
     loadData()
   }
+
+  timer(5000, 10000)
+    .pipe(
+      filter(() => !!$channel$),
+      switchMap(async () => {
+        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
+      }),
+      filter((x) => !!x),
+      map((update) => update && update[0]),
+      takeUntil(onDestroy$)
+    )
+    .subscribe((channelUpdate) => {
+      if ($channel$) {
+        db.channels.where({ id: data.id, walletId: $channel$.walletId }).modify(channelUpdate!)
+      }
+    })
 
   const loadData = async () => {
     connection = $connections$.find((conn) => conn.walletId === $channel$!.walletId) as Connection
@@ -84,20 +107,6 @@
 
     loaded = true
   }
-
-  timer(5000, 10000)
-    .pipe(
-      filter(() => !!$channel$),
-      switchMap(async () => {
-        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
-      }),
-      filter((x) => !!x),
-      map((update) => update && update[0]),
-      takeUntil(onDestroy$)
-    )
-    .subscribe((channelUpdate) => {
-      db.channels.update(data.id, channelUpdate!)
-    })
 
   let showFeeUpdateModal = false
   let updating = false
@@ -192,7 +201,9 @@
               {$translate('app.labels.channel_with')}
             </div>
             <div class="text-purple-200">
-              {peerAlias || $translate('app.labels.unknown')}
+              {peerWallet?.label ||
+                peerAlias ||
+                truncateValue(peerId || $translate('app.labels.unknown'), 6)}
             </div>
           </div>
         </div>
@@ -243,13 +254,15 @@
               slot="value"
               class:text-utility-success={status === 'active'}
               class:text-utility-pending={status === 'opening'}
-              class:text-utility-error={status === 'closing' || status === 'closed'}
+              class:text-utility-error={status === 'closing' ||
+                status === 'closed' ||
+                status === 'force_closed'}
             >
               {$translate(`app.labels.${status}`)}
             </div>
           </SummaryRow>
 
-          {#if status !== 'closed'}
+          {#if status !== 'closed' && status !== 'force_closed'}
             <SummaryRow>
               <div slot="label">
                 {$translate('app.labels.peer_connection')}:
@@ -339,7 +352,7 @@
             </SummaryRow>
           {/if}
 
-          {#if status !== 'closed'}
+          {#if status !== 'closed' && status !== 'force_closed'}
             <SummaryRow>
               <div slot="label">
                 {$translate('app.labels.outbound')}:
@@ -444,7 +457,7 @@
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}
-              text={$translate('app.labels.update_settings')}
+              text={$translate('app.labels.update')}
             >
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
             </Button>
