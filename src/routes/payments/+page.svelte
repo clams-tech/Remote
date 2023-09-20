@@ -159,7 +159,7 @@
   ]
 
   payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
-    const walletIdSet = new Set()
+    const walletIdSet = new Set<string>()
     const tagSet = new Set()
 
     for (const { walletId, id } of payments) {
