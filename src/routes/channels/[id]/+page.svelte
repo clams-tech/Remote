@@ -39,10 +39,14 @@
 
   const channel$ = from(
     liveQuery(() =>
-      db.channels.get(data.id).then((channel) => {
-        couldNotFindChannel = !channel
-        return channel
-      })
+      db.channels
+        .where({ id: data.id, opener: 'local' })
+        .first()
+        .then((channel) => {
+          console.log({ channel })
+          couldNotFindChannel = !channel
+          return channel
+        })
     )
   )
 
@@ -56,7 +60,7 @@
     filter((x) => !!x),
     mergeMap((channel) =>
       db.transactions
-        .where({ 'channel.id': channel!.id })
+        .where({ 'channel.id': channel!.id, walletId: channel?.walletId })
         .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
         .first()
     )
@@ -65,6 +69,23 @@
   $: if ($channel$) {
     loadData()
   }
+
+  timer(5000, 10000)
+    .pipe(
+      filter(() => !!$channel$),
+      switchMap(async () => {
+        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
+      }),
+      filter((x) => !!x),
+      map((update) => update && update[0]),
+      takeUntil(onDestroy$)
+    )
+    .subscribe((channelUpdate) => {
+      console.log({ channelUpdate })
+      if ($channel$) {
+        db.channels.where({ id: data.id, walletId: $channel$.walletId }).modify(channelUpdate!)
+      }
+    })
 
   const loadData = async () => {
     connection = $connections$.find((conn) => conn.walletId === $channel$!.walletId) as Connection
@@ -90,20 +111,6 @@
 
     loaded = true
   }
-
-  timer(5000, 10000)
-    .pipe(
-      filter(() => !!$channel$),
-      switchMap(async () => {
-        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
-      }),
-      filter((x) => !!x),
-      map((update) => update && update[0]),
-      takeUntil(onDestroy$)
-    )
-    .subscribe((channelUpdate) => {
-      db.channels.update(data.id, channelUpdate!)
-    })
 
   let showFeeUpdateModal = false
   let updating = false

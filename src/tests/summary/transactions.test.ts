@@ -378,12 +378,25 @@ test('Summarise a onchain transaction that opens a channel to a node we dont own
   })
 })
 
+const bobsTransactionForAliceOpenChannel = {
+  ...aliceOpenChannelTransaction,
+  fee: undefined,
+  walletId: bobWallet.id
+}
+const bobsChannelForAliceOpenChannel: Channel = {
+  ...aliceBobChannel,
+  opener: 'remote',
+  peerAlias: 'alice',
+  peerId: aliceWallet.nodeId,
+  walletId: bobWallet.id
+}
+
 test('Summarise a onchain transaction that opens a channel to a node we own', async () => {
   await clearDb()
   await db.wallets.bulkAdd([aliceWallet, bobWallet])
-  await db.transactions.bulkAdd([aliceOpenChannelTransaction])
+  await db.transactions.bulkAdd([aliceOpenChannelTransaction, bobsTransactionForAliceOpenChannel])
   await db.utxos.bulkAdd([utxoChangeFromOnchainSendTransaction, changeUtxoFromChannelOpen])
-  await db.channels.bulkAdd([aliceBobChannel])
+  await db.channels.bulkAdd([aliceBobChannel, bobsChannelForAliceOpenChannel])
   const { timestamp } = aliceOpenChannelTransaction
   const summary = await deriveTransactionSummary(aliceOpenChannelTransaction)
 
@@ -546,6 +559,56 @@ test('Summarise a onchain transaction that force closes a channel to a node we o
         amount: forceCloseAliceBobChannelTransaction.outputs[0].amount,
         address: forceCloseAliceBobChannelTransaction.outputs[0].address,
         channel: aliceBobChannelClosed
+      }
+    ]
+  }
+
+  expect(summary).toStrictEqual(expectedSummary)
+})
+
+test('Summarise a onchain transaction that sweeps funds from a timelocked utxo due to a force closed a channel to a node we own', async () => {
+  await clearDb()
+  await db.wallets.bulkAdd([aliceWallet, bobWallet])
+
+  await db.transactions.bulkAdd([
+    aliceOpenChannelTransaction,
+    forceCloseAliceBobChannelTransaction,
+    sweepFromForceCloseTransaction
+  ])
+
+  await db.utxos.bulkAdd([
+    utxoChangeFromOnchainSendTransaction,
+    changeUtxoFromChannelOpen,
+    aliceUtxoFromSweep
+  ])
+
+  await db.channels.bulkAdd([aliceBobChannelClosed])
+  const { timestamp, fee } = sweepFromForceCloseTransaction
+  const summary = await deriveTransactionSummary(sweepFromForceCloseTransaction)
+
+  const expectedSummary: TransactionSummary = {
+    timestamp,
+    fee: fee || 0,
+    category: 'expense',
+    type: 'sweep',
+    amount: aliceUtxoFromSweep.amount,
+    primary: { type: 'wallet', value: aliceWallet },
+    secondary: { type: 'wallet', value: bobWallet },
+    inputs: [
+      {
+        type: 'timelocked',
+        outpoint: `${sweepFromForceCloseTransaction.inputs[0].txid}:${sweepFromForceCloseTransaction.inputs[0].index}`,
+        channel: aliceBobChannelClosed
+      }
+    ],
+    outputs: [
+      {
+        type: 'sweep',
+        outpoint: `${sweepFromForceCloseTransaction.id}:${sweepFromForceCloseTransaction.outputs[0].index}`,
+        amount: sweepFromForceCloseTransaction.outputs[0].amount,
+        address: sweepFromForceCloseTransaction.outputs[0].address,
+        channel: aliceBobChannelClosed,
+        utxo: aliceUtxoFromSweep
       }
     ]
   }

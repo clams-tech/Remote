@@ -38,7 +38,7 @@ class DB extends Dexie {
     this.version(1).stores({
       addresses: '&id, walletId, value, txid',
       channels:
-        '&id, walletId, shortId, peerId, status, [fundingTransactionId+fundingOutput], closeTo',
+        '&[id+walletId], id, walletId, shortId, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput+walletId], closeTo',
       contacts: '&id, name, npub',
       deposits: '&id, walletId, destination, timestamp, amount',
       exchangeRates: '&[timestamp+currency], price, currency',
@@ -50,7 +50,8 @@ class DB extends Dexie {
       offers:
         '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer]',
       trades: '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination',
-      transactions: '&[id+walletId], id, walletId, timestamp, direction, channel.type, channel.id',
+      transactions:
+        '&[id+walletId], id, walletId, timestamp, direction, channel.type, [channel.id+walletId]',
       utxos: '&id, walletId, txid, timestamp, spendingTxid',
       wallets: '&id, type, label, nodeId',
       withdrawals: '&id, walletId, destination, timestamp, amount, fee'

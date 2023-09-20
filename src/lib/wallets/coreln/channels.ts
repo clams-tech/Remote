@@ -206,8 +206,11 @@ class Channels implements ChannelsInterface {
               minimum_htlc_out_msat,
               maximum_htlc_out_msat,
               our_to_self_delay,
-              their_to_self_delay
+              their_to_self_delay,
+              state_changes
             } = channel
+
+            console.log({ state_changes })
 
             const {
               nodes: [peer]

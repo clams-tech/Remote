@@ -444,7 +444,8 @@
     "offered": "Offered",
     "local_failed": "Local failed",
     "can_sweep": "Can sweep",
-    "blocks": "Blocks"
+    "blocks": "Blocks",
+    "included_in_block": "Included in block"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

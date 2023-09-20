@@ -150,8 +150,12 @@ export const getWalletBalance = (walletId: string): Observable<number | null> =>
   const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
     map((channels) =>
       channels.reduce((total, channel) => {
-        const { balanceLocal } = channel
-        total += balanceLocal
+        const { balanceLocal, status } = channel
+
+        if (status === 'active' || status === 'opening') {
+          total += balanceLocal
+        }
+
         return total
       }, 0)
     )

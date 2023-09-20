@@ -214,7 +214,7 @@ export const deriveTransactionSummary = ({
           const outpoint = `${txid}:${index}`
 
           const closedChannel = await db.channels
-            .where({ fundingTransactionId: txid, fundingOutput: index })
+            .where({ fundingTransactionId: txid, fundingOutput: index, walletId })
             .first()
 
           if (closedChannel) {
@@ -288,7 +288,7 @@ export const deriveTransactionSummary = ({
           }
 
           const openedChannel = await db.channels
-            .where({ fundingTransactionId: id, fundingOutput: index })
+            .where({ fundingTransactionId: id, fundingOutput: index, walletId })
             .first()
 
           if (openedChannel) {
@@ -298,7 +298,7 @@ export const deriveTransactionSummary = ({
           const { forceClosedChannelId, outpoint: inputOutpoint } = await isSweepOutput(inputs)
 
           const sweptChannel = forceClosedChannelId
-            ? await db.channels.get(forceClosedChannelId)
+            ? await db.channels.where({ id: forceClosedChannelId, walletId }).first()
             : undefined
 
           if (forceClosedChannelId) {

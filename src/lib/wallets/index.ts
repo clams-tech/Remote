@@ -7,12 +7,12 @@ import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { Connection } from './interfaces.js'
-import { decryptWithAES } from '$lib/crypto.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
 import { db } from '$lib/db.js'
 import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
+import { decryptWithAES } from '$lib/crypto.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 

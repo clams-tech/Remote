@@ -76,23 +76,28 @@
           .then(async (txs) => {
             const deduped: Map<string, Transaction> = new Map()
 
+            console.log('TOTAL TXS:', txs.length)
+
             for (const tx of txs) {
               const current = deduped.get(tx.id)
 
               // dedupes txs and prefers the tx where the wallet is the sender (spender of an input utxo)
               if (current) {
-                const utxo = await db.utxos
+                const spentInputUtxo = await db.utxos
                   .where('id')
                   .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
                   .first()
 
-                if (utxo?.walletId !== tx.walletId) {
+                // favour spender
+                if (spentInputUtxo?.walletId === tx.walletId) {
                   deduped.set(tx.id, tx)
                 }
               } else {
                 deduped.set(tx.id, tx)
               }
             }
+
+            console.log('deduped:', deduped.size)
 
             return Array.from(deduped.values())
           })

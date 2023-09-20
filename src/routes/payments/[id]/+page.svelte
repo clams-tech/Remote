@@ -25,7 +25,6 @@
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
   import Summary from '../Summary.svelte'
-  import Dexie from 'dexie'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { from, type Observable } from 'rxjs'
   import channelIcon from '$lib/icons/channels.js'
@@ -78,6 +77,7 @@
     secondary: PaymentSummary['secondary']
     timestamp: PaymentSummary['timestamp']
     network: Network
+    blockHeight?: number | null
   }
 
   const transactionDetails$: Observable<TransactionDetail[]> = from(
@@ -95,11 +95,12 @@
         db.metadata,
         db.contacts,
         db.utxos,
+        db.offers,
         async (): Promise<TransactionDetail[]> => {
-          const [invoice, address, transaction] = await Promise.all([
+          const [invoice, address, transactions] = await Promise.all([
             db.invoices.get(id),
             db.addresses.get(id),
-            db.transactions.where({ id }).first()
+            db.transactions.where({ id }).toArray()
           ])
 
           const details: TransactionDetail[] = []
@@ -123,10 +124,7 @@
             } = invoice
 
             const wallet = (await db.wallets.get(walletId)) as Wallet
-
-            const withdrawalOfferId = offer
-              ? await Dexie.waitFor(tryFindWithdrawalOfferId(offer))
-              : undefined
+            const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
 
             const formattedOffer =
               offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
@@ -190,7 +188,7 @@
             let tx: Transaction | null = null
 
             if (txid) {
-              tx = (await db.transactions.where({ id: txid }).first()) as Transaction
+              tx = (await db.transactions.where({ id: txid, walletId }).first()) as Transaction
             }
 
             const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
@@ -237,8 +235,17 @@
             })
           }
 
-          if (transaction) {
-            console.log(JSON.stringify(transaction))
+          if (transactions) {
+            const spentInputUtxo = await db.utxos
+              .where('id')
+              .anyOf(transactions[0].inputs.map(({ txid, index }) => `${txid}:${index}`))
+              .first()
+
+
+            const transaction =
+              transactions.find(({ walletId }) => walletId === spentInputUtxo?.walletId) ||
+              transactions[0]
+
             const { id, walletId, fee, blockheight, timestamp } = transaction
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const summary = await deriveTransactionSummary(transaction)
@@ -261,7 +268,8 @@
               primary: summary.primary,
               secondary: summary.secondary,
               timestamp: summary.timestamp,
-              network: getNetwork(transaction.outputs[0].address)
+              network: getNetwork(transaction.outputs[0].address),
+              blockHeight: blockheight
             })
           }
 
@@ -369,7 +377,8 @@
       primary,
       secondary,
       summaryType,
-      network
+      network,
+      blockHeight
     } = transactionDetailToShow}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
@@ -387,7 +396,6 @@
 
     <div class="w-full flex justify-center mt-2">
       <div class="w-full">
-        <!-- amount -->
         {#if typeof amount === 'number'}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.amount')}:</span>
@@ -401,7 +409,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- wallet -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
           <a href={`/wallets/${wallet.id}`} slot="value" class="no-underline flex items-center"
@@ -410,7 +417,6 @@
           >
         </SummaryRow>
 
-        <!-- STATUS -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.status')}:</span>
           <span
@@ -441,7 +447,6 @@
           </span>
         </SummaryRow>
 
-        <!-- TXID -->
         {#if txid}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.txid')}:</span>
@@ -460,7 +465,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- DESCRIPTION -->
         {#if description && !offer?.description}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.description')}:</span>
@@ -468,13 +472,12 @@
           </SummaryRow>
         {/if}
 
-        <!-- INPUTS -->
         {#if inputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.inputs')}:</span>
             <div class="gap-y-1 flex flex-col text-sm" slot="value">
               {#each inputs as input}
-                {@const { type } = input}
+                {@const { type, outpoint } = input}
                 {@const route = getRoute(input)}
 
                 <div
@@ -515,7 +518,7 @@
                           {/await}
                           <div class="w-4 ml-0.5">{@html keys}</div>
                         {:else}
-                          {$translate('app.labels.unknown')}
+                          {truncateValue(outpoint)}
                         {/if}
                       </div>
                     </div>
@@ -534,13 +537,12 @@
           </SummaryRow>
         {/if}
 
-        <!-- OUTPUTS -->
         {#if outputs}
           <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.outputs')}:</span>
             <div class="gap-y-1 flex flex-col justify-center items-center text-sm" slot="value">
               {#each outputs as output}
-                {@const { type, outpoint, amount, address } = output}
+                {@const { type, amount, address } = output}
                 {@const route = getRoute(output)}
 
                 <div
@@ -603,7 +605,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- FEE -->
         {#if fee}
           <SummaryRow>
             <span slot="label"
@@ -622,7 +623,15 @@
           </SummaryRow>
         {/if}
 
-        <!-- CHANNEL -->
+        {#if blockHeight}
+        <SummaryRow>
+          <span slot="label">{$translate('app.labels.included_in_block')}:</span>
+          <div slot="value">
+            {blockHeight}
+          </div>
+        </SummaryRow>
+        {/if}
+
         {#if channels}
           {@const [channel] = channels}
           {@const { ourToSelfDelay, closer, status } = channel}
@@ -667,7 +676,6 @@
           {/if}
         {/if}
 
-        <!-- OFFER -->
         {#if offer}
           {@const { id, issuer, payerNote, description } = offer}
           {#if id}
@@ -710,7 +718,6 @@
           {/if}
         {/if}
 
-        <!-- TIMESTAMP -->
         {#if completedAt}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.completed_at')}:</span>
@@ -731,7 +738,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- DESTINATION -->
         {#if peerNodeId}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.destination')}:</span>
@@ -741,7 +747,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- PAYMENT HASH -->
         {#if paymentHash}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.payment_hash')}:</span>
@@ -751,7 +756,6 @@
           </SummaryRow>
         {/if}
 
-        <!-- PAYMENT PREIMAGE -->
         {#if paymentPreimage}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.payment_preimage')}:</span>
