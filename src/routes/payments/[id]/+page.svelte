@@ -337,6 +337,8 @@
       }
       case 'withdrawal':
         return `/wallets/${inputOutput.withdrawal.walletId}`
+        case 'deposit':
+        return `/wallets/${inputOutput.deposit.walletId}`
     }
   }
 </script>
@@ -489,7 +491,10 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1">
+                      <div class="mr-1 flex items-center">
+                        {#if type !== 'unknown'}
+                        <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_close' || type === 'timelocked' ? channelIcon : type === 'spend' ? keys : type === 'withdrawal' ? walletIcon : ''}</div>
+                        {/if}
                         {$translate(`app.labels.input_${type}`).toLowerCase()}:
                       </div>
                       <div class="font-semibold text-purple-100 uppercase flex items-center">
@@ -503,20 +508,17 @@
                                 channel.peerAlias ||
                                 truncateValue(channel.peerId || $translate('app.labels.unknown'))}
                             {/await}
-                            <div class="w-4 ml-0.5">{@html channelIcon}</div>
                           {/if}
                         {:else if type === 'withdrawal'}
                           {@const { withdrawal } = input}
                           {#await db.wallets.get(withdrawal.walletId) then wallet}
                             {wallet?.label}
                           {/await}
-                          <div class="w-4 ml-0.5">{@html walletIcon}</div>
                         {:else if type === 'spend'}
                           {@const { utxo } = input}
                           {#await db.wallets.get(utxo.walletId) then wallet}
                             {wallet?.label}
                           {/await}
-                          <div class="w-4 ml-0.5">{@html keys}</div>
                         {:else}
                           {truncateValue(outpoint)}
                         {/if}
@@ -554,7 +556,11 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1">
+                      <div class="mr-1 flex items-center">
+                        {#if type !== 'unknown' && type !== 'send'}
+                          <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_open' || type === 'timelocked' ? channelIcon : type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep' || type === 'settle' ? keys : type === 'deposit' ? walletIcon : ''}</div>
+                        {/if}
+
                         {$translate(`app.labels.output_${type}`).toLowerCase()}:
                       </div>
                       <div class="font-semibold text-purple-100 uppercase flex items-center">
@@ -563,7 +569,6 @@
                           {#await db.wallets.get(utxo.walletId) then wallet}
                             {wallet?.label}
                           {/await}
-                          <div class="w-4 ml-0.5">{@html keys}</div>
                         {:else if type === 'timelocked' || type === 'channel_open'}
                           {@const { channel } = output}
                           {#if channel.peerId}
@@ -580,14 +585,12 @@
                                   )}
                               {/if}
                             {/await}
-                            <div class="w-4 ml-0.5">{@html channelIcon}</div>
                           {/if}
                         {:else if type === 'deposit'}
                           {@const { deposit } = output}
                           {#await db.wallets.get(deposit.walletId) then wallet}
                             {wallet?.label}
                           {/await}
-                          <div class="w-4 ml-0.5">{@html walletIcon}</div>
                         {:else}
                           {truncateValue(address)}
                         {/if}
