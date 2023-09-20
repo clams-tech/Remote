@@ -147,7 +147,17 @@ export const mergeDefaultsWithStoredSettings = (
 }
 
 export const getWalletBalance = (walletId: string): Observable<number | null> => {
-  const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
+  const channelsBalance$ = from(
+    liveQuery(() =>
+      db.channels
+        .where({ walletId })
+        .toArray()
+        .then((chnls) => {
+          console.log({ chnls })
+          return chnls
+        })
+    )
+  ).pipe(
     map((channels) =>
       channels.reduce((total, channel) => {
         const { balanceLocal, status } = channel
@@ -161,7 +171,18 @@ export const getWalletBalance = (walletId: string): Observable<number | null> =>
     )
   )
 
-  const utxosBalance = from(liveQuery(() => db.utxos.where({ walletId }).toArray())).pipe(
+  const utxosBalance = from(
+    liveQuery(() =>
+      db.utxos
+        .where('walletId')
+        .equals(walletId)
+        .toArray()
+        .then((utxos) => {
+          console.log({ utxos })
+          return utxos
+        })
+    )
+  ).pipe(
     map((utxos) =>
       utxos.reduce((total, utxo) => {
         const { status, amount } = utxo

@@ -89,8 +89,8 @@
         db.transactions,
         db.wallets,
         db.channels,
-        // @ts-ignore
         db.withdrawals,
+        // @ts-ignore
         db.deposits,
         db.metadata,
         db.contacts,
@@ -235,7 +235,7 @@
             })
           }
 
-          if (transactions) {
+          if (transactions.length) {
             const spentInputUtxo = await db.utxos
               .where('id')
               .anyOf(transactions[0].inputs.map(({ txid, index }) => `${txid}:${index}`))

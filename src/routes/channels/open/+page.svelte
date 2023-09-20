@@ -71,6 +71,17 @@
       })
 
       await db.channels.add(channel)
+      
+      // update transactions
+      if (connection.transactions?.get) {
+        connection.transactions.get().then(txs => db.transactions.bulkPut(txs))
+      }
+
+      // update utxos
+      if (connection.utxos?.get) {
+        connection.utxos.get().then(utxos => db.utxos.bulkPut(utxos))
+      }
+
       await goto(`/channels/${channel.id}`)
     } catch (error) {
       openError = error as AppError
