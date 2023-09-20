@@ -61,8 +61,6 @@
     })
   )
 
-  $: console.log(JSON.stringify($wallet$))
-
   const walletBalance$ = getWalletBalance(id)
 
   $: connection = $connections$.find((conn) => conn.walletId === id)

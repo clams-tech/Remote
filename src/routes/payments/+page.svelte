@@ -76,8 +76,6 @@
           .then(async (txs) => {
             const deduped: Map<string, Transaction> = new Map()
 
-            console.log('TOTAL TXS:', txs.length)
-
             for (const tx of txs) {
               const current = deduped.get(tx.id)
 
@@ -96,8 +94,6 @@
                 deduped.set(tx.id, tx)
               }
             }
-
-            console.log('deduped:', deduped.size)
 
             return Array.from(deduped.values())
           })

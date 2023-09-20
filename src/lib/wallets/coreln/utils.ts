@@ -195,29 +195,69 @@ export function stateToChannelStatus(
         timestamp: string
         old_state: State
         new_state: State
-        cause: Cause
+        cause: string
         message: string
       }[]
     | State
 ): ChannelStatus {
-  // switch (state) {
-  //   case State.Openingd:
-  //   case State.ChanneldAwaitingLockin:
-  //   case State.FundingSpendSeen:
-  //   case State.DualopendOpenInit:
-  //   case State.DualopendAwaitingLockin:
-  //     return 'opening'
-  //   case State.ChanneldNormal:
-  //     return 'active'
-  //   case State.ChanneldShuttingDown:
-  //   case State.ClosingdSigexchange:
-  //   case State.AwaitingUnilateral:
-  //     return 'closing'
-  //   case State.Onchain:
-  //     return 'force_closed'
-  //   case State.ClosingdComplete:
-  //     return 'closed'
-  // }
+  if (typeof stateChanges === 'string') {
+    switch (stateChanges) {
+      case State.Openingd:
+      case State.ChanneldAwaitingLockin:
+      case State.FundingSpendSeen:
+      case State.DualopendOpenInit:
+      case State.DualopendAwaitingLockin:
+        return 'opening'
+      case State.ChanneldNormal:
+        return 'active'
+      case State.ChanneldShuttingDown:
+      case State.ClosingdSigexchange:
+      case State.AwaitingUnilateral:
+        return 'closing'
+      case State.Onchain:
+        return 'force_closed'
+      case State.ClosingdComplete:
+        return 'closed'
+    }
+  } else {
+    const [mostRecentStateChange, previousStateChange] = stateChanges.reverse()
+
+    switch (mostRecentStateChange.new_state) {
+      case State.Openingd:
+      case State.ChanneldAwaitingLockin:
+      case State.DualopendOpenInit:
+      case State.DualopendAwaitingLockin:
+        return 'opening'
+      case State.ChanneldNormal:
+        return 'active'
+      case State.ChanneldShuttingDown:
+      case State.ClosingdSigexchange:
+      case State.AwaitingUnilateral:
+        return 'closing'
+      case State.FundingSpendSeen: {
+        if (mostRecentStateChange.old_state === State.ClosingdComplete) {
+          return 'closed'
+        } else {
+          return 'force_closed'
+        }
+      }
+      case State.Onchain: {
+        if (previousStateChange) {
+          const { old_state } = previousStateChange
+
+          if (old_state === State.ClosingdComplete) {
+            return 'closed'
+          } else {
+            return 'force_closed'
+          }
+        } else {
+          return 'closed'
+        }
+      }
+      case State.ClosingdComplete:
+        return 'closed'
+    }
+  }
 }
 
 export function convertVersionNumber(version: string): number {

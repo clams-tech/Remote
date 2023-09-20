@@ -127,7 +127,8 @@ class Channels implements ChannelsInterface {
                   minimum_htlc_out_msat,
                   maximum_htlc_out_msat,
                   our_to_self_delay,
-                  their_to_self_delay
+                  their_to_self_delay,
+                  state_changes
                 } = channel
 
                 return {
@@ -140,7 +141,7 @@ class Channels implements ChannelsInterface {
                   fundingOutput: funding_outnum,
                   id: channel_id,
                   shortId: short_channel_id,
-                  status: stateToChannelStatus(state),
+                  status: stateToChannelStatus(state_changes?.length ? state_changes : state),
                   balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
                   balanceRemote: msatsToSats(
                     Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
@@ -183,7 +184,7 @@ class Channels implements ChannelsInterface {
         const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
 
         const formattedChannels = await Promise.all(
-          channels.map(async (channel) => {
+          channels.map(async (chan) => {
             const {
               peer_id,
               peer_connected,
@@ -208,7 +209,7 @@ class Channels implements ChannelsInterface {
               our_to_self_delay,
               their_to_self_delay,
               state_changes
-            } = channel
+            } = chan
 
             const {
               nodes: [peer]
@@ -227,7 +228,7 @@ class Channels implements ChannelsInterface {
               fundingOutput: funding_outnum,
               id: channel_id,
               shortId: short_channel_id,
-              status: stateToChannelStatus(state_changes || state),
+              status: stateToChannelStatus(state_changes?.length ? state_changes : state),
               balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
               balanceRemote: msatsToSats(
                 Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()

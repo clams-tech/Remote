@@ -43,7 +43,6 @@
         .where({ id: data.id, opener: 'local' })
         .first()
         .then((channel) => {
-          console.log({ channel })
           couldNotFindChannel = !channel
           return channel
         })
@@ -53,8 +52,6 @@
   $: peerWallet = $wallets$?.find(
     (wallet) => $channel$?.peerId && $channel$.peerId === wallet.nodeId
   )
-
-  $: console.log(JSON.stringify($channel$))
 
   const closingTransaction$ = channel$.pipe(
     filter((x) => !!x),
@@ -81,7 +78,6 @@
       takeUntil(onDestroy$)
     )
     .subscribe((channelUpdate) => {
-      console.log({ channelUpdate })
       if ($channel$) {
         db.channels.where({ id: data.id, walletId: $channel$.walletId }).modify(channelUpdate!)
       }

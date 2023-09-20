@@ -733,6 +733,13 @@ type PeerChannel = {
     their_reserve_msat?: string
     our_reserve_msat?: string
   }
+  state_changes?: {
+    timestamp: string
+    old_state: State
+    new_state: State
+    cause: Cause
+    message: string
+  }[]
   close_to?: string
   close_to_addr?: string
   to_us_msat: string
