@@ -37,3 +37,9 @@ export type Payment = {
   offer?: boolean
   channel?: boolean
 }
+
+export type ParsedNodeAddress = {
+  publicKey: string
+  ip: string
+  port: number
+}

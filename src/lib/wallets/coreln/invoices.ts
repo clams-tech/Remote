@@ -98,7 +98,6 @@ class Invoices implements InvoicesInterface {
         completedAt: undefined,
         expiresAt: expires_at,
         request: bolt11,
-        nodeId: this.connection.info.id,
         description,
         hash: payment_hash,
         preimage: payment_secret,

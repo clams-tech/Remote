@@ -19,7 +19,6 @@ import type {
   CorelnConnectionInterface,
   CoreLnError,
   FundChannelResponse,
-  ListNodesResponse,
   ListPeerChannelsResponse,
   ListPeersResponse
 } from './types.js'
@@ -53,14 +52,7 @@ class Channels implements ChannelsInterface {
               close_cause,
               final_to_us_msat
             }) => {
-              const peer = peer_id
-                ? (
-                    (await this.connection.rpc({
-                      method: 'listnodes',
-                      params: { id: peer_id }
-                    })) as ListNodesResponse
-                  ).nodes[0]
-                : undefined
+              const peer = peer_id ? await this.connection.network.getNode(peer_id) : null
 
               return {
                 id: channel_id,
@@ -99,12 +91,7 @@ class Channels implements ChannelsInterface {
           peers
             .filter(({ channels }) => !!channels)
             .map(async ({ id, channels, connected }) => {
-              const {
-                nodes: [peer]
-              } = (await this.connection.rpc({
-                method: 'listnodes',
-                params: { id }
-              })) as ListNodesResponse
+              const peer = await this.connection.network.getNode(id)
 
               return channels.map((channel) => {
                 const {
@@ -211,12 +198,7 @@ class Channels implements ChannelsInterface {
               state_changes
             } = chan
 
-            const {
-              nodes: [peer]
-            } = (await this.connection.rpc({
-              method: 'listnodes',
-              params: { id: peer_id }
-            })) as ListNodesResponse
+            const peer = await this.connection.network.getNode(peer_id)
 
             return {
               walletId: this.connection.walletId,

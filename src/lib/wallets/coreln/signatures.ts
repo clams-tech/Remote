@@ -20,7 +20,7 @@ class Signatures implements SignaturesInterface {
 
       return zbase
     } catch (error) {
-      const context = 'signMessage (node)'
+      const context = 'signMessage (signatures)'
 
       const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
 

@@ -1,22 +1,20 @@
 import type { Invoice } from '$lib/@types/invoices.js'
 import type { Transaction } from '$lib/@types/transactions.js'
 import { db } from '$lib/db.js'
-import { connections$ } from '$lib/streams.js'
-import { filter, firstValueFrom, map } from 'rxjs'
 import type { Channel } from './@types/channels.js'
 import type { Deposit } from './@types/deposits.js'
 import type { Utxo } from './@types/utxos.js'
 import type { Wallet } from './@types/wallets.js'
 import type { Withdrawal } from './@types/withdrawals.js'
-import Dexie from 'dexie'
-import { bolt12ToOffer, isBolt12Invoice } from './invoices.js'
 import type { Address } from './@types/addresses.js'
 import type { Contact } from './@types/contacts.js'
+import type { Node } from './@types/nodes.js'
 
 export type CounterPart =
   | { type: 'wallet'; value: Wallet }
   | { type: 'channel_peer'; value: Channel['peerAlias'] | Channel['peerId'] }
   | { type: 'contact'; value: Contact }
+  | { type: 'node'; value: Node }
   | { type: 'unknown'; value: string }
 
 export type SummaryCommon = {
@@ -654,69 +652,45 @@ export const deriveInvoiceSummary = ({
   createdAt,
   completedAt
 }: Invoice): Promise<InvoiceSummary> => {
-  return db.transaction('r', db.wallets, db.contacts, db.metadata, async () => {
-    let transferWallet: Wallet | undefined
-
+  return db.transaction('r', db.wallets, db.contacts, db.metadata, db.nodes, async () => {
     const wallet = (await db.wallets.get(walletId)) as Wallet
 
-    const lightningConnections = await Dexie.waitFor(
-      firstValueFrom(
-        connections$.pipe(
-          filter((connections) => !!connections.length),
-          map((connections) => connections.filter((connection) => !!connection.invoices?.create))
-        )
-      )
-    )
+    let transferWallet: Wallet | undefined
+    let nodeIdContact: Contact | undefined
+    let requestContact: Contact | undefined
+    let node: Node | undefined
 
-    const lightningWallets = await db.wallets
-      .where('id')
-      .anyOf(lightningConnections.map(({ walletId }) => walletId))
-      .and((wallet) => !!wallet.nodeId)
-      .toArray()
+    if (nodeId) {
+      node = await db.nodes.get(nodeId)
+      transferWallet = await db.wallets.where({ nodeId }).first()
 
-    if (request && isBolt12Invoice(request)) {
-      const offerDetails = await Dexie.waitFor(bolt12ToOffer(request, walletId))
-
-      transferWallet = lightningWallets.find(
-        (wallet) => wallet.nodeId === (offerDetails.sendNodeId || offerDetails.receiveNodeId)
-      )
-    } else if (direction === 'send') {
-      transferWallet = lightningWallets.find((wallet) => wallet.nodeId === nodeId)
+      nodeIdContact = (await db.transaction('r', db.metadata, db.contacts, async () => {
+        const nodeIdMetadata = await db.metadata.get(nodeId)
+        return nodeIdMetadata?.contact ? db.contacts.get(nodeIdMetadata.contact) : undefined
+      })) as Contact
     }
 
-    const nodeIdMetadata = await db.metadata.get(nodeId)
-
-    const nodeIdContact = nodeIdMetadata?.contact
-      ? await db.contacts.get(nodeIdMetadata.contact)
-      : null
-
-    const requestMetadata = request && (await db.metadata.get(request))
-
-    const requestContact =
-      requestMetadata && requestMetadata.contact
-        ? await db.contacts.get(requestMetadata.contact)
-        : null
+    if (request) {
+      requestContact = (await db.transaction('r', db.metadata, db.contacts, async () => {
+        const requestMetadata = await await db.metadata.get(request)
+        return requestMetadata?.contact ? await db.contacts.get(requestMetadata.contact) : undefined
+      })) as Contact
+    }
 
     const type = transferWallet ? 'transfer' : direction
 
-    let primary: CounterPart
     let secondary: CounterPart
-    let counterparty: CounterPart
 
     if (transferWallet) {
-      counterparty = { type: 'wallet', value: transferWallet }
-    } else if (requestContact || nodeIdContact) {
-      counterparty = { type: 'contact', value: (requestContact || nodeIdContact) as Contact }
+      secondary = { type: 'wallet', value: transferWallet }
+    } else if (nodeIdContact) {
+      secondary = { type: 'contact', value: nodeIdContact }
+    } else if (requestContact) {
+      secondary = { type: 'contact', value: requestContact }
+    } else if (node) {
+      secondary = { type: 'node', value: node }
     } else {
-      counterparty = { type: 'unknown', value: request || nodeId }
-    }
-
-    if (direction === 'receive') {
-      primary = counterparty
-      secondary = { type: 'wallet', value: wallet }
-    } else {
-      secondary = counterparty
-      primary = { type: 'wallet', value: wallet }
+      secondary = { type: 'unknown', value: nodeId || request || '' }
     }
 
     const invoiceSummary: InvoiceSummary = {
@@ -725,7 +699,7 @@ export const deriveInvoiceSummary = ({
       category: (type === 'transfer' && fee) || type === 'send' ? 'expense' : 'income',
       type,
       amount,
-      primary,
+      primary: { type: 'wallet', value: wallet },
       secondary
     }
 
@@ -736,7 +710,8 @@ export const deriveInvoiceSummary = ({
 export const deriveAddressSummary = async ({
   createdAt,
   amount,
-  walletId
+  walletId,
+  value
 }: Address): Promise<AddressSummary> => {
   const wallet = (await db.wallets.get(walletId)) as Wallet
 
@@ -747,6 +722,6 @@ export const deriveAddressSummary = async ({
     type: 'receive',
     amount,
     primary: { type: 'wallet', value: wallet },
-    secondary: { type: 'unknown', value: '' }
+    secondary: { type: 'unknown', value }
   }
 }

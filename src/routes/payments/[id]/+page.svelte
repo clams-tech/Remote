@@ -20,7 +20,7 @@
   import CopyValue from '$lib/components/CopyValue.svelte'
   import { getNetwork, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
-  import { liveQuery } from 'dexie'
+  import Dexie, { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
@@ -43,6 +43,7 @@
     type RegularTransactionSummary,
     type ChannelTransactionSummary
   } from '$lib/summary.js'
+    import { updateCounterPartyNodeInfo } from '../utils.js'
 
   export let data: PageData
 
@@ -96,6 +97,7 @@
         db.contacts,
         db.utxos,
         db.offers,
+        db.nodes,
         async (): Promise<TransactionDetail[]> => {
           const [invoices, address, transactions] = await Promise.all([
             db.invoices.where({id}).toArray(),
@@ -132,7 +134,7 @@
             const formattedOffer =
               offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
 
-            const { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary({
+            let { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary({
               ...invoice,
               offer: formattedOffer
             })) as PaymentSummary
@@ -303,6 +305,14 @@
       transactionDetailToShow = pendingTransaction
     } else {
       transactionDetailToShow = invoice
+    }
+
+    if (transactionDetailToShow) {
+      updateCounterPartyNodeInfo(transactionDetailToShow.secondary).then(node => {
+        if (node && transactionDetailToShow) {
+          transactionDetailToShow.secondary = {type: 'node', value: node}
+        }
+      })
     }
   }
 

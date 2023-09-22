@@ -59,7 +59,7 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
   } = invoice
 
   let createdAt: number = new Date().getTime() / 1000
-  let nodeId = ''
+  let nodeId
 
   let offer: Invoice['offer']
 
@@ -68,7 +68,6 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
 
     if (decoded) {
       createdAt = decoded.createdAt || Date.now() / 1000
-      nodeId = decoded.nodeId
     } else {
       log.error(`Unable to decode bolt11: ${bolt11}`)
     }
@@ -83,13 +82,11 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
       offer_issuer,
       offer_description,
       invreq_payer_note,
-      invreq_payer_id,
-      invoice_node_id,
-      offer_node_id
+      invreq_payer_id
     } = decoded as DecodedBolt12Invoice
 
     createdAt = invoice_created_at || Date.now() / 1000
-    nodeId = invreq_payer_id || (invoice_node_id as string) || offer_node_id
+    nodeId = invreq_payer_id
 
     offer = {
       id: local_offer_id,

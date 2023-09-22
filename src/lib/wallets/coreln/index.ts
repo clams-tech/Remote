@@ -34,8 +34,10 @@ import type {
   RpcCall,
   TransactionsInterface,
   UtxosInterface,
-  ForwardsInterface
+  ForwardsInterface,
+  NetworkInterface
 } from '../interfaces.js'
+import Network from './network.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   walletId: Wallet['id']
@@ -58,6 +60,7 @@ class CoreLightning implements CorelnConnectionInterface {
   transactions: TransactionsInterface
   blocks: BlocksInterface
   forwards: ForwardsInterface
+  network: NetworkInterface
 
   constructor(
     walletId: string,
@@ -138,6 +141,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.transactions = new Transactions(this)
     this.blocks = new Blocks(this)
     this.forwards = new Forwards(this)
+    this.network = new Network(this)
   }
 
   updateToken(token: string): void {
