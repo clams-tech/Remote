@@ -97,15 +97,18 @@
         db.utxos,
         db.offers,
         async (): Promise<TransactionDetail[]> => {
-          const [invoice, address, transactions] = await Promise.all([
-            db.invoices.get(id),
+          const [invoices, address, transactions] = await Promise.all([
+            db.invoices.where({id}).toArray(),
             db.addresses.get(id),
             db.transactions.where({ id }).toArray()
           ])
 
           const details: TransactionDetail[] = []
 
-          if (invoice) {
+          if (invoices.length) {
+            // prefer sender invoice if multiple copies
+            const invoice = invoices.find(({direction}) => direction === 'send') || invoices[0]
+
             const {
               request,
               status,
@@ -170,6 +173,7 @@
           if (address) {
             const { value, walletId, createdAt, amount, txid, message, completedAt, label } =
               address
+
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const searchParams = new URLSearchParams()
 
@@ -203,7 +207,9 @@
               })
             }
 
-            if (invoice && invoice.request && invoice.status === 'pending') {
+            const [invoice] = invoices
+
+            if (invoice?.request && invoice?.status === 'pending') {
               searchParams.append('lightning', invoice.request.toUpperCase())
 
               qrValues.push({
@@ -241,7 +247,7 @@
               .anyOf(transactions[0].inputs.map(({ txid, index }) => `${txid}:${index}`))
               .first()
 
-
+            // prefer spender transaction where possible
             const transaction =
               transactions.find(({ walletId }) => walletId === spentInputUtxo?.walletId) ||
               transactions[0]
@@ -308,7 +314,7 @@
     : []
 
   const handlePaymentExpire = async () => {
-    await db.invoices.update(id, { status: 'expired' })
+    await db.invoices.where({id}).modify({ status: 'expired' })
   }
 
   const tryFindWithdrawalOfferId = async (offerDetails: Invoice['offer']) => {
@@ -469,9 +475,9 @@
         {/if}
 
         {#if description && !offer?.description}
-          <SummaryRow>
+          <SummaryRow baseline>
             <span slot="label">{$translate('app.labels.description')}:</span>
-            <span slot="value">{description}</span>
+            <span slot="value" class="w-full">{description}</span>
           </SummaryRow>
         {/if}
 
@@ -677,7 +683,7 @@
             {/if}
           {/await}
 
-          {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
+          <!-- {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
             <SummaryRow>
               <span slot="label">{$translate('app.labels.can_sweep')}:</span>
               <div slot="value">
@@ -693,7 +699,7 @@
                 {/await}
               </div>
             </SummaryRow>
-          {/if}
+          {/if} -->
         {/if}
 
         {#if offer}

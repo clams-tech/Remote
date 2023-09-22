@@ -38,13 +38,13 @@ class DB extends Dexie {
     this.version(1).stores({
       addresses: '&id, walletId, value, txid',
       channels:
-        '&[id+walletId], id, walletId, shortId, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput+walletId], closeTo',
+        '&[id+walletId], id, walletId, shortId, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput], [fundingTransactionId+fundingOutput+walletId], closeTo',
       contacts: '&id, name, npub',
       deposits: '&id, walletId, destination, timestamp, amount',
       exchangeRates: '&[timestamp+currency], price, currency',
       forwards: '&id, walletId, shortIdIn, shortIdOut, fee, status, createdAt, completedAt',
       invoices:
-        '&id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, offer.id, [walletId+direction]',
+        '&[id+walletId], id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, offer.id, [walletId+direction]',
       labels: '&ref, type, label, spendable, origin',
       metadata: '&id, type, tags, contact',
       offers:

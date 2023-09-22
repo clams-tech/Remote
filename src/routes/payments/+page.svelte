@@ -22,6 +22,7 @@
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import type { Address } from '$lib/@types/addresses.js'
+  import type { Channel } from '$lib/@types/channels.js'
 
   import {
     deriveAddressSummary,
@@ -32,7 +33,7 @@
 
   const payments$ = from(
     liveQuery(() => {
-      return db.transaction('r', db.invoices, db.transactions, db.addresses, db.utxos, async () => {
+      return db.transaction('r', db.invoices, db.transactions, db.addresses, db.utxos, db.channels, async () => {
         const invoices = db.invoices
           .toArray()
           .then((invs) =>
@@ -75,21 +76,32 @@
           // @ts-ignore
           .then(async (txs) => {
             const deduped: Map<string, Transaction> = new Map()
-
+            
             for (const tx of txs) {
               const current = deduped.get(tx.id)
 
-              // dedupes txs and prefers the tx where the wallet is the sender (spender of an input utxo)
+              // dedupes txs and prefers the tx where if a channel close, the closer or the wallet that is the sender (spender of an input utxo)
               if (current) {
                 const spentInputUtxo = await db.utxos
                   .where('id')
                   .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
                   .first()
 
-                // favour spender
-                if (spentInputUtxo?.walletId === tx.walletId) {
+                let channel: Channel | undefined
+
+                if (tx.channel) {
+                  const channels = await db.channels.where({id: tx.channel.id}).toArray()
+                  channel = channels.find(({opener, closer}) => ((tx.channel?.type === 'close' || tx.channel?.type === 'force_close') && closer === 'local') || opener === 'local')
+                }
+                
+                // favour channel closer or opener
+                if (channel?.walletId === tx.walletId) {
+                  deduped.set(tx.id, tx)
+                } else if (spentInputUtxo?.walletId === tx.walletId) {
+                  // favour spender 
                   deduped.set(tx.id, tx)
                 }
+
               } else {
                 deduped.set(tx.id, tx)
               }

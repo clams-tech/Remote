@@ -118,7 +118,7 @@ export const syncConnectionData = (
   connection: Connection,
   lastSync: number | null
 ): Observable<number> => {
-  db.wallets.update(connection.walletId, { syncing: true })
+  db.wallets.update(connection.walletId, { syncing: true, nodeId: connection.info.id })
 
   // queue of requests to make
   const requestQueue: Array<() => Promise<void>> = []

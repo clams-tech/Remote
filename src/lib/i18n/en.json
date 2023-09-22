@@ -445,7 +445,8 @@
     "local_failed": "Local failed",
     "can_sweep": "Can sweep",
     "blocks": "Blocks",
-    "included_in_block": "Included in block"
+    "included_in_block": "Included in block",
+    "funding_transaction": "Funding transaction"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

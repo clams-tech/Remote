@@ -40,11 +40,11 @@
   const channel$ = from(
     liveQuery(() =>
       db.channels
-        .where({ id: data.id, opener: 'local' })
-        .first()
-        .then((channel) => {
-          couldNotFindChannel = !channel
-          return channel
+        .where({ id: data.id })
+        .toArray()
+        .then((channels) => {
+          couldNotFindChannel = !channels.length
+          return channels?.find(({opener, closer}) => opener === 'local' || closer === 'local') || channels[0]
         })
     )
   )
@@ -190,7 +190,8 @@
         htlcMax,
         closer,
         finalToUs,
-        walletId
+        walletId,
+        fundingTransactionId
       } = $channel$}
 
       <div>
@@ -307,6 +308,13 @@
                 {peerAlias || $translate('app.labels.remote')}
               {/if}
             </div>
+          </SummaryRow>
+
+          <SummaryRow>
+            <div slot="label">{$translate('app.labels.funding_transaction')}</div>
+            <a slot="value" class="flex items-center" href={`/payments/${fundingTransactionId}`}>{truncateValue(fundingTransactionId)}
+              <div class="w-4 -rotate-90">{@html caret}</div>
+            </a>
           </SummaryRow>
 
           {#if closer}

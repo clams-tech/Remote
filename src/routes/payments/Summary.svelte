@@ -22,8 +22,8 @@
         {primary.value.label}
       {:else if primary.type === 'contact'}
         {primary.value.name}
-      {:else if primary.type === 'channel_peer'}
-        {primary.value ? truncateValue(primary.value) : $translate('app.labels.unknown')}
+      {:else if primary.type === 'channel_peer' && primary.value}
+        {truncateValue(primary.value)}
       {:else}
         {$translate('app.labels.unknown')}
       {/if}
