@@ -38,6 +38,8 @@
         {secondary.value.label}
       {:else if secondary.type === 'contact'}
         {secondary.value.name}
+        {:else if secondary.type === 'node'}
+        {secondary.value.alias || truncateValue(secondary.value.id)}
       {:else if secondary.type === 'channel_peer'}
         {secondary.value
           ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')

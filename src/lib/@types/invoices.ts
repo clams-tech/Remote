@@ -15,8 +15,8 @@ export type Invoice = {
   walletId: string
   /** BOLT11 | BOLT12 */
   request?: string
-  /** the receiving node id */
-  nodeId: string
+  /** the receiving if this is a send node id */
+  nodeId?: string
   description?: string
   preimage?: string
   payIndex?: number

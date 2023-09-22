@@ -1,5 +1,6 @@
-export type ParsedNodeAddress = {
-  publicKey: string
-  ip: string
-  port: number
+export type Node = {
+  id: string
+  alias?: string
+  color?: string
+  lastUpdated: number
 }

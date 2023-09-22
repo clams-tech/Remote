@@ -31,6 +31,7 @@ import type {
   Invoice
 } from '$lib/@types/invoices.js'
 import type { Network } from '$lib/@types/common.js'
+import type { Node } from '$lib/@types/nodes.js'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -59,6 +60,7 @@ export interface Connection {
   trades?: TradesInterface
   withdrawals?: WithdrawalsInterface
   deposits?: DepositsInterface
+  network?: NetworkInterface
 }
 
 export type Info = {
@@ -179,4 +181,9 @@ export interface WithdrawalsInterface {
 
 export interface DepositsInterface {
   get(): Promise<Deposit[]>
+}
+
+export interface NetworkInterface {
+  /** get node details */
+  getNode(id: string): Promise<Node | null>
 }

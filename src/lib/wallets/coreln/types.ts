@@ -17,7 +17,8 @@ import type {
   TransactionsInterface,
   UtxosInterface,
   ForwardsInterface,
-  SignaturesInterface
+  SignaturesInterface,
+  NetworkInterface
 } from '../interfaces.js'
 
 export type CommandoMsgs = Observable<
@@ -45,6 +46,7 @@ export interface CorelnConnectionInterface extends Connection {
   transactions: TransactionsInterface
   blocks: BlocksInterface
   forwards: ForwardsInterface
+  network: NetworkInterface
 }
 
 export interface GetinfoResponse {
@@ -587,25 +589,6 @@ export type BkprChannelsAPYResponse = {
   channels_apy: ChannelAPY[]
 }
 
-export type ListNode = {
-  walletId: string
-  alias: string
-  color: string
-  last_timestamp: number
-  features: string
-  addresses: [
-    {
-      type: string
-      address: string
-      port: number
-    }
-  ]
-}
-
-export type ListNodesResponse = {
-  nodes: ListNode[]
-}
-
 export type FetchInvoiceResponse = {
   /**The BOLT12 invoice we fetched */
   invoice: string
@@ -1129,6 +1112,26 @@ export type ListAccountEventsResponse = {
   )[]
 }
 
+export type NodeBaseResponse = { nodeid: string }
+
+export type NodeFullResponse = NodeBaseResponse & {
+  last_timestamp: number
+  alias: string
+  color: string
+  features: string
+  addresses: [
+    {
+      type: string
+      address: string
+      port: number
+    }
+  ]
+}
+
+export type ListNodesResponse = {
+  nodes: (NodeBaseResponse | NodeFullResponse)[]
+}
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1155,6 +1158,7 @@ export type LNResponse =
   | WithdrawResponse
   | ListForwardsResponse
   | FundChannelResponse
+  | ListNodesResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 

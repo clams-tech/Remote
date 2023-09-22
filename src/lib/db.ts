@@ -14,6 +14,7 @@ import type { Trade } from './@types/trades.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import type { Deposit } from './@types/deposits.js'
 import type { ExchangeRate } from './@types/exchange-rates.js'
+import type { Node } from './@types/nodes.js'
 
 class DB extends Dexie {
   addresses!: Table<Address>
@@ -25,6 +26,7 @@ class DB extends Dexie {
   invoices!: Table<Invoice>
   labels!: Table<Label>
   metadata!: Table<Metadata>
+  nodes!: Table<Node>
   offers!: Table<Offer>
   trades!: Table<Trade>
   transactions!: Table<Transaction>
@@ -47,6 +49,7 @@ class DB extends Dexie {
         '&[id+walletId], id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, offer.id, [walletId+direction]',
       labels: '&ref, type, label, spendable, origin',
       metadata: '&id, type, tags, contact',
+      nodes: '&id, alias',
       offers:
         '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer]',
       trades: '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination',
