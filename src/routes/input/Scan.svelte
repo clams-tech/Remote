@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from 'svelte'
   import debounce from 'lodash.debounce'
-  import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/components/Spinner.svelte'
   import { parseInput } from '$lib/input-parser.js'
   import { isDesktop, nowSeconds } from '$lib/utils.js'

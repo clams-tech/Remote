@@ -165,7 +165,7 @@
       </div>
     {:else if !$forwards$.length}
       <div class="w-full mt-4">
-        <Msg message={$translate('app.labels.no_forwards')} type="info" />
+        <Msg message={$translate('app.labels.no_forwards')} type="info" closable={false} />
       </div>
     {:else}
       <div

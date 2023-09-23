@@ -23,7 +23,7 @@
 
 <div
   in:fade={{ duration: 250 }}
-  class="flex flex-col justify-center items-center overflow-hidden px-2 md:p-4 w-full relative"
+  class="flex flex-col justify-center items-center overflow-hidden p-4 w-full relative"
 >
   <div
     class="grid justify-center 2xl:max-w-2xl grid-cols-3 sm:grid-cols-4 gap-2 w-full max-w-xl overflow-auto"

@@ -165,7 +165,7 @@
 </svelte:head>
 
 <Section>
-  <div class="w-full flex flex-col items-center">
+  <div class="w-full flex flex-col items-center h-full overflow-auto">
     {#if couldNotFindChannel}
       <div class="mt-4">
         <Msg message={$translate('app.errors.could_not_find_channel')} type="error" />

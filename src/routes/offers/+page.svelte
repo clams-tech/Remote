@@ -148,8 +148,8 @@
         <Spinner />
       </div>
     {:else if !$offers$.length}
-      <div class="w-full mt-4">
-        <Msg message={$translate('app.labels.no_offers')} type="info" />
+      <div class="w-full mt-4 mb-2">
+        <Msg message={$translate('app.labels.no_offers')} type="info" closable={false} />
       </div>
     {:else if processed}
       <div

@@ -390,7 +390,7 @@
         <Spinner />
       </div>
     {:else if !$payments$.length}
-      <div class="mt-4 w-full">
+      <div class="mt-4 mb-2 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
       </div>
     {:else}
@@ -420,7 +420,9 @@
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
-                    {#await getSummary(payment) then summary}
+                    {#await getSummary(payment)}
+                      <div class="w-full h-[{rowSize}px] bg-utility-success flex justify-center items-center">Loading</div>
+                    {:then summary}
                       <PaymentRow {payment} {summary} />
                     {/await}
                   {/each}
