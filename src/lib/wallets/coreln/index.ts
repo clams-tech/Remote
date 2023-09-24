@@ -1,5 +1,4 @@
 import type { LnWebSocketOptions, Logger } from 'lnmessage/dist/types.js'
-import LnMessage from 'lnmessage'
 import Offers from './offers.js'
 import Signatures from './signatures.js'
 import Utxos from './utxos.js'
@@ -9,19 +8,21 @@ import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { Session } from '$lib/@types/session.js'
-import type { BehaviorSubject } from 'rxjs'
+import { BehaviorSubject, filter, firstValueFrom, fromEvent, map } from 'rxjs'
 import { Subject } from 'rxjs'
 import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
 import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
+import Network from './network.js'
+import { createRandomHex } from '$lib/crypto.js'
 
 import type {
-  CommandoMsgs,
   CoreLnError,
   CorelnConnectionInterface,
-  GetinfoResponse
+  GetinfoResponse,
+  SocketWrapper
 } from './types.js'
 
 import type {
@@ -35,18 +36,19 @@ import type {
   TransactionsInterface,
   UtxosInterface,
   ForwardsInterface,
-  NetworkInterface
+  NetworkInterface,
+  ConnectionStatus
 } from '../interfaces.js'
-import Network from './network.js'
 
 class CoreLightning implements CorelnConnectionInterface {
+  socket: SocketWrapper | null
+  lnmessageOptions: LnWebSocketOptions
   walletId: Wallet['id']
   info: Info
   destroy$: Subject<void>
   errors$: Subject<AppError>
   rune: string
   rpc: RpcCall
-  commandoMsgs$: CommandoMsgs
   connect: () => Promise<Info | null>
   disconnect: () => void
   connectionStatus$: BehaviorSubject<
@@ -75,8 +77,9 @@ class CoreLightning implements CorelnConnectionInterface {
     const { secret } = session
 
     this.walletId = walletId
+    this.socket = null
 
-    const socket = new LnMessage({
+    this.lnmessageOptions = {
       remoteNodePublicKey: publicKey,
       wsProxy: connection.type === 'proxy' ? connection.value : undefined,
       wsProtocol:
@@ -87,16 +90,25 @@ class CoreLightning implements CorelnConnectionInterface {
       port: port || 9735,
       privateKey: secret,
       logger: logger
-    })
+    }
 
     this.rune = token
 
-    this.rpc = ({ method, params, reqId }: { method: string; params?: unknown; reqId?: string }) =>
-      socket.commando({ method, params, rune: this.rune, reqId })
-
-    this.commandoMsgs$ = socket.commandoMsgs$
+    this.rpc = async ({
+      method,
+      params,
+      reqId
+    }: {
+      method: string
+      params?: unknown
+      reqId?: string
+    }) => {
+      const socket = await this.getSocket()
+      return socket.commando({ method, params, rune: this.rune, reqId })
+    }
 
     this.connect = async () => {
+      const socket = await this.getSocket()
       const connected = await socket.connect()
 
       if (connected) {
@@ -127,12 +139,11 @@ class CoreLightning implements CorelnConnectionInterface {
 
     this.disconnect = () => {
       this.destroy$.next()
-      socket.disconnect()
+      this.getSocket().then(socket => socket.disconnect())
     }
 
-    this.connectionStatus$ = socket.connectionStatus$
+    this.connectionStatus$ = new BehaviorSubject<ConnectionStatus>('disconnected')
     this.errors$ = new Subject()
-
     this.signatures = new Signatures(this)
     this.offers = new Offers(this)
     this.invoices = new Invoices(this)
@@ -147,6 +158,64 @@ class CoreLightning implements CorelnConnectionInterface {
   updateToken(token: string): void {
     this.rune = token
     return
+  }
+
+  async getSocket() {
+    if (this.socket) return this.socket
+
+    const { default: LnMessageWorker } = await import('./lnmessage.worker?worker')
+    const worker = new LnMessageWorker()
+    const messages$ = fromEvent<MessageEvent>(worker, 'message')
+    const id = createRandomHex()
+    const initProm = firstValueFrom(messages$.pipe(filter(message => message.data.id === id)))
+    worker.postMessage({ id, type: 'init', data: this.lnmessageOptions })
+
+    await initProm
+
+    messages$
+      .pipe(
+        filter(message => message.data.id === 'connectionStatus$'),
+        map(({ data }) => data.result)
+      )
+      .subscribe(status => this.connectionStatus$.next(status))
+
+    this.socket = {
+      connect: async () => {
+        const id = createRandomHex()
+        worker.postMessage({ id, type: 'connect' })
+
+        return firstValueFrom(
+          messages$.pipe(
+            filter(message => message.data.id === id),
+            map(message => message.data.result as boolean)
+          )
+        )
+      },
+      disconnect: async () => {
+        const id = createRandomHex()
+        worker.postMessage({ id, type: 'disconnect' })
+
+        return firstValueFrom(
+          messages$.pipe(
+            filter(message => message.data.id === id),
+            map(() => undefined)
+          )
+        )
+      },
+      commando: async request => {
+        const id = createRandomHex()
+        worker.postMessage({ id, type: 'commando', data: request })
+
+        return firstValueFrom(
+          messages$.pipe(
+            filter(message => message.data.id === id),
+            map(message => message.data.result)
+          )
+        )
+      }
+    }
+
+    return this.socket
   }
 }
 
