@@ -1,5 +1,4 @@
 import { BitcoinDenomination, FiatDenomination } from './@types/settings.js'
-import type { Offer } from './@types/offers.js'
 import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
 import { formatMsatString } from './wallets/coreln/utils.js'
@@ -29,11 +28,7 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   }
 }
 
-export async function bolt12ToOffer(
-  bolt12: string,
-  walletId: string,
-  offerId?: string
-): Promise<Offer> {
+export const decodeBolt12 = async (bolt12: string) => {
   const { default: decoder } = await import('bolt12-decoder')
   const decoded = decoder(bolt12)
 
@@ -48,48 +43,58 @@ export async function bolt12ToOffer(
     offer_quantity_max
   } = decoded
 
-  const expiry = offer_absolute_expiry
-  const description = offer_description
-  const issuer = offer_issuer
-
   let denomination: BitcoinDenomination.sats | FiatDenomination
-  let sendNodeId: string | undefined
-  let receiveNodeId: string | undefined
   let quantityMax: number | undefined
   let amount: number
-  let id = offerId || ''
+  let id: string
+  let senderNodeId: string | undefined
+  let receiverNodeId: string | undefined
+  let createdAt: number | undefined
+  let payerNote: string | undefined
 
   if (type === 'bolt12 invoice_request') {
-    const { invreq_amount, invreq_payer_id, invreq_id } = decoded as DecodedBolt12InvoiceRequest
+    const { invreq_amount, invreq_payer_id, invreq_id, invoice_created_at, invreq_payer_note } =
+      decoded as DecodedBolt12InvoiceRequest
     denomination = BitcoinDenomination.sats
     amount = msatsToSats(formatMsatString(invreq_amount))
-    sendNodeId = offer_node_id
-    receiveNodeId = invreq_payer_id
+    senderNodeId = invreq_payer_id
+    receiverNodeId = offer_node_id
     quantityMax = offer_quantity_max
     id = invreq_id
+    createdAt = invoice_created_at
+    payerNote = invreq_payer_note
   } else {
-    const { invreq_amount, invoice_node_id } = decoded as DecodedBolt12Invoice
+    const {
+      invreq_amount,
+      invoice_node_id,
+      invoice_created_at,
+      invreq_payer_note,
+      invreq_payer_id
+    } = decoded as DecodedBolt12Invoice
     const { offer_id } = decoded as DecodedBolt12Offer
     denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
     amount = msatsToSats(formatMsatString(offer_amount || invreq_amount))
-    receiveNodeId = offer_node_id || invoice_node_id
+    receiverNodeId = offer_node_id || invoice_node_id
+    senderNodeId = invreq_payer_id
     quantityMax = offer_quantity_max
-    id = offer_id || id
+    id = offer_id
+    createdAt = invoice_created_at
+    payerNote = invreq_payer_note
   }
 
   return {
-    id,
-    walletId,
-    bolt12,
+    offerId: id,
     type: decodedOfferTypeToOfferType(type),
-    expiry,
-    description,
-    issuer,
+    expiry: offer_absolute_expiry,
+    description: offer_description,
+    issuer: offer_issuer,
     denomination,
     amount,
-    sendNodeId,
-    receiveNodeId,
-    quantityMax
+    senderNodeId,
+    receiverNodeId,
+    quantityMax,
+    createdAt,
+    payerNote
   }
 }
 

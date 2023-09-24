@@ -4,11 +4,10 @@ import { invoiceStatusToPaymentStatus, formatMsatString } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
-import { bolt12ToOffer } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 import { createRandomHex } from '$lib/crypto.js'
 import Big from 'big.js'
-import { log } from '$lib/services.js'
+import { decodeBolt12 } from '$lib/invoices.js'
 
 import type {
   CreatePayOfferOptions,
@@ -24,11 +23,9 @@ import type {
   CreatePayOfferResponse,
   CreateWithdrawOfferResponse,
   FetchInvoiceResponse,
-  InvoiceRequestSummary,
   InvoiceStatus,
   ListInvoiceRequestsResponse,
   ListOffersResponse,
-  OfferSummary,
   PayResponse,
   SendInvoiceResponse
 } from './types.js'
@@ -50,36 +47,55 @@ class Offers implements OffersInterface {
       const { offers } = offersResponse as ListOffersResponse
       const { invoicerequests } = invoiceRequestsResponse as ListInvoiceRequestsResponse
 
-      const formatted = await Promise.all(
-        [...offers, ...invoicerequests].map(async (offer) => {
-          const { offer_id, bolt12, active, single_use, used, label } = offer as OfferSummary
-          const { invreq_id } = offer as InvoiceRequestSummary
+      const formattedOffers = await Promise.all(
+        offers.map(async offer => {
+          const { offer_id, bolt12, active, single_use, used, label } = offer
+          const { description, denomination, amount, issuer } = await decodeBolt12(bolt12)
 
-          try {
-            const formattedOffer = await bolt12ToOffer(
-              bolt12,
-              this.connection.walletId,
-              offer_id || invreq_id
-            )
-
-            return {
-              ...formattedOffer,
-              active,
-              single_use,
-              used,
-              bolt12,
-              label
-            }
-          } catch (error) {
-            const { message } = error as Error
-            log.error(message)
-
-            return null
+          const formatted: Offer = {
+            id: offer_id,
+            active,
+            singleUse: single_use,
+            used,
+            bolt12,
+            label,
+            walletId: this.connection.walletId,
+            description,
+            type: 'pay',
+            denomination,
+            amount,
+            issuer
           }
+
+          return formatted
         })
       )
 
-      return formatted.filter((x) => x !== null) as Offer[]
+      const formattedInvoiceRequests = await Promise.all(
+        invoicerequests.map(async offer => {
+          const { invreq_id, bolt12, active, single_use, used, label } = offer
+          const { description, denomination, amount, issuer } = await decodeBolt12(bolt12)
+
+          const formatted: Offer = {
+            id: invreq_id,
+            active,
+            singleUse: single_use,
+            used,
+            bolt12,
+            label,
+            walletId: this.connection.walletId,
+            description,
+            type: 'withdraw',
+            denomination,
+            amount,
+            issuer
+          }
+
+          return formatted
+        })
+      )
+
+      return formattedOffers.concat(formattedInvoiceRequests)
     } catch (error) {
       const context = 'get (offers)'
 
@@ -118,7 +134,6 @@ class Offers implements OffersInterface {
         denomination: BitcoinDenomination.sats,
         amount,
         description,
-        receiveNodeId: this.connection.info.id,
         walletId: this.connection.walletId,
         used,
         singleUse: single_use,
@@ -154,6 +169,7 @@ class Offers implements OffersInterface {
   async createWithdraw(options: CreateWithdrawOfferOptions): Promise<Offer> {
     try {
       const { amount, description, issuer, label, expiry, singleUse } = options
+      const absoluteExpiry = expiry && expiry + nowSeconds()
 
       const result = await this.connection.rpc({
         method: 'invoicerequest',
@@ -162,7 +178,7 @@ class Offers implements OffersInterface {
           description,
           issuer,
           label,
-          absolute_expiry: expiry && expiry + nowSeconds(),
+          absolute_expiry: absoluteExpiry,
           single_use: singleUse
         }
       })
@@ -176,7 +192,6 @@ class Offers implements OffersInterface {
         denomination: BitcoinDenomination.sats,
         amount,
         description,
-        sendNodeId: this.connection.info.id,
         walletId: this.connection.walletId,
         used,
         singleUse: single_use,
@@ -268,7 +283,6 @@ class Offers implements OffersInterface {
         preimage: payment_preimage,
         type: 'bolt12',
         direction: 'receive',
-        nodeId: this.connection.info.id,
         amount: msatsToSats(formatMsatString(amount_received_msat || amountMsat)),
         completedAt: paid_at ? paid_at : nowSeconds(),
         expiresAt: expires_at,
@@ -291,6 +305,7 @@ class Offers implements OffersInterface {
   async payInvoice(bolt12: string): Promise<Invoice> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
+      const decoded = decodeBolt12(bolt12)
 
       const {
         payment_hash,

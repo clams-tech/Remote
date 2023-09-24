@@ -97,12 +97,14 @@
 <Section>
   <SectionHeading icon={lightningOutline} text={$translate('app.labels.create_offer')} />
 
-  <div class="flex flex-col gap-y-4 w-full mt-2">
+  <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
     {#if !$availableWallets$}
       <Spinner />
     {:else if !$availableWallets$.length}
       <Msg message={$translate('app.labels.create_offer_unavailable')} type="info" />
     {:else}
+
+
       <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
 
       <OfferTypeSelector bind:type />
@@ -155,23 +157,25 @@
         </ShowMoar>
       </div>
 
-      <div class="w-full flex justify-end">
-        <div class="w-min">
-          <Button
-            requesting={creatingOffer}
-            disabled={type === 'withdraw' && !amount}
-            on:click={createOffer}
-            primary
-            text={$translate('app.labels.create')}
-          />
-        </div>
-      </div>
-    {/if}
 
-    {#if createOfferError}
-      <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>
-        <ErrorDetail error={createOfferError} />
-      </div>
     {/if}
   </div>
+
+  <div class="w-full flex justify-end mt-2">
+    <div class="w-min">
+      <Button
+        requesting={creatingOffer}
+        disabled={type === 'withdraw' && !amount}
+        on:click={createOffer}
+        primary
+        text={$translate('app.labels.create')}
+      />
+    </div>
+  </div>
+  
+      {#if createOfferError}
+        <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>
+          <ErrorDetail error={createOfferError} />
+        </div>
+      {/if}
 </Section>

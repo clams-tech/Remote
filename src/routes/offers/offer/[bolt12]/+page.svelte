@@ -3,7 +3,6 @@
   import Spinner from '$lib/components/Spinner.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import lightning from '$lib/icons/lightning.js'
-  import { bolt12ToOffer } from '$lib/invoices.js'
   import { catchError, combineLatest, filter, from, map, of } from 'rxjs'
   import type { PageData } from './$types.js'
   import { connections$, settings$, wallets$ } from '$lib/streams.js'
@@ -27,6 +26,7 @@
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
+    import { decodeBolt12 } from '$lib/invoices.js'
 
   export let data: PageData
 
@@ -37,26 +37,26 @@
   let customAmount: number
   let payerNote: string
 
-  const offer$ = from(bolt12ToOffer(data.bolt12, '')).pipe(
+  const decoded$ = from(decodeBolt12(data.bolt12)).pipe(
     catchError(() => {
       decodeError = $translate('app.errors.invalid_bolt12')
       return of(null)
     })
   )
 
-  const availableWallets$ = combineLatest([offer$, wallets$, connections$]).pipe(
+  const availableWallets$ = combineLatest([decoded$, wallets$, connections$]).pipe(
     filter(([offer]) => !!offer),
-    map(([offer, wallets, connections]) =>
+    map(([decoded, wallets, connections]) =>
       wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        const selfPay = nodeId === offer?.receiveNodeId || nodeId === offer?.sendNodeId
+        const selfPay = nodeId === decoded?.receiverNodeId || nodeId === decoded?.senderNodeId
         return !!connection?.invoices?.pay && !selfPay
       })
     )
   )
 
   const handleKeyUp = (e: KeyboardEvent) =>
-    e.key === 'Enter' && ($offer$?.amount || customAmount) && useOffer()
+    e.key === 'Enter' && ($decoded$?.amount || customAmount) && useOffer()
 
   const useOffer = async () => {
     requestingError = null
@@ -70,7 +70,7 @@
       ) as Connection
 
       // handle pay offer
-      if ($offer$!.type === 'pay') {
+      if ($decoded$!.type === 'pay') {
         if (!connection.offers?.fetchInvoice || !connection.offers?.payInvoice) {
           throw {
             key: 'connection_unsupported_action',
@@ -88,22 +88,10 @@
           payerNote
         })
 
-        let decodedFetchedInvoice: Offer
-
         try {
-          decodedFetchedInvoice = await bolt12ToOffer(fetchedInvoice, '')
-        } catch (error) {
-          throw {
-            key: 'fetched_invoice_invalid',
-            detail: {
-              context: 'pay offer',
-              message: 'Fetched invoice is invalid.',
-              timestamp: nowSeconds()
-            }
-          }
-        }
+          const decodedFetchedInvoice = await decodeBolt12(fetchedInvoice)
 
-        if (decodedFetchedInvoice.amount !== ($offer$?.amount || customAmount)) {
+          if (decodedFetchedInvoice.amount !== ($decoded$?.amount || customAmount)) {
           throw {
             key: 'invoice_amount_invalid',
             detail: {
@@ -115,6 +103,16 @@
         }
 
         invoice = await connection.offers.payInvoice(fetchedInvoice)
+        } catch (error) {
+          throw {
+            key: 'fetched_invoice_invalid',
+            detail: {
+              context: 'pay offer',
+              message: 'Fetched invoice is invalid.',
+              timestamp: nowSeconds()
+            }
+          }
+        }
       } else {
         // handle withdraw offer
         if (!connection.offers?.sendInvoice) {
@@ -149,10 +147,10 @@
 <Section>
   {#if decodeError}
     <Msg type="error" message={decodeError} closable={false} />
-  {:else if !$offer$}
+  {:else if !$decoded$}
     <Spinner />
   {:else}
-    {@const { type, amount, description, receiveNodeId, expiry, issuer } = $offer$}
+    {@const { type, amount, description, receiverNodeId, expiry, issuer } = $decoded$}
 
     <div class="w-full flex justify-center items-center text-3xl font-semibold">
       <div class="w-8 mr-1.5 -ml-2">{@html lightning}</div>
@@ -175,10 +173,10 @@
         </div>
       </SummaryRow>
 
-      {#if type === 'pay' && receiveNodeId}
+      {#if type === 'pay' && receiverNodeId}
         <SummaryRow>
           <div slot="label">{$translate('app.labels.destination')}:</div>
-          <div slot="value"><CopyValue value={receiveNodeId} truncateLength={9} /></div>
+          <div slot="value"><CopyValue value={receiverNodeId} truncateLength={9} /></div>
         </SummaryRow>
       {/if}
 

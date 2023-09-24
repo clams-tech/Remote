@@ -2,9 +2,8 @@ import Big from 'big.js'
 import type { Invoice } from '$lib/@types/invoices.js'
 import type { InvoiceStatus, Pay, RawInvoice } from './types'
 import { State } from './types'
-import type { DecodedBolt12Invoice } from 'bolt12-decoder/@types/types.js'
 import type { ChannelStatus } from '$lib/@types/channels.js'
-import { decodeBolt11 } from '$lib/invoices.js'
+import { decodeBolt11, decodeBolt12 } from '$lib/invoices.js'
 import { log } from '$lib/services.js'
 import { msatsToSats } from '$lib/conversion.js'
 import { nowSeconds } from '$lib/utils.js'
@@ -54,12 +53,11 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
     description,
     expires_at,
     pay_index,
-    local_offer_id,
-    payer_note
+    local_offer_id
   } = invoice
 
   let createdAt: number = new Date().getTime() / 1000
-  let nodeId
+  let nodeId: string | undefined
 
   let offer: Invoice['offer']
 
@@ -74,25 +72,25 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
   }
 
   if (bolt12) {
-    const { default: decodeBolt12 } = await import('bolt12-decoder')
-    const decoded = decodeBolt12(bolt12)
+    const decoded = await decodeBolt12(bolt12)
 
     const {
-      invoice_created_at,
-      offer_issuer,
-      offer_description,
-      invreq_payer_note,
-      invreq_payer_id
-    } = decoded as DecodedBolt12Invoice
+      createdAt: invoiceCreatedAt,
+      senderNodeId,
+      issuer,
+      description,
+      payerNote,
+      offerId
+    } = decoded
 
-    createdAt = invoice_created_at || Date.now() / 1000
-    nodeId = invreq_payer_id
+    createdAt = invoiceCreatedAt as number
+    nodeId = senderNodeId
 
     offer = {
-      id: local_offer_id,
-      issuer: offer_issuer,
-      description: offer_description,
-      payerNote: invreq_payer_note || payer_note
+      id: offerId || local_offer_id,
+      issuer,
+      description,
+      payerNote
     }
   }
 
@@ -135,7 +133,7 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
 
   let description: string | undefined
   let offer: Invoice['offer']
-  let nodeId = destination as string
+  let nodeId = destination
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -149,18 +147,14 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
   }
 
   if (bolt12) {
-    const { default: decodeBolt12 } = await import('bolt12-decoder')
-    const decoded = decodeBolt12(bolt12)
+    const { receiverNodeId, issuer, description, payerNote } = await decodeBolt12(bolt12)
 
-    const { offer_issuer, offer_description, invreq_payer_note, offer_node_id, invreq_payer_id } =
-      decoded as DecodedBolt12Invoice
-
-    nodeId = offer_node_id || invreq_payer_id
+    nodeId = receiverNodeId
 
     offer = {
-      issuer: offer_issuer,
-      payerNote: invreq_payer_note,
-      description: offer_description
+      issuer,
+      payerNote,
+      description
     }
   }
 

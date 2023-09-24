@@ -10,7 +10,7 @@
   import trendingDown from '$lib/icons/trending-down'
   import { db } from '$lib/db.js'
   import { liveQuery } from 'dexie'
-  import { from, map, mergeMap, of, timer } from 'rxjs'
+  import { filter, from, map, mergeMap, of, switchMap, timer } from 'rxjs'
   import { nowSeconds, truncateValue } from '$lib/utils.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Modal from '$lib/components/Modal.svelte'
@@ -29,19 +29,39 @@
 
   let offerNotFound: boolean
 
-  const offer$ = liveQuery(() =>
-    db.offers.get(data.id).then((offer) => {
-      offerNotFound = !offer
-      return offer
-    })
+  const offer$ = from(
+    liveQuery(() =>
+      db.offers.get(data.id).then(offer => {
+        offerNotFound = !offer
+        return offer
+      })
+    )
   )
 
-  const offerPayments$ = liveQuery(() =>
-    db.invoices.where({ 'offer.id': data.id }).reverse().sortBy('completedAt')
+  const offerPayments$ = offer$.pipe(
+    filter(x => !!x),
+    switchMap(offer =>
+      from(
+        liveQuery(() =>
+          db.invoices
+            .where(
+              offer?.type === 'withdraw'
+                ? {
+                    direction: 'send',
+                    'offer.description': offer.description,
+                    'offer.issuer': offer.issuer
+                  }
+                : { 'offer.id': offer?.id }
+            )
+            .reverse()
+            .sortBy('completedAt')
+        )
+      )
+    )
   )
 
   const offerWallet$ = from(offer$).pipe(
-    mergeMap((offer) => (offer ? db.wallets.get(offer.walletId) : of(null)))
+    mergeMap(offer => (offer ? db.wallets.get(offer.walletId) : of(null)))
   )
 
   const now$ = timer(0, 1000).pipe(map(nowSeconds))
@@ -51,7 +71,7 @@
       ? 'expired'
       : $offer$?.active
       ? 'active'
-      : $offer$?.singleUse && $offerPayments$?.length
+      : $offer$?.singleUse && $offer$?.used
       ? 'complete'
       : 'disabled'
 

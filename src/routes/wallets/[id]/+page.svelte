@@ -45,7 +45,7 @@
   let showConfiguration = false
 
   const wallet$ = liveQuery(() =>
-    db.wallets.get(id).then((wallet) => {
+    db.wallets.get(id).then(wallet => {
       if (wallet) {
         const { token } = wallet.configuration as CoreLnConfiguration
 
@@ -63,7 +63,7 @@
 
   const walletBalance$ = getWalletBalance(id)
 
-  $: connection = $connections$.find((conn) => conn.walletId === id)
+  $: connection = $connections$.find(conn => conn.walletId === id)
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
 
   $: if ($wallet$ && !$wallet$.modifiedAt) {
@@ -74,12 +74,12 @@
     $wallet$ &&
     Object.values(connectionOptions)
       .flat()
-      .find((c) => c.type === $wallet$!.type)?.icon
+      .find(c => c.type === $wallet$!.type)?.icon
 
   onMount(() => {
     from(wallet$)
       .pipe(take(1))
-      .subscribe((details) => {
+      .subscribe(details => {
         if (!details) {
           goto('/wallets')
         }
@@ -114,7 +114,7 @@
 
     // disconnect the old connection interface if exists
     const currentConnections = [...$connections$]
-    const oldConnectionIndex = currentConnections.findIndex((conn) => conn.walletId === id)
+    const oldConnectionIndex = currentConnections.findIndex(conn => conn.walletId === id)
 
     if (oldConnectionIndex !== -1) {
       const oldConnection = currentConnections[oldConnectionIndex]
@@ -158,7 +158,7 @@
 
     syncProgress$
       .pipe(
-        filter((x) => x === 100),
+        filter(x => x === 100),
         take(1)
       )
       .subscribe({
@@ -169,7 +169,7 @@
   }
 
   const recentErrors$ = connectionErrors$.pipe(
-    map((err) => err[id]),
+    map(err => err[id]),
     takeUntil(onDestroy$)
   )
 
@@ -197,7 +197,7 @@
     }
 
     await Promise.all(
-      db.tables.map(async (table) => {
+      db.tables.map(async table => {
         try {
           await table.where('walletId').equals(id).delete()
         } catch (error) {

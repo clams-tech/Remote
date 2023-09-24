@@ -8,8 +8,6 @@ export type Offer = {
   amount: number
   description: string
   walletId: string
-  receiveNodeId?: string
-  sendNodeId?: string
   used?: boolean
   singleUse?: boolean
   active?: boolean

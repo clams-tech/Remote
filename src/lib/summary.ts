@@ -696,7 +696,14 @@ export const deriveInvoiceSummary = ({
     const invoiceSummary: InvoiceSummary = {
       timestamp: completedAt || createdAt,
       fee: fee || 0,
-      category: (type === 'transfer' && fee) || type === 'send' ? 'expense' : 'income',
+      category:
+        type === 'transfer'
+          ? fee
+            ? 'expense'
+            : 'neutral'
+          : type === 'send'
+          ? 'expense'
+          : 'income',
       type,
       amount,
       primary: { type: 'wallet', value: wallet },

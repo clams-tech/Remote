@@ -43,7 +43,7 @@
     type RegularTransactionSummary,
     type ChannelTransactionSummary
   } from '$lib/summary.js'
-    import { updateCounterPartyNodeInfo } from '../utils.js'
+  import { updateCounterPartyNodeInfo } from '../utils.js'
 
   export let data: PageData
 
@@ -100,7 +100,7 @@
         db.nodes,
         async (): Promise<TransactionDetail[]> => {
           const [invoices, address, transactions] = await Promise.all([
-            db.invoices.where({id}).toArray(),
+            db.invoices.where({ id }).toArray(),
             db.addresses.get(id),
             db.transactions.where({ id }).toArray()
           ])
@@ -109,7 +109,7 @@
 
           if (invoices.length) {
             // prefer sender invoice if multiple copies
-            const invoice = invoices.find(({direction}) => direction === 'send') || invoices[0]
+            const invoice = invoices.find(({ direction }) => direction === 'send') || invoices[0]
 
             const {
               request,
@@ -310,7 +310,7 @@
     if (transactionDetailToShow) {
       updateCounterPartyNodeInfo(transactionDetailToShow.secondary).then(node => {
         if (node && transactionDetailToShow) {
-          transactionDetailToShow.secondary = {type: 'node', value: node}
+          transactionDetailToShow.secondary = { type: 'node', value: node }
         }
       })
     }
@@ -324,7 +324,7 @@
     : []
 
   const handlePaymentExpire = async () => {
-    await db.invoices.where({id}).modify({ status: 'expired' })
+    await db.invoices.where({ id }).modify({ status: 'expired' })
   }
 
   const tryFindWithdrawalOfferId = async (offerDetails: Invoice['offer']) => {
@@ -351,10 +351,12 @@
         return `/utxos/${inputOutput.utxo.id}`
       }
       case 'settle':
-        return inputOutput.utxo ? `/utxos/${inputOutput.utxo.id}` : `/channels/${inputOutput.channel.id}`
+        return inputOutput.utxo
+          ? `/utxos/${inputOutput.utxo.id}`
+          : `/channels/${inputOutput.channel.id}`
       case 'withdrawal':
         return `/wallets/${inputOutput.withdrawal.walletId}`
-        case 'deposit':
+      case 'deposit':
         return `/wallets/${inputOutput.deposit.walletId}`
     }
   }
@@ -510,7 +512,15 @@
                     <div class="text-xs flex items-center">
                       <div class="mr-1 flex items-center">
                         {#if type !== 'unknown'}
-                        <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_close' || type === 'timelocked' ? channelIcon : type === 'spend' ? keys : type === 'withdrawal' ? walletIcon : ''}</div>
+                          <div class="w-4 mr-0.5 -ml-0.5">
+                            {@html type === 'channel_close' || type === 'timelocked'
+                              ? channelIcon
+                              : type === 'spend'
+                              ? keys
+                              : type === 'withdrawal'
+                              ? walletIcon
+                              : ''}
+                          </div>
                         {/if}
                         {$translate(`app.labels.input_${type}`).toLowerCase()}:
                       </div>
@@ -575,7 +585,21 @@
                     <div class="text-xs flex items-center">
                       <div class="mr-1 flex items-center">
                         {#if type !== 'unknown' && type !== 'send'}
-                          <div class="w-4 mr-0.5 -ml-0.5">{@html type === 'channel_open' || type === 'timelocked' || (type === 'settle' && !output.utxo) ? channelIcon : type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep' || (type === 'settle' && output.utxo) ? keys : type === 'deposit' ? walletIcon : ''}</div>
+                          <div class="w-4 mr-0.5 -ml-0.5">
+                            {@html type === 'channel_open' ||
+                            type === 'timelocked' ||
+                            (type === 'settle' && !output.utxo)
+                              ? channelIcon
+                              : type === 'receive' ||
+                                type === 'change' ||
+                                type === 'transfer' ||
+                                type === 'sweep' ||
+                                (type === 'settle' && output.utxo)
+                              ? keys
+                              : type === 'deposit'
+                              ? walletIcon
+                              : ''}
+                          </div>
                         {/if}
 
                         {$translate(`app.labels.output_${type}`).toLowerCase()}:
@@ -587,21 +611,24 @@
                             {wallet?.label}
                           {/await}
                         {:else if type === 'settle'}
-                        {@const { utxo } = output}
-                        {#if utxo}
-                        {#await db.wallets.get(utxo.walletId) then wallet}
-                          {wallet?.label}
-                        {/await}
-                        {:else}
-                        {@const {channel} = output}
-                          {#await db.wallets.where({nodeId: channel.peerId}).first() then wallet}
-                            {#if wallet}
-                              {wallet.label}
-                            {:else}
-                          {channel.peerAlias || truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                          {@const { utxo } = output}
+                          {#if utxo}
+                            {#await db.wallets.get(utxo.walletId) then wallet}
+                              {wallet?.label}
+                            {/await}
+                          {:else}
+                            {@const { channel } = output}
+                            {#await db.wallets
+                              .where({ nodeId: channel.peerId })
+                              .first() then wallet}
+                              {#if wallet}
+                                {wallet.label}
+                              {:else}
+                                {channel.peerAlias ||
+                                  truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                              {/if}
+                            {/await}
                           {/if}
-                          {/await}
-                        {/if}
                         {:else if type === 'timelocked' || type === 'channel_open'}
                           {@const { channel } = output}
                           {#if channel.peerId}
@@ -660,12 +687,12 @@
         {/if}
 
         {#if blockHeight}
-        <SummaryRow>
-          <span slot="label">{$translate('app.labels.included_in_block')}:</span>
-          <div slot="value">
-            {blockHeight}
-          </div>
-        </SummaryRow>
+          <SummaryRow>
+            <span slot="label">{$translate('app.labels.included_in_block')}:</span>
+            <div slot="value">
+              {blockHeight}
+            </div>
+          </SummaryRow>
         {/if}
 
         {#if channels}

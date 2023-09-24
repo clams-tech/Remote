@@ -12,7 +12,19 @@
 
   export let offer: Offer
 
-  const offerPayments$ = liveQuery(() => db.invoices.where({ 'offer.id': offer.id }).toArray())
+  const offerPayments$ = liveQuery(() =>
+    db.invoices
+      .where(
+        offer?.type === 'withdraw'
+          ? {
+              direction: 'send',
+              'offer.description': offer.description,
+              'offer.issuer': offer.issuer
+            }
+          : { 'offer.id': offer?.id }
+      )
+      .toArray()
+  )
 
   const now$ = timer(0, 1000).pipe(map(nowSeconds))
 
