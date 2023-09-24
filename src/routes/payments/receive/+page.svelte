@@ -8,7 +8,7 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { DAY_IN_SECS } from '$lib/constants.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Button from '$lib/components/Button.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
@@ -47,7 +47,7 @@
 
   const handleselectedWalletIdChange = () => {
     connection = $connections$.find(
-      (connection) => connection.walletId === selectedWalletId
+      connection => connection.walletId === selectedWalletId
     ) as Connection
 
     if (connection) {

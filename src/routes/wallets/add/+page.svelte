@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import type { Wallet } from '$lib/@types/wallets.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'

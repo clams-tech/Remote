@@ -4,7 +4,7 @@
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { liveQuery } from 'dexie'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Spinner from '$lib/components/Spinner.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import { fade, slide } from 'svelte/transition'
@@ -65,10 +65,10 @@
   // once we have offers, create filters, tag filters
   offers$
     .pipe(
-      filter((x) => !!x),
+      filter(x => !!x),
       takeUntil(onDestroy$)
     )
-    .subscribe(async (offers) => {
+    .subscribe(async offers => {
       const walletIdSet = new Set<string>()
       const tagSet = new Set()
 
@@ -78,7 +78,7 @@
         const metadata = await db.metadata.get(id)
 
         if (metadata) {
-          metadata.tags.forEach((tag) => tagSet.add(tag))
+          metadata.tags.forEach(tag => tagSet.add(tag))
         }
       }
 
@@ -99,7 +99,7 @@
         }, [] as Filter['values'])
       }
 
-      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+      tagFilters = Array.from(tagSet.values()).map(tag => ({
         tag: tag as string,
         checked: false
       }))
@@ -158,7 +158,7 @@
       >
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={(e) => handleOffersScroll(e.detail.offset)}
+          on:afterScroll={e => handleOffersScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
           itemCount={processed.length}

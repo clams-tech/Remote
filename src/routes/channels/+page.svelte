@@ -6,7 +6,7 @@
   import ChannelRow from './ChannelRow.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import { liveQuery } from 'dexie'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Msg from '$lib/components/Msg.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Section from '$lib/components/Section.svelte'
@@ -20,7 +20,7 @@
 
   const channels$ = from(
     liveQuery(() =>
-      db.channels.toArray().then((channels) =>
+      db.channels.toArray().then(channels =>
         Array.from(
           channels
             .reduce((acc, channel) => {
@@ -102,10 +102,10 @@
   // once we have offers, create filters, tag filters
   channels$
     .pipe(
-      filter((x) => !!x),
+      filter(x => !!x),
       takeUntil(onDestroy$)
     )
-    .subscribe(async (offers) => {
+    .subscribe(async offers => {
       const walletIdSet = new Set<string>()
       const tagSet = new Set()
 
@@ -115,7 +115,7 @@
         const metadata = await db.metadata.get(id)
 
         if (metadata) {
-          metadata.tags.forEach((tag) => tagSet.add(tag))
+          metadata.tags.forEach(tag => tagSet.add(tag))
         }
       }
 
@@ -136,7 +136,7 @@
         }, [] as Filter['values'])
       }
 
-      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+      tagFilters = Array.from(tagSet.values()).map(tag => ({
         tag: tag as string,
         checked: false
       }))
@@ -231,7 +231,7 @@
         >
           <VirtualList
             bind:this={virtualList}
-            on:afterScroll={(e) => handleChannelsScroll(e.detail.offset)}
+            on:afterScroll={e => handleChannelsScroll(e.detail.offset)}
             width="100%"
             height={listHeight}
             itemCount={processed.length}

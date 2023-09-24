@@ -12,7 +12,7 @@
   import { fade, slide } from 'svelte/transition'
   import settingsOutline from '$lib/icons/settings-outline.js'
   import caret from '$lib/icons/caret.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import { getWalletBalance, nowSeconds } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'

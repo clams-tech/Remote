@@ -16,7 +16,7 @@
   import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { TLV_RECORDS } from '$lib/constants.js'
@@ -130,7 +130,7 @@
     <div class="w-full flex items-center justify-between mt-6">
       {#if $settings$.fiatDenomination !== 'none'}
         <div class="w-12 -ml-2">
-          <Calculator on:amount={(e) => (amountSats = e.detail)} />
+          <Calculator on:amount={e => (amountSats = e.detail)} />
         </div>
       {/if}
       <div class="w-min">

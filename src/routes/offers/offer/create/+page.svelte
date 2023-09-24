@@ -17,7 +17,7 @@
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import { goto } from '$app/navigation'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
 
@@ -103,8 +103,6 @@
     {:else if !$availableWallets$.length}
       <Msg message={$translate('app.labels.create_offer_unavailable')} type="info" />
     {:else}
-
-
       <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
 
       <OfferTypeSelector bind:type />
@@ -156,8 +154,6 @@
           </div>
         </ShowMoar>
       </div>
-
-
     {/if}
   </div>
 
@@ -172,10 +168,10 @@
       />
     </div>
   </div>
-  
-      {#if createOfferError}
-        <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>
-          <ErrorDetail error={createOfferError} />
-        </div>
-      {/if}
+
+  {#if createOfferError}
+    <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>
+      <ErrorDetail error={createOfferError} />
+    </div>
+  {/if}
 </Section>

@@ -1,6 +1,6 @@
 import type { Invoice } from '$lib/@types/invoices.js'
 import type { Transaction } from '$lib/@types/transactions.js'
-import { db } from '$lib/db.js'
+import { db } from '$lib/db/index.js'
 import type { Channel } from './@types/channels.js'
 import type { Deposit } from './@types/deposits.js'
 import type { Utxo } from './@types/utxos.js'
@@ -139,10 +139,10 @@ export type EnhancedOutput =
   | UnknownOutput
 
 const isChangeOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
-  !!inputs.find((input) => input.type === 'spend' && input.utxo.walletId === utxo.walletId)
+  !!inputs.find(input => input.type === 'spend' && input.utxo.walletId === utxo.walletId)
 
 const isTransferOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
-  !!inputs.find((input) => input.type === 'spend' && input.utxo.walletId !== utxo.walletId)
+  !!inputs.find(input => input.type === 'spend' && input.utxo.walletId !== utxo.walletId)
 
 const isSweepOutput = async (
   inputs: Transaction['inputs']
@@ -165,7 +165,7 @@ const isSweepOutput = async (
   forceClosedTransactions.forEach(({ outputs, id, channel }) => {
     outputs.forEach(({ index }) => {
       const forceCloseOutputOutpoint = `${id}:${index}`
-      inputs.forEach((input) => {
+      inputs.forEach(input => {
         const inputOutpoint = `${input.txid}:${input.index}`
         if (inputOutpoint === forceCloseOutputOutpoint) {
           forceClosedChannelId = channel?.id
@@ -201,7 +201,7 @@ export const deriveTransactionSummary = ({
     db.transactions,
     async () => {
       const enhancedInputs: EnhancedInput[] = await Promise.all(
-        inputs.map(async (input) => {
+        inputs.map(async input => {
           /** Possibilities:
            * we own the input (spend)
            * the input was a channel 2of2 multisig (closing channel tx)(channel)
@@ -247,7 +247,7 @@ export const deriveTransactionSummary = ({
       )
 
       const enhancedOutputs: EnhancedOutput[] = await Promise.all(
-        outputs.map(async (output) => {
+        outputs.map(async output => {
           /** Possibilities:
            * we own the output (receive)
            * we own the output and we own an input from the same wallet (change) (requires looking at inputs)
@@ -265,7 +265,7 @@ export const deriveTransactionSummary = ({
             enhancedInputs.find(({ type }) => type === 'channel_close') as ChannelCloseInput
           )?.channel
 
-          const ownedInputUtxo = enhancedInputs.find((input) => input.type === 'spend')
+          const ownedInputUtxo = enhancedInputs.find(input => input.type === 'spend')
 
           if (closedChannel) {
             if (ownedOutputUtxo) {
@@ -302,7 +302,7 @@ export const deriveTransactionSummary = ({
             : undefined
 
           if (forceClosedChannelId) {
-            enhancedInputs.forEach((input) => {
+            enhancedInputs.forEach(input => {
               if (input.outpoint === inputOutpoint) {
                 input.type = 'timelocked'
                 ;(input as ChannelCloseInput).channel = sweptChannel as Channel
@@ -398,7 +398,7 @@ export const deriveTransactionSummary = ({
         if (channels.length > 1) {
           counterparty = {
             type: 'channel_peer',
-            value: channels.map((channel) => channel.peerAlias || channel.peerId).join(', ')
+            value: channels.map(channel => channel.peerAlias || channel.peerId).join(', ')
           }
         } else if (channelPartnerWallet) {
           counterparty = { type: 'wallet', value: channelPartnerWallet }
@@ -466,7 +466,7 @@ export const deriveTransactionSummary = ({
         const withdrawalWallet = (await db.wallets.get(withdrawal.walletId)) as Wallet
 
         const withdrawalOutput = enhancedOutputs.find(
-          (output) => output.type === 'receive' && output.utxo.address === withdrawal.destination
+          output => output.type === 'receive' && output.utxo.address === withdrawal.destination
         ) as UtxoOutput
 
         const destinationWallet = (await db.wallets.get(withdrawalOutput.utxo.walletId)) as Wallet
@@ -493,7 +493,7 @@ export const deriveTransactionSummary = ({
       if (depositOutput) {
         const { deposit } = depositOutput
         const depositWallet = (await db.wallets.get(deposit.walletId)) as Wallet
-        const sourceInput = enhancedInputs.find((input) => input.type === 'spend') as SpendInput
+        const sourceInput = enhancedInputs.find(input => input.type === 'spend') as SpendInput
         const sourceWallet = (await db.wallets.get(sourceInput.utxo.walletId)) as Wallet
 
         const depositSummary: RegularTransactionSummary = {
@@ -517,7 +517,7 @@ export const deriveTransactionSummary = ({
 
       if (transferOutput) {
         const sourceInput = enhancedInputs.find(
-          (input) => input.type === 'spend' && input.utxo.walletId !== transferOutput.utxo.walletId
+          input => input.type === 'spend' && input.utxo.walletId !== transferOutput.utxo.walletId
         ) as SpendInput
 
         const sourceWallet = (await db.wallets.get(sourceInput.utxo.walletId)) as Wallet

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
@@ -33,120 +33,141 @@
 
   const payments$ = from(
     liveQuery(() => {
-      return db.transaction('r', db.invoices, db.transactions, db.addresses, db.utxos, db.channels, async () => {
-        const invoices = db.invoices
-          .toArray()
-          .then((invs) =>
-            Array.from(
-              invs
-                .reduce((acc, inv) => {
-                  const current = acc.get(inv.hash)
+      return db.transaction(
+        'r',
+        db.invoices,
+        db.transactions,
+        db.addresses,
+        db.utxos,
+        db.channels,
+        async () => {
+          const invoices = db.invoices
+            .toArray()
+            .then(invs =>
+              Array.from(
+                invs
+                  .reduce((acc, inv) => {
+                    const current = acc.get(inv.hash)
 
-                  // if duplicates (we are both parties to invoice), keep the sender copy
-                  if (!current || current.direction === 'receive') {
-                    acc.set(inv.hash, inv)
+                    // if duplicates (we are both parties to invoice), keep the sender copy
+                    if (!current || current.direction === 'receive') {
+                      acc.set(inv.hash, inv)
+                    }
+
+                    return acc
+                  }, new Map<string, Invoice>())
+                  .values()
+              )
+            )
+            .then(invs =>
+              invs.map(data => {
+                const {
+                  id,
+                  status,
+                  completedAt,
+                  createdAt,
+                  amount,
+                  request,
+                  fee,
+                  walletId,
+                  offer
+                } = data
+                return {
+                  id,
+                  type: 'invoice' as const,
+                  status,
+                  timestamp: completedAt || createdAt,
+                  walletId,
+                  amount,
+                  network: request ? getNetwork(request) : 'bitcoin',
+                  fee,
+                  offer: !!offer,
+                  data
+                }
+              })
+            )
+
+          const transactions = db.transactions
+            .toArray()
+            // @ts-ignore
+            .then(async txs => {
+              const deduped: Map<string, Transaction> = new Map()
+
+              for (const tx of txs) {
+                const current = deduped.get(tx.id)
+
+                // dedupes txs and prefers the tx where if a channel close, the closer or the wallet that is the sender (spender of an input utxo)
+                if (current) {
+                  const spentInputUtxo = await db.utxos
+                    .where('id')
+                    .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
+                    .first()
+
+                  let channel: Channel | undefined
+
+                  if (tx.channel) {
+                    const channels = await db.channels.where({ id: tx.channel.id }).toArray()
+                    channel = channels.find(
+                      ({ opener, closer }) =>
+                        ((tx.channel?.type === 'close' || tx.channel?.type === 'force_close') &&
+                          closer === 'local') ||
+                        opener === 'local'
+                    )
                   }
 
-                  return acc
-                }, new Map<string, Invoice>())
-                .values()
+                  // favour channel closer or opener
+                  if (channel?.walletId === tx.walletId) {
+                    deduped.set(tx.id, tx)
+                  } else if (spentInputUtxo?.walletId === tx.walletId) {
+                    // favour spender
+                    deduped.set(tx.id, tx)
+                  }
+                } else {
+                  deduped.set(tx.id, tx)
+                }
+              }
+
+              return Array.from(deduped.values())
+            })
+            .then(txs =>
+              txs.map(data => {
+                const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
+                return {
+                  id,
+                  type: 'transaction' as const,
+                  status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
+                  timestamp,
+                  walletId,
+                  network: getNetwork(outputs[0].address),
+                  fee,
+                  channel: !!channel,
+                  data
+                }
+              })
             )
-          )
-          .then((invs) =>
-            invs.map((data) => {
-              const { id, status, completedAt, createdAt, amount, request, fee, walletId, offer } =
-                data
-              return {
-                id,
-                type: 'invoice' as const,
-                status,
-                timestamp: completedAt || createdAt,
-                walletId,
-                amount,
-                network: request ? getNetwork(request) : 'bitcoin',
-                fee,
-                offer: !!offer,
-                data
-              }
-            })
-          )
 
-        const transactions = db.transactions
-          .toArray()
-          // @ts-ignore
-          .then(async (txs) => {
-            const deduped: Map<string, Transaction> = new Map()
-            
-            for (const tx of txs) {
-              const current = deduped.get(tx.id)
-
-              // dedupes txs and prefers the tx where if a channel close, the closer or the wallet that is the sender (spender of an input utxo)
-              if (current) {
-                const spentInputUtxo = await db.utxos
-                  .where('id')
-                  .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
-                  .first()
-
-                let channel: Channel | undefined
-
-                if (tx.channel) {
-                  const channels = await db.channels.where({id: tx.channel.id}).toArray()
-                  channel = channels.find(({opener, closer}) => ((tx.channel?.type === 'close' || tx.channel?.type === 'force_close') && closer === 'local') || opener === 'local')
+          const addresses = db.addresses
+            .filter(({ txid }) => !txid)
+            .toArray()
+            .then(addrs =>
+              addrs.map(data => {
+                const { id, createdAt, walletId, amount, value } = data
+                return {
+                  id,
+                  type: 'address' as const,
+                  status: 'waiting' as PaymentStatus,
+                  timestamp: createdAt,
+                  walletId,
+                  amount,
+                  network: getNetwork(value),
+                  data
                 }
-                
-                // favour channel closer or opener
-                if (channel?.walletId === tx.walletId) {
-                  deduped.set(tx.id, tx)
-                } else if (spentInputUtxo?.walletId === tx.walletId) {
-                  // favour spender 
-                  deduped.set(tx.id, tx)
-                }
+              })
+            )
 
-              } else {
-                deduped.set(tx.id, tx)
-              }
-            }
-
-            return Array.from(deduped.values())
-          })
-          .then((txs) =>
-            txs.map((data) => {
-              const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
-              return {
-                id,
-                type: 'transaction' as const,
-                status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
-                timestamp,
-                walletId,
-                network: getNetwork(outputs[0].address),
-                fee,
-                channel: !!channel,
-                data
-              }
-            })
-          )
-
-        const addresses = db.addresses
-          .filter(({ txid }) => !txid)
-          .toArray()
-          .then((addrs) =>
-            addrs.map((data) => {
-              const { id, createdAt, walletId, amount, value } = data
-              return {
-                id,
-                type: 'address' as const,
-                status: 'waiting' as PaymentStatus,
-                timestamp: createdAt,
-                walletId,
-                amount,
-                network: getNetwork(value),
-                data
-              }
-            })
-          )
-
-        return Promise.all([invoices, transactions, addresses]).then((results) => results.flat())
-      })
+          return Promise.all([invoices, transactions, addresses]).then(results => results.flat())
+        }
+      )
     })
   )
 
@@ -170,7 +191,7 @@
     { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
 
-  payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
+  payments$.pipe(takeUntil(onDestroy$)).subscribe(async payments => {
     const walletIdSet = new Set<string>()
     const tagSet = new Set()
 
@@ -180,7 +201,7 @@
       const metadata = await db.metadata.get(id)
 
       if (metadata) {
-        metadata.tags.forEach((tag) => tagSet.add(tag))
+        metadata.tags.forEach(tag => tagSet.add(tag))
       }
     }
 
@@ -201,7 +222,7 @@
       }, [] as Filter['values'])
     }
 
-    tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: false }))
+    tagFilters = Array.from(tagSet.values()).map(tag => ({ tag: tag as string, checked: false }))
 
     filters = [
       {
@@ -401,12 +422,12 @@
       >
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
+          on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
           itemCount={dailyPaymentChunks.length}
           itemSize={getDaySize}
-          getKey={(index) => dailyPaymentChunks[index][0]}
+          getKey={index => dailyPaymentChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
@@ -421,7 +442,11 @@
                 <div class="overflow-hidden rounded">
                   {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
                     {#await getSummary(payment)}
-                      <div class="w-full h-[{rowSize}px] bg-utility-success flex justify-center items-center">Loading</div>
+                      <div
+                        class="w-full h-[{rowSize}px] bg-utility-success flex justify-center items-center"
+                      >
+                        Loading
+                      </div>
                     {:then summary}
                       <PaymentRow {payment} {summary} />
                     {/await}

@@ -20,7 +20,7 @@
   import plus from '$lib/icons/plus.js'
   import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
 
@@ -52,14 +52,14 @@
 
     db.wallets.add(wallet)
 
-    connect(wallet).then((connection) => syncConnectionData(connection, null))
+    connect(wallet).then(connection => syncConnectionData(connection, null))
 
     autoConnectWallet$.next(null)
   }
 
   const initializeConnections = async () => {
     const connections = await Promise.all(
-      $wallets$.map(async (wallet) => {
+      $wallets$.map(async wallet => {
         let connection: Connection | null
         await db.wallets.update(wallet.id, { syncing: false })
 

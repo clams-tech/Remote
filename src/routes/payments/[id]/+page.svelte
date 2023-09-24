@@ -4,7 +4,7 @@
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
   import { formatDate, formatDateRelativeToNow } from '$lib/dates.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import Msg from '$lib/components/Msg.svelte'

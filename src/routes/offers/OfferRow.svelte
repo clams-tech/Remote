@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Offer } from '$lib/@types/offers.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { translate } from '$lib/i18n/translations.js'
   import caret from '$lib/icons/caret.js'
   import trendingDown from '$lib/icons/trending-down.js'

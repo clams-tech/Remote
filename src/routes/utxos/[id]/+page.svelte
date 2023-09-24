@@ -1,6 +1,6 @@
 <script lang="ts">
   import { formatDate } from '$lib/dates.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
@@ -25,7 +25,7 @@
   const utxo$ = from(liveQuery(() => db.utxos.get(id)))
   let utxoNotFound = false
 
-  utxo$.pipe(take(1)).subscribe((utxo) => {
+  utxo$.pipe(take(1)).subscribe(utxo => {
     if (!utxo) {
       utxoNotFound = true
     }

@@ -13,7 +13,7 @@
   import { filter, from, map, mergeMap, switchMap, takeUntil, timer } from 'rxjs'
   import type { Channel } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import connect from '$lib/icons/connect.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
@@ -42,20 +42,21 @@
       db.channels
         .where({ id: data.id })
         .toArray()
-        .then((channels) => {
+        .then(channels => {
           couldNotFindChannel = !channels.length
-          return channels?.find(({opener, closer}) => opener === 'local' || closer === 'local') || channels[0]
+          return (
+            channels?.find(({ opener, closer }) => opener === 'local' || closer === 'local') ||
+            channels[0]
+          )
         })
     )
   )
 
-  $: peerWallet = $wallets$?.find(
-    (wallet) => $channel$?.peerId && $channel$.peerId === wallet.nodeId
-  )
+  $: peerWallet = $wallets$?.find(wallet => $channel$?.peerId && $channel$.peerId === wallet.nodeId)
 
   const closingTransaction$ = channel$.pipe(
-    filter((x) => !!x),
-    mergeMap((channel) =>
+    filter(x => !!x),
+    mergeMap(channel =>
       db.transactions
         .where({ 'channel.id': channel!.id, walletId: channel?.walletId })
         .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
@@ -73,18 +74,18 @@
       switchMap(async () => {
         return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
       }),
-      filter((x) => !!x),
-      map((update) => update && update[0]),
+      filter(x => !!x),
+      map(update => update && update[0]),
       takeUntil(onDestroy$)
     )
-    .subscribe((channelUpdate) => {
+    .subscribe(channelUpdate => {
       if ($channel$) {
         db.channels.where({ id: data.id, walletId: $channel$.walletId }).modify(channelUpdate!)
       }
     })
 
   const loadData = async () => {
-    connection = $connections$.find((conn) => conn.walletId === $channel$!.walletId) as Connection
+    connection = $connections$.find(conn => conn.walletId === $channel$!.walletId) as Connection
     wallet = (await db.wallets.get($channel$!.walletId)) as Wallet
 
     const { feeBase, feePpm, htlcMin, htlcMax } = $channel$ as Channel
@@ -312,7 +313,8 @@
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.funding_transaction')}</div>
-            <a slot="value" class="flex items-center" href={`/payments/${fundingTransactionId}`}>{truncateValue(fundingTransactionId)}
+            <a slot="value" class="flex items-center" href={`/payments/${fundingTransactionId}`}
+              >{truncateValue(fundingTransactionId)}
               <div class="w-4 -rotate-90">{@html caret}</div>
             </a>
           </SummaryRow>

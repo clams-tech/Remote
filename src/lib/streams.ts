@@ -9,7 +9,7 @@ import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
 import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
 import { liveQuery } from 'dexie'
-import { db } from './db.js'
+import { db } from './db/index.js'
 
 import {
   BehaviorSubject,
@@ -39,7 +39,7 @@ type ConnectionErrors = Record<Wallet['id'], AppError[]>
 
 /** A collection of the last 10 errors for each walletId */
 export const connectionErrors$: Observable<ConnectionErrors> = errors$.pipe(
-  filter((error) => error.key?.startsWith('connection_')),
+  filter(error => error.key?.startsWith('connection_')),
   scan((acc, value) => {
     const { walletId } = value.detail
 
@@ -86,9 +86,9 @@ export const settings$ = new SvelteSubject<Settings>(
 settings$
   .pipe(
     skip(1),
-    filter((x) => !!x)
+    filter(x => !!x)
   )
-  .subscribe((update) => {
+  .subscribe(update => {
     try {
       storage.write(STORAGE_KEYS.settings, JSON.stringify(update))
     } catch (error) {
@@ -104,6 +104,6 @@ const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDeno
 merge(exchangeRatePoll$, fiatDenominationChange$)
   .pipe(
     switchMap(() => from(getBitcoinExchangeRate(settings$.value.fiatDenomination))),
-    filter((x) => !!x)
+    filter(x => !!x)
   )
   .subscribe(bitcoinExchangeRates$)

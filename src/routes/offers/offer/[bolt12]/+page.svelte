@@ -22,11 +22,11 @@
   import type { AppError } from '$lib/@types/errors.js'
   import type { Offer } from '$lib/@types/offers.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
-    import { decodeBolt12 } from '$lib/invoices.js'
+  import { decodeBolt12 } from '$lib/invoices.js'
 
   export let data: PageData
 
@@ -92,17 +92,17 @@
           const decodedFetchedInvoice = await decodeBolt12(fetchedInvoice)
 
           if (decodedFetchedInvoice.amount !== ($decoded$?.amount || customAmount)) {
-          throw {
-            key: 'invoice_amount_invalid',
-            detail: {
-              context: 'pay offer',
-              message: 'Fetched invoice amount does not match original or custom amount.',
-              timestamp: nowSeconds()
+            throw {
+              key: 'invoice_amount_invalid',
+              detail: {
+                context: 'pay offer',
+                message: 'Fetched invoice amount does not match original or custom amount.',
+                timestamp: nowSeconds()
+              }
             }
           }
-        }
 
-        invoice = await connection.offers.payInvoice(fetchedInvoice)
+          invoice = await connection.offers.payInvoice(fetchedInvoice)
         } catch (error) {
           throw {
             key: 'fetched_invoice_invalid',
@@ -239,7 +239,7 @@
       <div class="w-full flex items-center justify-between mt-6">
         <div class="w-12 -ml-2">
           {#if !amount && $settings$.fiatDenomination !== 'none'}
-            <Calculator on:amount={(e) => (customAmount = e.detail)} />
+            <Calculator on:amount={e => (customAmount = e.detail)} />
           {/if}
         </div>
         <div class="w-min">

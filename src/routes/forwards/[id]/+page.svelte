@@ -8,7 +8,7 @@
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { liveQuery } from 'dexie'
   import { truncateValue } from '$lib/utils.js'
   import Msg from '$lib/components/Msg.svelte'
@@ -24,7 +24,7 @@
   let forwardNotFound: boolean
 
   const forward$ = liveQuery(() =>
-    db.forwards.get(data.id).then((forward) => {
+    db.forwards.get(data.id).then(forward => {
       forwardNotFound = !forward
       return forward
     })

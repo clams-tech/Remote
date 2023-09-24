@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
@@ -60,10 +60,10 @@
   // once we have offers, create filters, tag filters
   utxos$
     .pipe(
-      filter((x) => !!x),
+      filter(x => !!x),
       takeUntil(onDestroy$)
     )
-    .subscribe(async (utxos) => {
+    .subscribe(async utxos => {
       const walletIdSet = new Set<string>()
       const tagSet = new Set()
 
@@ -73,7 +73,7 @@
         const metadata = await db.metadata.get(id)
 
         if (metadata) {
-          metadata.tags.forEach((tag) => tagSet.add(tag))
+          metadata.tags.forEach(tag => tagSet.add(tag))
         }
       }
 
@@ -94,7 +94,7 @@
         }, [] as Filter['values'])
       }
 
-      tagFilters = Array.from(tagSet.values()).map((tag) => ({
+      tagFilters = Array.from(tagSet.values()).map(tag => ({
         tag: tag as string,
         checked: false
       }))

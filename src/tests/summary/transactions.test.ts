@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest'
 import 'fake-indexeddb/auto'
 import { deriveTransactionSummary, type TransactionSummary } from '$lib/summary.js'
-import { db } from '$lib/db.js'
+import { db } from '$lib/db/index.js'
 import type { Wallet } from '$lib/@types/wallets.js'
 import type { Transaction } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { Channel } from '$lib/@types/channels.js'
 
-const clearDb = () => Promise.all(db.tables.map((table) => table.clear()))
+const clearDb = () => Promise.all(db.tables.map(table => table.clear()))
 
 const aliceWallet = {
   id: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',

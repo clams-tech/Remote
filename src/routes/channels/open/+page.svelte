@@ -15,7 +15,7 @@
   import { connections$, wallets$ } from '$lib/streams.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { Connection } from '$lib/wallets/interfaces.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import type { AppError } from '$lib/@types/errors.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
@@ -71,7 +71,7 @@
       })
 
       await db.channels.add(channel)
-      
+
       // update transactions
       if (connection.transactions?.get) {
         connection.transactions.get().then(txs => db.transactions.bulkPut(txs))

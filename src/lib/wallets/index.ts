@@ -8,11 +8,12 @@ import CoreLightning from './coreln/index.js'
 import coreLnLogo from './coreln/logo.js'
 import type { Connection } from './interfaces.js'
 import { connections$, errors$, session$ } from '$lib/streams.js'
-import { db } from '$lib/db.js'
+import { db } from '$lib/db/index.js'
 import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
 import { decryptWithAES } from '$lib/crypto.js'
+import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from '$lib/db/helpers.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -91,7 +92,7 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
 
   // lookup if connection exists
   let connection: Connection = currentConnections.find(
-    (conn) => conn.walletId === wallet.id
+    conn => conn.walletId === wallet.id
   ) as Connection
 
   // if not create one
@@ -130,10 +131,10 @@ export const syncConnectionData = (
     connection.invoices
       ? connection.invoices
           .get()
-          .then(async (invoices) => {
-            await db.invoices.bulkPut(invoices)
+          .then(invoices => {
+            bulkPut('invoices', invoices)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(invoicesRequest)
@@ -142,10 +143,10 @@ export const syncConnectionData = (
     connection.utxos
       ? connection.utxos
           .get()
-          .then(async (utxos) => {
-            await db.utxos.bulkPut(utxos)
+          .then(utxos => {
+            bulkPut('utxos', utxos)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(utxosRequest)
@@ -154,22 +155,10 @@ export const syncConnectionData = (
     connection.channels
       ? connection.channels
           .get()
-          .then(async (channels) => {
-            await Promise.all(
-              channels.map(async (channel) => {
-                // need to update channels as old channels lose data after 100 blocks of being close
-                // so we don't want to overwrite data we already have as it is useful
-                await db.channels
-                  .update(`[${channel.id}+${channel.walletId}]`, channel)
-                  .then(async (updated) => {
-                    if (!updated) {
-                      await db.channels.add(channel)
-                    }
-                  })
-              })
-            )
+          .then(channels => {
+            updateChannels(channels)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(channelsRequest)
@@ -178,30 +167,10 @@ export const syncConnectionData = (
     connection.transactions
       ? connection.transactions
           .get()
-          .then(async (transactions) => {
-            const addressesWithoutTxid = await db.addresses
-              .where({ walletId: connection.walletId })
-              .filter(({ txid }) => !txid)
-              .toArray()
-
-            // update all addresses that have a corresponding tx
-            await Promise.all(
-              addressesWithoutTxid.map((address) => {
-                const tx = transactions.find(({ outputs }) =>
-                  outputs.find((output) => output.address === address.value)
-                )
-
-                if (tx) {
-                  return db.addresses.update(address.id, { txid: tx.id, completedAt: tx.timestamp })
-                }
-
-                return Promise.resolve()
-              })
-            )
-
-            await db.transactions.bulkPut(transactions)
+          .then(transactions => {
+            updateTransactions(transactions)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(transactionsRequest)
@@ -210,10 +179,10 @@ export const syncConnectionData = (
     connection.forwards
       ? connection.forwards
           .get()
-          .then(async (forwards) => {
-            await db.forwards.bulkPut(forwards)
+          .then(forwards => {
+            bulkPut('forwards', forwards)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(forwardsRequest)
@@ -222,10 +191,10 @@ export const syncConnectionData = (
     connection.offers
       ? connection.offers
           .get()
-          .then(async (offers) => {
-            await db.offers.bulkPut(offers)
+          .then(offers => {
+            bulkPut('offers', offers)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(offersRequest)
@@ -234,10 +203,10 @@ export const syncConnectionData = (
     connection.trades
       ? connection.trades
           .get()
-          .then(async (trades) => {
-            await db.trades.bulkPut(trades)
+          .then(async trades => {
+            bulkPut('trades', trades)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(tradesRequest)
@@ -246,10 +215,10 @@ export const syncConnectionData = (
     connection.withdrawals
       ? connection.withdrawals
           .get()
-          .then(async (withdrawals) => {
-            await db.withdrawals.bulkPut(withdrawals)
+          .then(async withdrawals => {
+            bulkPut('withdrawals', withdrawals)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(withdrawalsRequest)
@@ -258,10 +227,10 @@ export const syncConnectionData = (
     connection.deposits
       ? connection.deposits
           .get()
-          .then(async (deposits) => {
-            await db.deposits.bulkPut(deposits)
+          .then(async deposits => {
+            bulkPut('deposits', deposits)
           })
-          .catch((error) => log.error(error.detail.message))
+          .catch(error => log.error(error.detail.message))
       : Promise.resolve()
 
   requestQueue.push(depositsRequest)
@@ -271,38 +240,33 @@ export const syncConnectionData = (
    */
   processQueue(requestQueue, progress$).then(() => {
     if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-      db.invoices
-        .where({ walletId: connection.walletId, direction: 'receive' })
-        .filter(({ payIndex }) => typeof payIndex !== 'undefined')
-        .reverse()
-        .sortBy('payIndex')
-        .then(([lastPayedInvoice]) => {
-          if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
-            connection.invoices
-              .listenForAnyInvoicePayment(async (invoice) => {
-                const { amount, request, walletId } = invoice
-                const wallet = (await db.wallets.get(walletId)) as Wallet
+      getLastPaidInvoice(connection.walletId).then(lastPaidInvoice => {
+        if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
+          connection.invoices
+            .listenForAnyInvoicePayment(async invoice => {
+              const { amount, request, walletId } = invoice
+              const wallet = (await db.wallets.get(walletId)) as Wallet
 
-                notification.create({
-                  heading: get(translate)('app.labels.received_sats'),
-                  message: get(translate)('app.labels.invoice_receive_description', {
-                    amount,
-                    request: request ? truncateValue(request) : 'keysend',
-                    wallet: wallet.label
-                  })
+              notification.create({
+                heading: get(translate)('app.labels.received_sats'),
+                message: get(translate)('app.labels.invoice_receive_description', {
+                  amount,
+                  request: request ? truncateValue(request) : 'keysend',
+                  wallet: wallet.label
                 })
+              })
 
-                await db.invoices.put(invoice)
-              }, lastPayedInvoice?.payIndex)
-              .catch((error) => log.error(error.detail.message))
-          }
-        })
+              await db.invoices.put(invoice)
+            }, lastPaidInvoice?.payIndex)
+            .catch(error => log.error(error.detail.message))
+        }
+      })
     }
   })
 
   progress$
     .pipe(
-      filter((p) => p === 100),
+      filter(p => p === 100),
       take(1)
     )
     .subscribe(() => {
