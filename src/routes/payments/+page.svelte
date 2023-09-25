@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import list from '$lib/icons/list.js'
-  import { liveQuery } from 'dexie'
   import PaymentRow from './PaymentRow.svelte'
   import { fade, slide } from 'svelte/transition'
   import { endOfDay } from 'date-fns'
@@ -14,141 +13,12 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { from, takeUntil } from 'rxjs'
+  import { takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Payment, PaymentStatus } from '$lib/@types/common.js'
-  import { getNetwork } from '$lib/utils.js'
-  import type { Invoice } from '$lib/@types/invoices.js'
-  import type { Transaction } from '$lib/@types/transactions.js'
-  import type { Address } from '$lib/@types/addresses.js'
-  import type { Channel } from '$lib/@types/channels.js'
-
-  import {
-    deriveAddressSummary,
-    deriveInvoiceSummary,
-    deriveTransactionSummary,
-    type PaymentSummary
-  } from '$lib/summary.js'
-
-  const payments$ = from(
-    liveQuery(() => {
-      return db.transaction('r', db.invoices, db.transactions, db.addresses, db.utxos, db.channels, async () => {
-        const invoices = db.invoices
-          .toArray()
-          .then((invs) =>
-            Array.from(
-              invs
-                .reduce((acc, inv) => {
-                  const current = acc.get(inv.hash)
-
-                  // if duplicates (we are both parties to invoice), keep the sender copy
-                  if (!current || current.direction === 'receive') {
-                    acc.set(inv.hash, inv)
-                  }
-
-                  return acc
-                }, new Map<string, Invoice>())
-                .values()
-            )
-          )
-          .then((invs) =>
-            invs.map((data) => {
-              const { id, status, completedAt, createdAt, amount, request, fee, walletId, offer } =
-                data
-              return {
-                id,
-                type: 'invoice' as const,
-                status,
-                timestamp: completedAt || createdAt,
-                walletId,
-                amount,
-                network: request ? getNetwork(request) : 'bitcoin',
-                fee,
-                offer: !!offer,
-                data
-              }
-            })
-          )
-
-        const transactions = db.transactions
-          .toArray()
-          // @ts-ignore
-          .then(async (txs) => {
-            const deduped: Map<string, Transaction> = new Map()
-            
-            for (const tx of txs) {
-              const current = deduped.get(tx.id)
-
-              // dedupes txs and prefers the tx where if a channel close, the closer or the wallet that is the sender (spender of an input utxo)
-              if (current) {
-                const spentInputUtxo = await db.utxos
-                  .where('id')
-                  .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
-                  .first()
-
-                let channel: Channel | undefined
-
-                if (tx.channel) {
-                  const channels = await db.channels.where({id: tx.channel.id}).toArray()
-                  channel = channels.find(({opener, closer}) => ((tx.channel?.type === 'close' || tx.channel?.type === 'force_close') && closer === 'local') || opener === 'local')
-                }
-                
-                // favour channel closer or opener
-                if (channel?.walletId === tx.walletId) {
-                  deduped.set(tx.id, tx)
-                } else if (spentInputUtxo?.walletId === tx.walletId) {
-                  // favour spender 
-                  deduped.set(tx.id, tx)
-                }
-
-              } else {
-                deduped.set(tx.id, tx)
-              }
-            }
-
-            return Array.from(deduped.values())
-          })
-          .then((txs) =>
-            txs.map((data) => {
-              const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
-              return {
-                id,
-                type: 'transaction' as const,
-                status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
-                timestamp,
-                walletId,
-                network: getNetwork(outputs[0].address),
-                fee,
-                channel: !!channel,
-                data
-              }
-            })
-          )
-
-        const addresses = db.addresses
-          .filter(({ txid }) => !txid)
-          .toArray()
-          .then((addrs) =>
-            addrs.map((data) => {
-              const { id, createdAt, walletId, amount, value } = data
-              return {
-                id,
-                type: 'address' as const,
-                status: 'waiting' as PaymentStatus,
-                timestamp: createdAt,
-                walletId,
-                amount,
-                network: getNetwork(value),
-                data
-              }
-            })
-          )
-
-        return Promise.all([invoices, transactions, addresses]).then((results) => results.flat())
-      })
-    })
-  )
+  import type { Payment } from '$lib/@types/common.js'
+  import type { PaymentSummary } from '$lib/summary.js'
+  import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
 
   type PaymentsMap = Map<number, Payment[]>
 
@@ -170,7 +40,7 @@
     { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
 
-  payments$.pipe(takeUntil(onDestroy$)).subscribe(async (payments) => {
+  payments$.pipe(takeUntil(onDestroy$)).subscribe(async payments => {
     const walletIdSet = new Set<string>()
     const tagSet = new Set()
 
@@ -180,7 +50,7 @@
       const metadata = await db.metadata.get(id)
 
       if (metadata) {
-        metadata.tags.forEach((tag) => tagSet.add(tag))
+        metadata.tags.forEach(tag => tagSet.add(tag))
       }
     }
 
@@ -201,7 +71,7 @@
       }, [] as Filter['values'])
     }
 
-    tagFilters = Array.from(tagSet.values()).map((tag) => ({ tag: tag as string, checked: false }))
+    tagFilters = Array.from(tagSet.values()).map(tag => ({ tag: tag as string, checked: false }))
 
     filters = [
       {
@@ -351,19 +221,9 @@
 
     if (cached) return cached
 
-    if (payment.type === 'transaction') {
-      const summary = await deriveTransactionSummary(payment.data as Transaction)
-      summaryCache[payment.id] = summary
-      return summary
-    } else if (payment.type === 'invoice') {
-      const summary = await deriveInvoiceSummary(payment.data as Invoice)
-      summaryCache[payment.id] = summary
-      return summary
-    } else {
-      const summary = await deriveAddressSummary(payment.data as Address)
-      summaryCache[payment.id] = summary
-      return summary
-    }
+    const summary = await getPaymentSummary(payment)
+    summaryCache[payment.id] = summary
+    return summary
   }
 </script>
 
@@ -401,12 +261,12 @@
       >
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={(e) => handleTransactionsScroll(e.detail.offset)}
+          on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
           itemCount={dailyPaymentChunks.length}
           itemSize={getDaySize}
-          getKey={(index) => dailyPaymentChunks[index][0]}
+          getKey={index => dailyPaymentChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
@@ -420,9 +280,7 @@
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
-                    {#await getSummary(payment)}
-                      <div class="w-full h-[{rowSize}px] bg-utility-success flex justify-center items-center">Loading</div>
-                    {:then summary}
+                    {#await getSummary(payment) then summary}
                       <PaymentRow {payment} {summary} />
                     {/await}
                   {/each}

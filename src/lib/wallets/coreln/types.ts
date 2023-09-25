@@ -1,9 +1,11 @@
 import type { BehaviorSubject, Observable, Subject } from 'rxjs'
 
 import type {
+  CommandoRequest,
   JsonRpcErrorResponse,
   JsonRpcRequest,
-  JsonRpcSuccessResponse
+  JsonRpcSuccessResponse,
+  LnWebSocketOptions
 } from 'lnmessage/dist/types'
 
 import type {
@@ -20,6 +22,7 @@ import type {
   SignaturesInterface,
   NetworkInterface
 } from '../interfaces.js'
+import type { Wallet } from '$lib/@types/wallets.js'
 
 export type CommandoMsgs = Observable<
   (JsonRpcSuccessResponse | JsonRpcErrorResponse) & {
@@ -27,7 +30,16 @@ export type CommandoMsgs = Observable<
   }
 >
 
+export type SocketWrapper = {
+  connect: () => Promise<boolean>
+  disconnect: () => void
+  commando: (request: CommandoRequest) => Promise<unknown>
+}
+
 export interface CorelnConnectionInterface extends Connection {
+  socket: SocketWrapper | null
+  lnmessageOptions: LnWebSocketOptions
+  walletId: Wallet['id']
   info: Info
   destroy$: Subject<void>
   updateToken: (token: string) => void
@@ -36,7 +48,6 @@ export interface CorelnConnectionInterface extends Connection {
   connectionStatus$: BehaviorSubject<
     'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
   >
-  commandoMsgs$: CommandoMsgs
   rpc: RpcCall
   signatures: SignaturesInterface
   offers: OffersInterface

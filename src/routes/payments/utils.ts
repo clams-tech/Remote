@@ -1,7 +1,7 @@
 import type { Node } from '$lib/@types/nodes.js'
 import { nodePublicKeyRegex } from '$lib/address.js'
 import { DAY_IN_SECS } from '$lib/constants.js'
-import { db } from '$lib/db.js'
+import { db } from '$lib/db/index.js'
 import { connections$ } from '$lib/streams.js'
 import type { CounterPart } from '$lib/summary.js'
 import { nowSeconds } from '$lib/utils.js'
@@ -10,7 +10,7 @@ export const getNodeInfo = async (
   nodePubkey: string,
   alreadyHaveNodeInfo?: boolean
 ): Promise<Node | null> => {
-  const connection = connections$.value.find((conn) => conn.network?.getNode)
+  const connection = connections$.value.find(conn => conn.network?.getNode)
 
   if (connection) {
     try {

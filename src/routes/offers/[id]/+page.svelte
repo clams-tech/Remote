@@ -8,7 +8,7 @@
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { liveQuery } from 'dexie'
   import { filter, from, map, mergeMap, of, switchMap, timer } from 'rxjs'
   import { nowSeconds, truncateValue } from '$lib/utils.js'

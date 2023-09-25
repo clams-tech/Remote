@@ -6,7 +6,7 @@ import { Buffer } from 'buffer'
 import type { Network } from './@types/common.js'
 import { combineLatest, from, map, type Observable } from 'rxjs'
 import { liveQuery } from 'dexie'
-import { db } from './db.js'
+import { db } from './db/index.js'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -37,7 +37,7 @@ export function simpleDeepClone<T>(obj: T): T {
 export const noop = () => {}
 
 export const wait = (time: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, time))
+  new Promise(resolve => setTimeout(resolve, time))
 
 export async function getBitcoinExchangeRate(
   currency: FiatDenomination
@@ -47,7 +47,7 @@ export async function getBitcoinExchangeRate(
   }
 
   try {
-    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then((res) =>
+    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then(res =>
       res.json()
     )
     return result
@@ -148,7 +148,7 @@ export const mergeDefaultsWithStoredSettings = (
 
 export const getWalletBalance = (walletId: string): Observable<number | null> => {
   const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
-    map((channels) =>
+    map(channels =>
       channels.reduce((total, channel) => {
         const { balanceLocal, status } = channel
 
@@ -164,7 +164,7 @@ export const getWalletBalance = (walletId: string): Observable<number | null> =>
   const utxosBalance = from(
     liveQuery(() => db.utxos.where('walletId').equals(walletId).toArray())
   ).pipe(
-    map((utxos) =>
+    map(utxos =>
       utxos.reduce((total, utxo) => {
         const { status, amount } = utxo
 

@@ -13,7 +13,7 @@
   import { createRandomHex } from '$lib/crypto.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { Invoice } from '$lib/@types/invoices.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import type { AppError } from '$lib/@types/errors.js'
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
@@ -97,7 +97,7 @@
         headers: {
           'Target-URL': url.toString()
         }
-      }).then((res) => res.json())
+      }).then(res => res.json())
 
       if (result.status === 'ERROR') {
         throw {

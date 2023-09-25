@@ -3,7 +3,7 @@
 
   import { translate } from '$lib/i18n/translations.js'
   import type { Metadata } from '$lib/@types/metadata.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import filter from '$lib/icons/filter.js'
   import { inPlaceSort } from 'fast-sort'
   import Modal from './Modal.svelte'
@@ -78,7 +78,7 @@
     if (sorter) {
       sorting = true
       // SORT
-      inPlaceSort(processed)[sorter.direction]((i) => i[sorter.key])
+      inPlaceSort(processed)[sorter.direction](i => i[sorter.key])
       processed = processed
       sorting = false
     }

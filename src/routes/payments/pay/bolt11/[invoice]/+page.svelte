@@ -19,7 +19,7 @@
   import { connections$, settings$, wallets$ } from '$lib/streams.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { combineLatest, map } from 'rxjs'
@@ -153,7 +153,7 @@
       <div class="w-full flex items-center justify-between mt-6">
         <div class="w-12 -ml-2">
           {#if !decoded.amount && $settings$.fiatDenomination !== 'none'}
-            <Calculator on:amount={(e) => (amountSats = e.detail)} />
+            <Calculator on:amount={e => (amountSats = e.detail)} />
           {/if}
         </div>
         <div class="w-min">

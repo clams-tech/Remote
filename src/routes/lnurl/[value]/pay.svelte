@@ -17,7 +17,7 @@
   import { createRandomHex } from '$lib/crypto.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { Invoice } from '$lib/@types/invoices.js'
-  import { db } from '$lib/db.js'
+  import { db } from '$lib/db/index.js'
   import AES from 'crypto-js/aes'
   import encBase64 from 'crypto-js/enc-base64'
   import encHex from 'crypto-js/enc-hex'
@@ -161,7 +161,7 @@
         headers: {
           'Target-URL': url.toString()
         }
-      }).then((res) => res.json())
+      }).then(res => res.json())
 
       if (result.status === 'ERROR') {
         throw {
