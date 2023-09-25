@@ -49,8 +49,12 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'commando': {
-      const result = await socket.commando(message.data.data)
-      self.postMessage({ id: message.data.id, result })
+      try {
+        const result = await socket.commando(message.data.data)
+        self.postMessage({ id: message.data.id, result })
+      } catch (error) {
+        self.postMessage({ id: message.data.id, error })
+      }
     }
   }
 }

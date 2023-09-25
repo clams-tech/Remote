@@ -209,7 +209,13 @@ class CoreLightning implements CorelnConnectionInterface {
         return firstValueFrom(
           messages$.pipe(
             filter(message => message.data.id === id),
-            map(message => message.data.result)
+            map(message => {
+              if (message.data.error) {
+                throw message.data.error
+              }
+
+              return message.data.result
+            })
           )
         )
       }
