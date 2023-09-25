@@ -19,7 +19,9 @@ export const getNodeInfo = async (
       if (alreadyHaveNodeInfo) {
         await db.nodes.update(
           nodePubkey,
-          node ? { ...node, lastUpdated: nowSeconds() } : { lastUpdated: nowSeconds() }
+          node
+            ? { ...node, lastUpdated: nowSeconds() }
+            : { id: nodePubkey, lastUpdated: nowSeconds() }
         )
       } else {
         await db.nodes.put(

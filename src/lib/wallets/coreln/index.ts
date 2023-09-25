@@ -8,7 +8,7 @@ import Blocks from './blocks.js'
 import Invoices from './invoices.js'
 import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { Session } from '$lib/@types/session.js'
-import { BehaviorSubject, filter, firstValueFrom, fromEvent, map } from 'rxjs'
+import { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
 import Forwards from './forwards.js'
 import { validateConfiguration } from './validation.js'
@@ -16,7 +16,6 @@ import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
 import Network from './network.js'
-import { createRandomHex } from '$lib/crypto.js'
 
 import type {
   CoreLnError,
@@ -39,6 +38,7 @@ import type {
   NetworkInterface,
   ConnectionStatus
 } from '../interfaces.js'
+import { createSocket } from './worker.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   socket: SocketWrapper | null
@@ -163,63 +163,7 @@ class CoreLightning implements CorelnConnectionInterface {
   async getSocket() {
     if (this.socket) return this.socket
 
-    const { default: LnMessageWorker } = await import('./lnmessage.worker?worker')
-    const worker = new LnMessageWorker()
-    const messages$ = fromEvent<MessageEvent>(worker, 'message')
-    const id = createRandomHex()
-    const initProm = firstValueFrom(messages$.pipe(filter(message => message.data.id === id)))
-    worker.postMessage({ id, type: 'init', data: this.lnmessageOptions })
-
-    await initProm
-
-    messages$
-      .pipe(
-        filter(message => message.data.id === 'connectionStatus$'),
-        map(({ data }) => data.result)
-      )
-      .subscribe(status => this.connectionStatus$.next(status))
-
-    this.socket = {
-      connect: async () => {
-        const id = createRandomHex()
-        worker.postMessage({ id, type: 'connect' })
-
-        return firstValueFrom(
-          messages$.pipe(
-            filter(message => message.data.id === id),
-            map(message => message.data.result as boolean)
-          )
-        )
-      },
-      disconnect: async () => {
-        const id = createRandomHex()
-        worker.postMessage({ id, type: 'disconnect' })
-
-        return firstValueFrom(
-          messages$.pipe(
-            filter(message => message.data.id === id),
-            map(() => undefined)
-          )
-        )
-      },
-      commando: async request => {
-        const id = createRandomHex()
-        worker.postMessage({ id, type: 'commando', data: request })
-
-        return firstValueFrom(
-          messages$.pipe(
-            filter(message => message.data.id === id),
-            map(message => {
-              if (message.data.error) {
-                throw message.data.error
-              }
-
-              return message.data.result
-            })
-          )
-        )
-      }
-    }
+    this.socket = await createSocket(this.lnmessageOptions, this.connectionStatus$)
 
     return this.socket
   }

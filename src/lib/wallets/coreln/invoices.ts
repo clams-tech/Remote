@@ -1,6 +1,6 @@
 import Big from 'big.js'
 import { nowSeconds } from '$lib/utils.js'
-import { formatInvoice, payToInvoice, formatMsatString } from './utils.js'
+import { formatInvoice, formatMsatString } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
@@ -25,6 +25,7 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
+import { formatPayments } from './worker.js'
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
@@ -51,15 +52,8 @@ class Invoices implements InvoicesInterface {
       const { invoices } = invoicesResponse as ListinvoicesResponse
       const { pays } = paysResponse as ListpaysResponse
 
-      const invoicePayments: Invoice[] = await Promise.all(
-        invoices.map((invoice) => formatInvoice(invoice, this.connection.walletId))
-      )
-
-      const sentPayments: Invoice[] = await Promise.all(
-        pays.map((pay) => payToInvoice(pay, this.connection.walletId))
-      )
-
-      return invoicePayments.concat(sentPayments)
+      const formatted = await formatPayments(invoices, pays, this.connection.walletId)
+      return formatted
     } catch (error) {
       const context = 'get (payments)'
 
@@ -257,7 +251,7 @@ class Invoices implements InvoicesInterface {
       )
 
       const disconnect$ = this.connection.connectionStatus$.pipe(
-        filter((status) => status === 'disconnected'),
+        filter(status => status === 'disconnected'),
         map(() => ({ disconnected: true }))
       )
 
@@ -270,7 +264,7 @@ class Invoices implements InvoicesInterface {
         if (!this.destroyed) {
           await firstValueFrom(
             this.connection.connectionStatus$.pipe(
-              filter((status) => status === 'connected'),
+              filter(status => status === 'connected'),
               takeUntil(this.connection.destroy$)
             )
           )

@@ -1,32 +1,17 @@
 import type { TransactionsInterface } from '../interfaces.js'
 import type { AppError } from '$lib/@types/errors.js'
-import Big from 'big.js'
 import { merge, Subject, takeUntil } from 'rxjs'
 import handleError from './error.js'
 import { nowSeconds } from '$lib/utils.js'
-import { formatMsatString } from './utils.js'
-import { Transaction as BitcoinTransaction } from 'bitcoinjs-lib/src/transaction'
-import { fromOutputScript } from 'bitcoinjs-lib/src/address'
 import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
-import { msatsToSats } from '$lib/conversion.js'
-import { initEccLib, networks } from 'bitcoinjs-lib'
-import secp256k1 from '@bitcoinerlab/secp256k1'
-
-// required to be init at least once to derive taproot addresses
-initEccLib(secp256k1)
+import { formatTransactions } from './worker.js'
 
 import type {
-  ChainEvent,
-  ChannelCloseEvent,
-  ChannelOpenEvent,
   CorelnConnectionInterface,
   CoreLnError,
-  DelayedToUsEvent,
   ListAccountEventsResponse,
   ListTransactionsResponse,
   NewAddrResponse,
-  OnchainFeeEvent,
-  ToThemEvent,
   WithdrawResponse
 } from './types.js'
 
@@ -54,133 +39,18 @@ class Transactions implements TransactionsInterface {
 
       const network = this.connection.info.network
 
-      return transactions.map(
-        ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
-          const rbfEnabled = !!inputs.find(({ sequence }) => sequence < Number('0xffffffff') - 1)
-          const bitcoinTransaction = BitcoinTransaction.fromHex(rawtx)
-
-          const fees: string[] = []
-          let channel: Transaction['channel']
-          let timestamp = nowSeconds()
-
-          if (accountEvents) {
-            accountEvents.events.forEach((ev) => {
-              const {
-                type,
-                tag,
-                timestamp: eventTimestamp,
-                account,
-                debit_msat,
-                credit_msat
-              } = ev as
-                | ChainEvent
-                | ChannelOpenEvent
-                | ChannelCloseEvent
-                | OnchainFeeEvent
-                | ToThemEvent
-                | DelayedToUsEvent
-
-              const { txid, outpoint } = ev as ChainEvent
-
-              if (type === 'chain') {
-                if (tag === 'deposit' && outpoint.split(':')[0] === hash) {
-                  timestamp = eventTimestamp
-                  return
-                }
-
-                if (tag === 'withdrawal' && txid === hash) {
-                  timestamp = eventTimestamp
-                  return
-                }
-
-                if (tag === 'channel_open' && outpoint.includes(hash)) {
-                  timestamp = eventTimestamp
-
-                  channel = {
-                    type: 'open',
-                    amount: msatsToSats(formatMsatString(credit_msat)),
-                    id: account
-                  }
-                  return
-                }
-
-                if (tag === 'channel_close' && txid === hash) {
-                  timestamp = eventTimestamp
-
-                  channel = {
-                    type: 'close',
-                    amount: msatsToSats(formatMsatString(debit_msat)),
-                    id: account
-                  }
-                  return
-                }
-
-                if (tag === 'delayed_to_us' && outpoint.includes(hash)) {
-                  if (channel) {
-                    channel.type = 'force_close'
-                  }
-                }
-              } else if (type === 'onchain_fee' && txid === hash) {
-                fees.push(
-                  credit_msat ? formatMsatString(credit_msat) : `-${formatMsatString(debit_msat)}`
-                )
-
-                return
-              }
-            })
-          }
-
-          return {
-            id: hash,
-            rawtx,
-            blockheight,
-            txindex,
-            locktime,
-            version,
-            rbfEnabled,
-            inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
-            outputs: outputs.map(({ index, amount_msat }) => {
-              let address: string
-
-              try {
-                address = fromOutputScript(
-                  bitcoinTransaction.outs[index].script,
-                  networks[network === 'signet' ? 'testnet' : network]
-                )
-              } catch (error) {
-                address = ''
-                const context = 'get (transactions)'
-
-                this.connection.errors$.next({
-                  key: 'connection_derive_output_address',
-                  detail: {
-                    message: 'Could not derive address from output script',
-                    context,
-                    walletId: this.connection.walletId,
-                    timestamp: nowSeconds()
-                  }
-                })
-              }
-
-              return {
-                index,
-                amount: msatsToSats(formatMsatString(amount_msat)),
-                address
-              }
-            }),
-            walletId: this.connection.walletId,
-            timestamp,
-            channel,
-            fee: fees.length
-              ? msatsToSats(
-                  fees.reduce((total, msat) => {
-                    return Big(total).plus(msat).toString()
-                  }, '0')
-                )
-              : undefined
-          } as Transaction
-        }
-      )
+      try {
+        const formatted = await formatTransactions(
+          transactions,
+          accountEvents,
+          network,
+          this.connection.walletId
+        )
+        return formatted
+      } catch (error) {
+        this.connection.errors$.next(error as AppError)
+        throw error
+      }
     } catch (error) {
       const context = 'get (transactions)'
       const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
