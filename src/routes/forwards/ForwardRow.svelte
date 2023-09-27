@@ -39,7 +39,7 @@
 
 <a
   href={`/forwards/${forward.id}`}
-  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded"
+  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
     <div class="flex items-center">

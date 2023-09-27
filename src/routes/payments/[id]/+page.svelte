@@ -575,7 +575,7 @@
                 {@const route = getRoute(output)}
 
                 <div
-                  class="flex items-center w-full rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
+                  class="flex items-center w-full justify-between rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors py-1 px-4"
                 >
                   <button
                     on:click={async () => {

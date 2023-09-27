@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Network, PaymentStatus } from '$lib/@types/common.js'
-  import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { truncateValue } from '$lib/utils.js'
@@ -9,7 +8,7 @@
   export let type: PaymentSummary['type']
   export let secondary: PaymentSummary['secondary']
   export let status: PaymentStatus
-  export let timestamp: PaymentSummary['timestamp'] = 0
+  export let timestamp: string = ''
   export let network: Network
   export let centered = false
   export let displayNetwork = false
@@ -38,7 +37,7 @@
         {secondary.value.label}
       {:else if secondary.type === 'contact'}
         {secondary.value.name}
-        {:else if secondary.type === 'node'}
+      {:else if secondary.type === 'node'}
         {secondary.value.alias || truncateValue(secondary.value.id)}
       {:else if secondary.type === 'channel_peer'}
         {secondary.value
@@ -52,9 +51,7 @@
 
   <div class="flex items-center gap-x-1" class:justify-center={centered}>
     {#if timestamp}
-      {#await formatDate(timestamp, 'hh:mma') then formattedTime}
-        <div class="text-[0.75em] font-semibold mt-1">{formattedTime}</div>
-      {/await}
+      <div class="text-[0.75em] font-semibold mt-1">{timestamp}</div>
     {/if}
 
     {#if network !== 'bitcoin' && displayNetwork}

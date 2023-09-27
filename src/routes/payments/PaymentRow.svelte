@@ -7,18 +7,19 @@
   import caret from '$lib/icons/caret.js'
   import Summary from './Summary.svelte'
   import type { PaymentSummary } from '$lib/summary.js'
-  import {updateCounterPartyNodeInfo} from './utils.js'
+  import { updateCounterPartyNodeInfo } from './utils.js'
 
   export let payment: Payment
   export let summary: PaymentSummary
+  export let formattedTimestamp: string
 
-  const { type, network, timestamp, amount, id, walletId, status } = payment
+  const { type, network, amount, id, walletId, status } = payment
   const icon = type === 'invoice' ? lightning : bitcoin
   let { primary, secondary, type: summaryType } = summary
 
   updateCounterPartyNodeInfo(summary.secondary).then(node => {
     if (node) {
-      summary.secondary = {type: 'node', value: node}
+      summary.secondary = { type: 'node', value: node }
     }
   })
 </script>
@@ -41,7 +42,7 @@
       {secondary}
       {status}
       type={summaryType}
-      {timestamp}
+      timestamp={formattedTimestamp}
       {network}
       displayNetwork
     />

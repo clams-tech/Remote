@@ -19,6 +19,8 @@
   import type { Payment } from '$lib/@types/common.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
+  import debounce from 'lodash.debounce'
+  import DayDate from './DayDate.svelte'
 
   type PaymentsMap = Map<number, Payment[]>
 
@@ -182,7 +184,7 @@
 
   let previousOffset = 0
 
-  const handleTransactionsScroll = (offset: number) => {
+  const handleTransactionsScroll = debounce((offset: number) => {
     if (offset < previousOffset) {
       showFullReceiveButton = true
     } else {
@@ -190,7 +192,7 @@
     }
 
     previousOffset = offset
-  }
+  }, 50)
 
   const getDaySize = (index: number) => {
     const payments = dailyPaymentChunks[index][1]
@@ -214,16 +216,19 @@
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
 
-  const summaryCache: Record<string, PaymentSummary> = {}
+  const summaryCache: Record<string, { summary: PaymentSummary; formattedTimestamp: string }> = {}
 
-  const getSummary = async (payment: Payment): Promise<PaymentSummary> => {
+  const getSummary = async (
+    payment: Payment
+  ): Promise<{ summary: PaymentSummary; formattedTimestamp: string }> => {
     const cached = summaryCache[payment.id]
 
     if (cached) return cached
 
     const summary = await getPaymentSummary(payment)
-    summaryCache[payment.id] = summary
-    return summary
+    const formattedTimestamp = await formatDate(summary.timestamp, 'hh:mma')
+    summaryCache[payment.id] = { summary, formattedTimestamp }
+    return { summary, formattedTimestamp }
   }
 </script>
 
@@ -266,22 +271,15 @@
           height={listHeight}
           itemCount={dailyPaymentChunks.length}
           itemSize={getDaySize}
-          getKey={index => dailyPaymentChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
-              {#await formatDate(dailyPaymentChunks[index][0]) then formattedDate}
-                <div
-                  class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
-                >
-                  {formattedDate}
-                </div>
-              {/await}
+              <DayDate date={dailyPaymentChunks[index][0]} />
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
-                  {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.walletId}:${payment.id}:${payment.type}`)}
-                    {#await getSummary(payment) then summary}
-                      <PaymentRow {payment} {summary} />
+                  {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.id}`)}
+                    {#await getSummary(payment) then { summary, formattedTimestamp }}
+                      <PaymentRow {payment} {summary} {formattedTimestamp} />
                     {/await}
                   {/each}
                 </div>
