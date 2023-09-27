@@ -252,6 +252,8 @@ export function stateToChannelStatus(
 }
 
 export function convertVersionNumber(version: string): number {
+  version = version.toLowerCase()
+  version = version.replace('v', '')
   const [withoutDash] = version.split('-')
   const withoutDots = withoutDash.replace('.', '')
   const slicedToMajorVersion = withoutDots.slice(0, 4)
