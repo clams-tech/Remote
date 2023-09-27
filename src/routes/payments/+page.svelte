@@ -7,32 +7,21 @@
   import list from '$lib/icons/list.js'
   import PaymentRow from './PaymentRow.svelte'
   import { fade, slide } from 'svelte/transition'
-  import { endOfDay } from 'date-fns'
   import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { takeUntil } from 'rxjs'
+  import { filter, firstValueFrom, map, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Payment } from '$lib/@types/common.js'
+  import type { Filter, Payment, Sorter, TagFilter } from '$lib/@types/common.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
   import debounce from 'lodash.debounce'
   import DayDate from './DayDate.svelte'
-
-  type PaymentsMap = Map<number, Payment[]>
-
-  type Key = keyof Payment
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: Payment) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
+  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
+  import { createRandomHex } from '$lib/crypto.js'
 
   let processed: Payment[] = []
   let filters: Filter[] = []
@@ -65,7 +54,7 @@
           acc.push({
             label: wallet.label,
             checked: false,
-            predicate: ({ walletId }) => walletId === wallet.id
+            predicate: { key: 'walletId', values: [wallet.id] }
           })
         }
 
@@ -82,27 +71,42 @@
           {
             label: $translate('app.labels.pending'),
             checked: false,
-            predicate: ({ status }) => status === 'pending'
+            predicate: {
+              key: 'status',
+              values: ['pending']
+            }
           },
           {
             label: $translate('app.labels.waiting'),
             checked: false,
-            predicate: ({ status }) => status === 'waiting'
+            predicate: {
+              key: 'status',
+              values: ['waiting']
+            }
           },
           {
             label: $translate('app.labels.complete'),
             checked: false,
-            predicate: ({ status }) => status === 'complete'
+            predicate: {
+              key: 'status',
+              values: ['complete']
+            }
           },
           {
             label: $translate('app.labels.expired'),
             checked: false,
-            predicate: ({ status }) => status === 'expired'
+            predicate: {
+              key: 'status',
+              values: ['expired']
+            }
           },
           {
             label: $translate('app.labels.failed'),
             checked: false,
-            predicate: ({ status }) => status === 'failed'
+            predicate: {
+              key: 'status',
+              values: ['failed']
+            }
           }
         ]
       },
@@ -112,22 +116,36 @@
           {
             label: $translate('app.labels.lightning'),
             checked: false,
-            predicate: ({ type }) => type === 'invoice'
+            predicate: {
+              key: 'type',
+              values: ['invoice']
+            }
           },
           {
             label: $translate('app.labels.onchain'),
             checked: false,
-            predicate: ({ type }) => type === 'transaction' || type === 'address'
+            predicate: {
+              key: 'type',
+              values: ['transaction', 'address']
+            }
           },
           {
             label: $translate('app.labels.channel'),
             checked: false,
-            predicate: ({ channel }) => !!channel
+            predicate: {
+              key: 'channel',
+              values: [],
+              compare: 'exists'
+            }
           },
           {
             label: $translate('app.labels.offer'),
             checked: false,
-            predicate: ({ offer }) => !!offer
+            predicate: {
+              key: 'offer',
+              values: [],
+              compare: 'exists'
+            }
           }
         ]
       },
@@ -138,17 +156,26 @@
           {
             label: $translate('app.labels.bitcoin'),
             checked: false,
-            predicate: ({ network }) => network === 'bitcoin'
+            predicate: {
+              key: 'network',
+              values: ['bitcoin']
+            }
           },
           {
             label: $translate('app.labels.regtest'),
             checked: false,
-            predicate: ({ network }) => network === 'regtest'
+            predicate: {
+              key: 'network',
+              values: ['regtest']
+            }
           },
           {
             label: $translate('app.labels.testnet'),
             checked: false,
-            predicate: ({ network }) => network === 'testnet'
+            predicate: {
+              key: 'network',
+              values: ['testnet']
+            }
           }
         ]
       }
@@ -158,18 +185,22 @@
   type PaymentChunks = [number, Payment[]][]
   let dailyPaymentChunks: PaymentChunks = []
 
-  const sortDailyChunks = () => {
-    const map = processed.reduce((acc, payment) => {
-      const date = new Date(payment.timestamp * 1000)
-      const dateKey = endOfDay(date).getTime() / 1000
-      acc.set(dateKey, [...(acc.get(dateKey) || []), payment])
+  const sortDailyChunks = async () => {
+    const id = createRandomHex()
 
-      return acc
-    }, new Map() as PaymentsMap)
+    appWorker.postMessage({
+      id,
+      type: 'sort-daily-payment-chunks',
+      payments: processed,
+      direction: sorters[0].direction
+    })
 
-    dailyPaymentChunks = inPlaceSort(Array.from(map.entries()))[sorters[0].direction](
-      ([timestamp]) => timestamp
-    )
+    dailyPaymentChunks = (await firstValueFrom(
+      appWorkerMessages$.pipe(
+        filter(message => message.data.id === id),
+        map(({ data }) => data.result)
+      )
+    )) as PaymentChunks
   }
 
   $: if (processed) {
@@ -212,7 +243,7 @@
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed) {
+  $: if (virtualList && processed && dailyPaymentChunks) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
 
@@ -271,6 +302,7 @@
           height={listHeight}
           itemCount={dailyPaymentChunks.length}
           itemSize={getDaySize}
+          getKey={index => dailyPaymentChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">

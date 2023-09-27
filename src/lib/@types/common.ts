@@ -43,3 +43,21 @@ export type ParsedNodeAddress = {
   ip: string
   port: number
 }
+
+export type Filter = {
+  label: string
+  values: {
+    label: string
+    checked: boolean
+    predicate: FilterPredicate
+  }[]
+}
+
+export type FilterPredicate = {
+  key: string
+  values: unknown[]
+  compare?: 'eq' | 'gt' | 'lt' | 'exists'
+}
+
+export type TagFilter = { tag: string; checked: boolean }
+export type Sorter = { label: string; key: string; direction: 'asc' | 'desc' }

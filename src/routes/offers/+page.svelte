@@ -15,6 +15,7 @@
   import type { Offer } from '$lib/@types/offers.js'
   import { filter, from, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
 
   const offers$ = from(liveQuery(() => db.offers.toArray()))
 
@@ -42,16 +43,6 @@
   $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
   $: offersContainerScrollable = processed ? processed.length * 74 > listHeight : false
-
-  type Key = keyof Offer
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: Offer) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
 
   let processed: Offer[] = []
   let filters: Filter[] = []
@@ -91,7 +82,10 @@
             acc.push({
               label: wallet.label,
               checked: false,
-              predicate: ({ walletId }) => walletId === wallet.id
+              predicate: {
+                key: 'walletId',
+                values: [wallet.id]
+              }
             })
           }
 
@@ -111,7 +105,19 @@
             {
               label: $translate('app.labels.active'),
               checked: false,
-              predicate: ({ active, expiry }) => !!active && (!expiry || Date.now() / 1000 < expiry)
+              predicate: {
+                key: 'active',
+                values: [true]
+              }
+            },
+            {
+              label: $translate('app.labels.expired'),
+              checked: false,
+              predicate: {
+                key: 'expiry',
+                values: [Date.now() / 1000],
+                compare: 'gt'
+              }
             }
           ]
         },

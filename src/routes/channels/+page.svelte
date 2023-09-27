@@ -17,6 +17,7 @@
   import type { Channel } from '$lib/@types/channels.js'
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
 
   const channels$ = from(
     liveQuery(() =>
@@ -80,16 +81,6 @@
   $: listHeight = Math.min(maxHeight, fullHeight)
   $: channelsContainerScrollable = processed ? processed.length * rowSize > listHeight : false
 
-  type Key = keyof Channel
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: Channel) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
-
   let processed: Channel[] = []
   let filters: Filter[] = []
   let tagFilters: TagFilter[] = []
@@ -128,7 +119,10 @@
             acc.push({
               label: wallet.label,
               checked: false,
-              predicate: ({ walletId }) => walletId === wallet.id
+              predicate: {
+                key: 'walletId',
+                values: [wallet.id]
+              }
             })
           }
 
@@ -148,27 +142,42 @@
             {
               label: $translate('app.labels.active'),
               checked: true,
-              predicate: ({ status }) => status === 'active'
+              predicate: {
+                key: 'status',
+                values: ['active']
+              }
             },
             {
               label: $translate('app.labels.opening'),
               checked: true,
-              predicate: ({ status }) => status === 'opening'
+              predicate: {
+                key: 'status',
+                values: ['opening']
+              }
             },
             {
               label: $translate('app.labels.closing'),
               checked: true,
-              predicate: ({ status }) => status === 'closing'
+              predicate: {
+                key: 'status',
+                values: ['closing']
+              }
             },
             {
               label: $translate('app.labels.closed'),
               checked: false,
-              predicate: ({ status }) => status === 'closed'
+              predicate: {
+                key: 'status',
+                values: ['closed']
+              }
             },
             {
               label: $translate('app.labels.force_closed'),
               checked: false,
-              predicate: ({ status }) => status === 'force_closed'
+              predicate: {
+                key: 'status',
+                values: ['force_closed']
+              }
             }
           ]
         },

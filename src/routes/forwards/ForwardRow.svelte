@@ -57,7 +57,7 @@
     </div>
 
     <div class="flex items-center h-full">
-      <div>
+      <div class="flex flex-col items-end">
         <div class="w-full flex justify-end -mb-1 text-xs">{$translate('app.labels.fee')}:</div>
         <BitcoinAmount sats={forward.fee} short />
         <div class="w-full flex justify-end text-xs">

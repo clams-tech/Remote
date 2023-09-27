@@ -15,6 +15,7 @@
   import FilterSort from '$lib/components/FilterSort.svelte'
   import { filter, from, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
 
   const utxos$ = from(liveQuery(async () => db.utxos.toArray()))
 
@@ -37,16 +38,6 @@
         { balance: 0, sendable: 0, num: 0 }
       )
     : null
-
-  type Key = keyof Utxo
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: Utxo) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
 
   let processed: Utxo[] = []
   let filters: Filter[] = []
@@ -86,7 +77,10 @@
             acc.push({
               label: wallet.label,
               checked: false,
-              predicate: ({ walletId }) => walletId === wallet.id
+              predicate: {
+                key: 'walletId',
+                values: [wallet.id]
+              }
             })
           }
 
@@ -106,27 +100,42 @@
             {
               label: $translate('app.labels.unconfirmed'),
               checked: true,
-              predicate: ({ status }) => status === 'unconfirmed'
+              predicate: {
+                key: 'status',
+                values: ['unconfirmed']
+              }
             },
             {
               label: $translate('app.labels.confirmed'),
               checked: true,
-              predicate: ({ status }) => status === 'confirmed'
+              predicate: {
+                key: 'status',
+                values: ['confirmed']
+              }
             },
             {
               label: $translate('app.labels.spent'),
               checked: false,
-              predicate: ({ status }) => status === 'spent'
+              predicate: {
+                key: 'status',
+                values: ['spent']
+              }
             },
             {
               label: $translate('app.labels.spent_unconfirmed'),
               checked: false,
-              predicate: ({ status }) => status === 'spent_unconfirmed'
+              predicate: {
+                key: 'status',
+                values: ['spent_unconfirmed']
+              }
             },
             {
               label: $translate('app.labels.immature'),
               checked: true,
-              predicate: ({ status }) => status === 'immature'
+              predicate: {
+                key: 'status',
+                values: ['immature']
+              }
             }
           ]
         },

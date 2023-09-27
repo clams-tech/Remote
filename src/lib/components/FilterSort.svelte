@@ -1,102 +1,96 @@
 <script lang="ts">
+  import { createRandomHex } from '$lib/crypto.js'
+  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
+  import { BehaviorSubject, filter, firstValueFrom, map } from 'rxjs'
   import debounce from 'lodash.debounce'
-
   import { translate } from '$lib/i18n/translations.js'
-  import type { Metadata } from '$lib/@types/metadata.js'
-  import { db } from '$lib/db/index.js'
-  import filter from '$lib/icons/filter.js'
-  import { inPlaceSort } from 'fast-sort'
+  import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
 
-  type T = $$Generic
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: T) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: keyof T; direction: 'asc' | 'desc' }
-
-  export let items: T[]
+  export let items: unknown[]
   export let filters: Filter[]
   export let tagFilters: TagFilter[]
   export let sorters: Sorter[]
-  export let processed: T[]
+  export let processed: unknown[]
   export let quickLoad = false
 
   if (quickLoad) {
     processed = items
   }
 
-  const cachedMetadata: Partial<Record<string, Metadata | null>> = {}
-
   let showModal = false
-  let selectedSorter: Sorter['key'] = sorters[0].key
-  let filtering = false
-  let sorting = false
+  let selectedSorterKey: Sorter['key'] = sorters[0].key
+  let selectedSorter = sorters[0]
 
-  const filterItems = async () => {
-    filtering = true
-    let processedItems: T[] = []
-
-    // FILTER
-    for (const item of items) {
-      const id = item['id' as keyof T] as string
-
-      let metadata: Metadata | null | undefined = cachedMetadata[id]
-
-      // not yet cached
-      if (typeof metadata === 'undefined') {
-        metadata = await db.metadata.get(id)
-        cachedMetadata[id] = metadata || null
-      }
-
-      const passesAllFilters = filters.every(({ values }) => {
-        const checked = values.filter(({ checked }) => checked)
-        return checked.length ? checked.some(({ predicate }) => predicate(item)) : true
-      })
-
-      const passesAllTagFilters = metadata
-        ? tagFilters
-            .filter(({ checked }) => checked)
-            .some(({ tag }) => metadata!.tags.includes(tag))
-        : true
-
-      if (passesAllFilters && passesAllTagFilters) {
-        processedItems.push(item)
-      }
-    }
-
-    processed = processedItems
-    filtering = false
+  $: if (selectedSorterKey !== selectedSorter.key) {
+    updateSorter()
   }
 
-  const sortItems = () => {
-    const sorter = sorters.find(({ key }) => key === selectedSorter)
+  const updateSorter = () =>
+    (selectedSorter = sorters.find(({ key }) => key === selectedSorterKey) || sorters[0])
 
-    if (sorter) {
-      sorting = true
-      // SORT
-      inPlaceSort(processed)[sorter.direction](i => i[sorter.key])
-      processed = processed
-      sorting = false
+  const filtering$ = new BehaviorSubject<boolean>(false)
+  const sorting$ = new BehaviorSubject<boolean>(false)
+
+  const filterItems = async () => {
+    if ($sorting$) {
+      // wait until finished sorting
+      await firstValueFrom(sorting$.pipe(filter(x => !x)))
+    }
+
+    filtering$.next(true)
+
+    const id = createRandomHex()
+
+    appWorker.postMessage({ id, type: 'filter-items', filters, tagFilters, items })
+
+    processed = (await firstValueFrom(
+      appWorkerMessages$.pipe(
+        filter(({ data }) => data.id === id),
+        map(({ data }) => data.result)
+      )
+    )) as unknown[]
+
+    filtering$.next(false)
+  }
+
+  const sortItems = async () => {
+    if ($filtering$) {
+      // wait until finished filtering
+      await firstValueFrom(filtering$.pipe(filter(x => !x)))
+    }
+
+    if (selectedSorter) {
+      sorting$.next(true)
+      const id = createRandomHex()
+
+      appWorker.postMessage({ id, type: 'sort-items', items, sorter: selectedSorter })
+
+      processed = (await firstValueFrom(
+        appWorkerMessages$.pipe(
+          filter(({ data }) => data.id === id),
+          map(({ data }) => data.result)
+        )
+      )) as unknown[]
+
+      sorting$.next(false)
     }
   }
 
   const debouncedFilterItems = debounce(filterItems, 100)
 
   // recalculate on change
-  $: if (filters && tagFilters && sorters && !sorting) {
+  $: if (filters && tagFilters) {
     debouncedFilterItems()
   }
 
-  $: if (selectedSorter && !filtering) {
+  $: if (selectedSorter) {
     sortItems()
   }
 </script>
 
-<button on:click={() => (showModal = true)} class="w-[2em]">{@html filter}</button>
+<button on:click={() => (showModal = true)} class="w-[2em]">{@html filterIcon}</button>
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
@@ -129,11 +123,16 @@
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each sorters as { label, key, direction }}
+        {#each sorters as sorter}
           <div class="w-full">
             <div class="flex items-center">
-              <input id={label} type="radio" bind:group={selectedSorter} value={key} />
-              <label class="ml-1" for={label}>{label}</label>
+              <input
+                id={sorter.label}
+                type="radio"
+                bind:group={selectedSorterKey}
+                value={sorter.key}
+              />
+              <label class="ml-1" for={sorter.label}>{sorter.label}</label>
             </div>
 
             <div class="flex items-center gap-x-2 text-sm ml-4">
@@ -142,11 +141,13 @@
                   <input
                     type="radio"
                     class="w-3 h-3"
-                    bind:group={direction}
+                    bind:group={selectedSorter.direction}
                     value={d}
-                    id={`${d}:${label}`}
+                    id={`${d}:${sorter.label}`}
                   />
-                  <label class="ml-1" for={`${d}:${label}`}>{$translate(`app.labels.${d}`)}</label>
+                  <label class="ml-1" for={`${d}:${sorter.label}`}
+                    >{$translate(`app.labels.${d}`)}</label
+                  >
                 </div>
               {/each}
             </div>

@@ -14,6 +14,7 @@
   import { filter, from, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
 
   const forwards$ = from(liveQuery(() => db.forwards.toArray()))
 
@@ -40,16 +41,6 @@
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
   $: fullHeight = $forwards$ ? $forwards$.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
-
-  type Key = keyof Forward
-
-  type Filter = {
-    label: string
-    values: { label: string; checked: boolean; predicate: (val: Forward) => boolean }[]
-  }
-
-  type TagFilter = { tag: string; checked: boolean }
-  type Sorter = { label: string; key: Key; direction: 'asc' | 'desc' }
 
   let processed: Forward[] = []
   let filters: Filter[] = []
@@ -91,7 +82,10 @@
             acc.push({
               label: wallet.label,
               checked: false,
-              predicate: ({ walletId }) => walletId === wallet.id
+              predicate: {
+                key: 'walletId',
+                values: [wallet.id]
+              }
             })
           }
 
@@ -111,22 +105,34 @@
             {
               label: $translate('app.labels.settled'),
               checked: true,
-              predicate: ({ status }) => status === 'settled'
+              predicate: {
+                key: 'status',
+                values: ['settled']
+              }
             },
             {
               label: $translate('app.labels.offered'),
               checked: true,
-              predicate: ({ status }) => status === 'offered'
+              predicate: {
+                key: 'status',
+                values: ['offered']
+              }
             },
             {
               label: $translate('app.labels.failed'),
               checked: false,
-              predicate: ({ status }) => status === 'failed'
+              predicate: {
+                key: 'status',
+                values: ['failed']
+              }
             },
             {
               label: $translate('app.labels.local_failed'),
               checked: false,
-              predicate: ({ status }) => status === 'local_failed'
+              predicate: {
+                key: 'status',
+                values: ['local_failed']
+              }
             }
           ]
         },
