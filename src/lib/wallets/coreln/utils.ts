@@ -254,5 +254,6 @@ export function stateToChannelStatus(
 export function convertVersionNumber(version: string): number {
   const [withoutDash] = version.split('-')
   const withoutDots = withoutDash.replace('.', '')
-  return Number(withoutDots)
+  const slicedToMajorVersion = withoutDots.slice(0, 4)
+  return Number(slicedToMajorVersion)
 }

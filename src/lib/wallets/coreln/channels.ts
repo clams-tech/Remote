@@ -1,10 +1,7 @@
-import { convertVersionNumber, formatMsatString } from './utils.js'
+import { convertVersionNumber } from './utils.js'
 import type { ChannelsInterface } from '../interfaces.js'
 import handleError from './error.js'
-import { stateToChannelStatus } from './utils.js'
-import { msatsToSats, satsToMsats } from '$lib/conversion.js'
-import Big from 'big.js'
-import { log } from '$lib/services.js'
+import { satsToMsats } from '$lib/conversion.js'
 
 import type {
   Channel,
@@ -13,15 +10,8 @@ import type {
   OpenChannelResult,
   UpdateChannelOptions
 } from '$lib/@types/channels.js'
-
-import type {
-  ClosedChannel,
-  CorelnConnectionInterface,
-  CoreLnError,
-  FundChannelResponse,
-  ListPeerChannelsResponse,
-  ListPeersResponse
-} from './types.js'
+import type { CoreLnError, CorelnConnectionInterface, FundChannelResponse } from './types.js'
+import { getChannels } from './worker.js'
 
 class Channels implements ChannelsInterface {
   connection: CorelnConnectionInterface
@@ -35,213 +25,14 @@ class Channels implements ChannelsInterface {
       const { version } = await this.connection.info
       const versionNumber = convertVersionNumber(version as string)
 
-      let closedChannels: Channel[] = []
+      const channels = await getChannels(
+        this.connection.rune,
+        versionNumber,
+        this.connection.walletId,
+        channel
+      )
 
-      try {
-        const result = await this.connection.rpc({ method: 'listclosedchannels' })
-
-        closedChannels = await Promise.all(
-          (result as { closedchannels: ClosedChannel[] }).closedchannels.map(
-            async ({
-              channel_id,
-              opener,
-              peer_id,
-              funding_txid,
-              funding_outnum,
-              closer,
-              close_cause,
-              final_to_us_msat
-            }) => {
-              const peer = peer_id ? await this.connection.network.getNode(peer_id) : null
-
-              return {
-                id: channel_id,
-                walletId: this.connection.walletId,
-                opener,
-                fundingTransactionId: funding_txid,
-                fundingOutput: funding_outnum,
-                peerId: peer_id,
-                peerAlias: peer?.alias,
-                peerConnected: false,
-                status: 'closed',
-                closer,
-                closeCause: close_cause,
-                finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
-                balanceLocal: 0,
-                balanceRemote: 0,
-                reserveLocal: 0,
-                reserveRemote: 0
-              } as Channel
-            }
-          )
-        )
-      } catch (error) {
-        log.error((error as Error).message)
-      }
-
-      if (versionNumber < 2305) {
-        const listPeersResult = await this.connection.rpc({
-          method: 'listpeers',
-          params: channel?.peerId ? { id: channel.peerId } : undefined
-        })
-
-        const { peers } = listPeersResult as ListPeersResponse
-
-        const result = await Promise.all(
-          peers
-            .filter(({ channels }) => !!channels)
-            .map(async ({ id, channels, connected }) => {
-              const peer = await this.connection.network.getNode(id)
-
-              return channels.map((channel) => {
-                const {
-                  opener,
-                  funding_txid,
-                  funding_outnum,
-                  channel_id,
-                  short_channel_id,
-                  state,
-                  to_us_msat,
-                  total_msat,
-                  our_reserve_msat,
-                  their_reserve_msat,
-                  fee_base_msat,
-                  fee_proportional_millionths,
-                  close_to_addr,
-                  close_to,
-                  closer,
-                  htlcs,
-                  minimum_htlc_out_msat,
-                  maximum_htlc_out_msat,
-                  our_to_self_delay,
-                  their_to_self_delay,
-                  state_changes
-                } = channel
-
-                return {
-                  walletId: this.connection.walletId,
-                  opener,
-                  peerId: id,
-                  peerConnected: connected,
-                  peerAlias: peer?.alias,
-                  fundingTransactionId: funding_txid,
-                  fundingOutput: funding_outnum,
-                  id: channel_id,
-                  shortId: short_channel_id,
-                  status: stateToChannelStatus(state_changes?.length ? state_changes : state),
-                  balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
-                  balanceRemote: msatsToSats(
-                    Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
-                  ),
-                  reserveRemote: msatsToSats(formatMsatString(our_reserve_msat || '0')),
-                  reserveLocal: msatsToSats(formatMsatString(their_reserve_msat || '0')),
-                  feeBase: msatsToSats(formatMsatString(fee_base_msat.toString())),
-                  feePpm: fee_proportional_millionths,
-                  closeToAddress: close_to_addr ?? null,
-                  closeToScriptPubkey: close_to ?? null,
-                  closer,
-                  htlcMin: msatsToSats(formatMsatString(minimum_htlc_out_msat)),
-                  htlcMax: msatsToSats(formatMsatString(maximum_htlc_out_msat)),
-                  ourToSelfDelay: our_to_self_delay,
-                  theirToSelfDelay: their_to_self_delay,
-                  htlcs: htlcs.map(
-                    ({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
-                      id,
-                      direction,
-                      amount: msatsToSats(formatMsatString(amount_msat)),
-                      expiry,
-                      paymentHash: payment_hash,
-                      state
-                    })
-                  )
-                } as Channel
-              })
-            })
-        )
-
-        const flattened = result.concat(closedChannels).flat()
-
-        return channel?.id ? flattened.filter(({ id }) => id === channel.id) : flattened
-      } else {
-        const listPeerChannelsResult = await this.connection.rpc({
-          method: 'listpeerchannels',
-          params: channel?.peerId ? { id: channel.peerId } : undefined
-        })
-
-        const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
-
-        const formattedChannels = await Promise.all(
-          channels.map(async (chan) => {
-            const {
-              peer_id,
-              peer_connected,
-              opener,
-              funding_txid,
-              funding_outnum,
-              channel_id,
-              short_channel_id,
-              state,
-              to_us_msat,
-              total_msat,
-              fee_base_msat,
-              fee_proportional_millionths,
-              close_to_addr,
-              close_to,
-              closer,
-              our_reserve_msat,
-              their_reserve_msat,
-              htlcs,
-              minimum_htlc_out_msat,
-              maximum_htlc_out_msat,
-              our_to_self_delay,
-              their_to_self_delay,
-              state_changes
-            } = chan
-
-            const peer = await this.connection.network.getNode(peer_id)
-
-            return {
-              walletId: this.connection.walletId,
-              opener,
-              peerId: peer_id,
-              peerConnected: peer_connected,
-              peerAlias: peer?.alias,
-              fundingTransactionId: funding_txid,
-              fundingOutput: funding_outnum,
-              id: channel_id,
-              shortId: short_channel_id,
-              status: stateToChannelStatus(state_changes?.length ? state_changes : state),
-              balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
-              balanceRemote: msatsToSats(
-                Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
-              ),
-              reserveRemote: msatsToSats(formatMsatString(our_reserve_msat)),
-              reserveLocal: msatsToSats(formatMsatString(their_reserve_msat)),
-              feeBase: msatsToSats(formatMsatString(fee_base_msat)),
-              feePpm: fee_proportional_millionths,
-              closeToAddress: close_to_addr,
-              closeToScriptPubkey: close_to,
-              closer: closer,
-              htlcMin: msatsToSats(formatMsatString(minimum_htlc_out_msat)),
-              htlcMax: msatsToSats(formatMsatString(maximum_htlc_out_msat)),
-              ourToSelfDelay: our_to_self_delay,
-              theirToSelfDelay: their_to_self_delay,
-              htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
-                id,
-                direction,
-                amount: msatsToSats(formatMsatString(amount_msat)),
-                expiry,
-                paymentHash: payment_hash,
-                state
-              }))
-            } as Channel
-          })
-        )
-
-        const allChannels = formattedChannels.concat(closedChannels)
-
-        return channel?.id ? allChannels.filter(({ id }) => id === channel.id) : allChannels
-      }
+      return channels
     } catch (error) {
       const context = 'get (channels)'
 

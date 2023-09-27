@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from 'svelte'
-  import debounce from 'lodash.debounce'
   import Spinner from '$lib/components/Spinner.svelte'
   import { parseInput } from '$lib/input-parser.js'
   import { isDesktop, nowSeconds } from '$lib/utils.js'
@@ -10,6 +9,9 @@
   import { slide } from 'svelte/transition'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { AppError } from '$lib/@types/errors.js'
+  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
+  import { filter, map, takeUntil } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
 
   const dispatch = createEventDispatcher()
 
@@ -18,12 +20,24 @@
 
   let err: AppError | null = null
 
-  const handleScanResult = debounce((val: string) => {
-    parsed = parseInput(val)
+  const workerMessageId = 'qr-processed'
 
+  appWorkerMessages$
+    .pipe(
+      filter(({ data }) => data.id === workerMessageId),
+      takeUntil(onDestroy$)
+    )
+    .subscribe(({ data }) => handleScanResult(data.result as string))
+
+  const handleScanResult = (val: string) => {
+    if (val) {
+      parsed = parseInput(val)
+    }
+
+    tickTimeout = setTimeout(tick, val ? 1000 : 0)
     timeout && clearTimeout(timeout)
     timeout = setTimeout(() => (parsed = null), 4000)
-  }, 200)
+  }
 
   onDestroy(() => {
     timeout && clearTimeout(timeout)
@@ -52,7 +66,7 @@
 
     try {
       const devices = await navigator.mediaDevices.enumerateDevices()
-      const cameras = devices.filter((d) => d.kind === 'videoinput')
+      const cameras = devices.filter(d => d.kind === 'videoinput')
 
       if (!cameras[0]) {
         supportError.detail.message = 'No camera available on device.'
@@ -65,7 +79,6 @@
     }
   }
 
-  let qrWorker: Worker
   let canvasContext: CanvasRenderingContext2D
   let loading = false
 
@@ -118,22 +131,9 @@
     canvasContext = canvas.getContext('2d', { alpha: false, willReadFrequently: true })!
     canvasContext.imageSmoothingEnabled = false // gives less blurry images
 
-    const { default: QrWorker } = await import('$lib/qr.worker?worker')
-    qrWorker = new QrWorker()
-    qrWorker.addEventListener('message', handleMessage)
-
     tick()
 
     loading = false
-  }
-
-  function handleMessage(message: MessageEvent) {
-    const { data } = message
-    if (data && data.data) {
-      handleScanResult(data.data)
-    }
-
-    tickTimeout = setTimeout(tick, data ? 1000 : 0)
   }
 
   function calculateScanRegion(video: HTMLVideoElement) {
@@ -174,7 +174,12 @@
       )
 
       const { data, height, width } = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
-      qrWorker.postMessage({ data, height, width })
+
+      appWorker.postMessage({
+        id: workerMessageId,
+        type: 'qr-process',
+        qr: { data, height, width }
+      })
     }
   }
 
@@ -183,13 +188,8 @@
   }
 
   onDestroy(() => {
-    if (qrWorker) {
-      qrWorker.removeEventListener('message', handleMessage)
-      qrWorker.terminate()
-    }
-
     tickTimeout && clearTimeout(tickTimeout)
-    stream && stream.getVideoTracks().forEach((track) => track.stop())
+    stream && stream.getVideoTracks().forEach(track => track.stop())
   })
 
   const desktopDevice = isDesktop()

@@ -41,6 +41,7 @@ export interface CorelnConnectionInterface extends Connection {
   lnmessageOptions: LnWebSocketOptions
   walletId: Wallet['id']
   info: Info
+  rune: string
   destroy$: Subject<void>
   updateToken: (token: string) => void
   connect: () => Promise<Info | null>

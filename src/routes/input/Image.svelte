@@ -3,29 +3,33 @@
   import photo from '$lib/icons/photo.js'
   import { parseInput } from '$lib/input-parser.js'
   import { file } from '$lib/services.js'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
   import ParsedInputButton from './ParsedInputButton.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
+  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
+  import { filter, takeUntil } from 'rxjs'
+  import { onDestroy$ } from '$lib/streams.js'
 
   const dispatch = createEventDispatcher()
 
   let fileInput: HTMLInputElement
   let imageSrc: string
   let imageEl: HTMLImageElement
-  let qrWorker: Worker
   let parsed: ParsedInput | null = null
   let loading = false
 
-  onMount(async () => {
-    const { default: QrWorker } = await import('$lib/qr.worker?worker')
-    qrWorker = new QrWorker()
-    qrWorker.addEventListener('message', handleMessage)
-  })
+  const workerMessageId = 'qr-processed'
 
-  const handleMessage = (message: MessageEvent) => {
-    const { data } = message
-    if (data && data.data) {
-      parsed = parseInput(data.data)
+  appWorkerMessages$
+    .pipe(
+      filter(({ data }) => data.id === workerMessageId),
+      takeUntil(onDestroy$)
+    )
+    .subscribe(({ data }) => handleResult(data.result as string))
+
+  const handleResult = (result: string) => {
+    if (result) {
+      parsed = parseInput(result)
     }
   }
 
@@ -63,7 +67,7 @@
 
   const readImage = async () => {
     const image = Object.assign(new Image(), { src: imageSrc })
-    await new Promise((resolve) => image.addEventListener('load', resolve))
+    await new Promise(resolve => image.addEventListener('load', resolve))
 
     const context = Object.assign(document.createElement('canvas'), {
       width: image.width,
@@ -74,7 +78,12 @@
     context!.drawImage(image, 0, 0)
 
     const { data, height, width } = context!.getImageData(0, 0, image.width, image.height)
-    qrWorker.postMessage({ data, height, width })
+
+    appWorker.postMessage({
+      id: workerMessageId,
+      type: 'qr-process',
+      qr: { data, height, width }
+    })
   }
 </script>
 

@@ -1,7 +1,7 @@
 import LnMessage from 'lnmessage'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import type { Invoice } from '$lib/@types/invoices.js'
-import { formatInvoice, formatMsatString, payToInvoice } from './utils.js'
+import { formatInvoice, formatMsatString, payToInvoice, stateToChannelStatus } from './utils.js'
 import { msatsToSats } from '$lib/conversion.js'
 import { hash } from '$lib/crypto.js'
 import type { Network } from '$lib/@types/common.js'
@@ -24,8 +24,17 @@ import type {
   ListAccountEventsResponse,
   ListTransactionsResponse,
   OnchainFeeEvent,
-  ToThemEvent
+  ToThemEvent,
+  ClosedChannel,
+  ListNodesResponse,
+  NodeFullResponse,
+  ListPeersResponse,
+  ListPeerChannelsResponse,
+  ListfundsResponse
 } from './types.js'
+import type { Channel } from '$lib/@types/channels.js'
+import { inPlaceSort } from 'fast-sort'
+import type { Utxo } from '$lib/@types/utxos.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -52,6 +61,14 @@ type CommandoMessage = MessageBase & {
   data: CommandoRequest
 }
 
+type GetChannelsMessage = MessageBase & {
+  type: 'get_channels'
+  rune: string
+  version: number
+  walletId: string
+  channel?: { id: string; peerId: string }
+}
+
 type FormatPaymentsMessage = MessageBase & {
   type: 'format_payments'
   invoices: RawInvoice[]
@@ -73,6 +90,13 @@ type FormatTransactionsMessage = MessageBase & {
   walletId: string
 }
 
+type FormatUtxosMessage = MessageBase & {
+  type: 'format_utxos'
+  outputs: ListfundsResponse['outputs']
+  accountEvents: ListAccountEventsResponse | null
+  walletId: string
+}
+
 type Message =
   | InitMessage
   | ConnectMessage
@@ -81,6 +105,8 @@ type Message =
   | FormatPaymentsMessage
   | FormatForwardsMessage
   | FormatTransactionsMessage
+  | GetChannelsMessage
+  | FormatUtxosMessage
 
 let socket: LnMessage
 
@@ -309,6 +335,293 @@ onmessage = async (message: MessageEvent<Message>) => {
         self.postMessage({ id, error })
         return
       }
+    }
+    case 'get_channels': {
+      const { id, walletId, rune, version, channel } = message.data
+      let closedChannels: Channel[] = []
+
+      try {
+        const result = await socket.commando({ method: 'listclosedchannels', rune })
+
+        closedChannels = await Promise.all(
+          (result as { closedchannels: ClosedChannel[] }).closedchannels.map(
+            async ({
+              channel_id,
+              opener,
+              peer_id,
+              funding_txid,
+              funding_outnum,
+              closer,
+              close_cause,
+              final_to_us_msat
+            }) => {
+              const listNodesResponse = peer_id
+                ? ((await socket.commando({
+                    method: 'listnodes',
+                    rune,
+                    params: { id: peer_id }
+                  })) as ListNodesResponse)
+                : null
+              const peer = listNodesResponse
+                ? (listNodesResponse.nodes[0] as NodeFullResponse)
+                : null
+
+              return {
+                id: channel_id,
+                walletId: walletId,
+                opener,
+                fundingTransactionId: funding_txid,
+                fundingOutput: funding_outnum,
+                peerId: peer_id,
+                peerAlias: peer?.alias,
+                peerConnected: false,
+                status: 'closed',
+                closer,
+                closeCause: close_cause,
+                finalToUs: msatsToSats(formatMsatString(final_to_us_msat)),
+                balanceLocal: 0,
+                balanceRemote: 0,
+                reserveLocal: 0,
+                reserveRemote: 0
+              } as Channel
+            }
+          )
+        )
+      } catch (error) {
+        // could not get closed channels
+      }
+
+      if (version < 2305) {
+        const listPeersResult = await socket.commando({
+          method: 'listpeers',
+          params: channel?.peerId ? { id: channel.peerId } : undefined,
+          rune
+        })
+
+        const { peers } = listPeersResult as ListPeersResponse
+
+        const result = await Promise.all(
+          peers
+            .filter(({ channels }) => !!channels)
+            .map(async ({ id, channels, connected }) => {
+              const {
+                nodes: [peer]
+              } = (await socket.commando({
+                method: 'listnodes',
+                rune,
+                params: { id }
+              })) as ListNodesResponse
+
+              return channels.map(channel => {
+                const {
+                  opener,
+                  funding_txid,
+                  funding_outnum,
+                  channel_id,
+                  short_channel_id,
+                  state,
+                  to_us_msat,
+                  total_msat,
+                  our_reserve_msat,
+                  their_reserve_msat,
+                  fee_base_msat,
+                  fee_proportional_millionths,
+                  close_to_addr,
+                  close_to,
+                  closer,
+                  htlcs,
+                  minimum_htlc_out_msat,
+                  maximum_htlc_out_msat,
+                  our_to_self_delay,
+                  their_to_self_delay,
+                  state_changes
+                } = channel
+
+                return {
+                  walletId,
+                  opener,
+                  peerId: id,
+                  peerConnected: connected,
+                  peerAlias: (peer as NodeFullResponse)?.alias,
+                  fundingTransactionId: funding_txid,
+                  fundingOutput: funding_outnum,
+                  id: channel_id,
+                  shortId: short_channel_id,
+                  status: stateToChannelStatus(state_changes?.length ? state_changes : state),
+                  balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
+                  balanceRemote: msatsToSats(
+                    Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
+                  ),
+                  reserveRemote: msatsToSats(formatMsatString(our_reserve_msat || '0')),
+                  reserveLocal: msatsToSats(formatMsatString(their_reserve_msat || '0')),
+                  feeBase: msatsToSats(formatMsatString(fee_base_msat.toString())),
+                  feePpm: fee_proportional_millionths,
+                  closeToAddress: close_to_addr ?? null,
+                  closeToScriptPubkey: close_to ?? null,
+                  closer,
+                  htlcMin: msatsToSats(formatMsatString(minimum_htlc_out_msat)),
+                  htlcMax: msatsToSats(formatMsatString(maximum_htlc_out_msat)),
+                  ourToSelfDelay: our_to_self_delay,
+                  theirToSelfDelay: their_to_self_delay,
+                  htlcs: htlcs.map(
+                    ({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                      id,
+                      direction,
+                      amount: msatsToSats(formatMsatString(amount_msat)),
+                      expiry,
+                      paymentHash: payment_hash,
+                      state
+                    })
+                  )
+                } as Channel
+              })
+            })
+        )
+
+        const flattened = result.concat(closedChannels).flat()
+        self.postMessage({
+          id,
+          result: channel?.id ? flattened.filter(({ id }) => id === channel.id) : flattened
+        })
+        return
+      } else {
+        const listPeerChannelsResult = await socket.commando({
+          method: 'listpeerchannels',
+          params: channel?.peerId ? { id: channel.peerId } : undefined,
+          rune
+        })
+
+        const { channels } = listPeerChannelsResult as ListPeerChannelsResponse
+
+        const formattedChannels = await Promise.all(
+          channels.map(async chan => {
+            const {
+              peer_id,
+              peer_connected,
+              opener,
+              funding_txid,
+              funding_outnum,
+              channel_id,
+              short_channel_id,
+              state,
+              to_us_msat,
+              total_msat,
+              fee_base_msat,
+              fee_proportional_millionths,
+              close_to_addr,
+              close_to,
+              closer,
+              our_reserve_msat,
+              their_reserve_msat,
+              htlcs,
+              minimum_htlc_out_msat,
+              maximum_htlc_out_msat,
+              our_to_self_delay,
+              their_to_self_delay,
+              state_changes
+            } = chan
+
+            const {
+              nodes: [peer]
+            } = (await socket.commando({
+              method: 'listnodes',
+              rune,
+              params: { id: peer_id }
+            })) as ListNodesResponse
+
+            return {
+              walletId,
+              opener,
+              peerId: peer_id,
+              peerConnected: peer_connected,
+              peerAlias: (peer as NodeFullResponse)?.alias,
+              fundingTransactionId: funding_txid,
+              fundingOutput: funding_outnum,
+              id: channel_id,
+              shortId: short_channel_id,
+              status: stateToChannelStatus(state_changes?.length ? state_changes : state),
+              balanceLocal: msatsToSats(formatMsatString(to_us_msat)),
+              balanceRemote: msatsToSats(
+                Big(formatMsatString(total_msat)).minus(formatMsatString(to_us_msat)).toString()
+              ),
+              reserveRemote: msatsToSats(formatMsatString(our_reserve_msat)),
+              reserveLocal: msatsToSats(formatMsatString(their_reserve_msat)),
+              feeBase: msatsToSats(formatMsatString(fee_base_msat)),
+              feePpm: fee_proportional_millionths,
+              closeToAddress: close_to_addr,
+              closeToScriptPubkey: close_to,
+              closer: closer,
+              htlcMin: msatsToSats(formatMsatString(minimum_htlc_out_msat)),
+              htlcMax: msatsToSats(formatMsatString(maximum_htlc_out_msat)),
+              ourToSelfDelay: our_to_self_delay,
+              theirToSelfDelay: their_to_self_delay,
+              htlcs: htlcs.map(({ direction, id, amount_msat, expiry, payment_hash, state }) => ({
+                id,
+                direction,
+                amount: msatsToSats(formatMsatString(amount_msat)),
+                expiry,
+                paymentHash: payment_hash,
+                state
+              }))
+            } as Channel
+          })
+        )
+
+        const allChannels = formattedChannels.concat(closedChannels)
+
+        self.postMessage({
+          id,
+          result: channel?.id ? allChannels.filter(({ id }) => id === channel.id) : allChannels
+        })
+        return
+      }
+    }
+    case 'format_utxos': {
+      const { id, walletId, outputs, accountEvents } = message.data
+
+      const formatted = outputs.map(
+        ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockheight }) => {
+          let timestamp: number | null = null
+          let spendingTxid: string | undefined = undefined
+
+          if (accountEvents) {
+            const events = inPlaceSort(
+              accountEvents.events.filter(event => {
+                const { type, outpoint, account } = event as ChainEvent
+                return account === 'wallet' && type === 'chain' && outpoint === `${txid}:${output}`
+              })
+            ).desc(({ timestamp }) => timestamp)
+
+            const [lastEvent] = events as ChainEvent[]
+
+            if (lastEvent) {
+              timestamp = lastEvent.timestamp || null
+
+              if (lastEvent.tag === 'withdrawal') {
+                spendingTxid = lastEvent.txid
+              }
+            }
+          }
+
+          return {
+            id: `${txid}:${output}`,
+            txid: txid,
+            output,
+            spendingTxid,
+            amount: msatsToSats(formatMsatString(amount_msat)),
+            scriptpubkey,
+            address,
+            status: reserved ? 'spent_unconfirmed' : status,
+            blockHeight: blockheight,
+            walletId,
+            timestamp
+          } as Utxo
+        }
+      )
+
+      self.postMessage({ id, result: formatted })
+
+      return
     }
     default: {
       throw new Error('Unknown message type')

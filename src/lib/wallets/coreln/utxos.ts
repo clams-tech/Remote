@@ -1,17 +1,14 @@
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { UtxosInterface } from '../interfaces.js'
 import handleError from './error.js'
-import { formatMsatString } from './utils.js'
-import { inPlaceSort } from 'fast-sort'
+import { formatUtxos } from './worker.js'
 
 import type {
-  ChainEvent,
   CorelnConnectionInterface,
   CoreLnError,
   ListAccountEventsResponse,
   ListfundsResponse
 } from './types.js'
-import { msatsToSats } from '$lib/conversion.js'
 
 class Utxos implements UtxosInterface {
   connection: CorelnConnectionInterface
@@ -36,45 +33,9 @@ class Utxos implements UtxosInterface {
         accountEvents = null
       }
 
-      return outputs.map(
-        ({ txid, output, amount_msat, scriptpubkey, address, status, reserved, blockheight }) => {
-          let timestamp: number | null = null
-          let spendingTxid: string | undefined = undefined
+      const formatted = await formatUtxos(outputs, accountEvents, this.connection.walletId)
 
-          if (accountEvents) {
-            const events = inPlaceSort(
-              accountEvents.events.filter((event) => {
-                const { type, outpoint, account } = event as ChainEvent
-                return account === 'wallet' && type === 'chain' && outpoint === `${txid}:${output}`
-              })
-            ).desc(({ timestamp }) => timestamp)
-
-            const [lastEvent] = events as ChainEvent[]
-
-            if (lastEvent) {
-              timestamp = lastEvent.timestamp || null
-
-              if (lastEvent.tag === 'withdrawal') {
-                spendingTxid = lastEvent.txid
-              }
-            }
-          }
-
-          return {
-            id: `${txid}:${output}`,
-            txid: txid,
-            output,
-            spendingTxid,
-            amount: msatsToSats(formatMsatString(amount_msat)),
-            scriptpubkey,
-            address,
-            status: reserved ? 'spent_unconfirmed' : status,
-            blockHeight: blockheight,
-            walletId: this.connection.walletId,
-            timestamp
-          } as Utxo
-        }
-      )
+      return formatted
     } catch (error) {
       const context = 'get (utxos)'
 
