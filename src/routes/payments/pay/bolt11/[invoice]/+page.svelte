@@ -25,6 +25,8 @@
   import { combineLatest, map } from 'rxjs'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
+  import { getNodeInfo } from '../../../utils.js'
+  import Spinner from '$lib/components/Spinner.svelte'
 
   export let data: PageData
 
@@ -110,7 +112,17 @@
     <div class="w-full mt-6">
       <SummaryRow>
         <div slot="label">{$translate('app.labels.destination')}:</div>
-        <div slot="value"><CopyValue value={nodeId} truncateLength={9} /></div>
+        <div slot="value">
+          {#await getNodeInfo(nodeId)}
+            <Spinner size="1rem" />
+          {:then node}
+            {#if node?.alias}
+              <b>{node.alias}</b>
+            {:else}
+              <CopyValue value={nodeId} truncateLength={9} />
+            {/if}
+          {/await}
+        </div>
       </SummaryRow>
 
       {#if description}
