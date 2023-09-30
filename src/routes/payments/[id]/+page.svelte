@@ -362,7 +362,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.routes./transaction.title')}</title>
+  <title>{$translate('app.routes./payment.title')}</title>
 </svelte:head>
 
 <Section>
