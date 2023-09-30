@@ -3,6 +3,8 @@ import type { Filter, Payment, Sorter, TagFilter } from './@types/common.js'
 import { endOfDay } from 'date-fns'
 import { inPlaceSort } from 'fast-sort'
 import { db } from './db/index.js'
+import type { Forward } from './@types/forwards.js'
+import { formatDate } from './dates.js'
 
 type MessageBase = {
   id: string
@@ -23,6 +25,12 @@ type SortDailyPaymentChunksMessage = MessageBase & {
   direction: 'asc' | 'desc'
 }
 
+type SortDailyForwardChunksMessage = MessageBase & {
+  type: 'sort-daily-forward-chunks'
+  forwards: Forward[]
+  direction: 'asc' | 'desc'
+}
+
 type FilterItemsMessage = MessageBase & {
   type: 'filter-items'
   items: unknown[]
@@ -36,7 +44,12 @@ type SortItemsMessage = MessageBase & {
   sorter: Sorter
 }
 
-type Message = QrMessage | SortDailyPaymentChunksMessage | FilterItemsMessage | SortItemsMessage
+type Message =
+  | QrMessage
+  | SortDailyPaymentChunksMessage
+  | SortDailyForwardChunksMessage
+  | FilterItemsMessage
+  | SortItemsMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   const { data } = message
@@ -64,7 +77,46 @@ onmessage = async (message: MessageEvent<Message>) => {
         ([timestamp]) => timestamp
       )
 
-      self.postMessage({ id, result: dailyPaymentChunks })
+      const sortedChunks = await Promise.all(
+        dailyPaymentChunks.map(async ([date, payments]) => {
+          const formattedDate = await formatDate(date)
+
+          return [formattedDate, inPlaceSort(payments).desc(({ timestamp }) => timestamp)]
+        })
+      )
+
+      self.postMessage({ id, result: sortedChunks })
+
+      return
+    }
+    case 'sort-daily-forward-chunks': {
+      const { forwards, direction } = data
+
+      const map = forwards.reduce((acc, forward) => {
+        const { completedAt, createdAt } = forward
+        const date = new Date((completedAt || createdAt) * 1000)
+        const dateKey = endOfDay(date).getTime() / 1000
+        acc.set(dateKey, [...(acc.get(dateKey) || []), forward])
+
+        return acc
+      }, new Map() as ForwardsMap)
+
+      const dailyForwardsChunks = inPlaceSort(Array.from(map.entries()))[direction](
+        ([timestamp]) => timestamp
+      )
+
+      const sortedChunks = await Promise.all(
+        dailyForwardsChunks.map(async ([date, forwards]) => {
+          const formattedDate = await formatDate(date)
+
+          return [
+            formattedDate,
+            inPlaceSort(forwards).desc(({ completedAt, createdAt }) => completedAt || createdAt)
+          ]
+        })
+      )
+
+      self.postMessage({ id, result: sortedChunks })
 
       return
     }
@@ -129,5 +181,6 @@ onmessage = async (message: MessageEvent<Message>) => {
 }
 
 type PaymentsMap = Map<number, Payment[]>
+type ForwardsMap = Map<number, Forward[]>
 
 export {}

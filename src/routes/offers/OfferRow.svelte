@@ -12,16 +12,20 @@
 
   export let offer: Offer
 
+  const query =
+    offer.type === 'withdraw'
+      ? {
+          direction: 'send',
+          amount: offer.amount
+        }
+      : { 'offer.id': offer?.id }
+
   const offerPayments$ = liveQuery(() =>
     db.invoices
-      .where(
-        offer?.type === 'withdraw'
-          ? {
-              direction: 'send',
-              'offer.description': offer.description,
-              'offer.issuer': offer.issuer
-            }
-          : { 'offer.id': offer?.id }
+      .where(query)
+      .filter(
+        invoice =>
+          invoice.offer?.description === offer.description && invoice.offer?.issuer === offer.issuer
       )
       .toArray()
   )

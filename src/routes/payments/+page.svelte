@@ -19,7 +19,6 @@
   import type { PaymentSummary } from '$lib/summary.js'
   import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
   import debounce from 'lodash.debounce'
-  import DayDate from './DayDate.svelte'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
 
@@ -269,14 +268,7 @@
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={list} />
     {#if $payments$}
-      <FilterSort
-        quickLoad
-        items={$payments$}
-        bind:filters
-        bind:tagFilters
-        bind:sorters
-        bind:processed
-      />
+      <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
     {/if}
   </div>
 
@@ -306,7 +298,11 @@
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
-              <DayDate date={dailyPaymentChunks[index][0]} />
+              <div
+                class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
+              >
+                {dailyPaymentChunks[index][0]}
+              </div>
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.id}`)}

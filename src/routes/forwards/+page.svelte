@@ -11,30 +11,19 @@
   import ForwardRow from './ForwardRow.svelte'
   import forward from '$lib/icons/forward.js'
   import type { Forward } from '$lib/@types/forwards.js'
-  import { filter, from, takeUntil } from 'rxjs'
+  import { filter, firstValueFrom, from, map, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import { createRandomHex } from '$lib/crypto.js'
+  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
 
   const forwards$ = from(liveQuery(() => db.forwards.toArray()))
 
-  let showFullOpenButton = false
   let forwardsContainer: HTMLDivElement
 
   // need to adjust this if you change the transaction row height
   const rowSize = 82
-
-  let previousOffset = 0
-
-  const handleForwardsScroll = (offset: number) => {
-    if (offset < previousOffset) {
-      showFullOpenButton = true
-    } else {
-      showFullOpenButton = false
-    }
-
-    previousOffset = offset
-  }
 
   let innerHeight: number
 
@@ -104,7 +93,7 @@
           values: [
             {
               label: $translate('app.labels.settled'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['settled']
@@ -112,7 +101,7 @@
             },
             {
               label: $translate('app.labels.offered'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['offered']
@@ -142,8 +131,38 @@
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed) {
+  $: if (virtualList && processed && dailyForwardChunks) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
+  }
+
+  type ForwardChunks = [number, Forward[]][]
+  let dailyForwardChunks: ForwardChunks = []
+
+  const sortDailyChunks = async () => {
+    const id = createRandomHex()
+
+    appWorker.postMessage({
+      id,
+      type: 'sort-daily-forward-chunks',
+      forwards: processed,
+      direction: sorters[0].direction
+    })
+
+    dailyForwardChunks = (await firstValueFrom(
+      appWorkerMessages$.pipe(
+        filter(message => message.data.id === id),
+        map(({ data }) => data.result)
+      )
+    )) as ForwardChunks
+  }
+
+  $: if (processed) {
+    sortDailyChunks()
+  }
+
+  const getDaySize = (index: number) => {
+    const forwards = dailyForwardChunks[index][1]
+    return forwards.length * rowSize + 24 + 8
   }
 </script>
 
@@ -173,22 +192,34 @@
       <div class="w-full mt-4">
         <Msg message={$translate('app.labels.no_forwards')} type="info" closable={false} />
       </div>
-    {:else}
+    {:else if dailyForwardChunks.length}
       <div
         bind:this={forwardsContainer}
         class="w-full flex flex-col flex-grow overflow-hidden gap-y-2 mt-2"
       >
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={e => handleForwardsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
-          itemCount={processed.length}
-          itemSize={rowSize}
-          getKey={index => processed[index].id}
+          itemCount={dailyForwardChunks.length}
+          itemSize={getDaySize}
+          getKey={index => dailyForwardChunks[index][0]}
         >
           <div slot="item" let:index let:style {style}>
-            <ForwardRow forward={processed[index]} />
+            <div class="pt-1 pl-1">
+              <div
+                class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
+              >
+                {dailyForwardChunks[index][0]}
+              </div>
+              <div class="rounded overflow-hidden">
+                <div class="overflow-hidden rounded">
+                  {#each dailyForwardChunks[index][1] as forward (`${forward.id}`)}
+                    <ForwardRow {forward} />
+                  {/each}
+                </div>
+              </div>
+            </div>
           </div>
         </VirtualList>
       </div>

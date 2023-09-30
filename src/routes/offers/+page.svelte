@@ -169,6 +169,7 @@
           height={listHeight}
           itemCount={processed.length}
           itemSize={rowSize}
+          getKey={index => processed[index].id}
         >
           <div slot="item" let:index let:style {style}>
             <OfferRow offer={processed[index]} />

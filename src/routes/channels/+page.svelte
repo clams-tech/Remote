@@ -141,7 +141,7 @@
           values: [
             {
               label: $translate('app.labels.active'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['active']
@@ -149,7 +149,7 @@
             },
             {
               label: $translate('app.labels.opening'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['opening']
@@ -157,7 +157,7 @@
             },
             {
               label: $translate('app.labels.closing'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['closing']
@@ -187,7 +187,7 @@
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed) {
+  $: if (virtualList && processed.length) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
 </script>
@@ -211,7 +211,7 @@
       <div class="mt-4 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_channels')} />
       </div>
-    {:else}
+    {:else if processed.length}
       <div class="w-full flex flex-col h-full overflow-hidden">
         <div class="w-full mb-2">
           <SummaryRow>
@@ -245,9 +245,11 @@
             height={listHeight}
             itemCount={processed.length}
             itemSize={rowSize}
+            getKey={index => processed[index].id}
           >
             <div slot="item" let:index let:style {style}>
-              <ChannelRow channel={processed[index]} />
+              {@const channel = processed[index]}
+              <ChannelRow {channel} />
             </div>
           </VirtualList>
         </div>

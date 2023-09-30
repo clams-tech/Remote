@@ -13,80 +13,63 @@
   export let tagFilters: TagFilter[]
   export let sorters: Sorter[]
   export let processed: unknown[]
-  export let quickLoad = false
-
-  if (quickLoad) {
-    processed = items
-  }
 
   let showModal = false
   let selectedSorterKey: Sorter['key'] = sorters[0].key
   let selectedSorter = sorters[0]
 
+  processed = items
+
   $: if (selectedSorterKey !== selectedSorter.key) {
     updateSorter()
   }
 
+  $: if (items || filters.length || tagFilters.length || selectedSorter) {
+    processItems()
+  }
+
+  const processItems = debounce(async () => {
+    const filtered = await filterItems(items)
+    const sorted = await sortItems(filtered)
+
+    processed = sorted
+  }, 50)
+
   const updateSorter = () =>
     (selectedSorter = sorters.find(({ key }) => key === selectedSorterKey) || sorters[0])
 
-  const filtering$ = new BehaviorSubject<boolean>(false)
-  const sorting$ = new BehaviorSubject<boolean>(false)
-
-  const filterItems = async () => {
-    if ($sorting$) {
-      // wait until finished sorting
-      await firstValueFrom(sorting$.pipe(filter(x => !x)))
-    }
-
-    filtering$.next(true)
+  const filterItems = async (items: unknown[]) => {
+    if ((!filters.length && !tagFilters.length) || !items.length) return items
 
     const id = createRandomHex()
 
     appWorker.postMessage({ id, type: 'filter-items', filters, tagFilters, items })
 
-    processed = (await firstValueFrom(
+    const result = (await firstValueFrom(
       appWorkerMessages$.pipe(
         filter(({ data }) => data.id === id),
         map(({ data }) => data.result)
       )
     )) as unknown[]
 
-    filtering$.next(false)
+    return result
   }
 
-  const sortItems = async () => {
-    if ($filtering$) {
-      // wait until finished filtering
-      await firstValueFrom(filtering$.pipe(filter(x => !x)))
-    }
+  const sortItems = async (items: unknown[]) => {
+    if (!items.length) return items
 
-    if (selectedSorter) {
-      sorting$.next(true)
-      const id = createRandomHex()
+    const id = createRandomHex()
 
-      appWorker.postMessage({ id, type: 'sort-items', items, sorter: selectedSorter })
+    appWorker.postMessage({ id, type: 'sort-items', items, sorter: selectedSorter })
 
-      processed = (await firstValueFrom(
-        appWorkerMessages$.pipe(
-          filter(({ data }) => data.id === id),
-          map(({ data }) => data.result)
-        )
-      )) as unknown[]
+    const result = (await firstValueFrom(
+      appWorkerMessages$.pipe(
+        filter(({ data }) => data.id === id),
+        map(({ data }) => data.result)
+      )
+    )) as unknown[]
 
-      sorting$.next(false)
-    }
-  }
-
-  const debouncedFilterItems = debounce(filterItems, 100)
-
-  // recalculate on change
-  $: if (filters && tagFilters) {
-    debouncedFilterItems()
-  }
-
-  $: if (selectedSorter) {
-    sortItems()
+    return result
   }
 </script>
 

@@ -46,7 +46,7 @@ class DB extends Dexie {
       exchangeRates: '&[timestamp+currency], price, currency',
       forwards: '&id, walletId, shortIdIn, shortIdOut, fee, status, createdAt, completedAt',
       invoices:
-        '&[id+walletId], id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, offer.id, [walletId+direction], [direction+offer.description+offer.issuer]',
+        '&[id+walletId], id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, amount, offer.id, [walletId+direction], [direction+amount]',
       labels: '&ref, type, label, spendable, origin',
       metadata: '&id, type, tags, contact',
       nodes: '&id, alias',
