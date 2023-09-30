@@ -29,22 +29,18 @@
   }
 
   const setAmount = () => {
-    dispatch('amount', sats || 0)
+    dispatch('amount', sats ? Math.round(sats) : 0)
     showModal = false
     fiat = 0
     sats = 0
   }
 
   const handleKeyPress = (e: KeyboardEvent) => {
-    if (showModal) {
-      if (e.key === 'Enter') {
-        setAmount()
-      }
+    if (e.key === 'Enter') {
+      setAmount()
     }
   }
 </script>
-
-<svelte:window on:keyup|stopPropagation|stopPropagation={handleKeyPress} />
 
 <button on:click={() => (showModal = true)} class="w-full flex items-center"
   >{@html calculator}</button
@@ -52,7 +48,7 @@
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
-    <div class="w-full">
+    <button class="w-full" on:keyup|stopPropagation={handleKeyPress}>
       <SectionHeading text={$translate('app.labels.fiat_calculator')} icon={calculator} />
       <TextInput
         bind:focus={focusInput}
@@ -73,6 +69,6 @@
           <Button primary on:click={setAmount} text={$translate('app.labels.set_amount')} />
         </div>
       </div>
-    </div>
+    </button>
   </Modal>
 {/if}

@@ -345,7 +345,7 @@
     "summary_receive_pending": "requested sats via",
     "summary_receive_waiting": "requested sats via",
     "summary_receive_expired": "expired invoice",
-    "summary_receive_complete": "received sats from",
+    "summary_receive_complete": "received sats {{counterpartType; unknown:via; default:from;}}",
     "summary_transfer_complete": "transferred sats to",
     "summary_transfer_pending": "is transferring sats to",
     "summary_transfer_expired": "expired invoice",

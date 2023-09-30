@@ -65,10 +65,10 @@
   }
 </script>
 
-<div class="w-full text-sm">
+<div class="w-full text-xs">
   <div class="flex border rounded-md">
     <label
-      class="flex items-center justify-center px-2 py-2 rounded-md cursor-pointer w-1/3"
+      class="flex items-center justify-center px-2 py-1 rounded-md cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'default'}
     >
       <input
@@ -81,7 +81,7 @@
     </label>
 
     <label
-      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
+      class="flex items-center justify-center px-2 py-1 rounded cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'customProxy'}
     >
       <input
@@ -94,7 +94,7 @@
     </label>
 
     <label
-      class="flex items-center justify-center px-2 py-2 rounded cursor-pointer w-1/3"
+      class="flex items-center justify-center px-2 py-1 rounded cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'directConnection'}
     >
       <input
@@ -110,6 +110,7 @@
   {#if advancedConnectOption === 'customProxy'}
     <div in:fade={{ duration: 250 }} class="mt-2">
       <TextInput
+        micro
         bind:this={customProxyInput}
         bind:value={connection.value}
         name={advancedConnectOption}
@@ -120,7 +121,7 @@
   {:else if advancedConnectOption === 'directConnection'}
     <div in:fade={{ duration: 250 }} class="mt-2">
       <div
-        class="flex items-center px-3 py-3 ring-2 ring-purple-500 border border-neutral-600 rounded"
+        class="flex items-center px-3 py-2 ring-2 ring-purple-500 border border-neutral-600 rounded"
       >
         <label class="flex items-center cursor-pointer">
           <input type="radio" bind:group={connection.value} value="wss:" />
@@ -135,7 +136,7 @@
     </div>
   {:else}
     <div in:fade={{ duration: 250 }} class="mt-2 w-full">
-      <TextInput value={WS_PROXY} name={advancedConnectOption} readonly />
+      <TextInput micro value={WS_PROXY} name={advancedConnectOption} readonly />
     </div>
   {/if}
 </div>

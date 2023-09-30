@@ -60,3 +60,7 @@ input[type='radio'] {
 button {
   @apply text-start;
 }
+
+[type='text'] {
+  font-size: inherit;
+}

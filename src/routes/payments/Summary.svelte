@@ -29,7 +29,7 @@
     </span>
 
     <span class="italic">
-      {$translate(`app.labels.summary_${type}_${status}`)}
+      {$translate(`app.labels.summary_${type}_${status}`, { counterpartType: secondary.type })}
     </span>
 
     <span class="font-semibold text-purple-100 uppercase">
@@ -43,8 +43,8 @@
         {secondary.value
           ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
           : $translate('app.labels.unknown')}
-      {:else}
-        {$translate('app.labels.unknown')}
+      {:else if secondary.type === 'unknown'}
+        {secondary.value ? truncateValue(secondary.value) : $translate('app.labels.unknown')}
       {/if}
     </span>
   </div>
