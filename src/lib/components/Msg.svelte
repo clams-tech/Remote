@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <div class="font-semibold text-sm leading-tight flex items-center">
+        <div class="font-semibold text-sm leading-tight">
           <!-- text-bitcoin-orange -->
           {@html message}
         </div>
