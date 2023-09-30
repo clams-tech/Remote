@@ -3,7 +3,7 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Invoice } from '$lib/@types/invoices.js'
   import type { Transaction } from '$lib/@types/transactions.js'
-  import { formatDate, formatDateRelativeToNow } from '$lib/dates.js'
+  import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db/index.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
@@ -20,7 +20,7 @@
   import CopyValue from '$lib/components/CopyValue.svelte'
   import { getNetwork, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
-  import Dexie, { liveQuery } from 'dexie'
+  import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
   import { satsToBtcString } from '$lib/conversion.js'
   import { goto } from '$app/navigation'
@@ -29,9 +29,9 @@
   import { from, type Observable } from 'rxjs'
   import channelIcon from '$lib/icons/channels.js'
   import type { Channel } from '$lib/@types/channels.js'
-  import { MIN_IN_SECS } from '$lib/constants.js'
   import keys from '$lib/icons/keys.js'
   import walletIcon from '$lib/icons/wallet.js'
+  import { updateCounterPartyNodeInfo } from '../utils.js'
 
   import {
     deriveInvoiceSummary,
@@ -43,7 +43,6 @@
     type RegularTransactionSummary,
     type ChannelTransactionSummary
   } from '$lib/summary.js'
-  import { updateCounterPartyNodeInfo } from '../utils.js'
 
   export let data: PageData
 
@@ -695,9 +694,9 @@
           </SummaryRow>
         {/if}
 
-        {#if channels}
+        {#if channels?.length}
           {@const [channel] = channels}
-          {@const { ourToSelfDelay, closer, status } = channel}
+          <!-- {@const { ourToSelfDelay, closer, status } = channel} -->
 
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
@@ -720,6 +719,7 @@
             {/if}
           {/await}
 
+          <!-- @TODO - Could add back in to show blocks until setWeekWithOptions, but needs to be reliable -->
           <!-- {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
             <SummaryRow>
               <span slot="label">{$translate('app.labels.can_sweep')}:</span>
