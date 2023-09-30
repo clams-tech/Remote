@@ -48,10 +48,14 @@
               offer?.type === 'withdraw'
                 ? {
                     direction: 'send',
-                    'offer.description': offer.description,
-                    'offer.issuer': offer.issuer
+                    amount: offer?.amount
                   }
                 : { 'offer.id': offer?.id }
+            )
+            .filter(
+              invoice =>
+                invoice.offer?.description === offer?.description &&
+                invoice.offer?.issuer === offer?.issuer
             )
             .reverse()
             .sortBy('completedAt')
