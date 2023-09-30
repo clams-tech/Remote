@@ -37,8 +37,7 @@
     map(([wallets, connections]) =>
       wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        const selfPay = nodeId === data.pubkey
-        return !!connection?.invoices?.keysend && !selfPay
+        return !!connection?.invoices?.keysend
       })
     )
   )

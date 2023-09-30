@@ -39,8 +39,7 @@
     map(([wallets, connections]) =>
       wallets.filter(({ id, nodeId }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        const selfPay = nodeId === decoded?.nodeId
-        return !!connection?.invoices?.pay && !selfPay
+        return !!connection?.invoices?.pay
       })
     )
   )
