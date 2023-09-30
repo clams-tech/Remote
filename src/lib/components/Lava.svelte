@@ -208,4 +208,7 @@
 
 <svelte:window on:resize={debouncedHandleResize} />
 
-<canvas class="absolute top-0 left-0 bg-neutral-900 w-screen h-[calc(100dvh)]" bind:this={canvas} />
+<canvas
+  class="absolute top-0 left-0 bg-gradient-to-b from-neutral-900 to-neutral-800 from-80% to-100% w-screen h-[calc(100dvh)]"
+  bind:this={canvas}
+/>

@@ -13,7 +13,7 @@ input {
 html {
   font-family: Helvetica;
   height: -webkit-fill-available;
-  @apply bg-neutral-900;
+  @apply bg-gradient-to-b from-neutral-900 to-neutral-800 from-80% to-100%;
 }
 
 body {

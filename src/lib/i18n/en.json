@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a class='ml-1' href='/wallets/add'>wallet</a>."
+      "get_started_hint": "To get started, add a new <a href='/wallets/add'>wallet</a>."
     },
     "/input": {
       "title": "Input"
@@ -220,7 +220,7 @@
     "no_offers": "You have no offers, try syncing your wallets or create a new offer.",
     "no_payments": "No payments here, try adding a wallet connection and syncing it.",
     "no_utxos": "No utxos here, try adding a wallet connection and syncing it.",
-    "no_forwards": "No forwards here, ensure that you have a lightning wallet connected and you have more than on open channel.",
+    "no_forwards": "No forwards here, ensure that you have a lightning wallet connected and you have more than one open channel.",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",
     "confirmed": "Spendable",

@@ -321,7 +321,7 @@
 
   <div class="w-full flex justify-end">
     <a
-      href="/transactions/receive"
+      href="/payments/receive"
       class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}

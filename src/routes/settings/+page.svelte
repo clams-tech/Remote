@@ -119,7 +119,10 @@
   <div class="h-full overflow-auto">
     <div class="columns-2 sm:columns-3 gap-2 mt-2 w-full">
       {#if notification.supported()}
-        <button on:click={toggleNotifications} class="p-4 border rounded-lg break-inside-avoid mb-2 flex flex-col w-full">
+        <button
+          on:click={toggleNotifications}
+          class="p-4 border rounded-lg break-inside-avoid mb-2 flex flex-col w-full"
+        >
           <div class="flex items-center w-full justify-between mb-2">
             <div class="uppercase font-semibold mr-6 leading-none">
               {$translate('app.labels.notifications')}
@@ -128,11 +131,11 @@
               <Toggle bind:toggled={$settings$.notifications} />
             </div>
           </div>
-  
+
           <div class="text-sm">
             {$translate('app.labels.notifications_description')}
           </div>
-  
+
           {#if $settings$.notifications}
             <div transition:slide={{ axis: 'y' }} class="w-full flex justify-end">
               <button
@@ -146,8 +149,11 @@
           {/if}
         </button>
       {/if}
-  
-      <button on:click={toggleLangModal} class="p-4 border rounded-lg flex flex-col justify-start mb-2 w-full">
+
+      <button
+        on:click={toggleLangModal}
+        class="p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+      >
         <div class="flex items-center w-full justify-between mb-2">
           <div class="uppercase font-semibold mr-6">{$translate('app.labels.language')}</div>
           <div
@@ -156,13 +162,16 @@
             {$translate(`app.languages.${$settings$.language}`)}
           </div>
         </div>
-  
+
         <div class="text-sm">
           {$translate('app.labels.language_description')}
         </div>
       </button>
-  
-      <button on:click={toggleCurrencyModal} class="w-full p-4 border rounded-lg mb-2 flex flex-col">
+
+      <button
+        on:click={toggleCurrencyModal}
+        class="w-full p-4 border rounded-lg mb-2 flex flex-col"
+      >
         <div class="flex items-center justify-between mb-2 w-full">
           <div class="uppercase font-semibold mr-6">{$translate('app.labels.fiat')}</div>
           <div
@@ -175,23 +184,29 @@
             {/if}
           </div>
         </div>
-  
+
         <div class="text-sm">
           {$translate('app.labels.fiat_description')}
         </div>
       </button>
-  
-      <button on:click={toggleHomescreenModal} class="w-full p-4 border rounded-lg mb-2 flex flex-col">
+
+      <button
+        on:click={toggleHomescreenModal}
+        class="w-full p-4 border rounded-lg mb-2 flex flex-col"
+      >
         <div class="flex items-center w-full justify-between mb-2">
           <div class="uppercase font-semibold mr-6">{$translate('app.labels.homescreen')}</div>
         </div>
-  
+
         <div class="text-sm">
           {$translate('app.labels.homescreen_description')}
         </div>
       </button>
-  
-      <button on:click={toggleLavaLamp} class="w-full p-4 border rounded-lg break-inside-avoid mb-2 flex flex-col">
+
+      <button
+        on:click={toggleLavaLamp}
+        class="w-full p-4 border rounded-lg break-inside-avoid mb-2 flex flex-col"
+      >
         <div class="flex items-center justify-between mb-2 w-full">
           <div class="uppercase font-semibold mr-6 leading-none">
             {$translate('app.labels.lava_lamp')}
@@ -200,20 +215,10 @@
             <Toggle bind:toggled={$settings$.lavaLamp} />
           </div>
         </div>
-  
+
         <div class="text-sm">
           {$translate('app.labels.lava_lamp_description')}
         </div>
-  
-        {#if $settings$.notifications}
-          <div transition:slide={{ axis: 'y' }} class="w-full flex justify-end">
-            <button
-              class="mt-2 text-sm font-semibold px-2 border-2 rounded"
-              on:click|stopPropagation={showTestNotification}
-              >{$translate(`app.labels.${showingTestNotification?.close ? 'close' : 'test'}`)}</button
-            >
-          </div>
-        {/if}
       </button>
     </div>
   </div>

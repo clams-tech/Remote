@@ -114,9 +114,10 @@ onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
     case 'init': {
       socket = new LnMessage(message.data.data)
-      socket.connectionStatus$.subscribe(status =>
+      socket.connectionStatus$.subscribe(status => {
+        console.log('CONNECTION STATUS UPDATE:', status)
         self.postMessage({ id: 'connectionStatus$', result: status })
-      )
+      })
 
       self.postMessage({ id: message.data.id })
       return

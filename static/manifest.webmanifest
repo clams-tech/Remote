@@ -3,7 +3,7 @@
 	"name": "Clams",
 	"start_url": "/",
 	"display": "fullscreen",
-  "description": "A user interface for your Core Lightning node",
+  "description": "Unified Bitcoin management.",
   "icons": [
     {
       "src": "/icons/android-chrome-192x192.png",
@@ -24,7 +24,7 @@
     }
   ],
   "theme_color": "#6305f0",
-  "background_color": "#fafafa",
+  "background_color": "#171717",
   "protocol_handlers": [
     {
       "name": "Clams",

@@ -119,7 +119,7 @@
 <svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
 <Section>
-  <div class="flex items-center justify-between mb-2">
+  <div class="flex items-center justify-between">
     <SectionHeading icon={plus} />
   </div>
 
