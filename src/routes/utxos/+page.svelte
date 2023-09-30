@@ -99,7 +99,7 @@
           values: [
             {
               label: $translate('app.labels.unconfirmed'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['unconfirmed']
@@ -107,7 +107,7 @@
             },
             {
               label: $translate('app.labels.confirmed'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['confirmed']
@@ -131,7 +131,7 @@
             },
             {
               label: $translate('app.labels.immature'),
-              checked: true,
+              checked: false,
               predicate: {
                 key: 'status',
                 values: ['immature']
