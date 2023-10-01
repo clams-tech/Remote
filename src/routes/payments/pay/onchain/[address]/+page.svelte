@@ -93,6 +93,10 @@
 
 <svelte:window on:keyup|stopPropagation={handleKeyUp} />
 
+<svelte:head>
+  <title>{$translate('app.routes./payment.title')}</title>
+</svelte:head>
+
 <Section>
   <div class="w-full flex justify-center items-center text-3xl font-semibold">
     <div>
