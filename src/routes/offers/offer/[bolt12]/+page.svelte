@@ -101,18 +101,24 @@
               }
             }
           }
-
-          invoice = await connection.offers.payInvoice(fetchedInvoice)
         } catch (error) {
-          throw {
-            key: 'fetched_invoice_invalid',
-            detail: {
-              context: 'pay offer',
-              message: 'Fetched invoice is invalid.',
-              timestamp: nowSeconds()
+          const { key } = error as AppError
+
+          if (key) {
+            throw error
+          } else {
+            throw {
+              key: 'fetched_invoice_invalid',
+              detail: {
+                context: 'pay offer',
+                message: 'Fetched invoice is invalid.',
+                timestamp: nowSeconds()
+              }
             }
           }
         }
+
+        invoice = await connection.offers.payInvoice(fetchedInvoice)
       } else {
         // handle withdraw offer
         if (!connection.offers?.sendInvoice) {

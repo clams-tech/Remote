@@ -463,7 +463,7 @@
       </div>
 
       {#if status !== 'closed' && connection && connection.channels?.update}
-        <div class="flex w-full justify-end mt-4 max-w-lg">
+        <div class="flex w-full justify-end mt-4 mb-1 max-w-lg">
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}

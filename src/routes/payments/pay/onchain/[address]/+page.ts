@@ -5,5 +5,5 @@ export const load: PageLoad = async ({ params, url }) => {
   const amount = url.searchParams.get('amount')
   const message = url.searchParams.get('message')
   const label = url.searchParams.get('label')
-  return { address, amount: amount && parseInt(amount), message, label }
+  return { address, amount: amount && parseFloat(amount), message, label }
 }

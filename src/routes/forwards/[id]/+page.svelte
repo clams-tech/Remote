@@ -1,13 +1,7 @@
 <script lang="ts">
   import Spinner from '$lib/components/Spinner.svelte'
   import { translate } from '$lib/i18n/translations'
-  import warning from '$lib/icons/warning'
   import type { PageData } from './$types'
-  import { connections$ } from '$lib/streams'
-  import { fade } from 'svelte/transition'
-  import ExpiryCountdown from '$lib/components/ExpiryCountdown.svelte'
-  import trendingUp from '$lib/icons/trending-up'
-  import trendingDown from '$lib/icons/trending-down'
   import { db } from '$lib/db/index.js'
   import { liveQuery } from 'dexie'
   import { truncateValue } from '$lib/utils.js'
@@ -18,6 +12,8 @@
   import caret from '$lib/icons/caret.js'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import forward from '$lib/icons/forward.js'
+  import { formatDate } from '$lib/dates.js'
+  import { differenceInMilliseconds } from 'date-fns'
 
   export let data: PageData
 
@@ -54,7 +50,9 @@
       fee,
       in: amountIn,
       out: amountOut,
-      status
+      status,
+      createdAt,
+      completedAt
     } = $forward$}
     <div class="w-full">
       <SectionHeading text={$translate('app.routes./forward.title')} icon={forward} />
@@ -102,6 +100,26 @@
           <BitcoinAmount sats={fee} />
         </div>
       </SummaryRow>
+
+      {#if completedAt}
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.completed_at')}</div>
+          <div slot="value">
+            {#await formatDate(completedAt, 'hh:mm a') then formatted}
+              {formatted}
+            {/await}
+          </div>
+        </SummaryRow>
+
+        <SummaryRow>
+          <div slot="label">{$translate('app.labels.process_time')}</div>
+          <div slot="value">
+            {#await differenceInMilliseconds(completedAt, createdAt) then formatted}
+              {formatted} ms
+            {/await}
+          </div>
+        </SummaryRow>
+      {/if}
 
       <SummaryRow>
         <div slot="label">{$translate('app.labels.in_channel')}:</div>

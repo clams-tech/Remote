@@ -651,7 +651,7 @@
                             {wallet?.label}
                           {/await}
                         {:else}
-                          {truncateValue(address)}
+                          <CopyValue value={address.toUpperCase()} truncateLength={8} />
                         {/if}
                       </div>
                     </div>

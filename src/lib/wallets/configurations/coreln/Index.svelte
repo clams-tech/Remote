@@ -61,7 +61,7 @@
   const getClamsRuneCommand = () => {
     const { id } = $session$ as Session
     return `lightning-cli commando-rune restrictions='[["id=${id}"], [${methods.map(
-      (method) => `"method=${method}"`
+      method => `"method=${method}"`
     )}], ["rate=120"]]'`
   }
 
@@ -103,7 +103,7 @@
         decodedRune.restrictions.map(async ({ summary }) => {
           const alternatives = summary.split(' OR ')
           const formattedAlternatives = await Promise.all(
-            alternatives.map(async (alternative) => {
+            alternatives.map(async alternative => {
               let words = alternative.split(' ')
               const lastIndex = words.length - 1
               const lastValue = words[lastIndex]
@@ -140,7 +140,7 @@
 
           return formattedAlternatives.join('<span class="text-xs mr-2"><i><br>OR<br></i></span>')
         })
-      ).then((restrictions) =>
+      ).then(restrictions =>
         restrictions.join('<span class="text-xs mr-2"><i><br>AND<br></i></span>')
       )
 

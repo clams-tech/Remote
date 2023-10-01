@@ -101,14 +101,14 @@
     >
       {#if input === 'scan'}
         <div class="w-full flex items-center">
-          <Scan on:input={(e) => handleInput(e.detail)} />
+          <Scan on:input={e => handleInput(e.detail)} />
         </div>
       {:else if input === 'text'}
-        <Text on:input={(e) => handleInput(e.detail)} />
+        <Text on:input={e => handleInput(e.detail)} />
       {:else if input === 'image'}
-        <Image on:input={(e) => handleInput(e.detail)} />
+        <Image on:input={e => handleInput(e.detail)} />
       {:else if input === 'nfc'}
-        <NFCComponent on:input={(e) => handleInput(e.detail)} />
+        <NFCComponent on:input={e => handleInput(e.detail)} />
       {/if}
     </div>
   </div>

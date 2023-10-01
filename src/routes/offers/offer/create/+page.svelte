@@ -83,14 +83,14 @@
     } catch (error) {
       createOfferError = error as AppError
       offer = null
-    } finally {
-      creatingOffer = false
     }
 
     if (offer) {
       await db.offers.add(offer)
       await goto(`/offers/${offer.id}`)
     }
+
+    creatingOffer = false
   }
 </script>
 

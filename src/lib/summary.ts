@@ -617,7 +617,7 @@ export const deriveTransactionSummary = ({
           primary: { type: 'wallet', value: receiveWallet },
           secondary: sourceContact
             ? { type: 'contact', value: sourceContact }
-            : { type: 'unknown', value: inputOutpoints[0] },
+            : { type: 'unknown', value: receiveOutput.address },
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }

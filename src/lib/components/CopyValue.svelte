@@ -42,14 +42,14 @@
   {#if copyStatus}
     <div
       in:fade={{ duration: 250 }}
-      class="ml-1 w-6"
+      class="ml-[0.25em] w-[1.5em]"
       class:text-utility-success={copyStatus === 'success'}
       class:text-utility-error={copyStatus === 'error'}
     >
       {@html copyStatus === 'success' ? check : close}
     </div>
   {:else}
-    <div in:fade={{ duration: 250 }} class="ml-1 w-6">
+    <div in:fade={{ duration: 250 }} class="ml-[0.25em] w-[1.5em]">
       {@html icon}
     </div>
   {/if}

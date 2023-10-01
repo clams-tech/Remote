@@ -3,7 +3,6 @@
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations.js'
-  import keys from '$lib/icons/keys.js'
   import { onMount, type ComponentType } from 'svelte'
   import type { PageData } from './$types'
   import CoreLn from '$lib/wallets/configurations/coreln/Index.svelte'
@@ -38,6 +37,7 @@
     connectionOptions,
     syncConnectionData
   } from '$lib/wallets/index.js'
+  import wallet from '$lib/icons/wallet.js'
 
   export let data: PageData
 
@@ -225,7 +225,7 @@
       <SectionHeading
         on:updated={({ detail }) => handleLabelUpdate(detail)}
         text={label}
-        icon={keys}
+        icon={wallet}
         editable
       />
 

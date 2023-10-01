@@ -416,7 +416,7 @@
     "lets_go": "Let's Go!",
     "received_sats": "Received Sats",
     "invoice_receive_description": "{{wallet}} received {{amount}} sats via {{request}}",
-    "invoice_description_placeholder": "Description to include in invoice",
+    "invoice_description_placeholder": "Description to include in payment request",
     "opening": "Opening",
     "peer_id": "Peer Id",
     "channel_with": "Channel with",
@@ -446,7 +446,8 @@
     "can_sweep": "Can sweep",
     "blocks": "Blocks",
     "included_in_block": "Included in block",
-    "funding_transaction": "Funding transaction"
+    "funding_transaction": "Funding transaction",
+    "process_time": "Process time"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
