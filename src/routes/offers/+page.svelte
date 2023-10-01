@@ -49,6 +49,7 @@
   let tagFilters: TagFilter[] = []
 
   let sorters: Sorter[] = [
+    { label: $translate('app.labels.active'), key: 'active', direction: 'desc' },
     { label: $translate('app.labels.amount'), key: 'amount', direction: 'desc' },
     { label: $translate('app.labels.expiry'), key: 'expiry', direction: 'desc' }
   ]
