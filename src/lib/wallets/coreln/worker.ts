@@ -1,8 +1,14 @@
 import { fromEvent, type BehaviorSubject, firstValueFrom, filter, map } from 'rxjs'
-import CoreLnWorker from './coreln.worker?worker'
 import type { ConnectionStatus } from '../interfaces.js'
 import { createRandomHex } from '$lib/crypto.js'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
+import type { Invoice } from '$lib/@types/invoices.js'
+import type { Forward } from '$lib/@types/forwards.js'
+import type { Network } from '$lib/@types/common.js'
+import type { Transaction } from '$lib/@types/transactions.js'
+import type { Channel } from '$lib/@types/channels.js'
+import type { Utxo } from '$lib/@types/utxos.js'
+
 import type {
   ListAccountEventsResponse,
   ListForwardsResponse,
@@ -12,14 +18,14 @@ import type {
   RawInvoice,
   SocketWrapper
 } from './types.js'
-import type { Invoice } from '$lib/@types/invoices.js'
-import type { Forward } from '$lib/@types/forwards.js'
-import type { Network } from '$lib/@types/common.js'
-import type { Transaction } from '$lib/@types/transactions.js'
-import type { Channel } from '$lib/@types/channels.js'
-import type { Utxo } from '$lib/@types/utxos.js'
 
-export const coreLnWorker = new CoreLnWorker()
+export const coreLnWorker = new Worker(
+  new URL('$lib/wallets/coreln/coreln.worker.ts', import.meta.url),
+  {
+    type: 'module'
+  }
+)
+
 const messages$ = fromEvent<MessageEvent>(coreLnWorker, 'message')
 
 export const createSocket = async (

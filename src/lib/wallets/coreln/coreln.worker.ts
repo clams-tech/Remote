@@ -12,6 +12,9 @@ import { nowSeconds } from '$lib/utils.js'
 import { initEccLib, networks } from 'bitcoinjs-lib'
 import secp256k1 from '@bitcoinerlab/secp256k1'
 import Big from 'big.js'
+import type { Channel } from '$lib/@types/channels.js'
+import { inPlaceSort } from 'fast-sort'
+import type { Utxo } from '$lib/@types/utxos.js'
 
 import type {
   ListForwardsResponse,
@@ -32,9 +35,6 @@ import type {
   ListPeerChannelsResponse,
   ListfundsResponse
 } from './types.js'
-import type { Channel } from '$lib/@types/channels.js'
-import { inPlaceSort } from 'fast-sort'
-import type { Utxo } from '$lib/@types/utxos.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)

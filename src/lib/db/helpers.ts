@@ -1,5 +1,4 @@
 import { BehaviorSubject, filter, firstValueFrom, fromEvent, map } from 'rxjs'
-import DbWorker from './db.worker?worker'
 import { createRandomHex } from '$lib/crypto.js'
 import type { Channel } from '$lib/@types/channels.js'
 import type { Transaction } from '$lib/@types/transactions.js'
@@ -7,7 +6,10 @@ import type { Invoice } from '$lib/@types/invoices.js'
 import type { Payment } from '$lib/@types/common.js'
 import type { PaymentSummary } from '$lib/summary.js'
 
-const worker = new DbWorker()
+const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
+  type: 'module'
+})
+
 const messages$ = fromEvent<MessageEvent>(worker, 'message')
 
 export const payments$ = new BehaviorSubject<Payment[]>([])

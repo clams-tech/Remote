@@ -46,7 +46,14 @@ const config = {
         '/payments/receive',
         '/payments/[id]',
         '/utxos',
-        '/utxos/[id]'
+        '/utxos/[id]',
+        '/forwards',
+        '/forwards/[id]',
+        '/lnurl/[value]',
+        '/offers',
+        '/offers/offer/create',
+        '/offers/offer/[bolt12]',
+        '/offers/[id]'
       ]
     }
   }

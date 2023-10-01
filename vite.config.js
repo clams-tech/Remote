@@ -32,6 +32,9 @@ export default ({ mode }) =>
       },
       target: 'esnext'
     },
+    worker: {
+      format: 'es'
+    },
     optimizeDeps: {
       esbuildOptions: {
         // Node.js global to browser globalThis
