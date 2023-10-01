@@ -28,7 +28,7 @@
   let innerHeight: number
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = $forwards$ ? $forwards$.length * rowSize : 0
+  $: fullHeight = $forwards$ ? $forwards$.length * rowSize + 24 + 8 : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
 
   let processed: Forward[] = []

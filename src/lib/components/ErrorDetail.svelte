@@ -34,7 +34,7 @@
 
         <SummaryRow baseline>
           <div slot="label">{$translate('app.labels.error')}:</div>
-          <div slot="value">
+          <div slot="value" class="break-words w-full">
             {detail.message}
           </div>
         </SummaryRow>

@@ -186,7 +186,7 @@
     </div>
 
     {#if payingError}
-      <div in:slide={{ axis: 'y' }} class="mt-2">
+      <div in:slide={{ axis: 'y' }} class="mt-4">
         <ErrorDetail error={payingError} />
       </div>
     {/if}

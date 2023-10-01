@@ -2,6 +2,7 @@ import i18n from 'sveltekit-i18n'
 import parser from '@sveltekit-i18n/parser-default'
 import lang from './lang.json'
 import type { Config, Parser } from '@sveltekit-i18n/parser-default'
+import type { CounterPart } from '$lib/summary.js'
 
 export interface Payload extends Parser.PayloadDefault {
   paymentType?: string
@@ -16,6 +17,7 @@ export interface Payload extends Parser.PayloadDefault {
   wallet?: string
   amount?: number
   request?: string
+  counterpartType?: CounterPart['type']
 }
 
 const config: Config<Payload> = {
