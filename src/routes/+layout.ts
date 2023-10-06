@@ -17,6 +17,8 @@ export const load: LayoutLoad = async ({ url }) => {
   const defaultLocale = 'en'
   const initLocale = locale.get() || defaultLocale
   await loadTranslations(initLocale)
+  const { pathname, searchParams } = url
+  console.log({ pathname, searchParams, configuration: searchParams.get('configuration') })
 
   if (browser) {
     const { pathname, searchParams } = url
