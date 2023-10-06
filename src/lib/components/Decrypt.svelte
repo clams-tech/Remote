@@ -71,7 +71,7 @@
 
   let input: TextInput
 
-  onMount(() => setTimeout(() => input.focus(), 250))
+  onMount(() => setTimeout(() => input?.focus(), 250))
 </script>
 
 <svelte:window on:keyup|stopPropagation={handleKeyPress} />

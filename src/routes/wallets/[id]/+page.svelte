@@ -250,8 +250,8 @@
       </div>
     </div>
 
-    <div class="flex items-start justify-between mt-4 pb-2">
-      <div>
+    <div class="flex items-start justify-between mt-4 pb-2 w-full">
+      <div class="flex w-2/3">
         <div class="flex w-full">
           {#if !$status || $status === 'disconnected'}
             <div class="w-min" in:fade={{ duration: 250 }}>
@@ -325,7 +325,7 @@
           </div>
         {/if}
 
-        <div class="flex items-center">
+        <div class="flex items-center justify-end">
           <span
             class="transition-colors whitespace-nowrap text-sm leading-none"
             class:text-utility-success={$status === 'connected'}
@@ -344,7 +344,7 @@
 
         {#if $status === 'connected' && lastSync}
           {#await formatDateRelativeToNow(lastSync) then formattedDate}
-            <div class="text-xs text-neutral-300">
+            <div class="text-xs text-neutral-300 text-end break-words">
               {$translate('app.labels.last_synced')} - {formattedDate}
             </div>
           {/await}

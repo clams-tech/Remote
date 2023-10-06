@@ -257,13 +257,15 @@
     {/if}
   </div>
 
-  <div class="w-full flex justify-end mt-2">
+  <div
+    class="bottom-0 right-3 w-full flex justify-end mt-2"
+    class:absolute={channelsContainerScrollable}
+  >
     <a
       href="/channels/open"
-      class:absolute={channelsContainerScrollable}
       class:px-2={channelsContainerScrollable}
       class:px-4={!channelsContainerScrollable || showFullOpenButton}
-      class="bottom-2 right- no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 relative mt-4 w-min hover:bg-neutral-800"
+      class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 hover:shadow-lg hover:shadow-neutral-50 relative w-min hover:bg-neutral-800"
       on:mouseenter={() => channelsContainerScrollable && (showFullOpenButton = true)}
       on:mouseleave={() => channelsContainerScrollable && (showFullOpenButton = false)}
     >
@@ -271,7 +273,10 @@
         <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
       </div>
 
-      <div class="w-6 relative" class:-ml-1={!channelsContainerScrollable || showFullOpenButton}>
+      <div
+        class="w-6 relative py-2"
+        class:-ml-1={!channelsContainerScrollable || showFullOpenButton}
+      >
         {@html plus}
       </div>
 

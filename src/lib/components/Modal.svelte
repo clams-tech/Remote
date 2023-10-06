@@ -41,7 +41,7 @@
     >
       <div class="bg-neutral-300 w-8 h-1 rounded-full mt-2 top-0 absolute" />
 
-      <div class="my-4 w-full h-full overflow-auto">
+      <div class="my-4 w-full h-full overflow-auto px-4">
         <slot />
       </div>
 

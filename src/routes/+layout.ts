@@ -30,7 +30,6 @@ export const load: LayoutLoad = async ({ url }) => {
         try {
           const configuration = JSON.parse(configurationStr)
           const label = searchParams.get('label') as string
-
           autoConnectWallet$.next({ label, type, configuration })
         } catch (error) {
           log.error('Could not parse configuration search parameter for auto connection')

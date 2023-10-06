@@ -31,10 +31,14 @@
 
   $: path = $page.url.pathname
 
+  $: console.log($autoConnectWallet$)
+
   $: if ($autoConnectWallet$ && $session$) {
     const { configuration, label, type } = $autoConnectWallet$
     const { token } = configuration as CoreLnConfiguration
     const id = createRandomHex()
+
+    console.log('auto connecting wallet')
 
     const wallet = {
       id,
@@ -152,7 +156,7 @@
           </button>
         {/if}
 
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-20 p-2"
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 sm:w-20 sm:p-2"
           >{@html clamsIconPlain}</button
         >
       </div>
@@ -161,7 +165,7 @@
 
   <div
     in:fade
-    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4 sm:pb-6"
+    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-2"
   >
     {#if $session$ || path === '/welcome'}
       <slot />

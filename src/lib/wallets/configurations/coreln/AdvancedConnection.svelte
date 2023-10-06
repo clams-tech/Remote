@@ -68,7 +68,7 @@
 <div class="w-full text-xs">
   <div class="flex border rounded-md">
     <label
-      class="flex items-center justify-center px-2 py-1 rounded-md cursor-pointer w-1/3"
+      class="flex items-center justify-center px-1 py-1 rounded-md cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'default'}
     >
       <input
@@ -81,7 +81,7 @@
     </label>
 
     <label
-      class="flex items-center justify-center px-2 py-1 rounded cursor-pointer w-1/3"
+      class="flex items-center justify-center px-1 py-1 rounded cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'customProxy'}
     >
       <input
@@ -94,7 +94,7 @@
     </label>
 
     <label
-      class="flex items-center justify-center px-2 py-1 rounded cursor-pointer w-1/3"
+      class="flex items-center justify-center px-1 py-1 rounded cursor-pointer w-1/3"
       class:bg-neutral-700={advancedConnectOption === 'directConnection'}
     >
       <input
