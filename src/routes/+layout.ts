@@ -20,7 +20,7 @@ export const load: LayoutLoad = async ({ url }) => {
 
   if (browser) {
     const { pathname, searchParams } = url
-    console.log({ pathname, searchParams })
+    console.log({ pathname, searchParams, configuration: searchParams.get('configuration') })
     await db.open()
 
     if (pathname === '/wallets/add') {
