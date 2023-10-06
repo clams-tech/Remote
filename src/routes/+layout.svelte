@@ -31,14 +31,10 @@
 
   $: path = $page.url.pathname
 
-  $: console.log($autoConnectWallet$)
-
   $: if ($autoConnectWallet$ && $session$) {
     const { configuration, label, type } = $autoConnectWallet$
     const { token } = configuration as CoreLnConfiguration
     const id = createRandomHex()
-
-    console.log('auto connecting wallet')
 
     const wallet = {
       id,
