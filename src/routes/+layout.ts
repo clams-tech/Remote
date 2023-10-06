@@ -22,6 +22,8 @@ export const load: LayoutLoad = async ({ url }) => {
     await db.open()
     const { pathname, searchParams } = url
 
+    console.log({ pathname, searchParams })
+
     if (pathname === '/wallets/add') {
       const configurationStr = searchParams.get('configuration')
       const type = searchParams.get('type') as WalletType
