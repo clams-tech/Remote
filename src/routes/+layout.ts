@@ -19,10 +19,9 @@ export const load: LayoutLoad = async ({ url }) => {
   await loadTranslations(initLocale)
 
   if (browser) {
-    await db.open()
     const { pathname, searchParams } = url
-
     console.log({ pathname, searchParams })
+    await db.open()
 
     if (pathname === '/wallets/add') {
       const configurationStr = searchParams.get('configuration')
