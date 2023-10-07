@@ -299,7 +299,7 @@
 {#if showHomescreenModal}
   <Modal on:close={() => (showHomescreenModal = false)}>
     <div class="w-full h-full overflow-y-auto overflow-x-hidden">
-      {#each Object.entries($settings$.tiles) as [tile, toggled] (tile)}
+      {#each Object.entries($settings$.tiles).filter(([tile]) => tile !== 'settings') as [tile, toggled] (tile)}
         <button
           animate:flip={{ duration: 350 }}
           class="w-full disabled:opacity-50"
