@@ -12,7 +12,7 @@
     'w-full h-full fixed top-0 left-0 backdrop-blur-sm bg:neutral-50/40 flex flex-col items-center z-50'
 
   const modalStyles =
-    'bg-neutral-900 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[95%] overflow-y-auto min-w-[425px]'
+    'bg-neutral-900 shadow-lg py-4 px-6 relative flex items-center justify-center flex-col max-h-[95%] overflow-y-auto sm:min-w-[425px]'
 
   function closeModal() {
     dispatch('close')
@@ -41,7 +41,7 @@
     >
       <div class="bg-neutral-300 w-8 h-1 rounded-full mt-2 top-0 absolute" />
 
-      <div class="my-4 w-full h-full overflow-auto px-4">
+      <div class="w-full py-2 h-full overflow-auto">
         <slot />
       </div>
 
@@ -49,7 +49,7 @@
 
       <button
         on:click={closeModal}
-        class="absolute top-2 right-2 w-6 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-400"
+        class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-300"
       >
         {@html close}
       </button>
@@ -69,7 +69,7 @@
     >
       <button
         on:click={closeModal}
-        class="absolute top-2 right-2 w-6 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-400"
+        class="absolute top-2 right-2 w-8 cursor-pointer hover:text-neutral-50 transition-colors text-neutral-300"
       >
         {@html close}
       </button>

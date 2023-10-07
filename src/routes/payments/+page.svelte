@@ -18,7 +18,6 @@
   import type { Filter, Payment, Sorter, TagFilter } from '$lib/@types/common.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
-  import debounce from 'lodash.debounce'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
 
@@ -213,16 +212,34 @@
   const rowSize = 88
 
   let previousOffset = 0
+  let direction: 'up' | 'down'
+  let processingScroll = false
 
-  const handleTransactionsScroll = debounce((offset: number) => {
-    if (offset < previousOffset) {
-      showFullReceiveButton = true
-    } else {
-      showFullReceiveButton = false
+  const handleTransactionsScroll = (offset: number) => {
+    if (offset + 10 < previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'up') {
+          showFullReceiveButton = true
+        } else {
+          direction = 'up'
+        }
+        processingScroll = false
+      })
+    } else if (offset > previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'down') {
+          showFullReceiveButton = false
+        } else {
+          direction = 'down'
+        }
+        processingScroll = false
+      })
     }
 
     previousOffset = offset
-  }, 50)
+  }
 
   const getDaySize = (index: number) => {
     const payments = dailyPaymentChunks[index][1]
@@ -319,13 +336,15 @@
     {/if}
   </div>
 
-  <div class="w-full flex justify-end">
+  <div
+    class="bottom-0 right-3 w-full flex justify-end mt-2"
+    class:absolute={transactionsContainerScrollable}
+  >
     <a
       href="/payments/receive"
-      class:absolute={transactionsContainerScrollable}
       class:px-2={transactionsContainerScrollable}
       class:px-4={!transactionsContainerScrollable || showFullReceiveButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
+      class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
       on:mouseenter={() => transactionsContainerScrollable && (showFullReceiveButton = true)}
       on:mouseleave={() => transactionsContainerScrollable && (showFullReceiveButton = false)}
     >

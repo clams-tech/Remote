@@ -13,7 +13,7 @@
   import caret from '$lib/icons/caret.js'
   import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
-  import { getWalletBalance, nowSeconds } from '$lib/utils.js'
+  import { getWalletBalance, nowSeconds, wait } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import trashOutline from '$lib/icons/trash-outline.js'
@@ -120,6 +120,8 @@
       const oldConnection = currentConnections[oldConnectionIndex]
       oldConnection.disconnect && oldConnection.disconnect()
     }
+
+    await wait(1000)
 
     try {
       // create a new connection interface

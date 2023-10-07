@@ -22,7 +22,7 @@
       {:else if primary.type === 'contact'}
         {primary.value.name}
       {:else if primary.type === 'channel_peer' && primary.value}
-        {truncateValue(primary.value)}
+        {truncateValue(primary.value, 4)}
       {:else}
         {$translate('app.labels.unknown')}
       {/if}
@@ -41,10 +41,10 @@
         {secondary.value.alias || truncateValue(secondary.value.id)}
       {:else if secondary.type === 'channel_peer'}
         {secondary.value
-          ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
+          ? truncateValue(secondary.value, 4, type === 'channel_mutiple_open' ? 'end' : 'center')
           : $translate('app.labels.unknown')}
       {:else if secondary.type === 'unknown'}
-        {secondary.value ? truncateValue(secondary.value) : $translate('app.labels.unknown')}
+        {secondary.value ? truncateValue(secondary.value, 4) : $translate('app.labels.unknown')}
       {/if}
     </span>
   </div>

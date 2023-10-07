@@ -62,12 +62,30 @@
   let channelsContainer: HTMLDivElement
 
   let previousOffset = 0
+  let direction: 'up' | 'down'
+  let processingScroll = false
 
   const handleChannelsScroll = (offset: number) => {
-    if (offset < previousOffset) {
-      showFullOpenButton = true
-    } else {
-      showFullOpenButton = false
+    if (offset + 10 < previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'up') {
+          showFullOpenButton = true
+        } else {
+          direction = 'up'
+        }
+        processingScroll = false
+      })
+    } else if (offset > previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'down') {
+          showFullOpenButton = false
+        } else {
+          direction = 'down'
+        }
+        processingScroll = false
+      })
     }
 
     previousOffset = offset

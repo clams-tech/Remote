@@ -812,7 +812,7 @@
 
         {#if paymentHash}
           <SummaryRow>
-            <span slot="label">{$translate('app.labels.payment_hash')}:</span>
+            <span slot="label">{$translate('app.labels.hash')}:</span>
             <div slot="value">
               <CopyValue value={paymentHash} truncateLength={9} />
             </div>
@@ -821,7 +821,7 @@
 
         {#if paymentPreimage}
           <SummaryRow>
-            <span slot="label">{$translate('app.labels.payment_preimage')}:</span>
+            <span slot="label">{$translate('app.labels.preimage')}:</span>
             <div slot="value">
               <CopyValue value={paymentPreimage} truncateLength={9} />
             </div>

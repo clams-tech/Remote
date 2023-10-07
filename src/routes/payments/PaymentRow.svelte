@@ -25,7 +25,7 @@
 </script>
 
 <a
-  class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 h-[5.5rem]"
+  class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 text-sm xs:text-base h-[5.5rem]"
   href={`/payments/${id}?wallet=${walletId}`}
 >
   <div class="flex items-start h-full">
@@ -48,7 +48,7 @@
     />
   </div>
 
-  <div class="flex items-center ml-4">
+  <div class="flex items-center ml-2">
     <div>
       {#if amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
