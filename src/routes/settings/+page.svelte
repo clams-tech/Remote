@@ -77,10 +77,15 @@
       showingTestNotification.close()
       showingTestNotification = null
     } else {
-      showingTestNotification = notification.create({
-        heading: $translate('app.labels.test'),
-        message: $translate('app.labels.testing')
-      })
+      try {
+        showingTestNotification = notification.create({
+          heading: $translate('app.labels.test'),
+          message: $translate('app.labels.testing')
+        })
+      } catch (error) {
+        const { message } = error as Error
+        notificationsError = message
+      }
     }
   }
 
