@@ -216,6 +216,8 @@
   let processingScroll = false
 
   const handleTransactionsScroll = (offset: number) => {
+    if (processingScroll) return
+
     if (offset + 10 < previousOffset) {
       processingScroll = true
       requestAnimationFrame(() => {

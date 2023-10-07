@@ -23,7 +23,7 @@
   let forwardsContainer: HTMLDivElement
 
   // need to adjust this if you change the forward row height
-  const rowSize = 82
+  const rowSize = 104
 
   let innerHeight: number
 

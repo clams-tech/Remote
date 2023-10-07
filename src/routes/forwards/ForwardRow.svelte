@@ -5,7 +5,6 @@
   import { translate } from '$lib/i18n/translations.js'
   import arrow from '$lib/icons/arrow.js'
   import caret from '$lib/icons/caret.js'
-  import channels from '$lib/icons/channels.js'
   import { truncateValue } from '$lib/utils.js'
   import { liveQuery } from 'dexie'
   import { from } from 'rxjs'
@@ -42,26 +41,26 @@
   class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
-    <div class="flex items-center">
-      <div class="w-6 text-utility-success">{@html arrow}</div>
-      <div class="font-semibold">
-        {truncateValue(
-          $data$.channelInAlias || $translate('app.labels.unknown'),
-          4,
-          'end'
-        ).toUpperCase()}
+    <div class="flex flex-col text-sm">
+      <div class="flex items-center">
+        <div class="w-6 text-utility-success rotate-180">{@html arrow}</div>
+        <div class="font-semibold">
+          {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
+        </div>
       </div>
-      <div class="w-6 mx-1">{@html channels}</div>
-      <div class="font-semibold">{$data$.wallet?.label?.toUpperCase()}</div>
-      <div class="w-6 mx-1">{@html channels}</div>
-      <div class="font-semibold">
-        {truncateValue(
-          $data$.channelOutAlias || $translate('app.labels.unknown'),
-          4,
-          'end'
-        ).toUpperCase()}
+
+      <div class="flex items-center">
+        <div class="w-6 text-utility-error">{@html arrow}</div>
+        <div class="font-semibold">
+          {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
+        </div>
       </div>
-      <div class="w-6 rotate-180 text-utility-error">{@html arrow}</div>
+
+      <div
+        class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min mt-1 text-sm"
+      >
+        {$data$.wallet?.label?.toUpperCase()}
+      </div>
     </div>
 
     <div class="flex items-center h-full">
@@ -70,6 +69,7 @@
         <BitcoinAmount sats={forward.fee} short />
         <div class="w-full flex justify-end text-xs">
           <div
+            class="font-semibold"
             class:text-utility-success={forward.status === 'settled'}
             class:utility-pending={forward.status === 'offered'}
             class:text-utility-error={forward.status === 'failed' ||

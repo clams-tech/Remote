@@ -66,6 +66,8 @@
   let processingScroll = false
 
   const handleChannelsScroll = (offset: number) => {
+    if (processingScroll) return
+
     if (offset + 10 < previousOffset) {
       processingScroll = true
       requestAnimationFrame(() => {
