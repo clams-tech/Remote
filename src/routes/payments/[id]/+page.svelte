@@ -328,6 +328,7 @@
 
   const tryFindWithdrawalOfferId = async (offerDetails: Invoice['offer']) => {
     const { description, issuer } = offerDetails!
+    if (!issuer) return undefined
     const withdrawalOffer = await db.offers.get({ description, type: 'withdraw', issuer })
     return withdrawalOffer?.id
   }
@@ -470,18 +471,25 @@
         {#if txid}
           <SummaryRow>
             <span slot="label">{$translate('app.labels.txid')}:</span>
-            <a
-              slot="value"
-              href={`https://mempool.space/tx/${txid}`}
-              target="_blank"
-              rel="noreferrer noopener"
-              class="flex items-center no-underline"
-            >
-              {truncateValue(txid)}
-              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
-                {@html link}
-              </div>
-            </a>
+            <div slot="value">
+              {#if network === 'regtest'}
+                {truncateValue(txid)}
+              {:else}
+                <a
+                  href={`https://mempool.space/${
+                    network !== 'bitcoin' ? `${network}/` : ''
+                  }tx/${txid}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  class="flex items-center no-underline"
+                >
+                  {truncateValue(txid)}
+                  <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
+                    {@html link}
+                  </div>
+                </a>
+              {/if}
+            </div>
           </SummaryRow>
         {/if}
 
@@ -719,7 +727,7 @@
             {/if}
           {/await}
 
-          <!-- @TODO - Could add back in to show blocks until setWeekWithOptions, but needs to be reliable -->
+          <!-- @TODO - Could add back in to show blocks until sweepable, but needs to be reliable -->
           <!-- {#if status === 'force_closed' && closer === 'local' && ourToSelfDelay}
             <SummaryRow>
               <span slot="label">{$translate('app.labels.can_sweep')}:</span>

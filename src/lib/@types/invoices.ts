@@ -22,7 +22,7 @@ export type Invoice = {
   payIndex?: number
   offer?: {
     id?: string
-    issuer: DecodedBolt12Offer['offer_issuer']
+    issuer?: DecodedBolt12Offer['offer_issuer']
     payerNote?: DecodedBolt12Invoice['invreq_payer_note']
     description?: DecodedBolt12Offer['offer_description']
   }
