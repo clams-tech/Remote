@@ -45,13 +45,21 @@
     <div class="flex items-center">
       <div class="w-6 text-utility-success">{@html arrow}</div>
       <div class="font-semibold">
-        {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
+        {truncateValue(
+          $data$.channelInAlias || $translate('app.labels.unknown'),
+          4,
+          'end'
+        ).toUpperCase()}
       </div>
       <div class="w-6 mx-1">{@html channels}</div>
       <div class="font-semibold">{$data$.wallet?.label?.toUpperCase()}</div>
       <div class="w-6 mx-1">{@html channels}</div>
       <div class="font-semibold">
-        {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
+        {truncateValue(
+          $data$.channelOutAlias || $translate('app.labels.unknown'),
+          4,
+          'end'
+        ).toUpperCase()}
       </div>
       <div class="w-6 rotate-180 text-utility-error">{@html arrow}</div>
     </div>

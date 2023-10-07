@@ -159,10 +159,10 @@
         on:click={toggleLangModal}
         class="p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
       >
-        <div class="flex items-center w-full justify-between mb-2">
-          <div class="uppercase font-semibold mr-6">{$translate('app.labels.language')}</div>
+        <div class="flex items-center w-full justify-between gap-x-2 mb-2">
+          <div class="uppercase font-semibold">{$translate('app.labels.language')}</div>
           <div
-            class="font-semibold whitespace-nowrap border border-purple-400 px-1.5 text-sm rounded"
+            class="font-semibold whitespace-nowrap border border-purple-400 px-1.5 text-xs sm:text-sm rounded"
           >
             {$translate(`app.languages.${$settings$.language}`)}
           </div>
@@ -180,7 +180,7 @@
         <div class="flex items-center justify-between mb-2 w-full">
           <div class="uppercase font-semibold mr-6">{$translate('app.labels.fiat')}</div>
           <div
-            class="font-semibold whitespace-nowrap border border-purple-400 px-1.5 text-sm rounded"
+            class="font-semibold whitespace-nowrap border border-purple-400 px-1.5 text-xs sm:text-sm rounded"
           >
             {#if !$settings$.fiatDenomination}
               {$translate('app.labels.no_fiat')}

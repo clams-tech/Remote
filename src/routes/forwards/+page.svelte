@@ -22,12 +22,12 @@
 
   let forwardsContainer: HTMLDivElement
 
-  // need to adjust this if you change the transaction row height
+  // need to adjust this if you change the forward row height
   const rowSize = 82
 
   let innerHeight: number
 
-  $: maxHeight = innerHeight - 147 - 56 - 24 - 80
+  $: maxHeight = innerHeight - 80 - 56 - 24
   $: fullHeight = $forwards$ ? $forwards$.length * rowSize + 24 + 8 : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
 
