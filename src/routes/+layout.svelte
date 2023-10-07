@@ -67,9 +67,9 @@
         syncing: false
       }
 
-      db.wallets.add(wallet)
-
-      connect(wallet).then(connection => syncConnectionData(connection, null))
+      db.wallets.add(wallet).then(() => {
+        return connect(wallet).then(connection => syncConnectionData(connection, null))
+      })
 
       try {
         notification.create({
