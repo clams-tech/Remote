@@ -23,6 +23,7 @@
   import { db } from '$lib/db/index.js'
   import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
+  import { notification } from '$lib/services.js'
 
   const clearSession = () => session$.next(null)
 
@@ -36,25 +37,55 @@
     const { token } = configuration as CoreLnConfiguration
     const id = createRandomHex()
 
-    const wallet = {
-      id,
-      label,
-      type,
-      createdAt: nowSeconds(),
-      modifiedAt: nowSeconds(),
-      configuration:
-        token && configuration
-          ? { ...configuration, token: encryptWithAES(token, $session$.secret) }
-          : configuration,
-      lastSync: null,
-      syncing: false
+    const walletAlreadyExists = $wallets$.find(
+      wallet =>
+        (wallet.configuration as CoreLnConfiguration)?.address ===
+        (configuration as CoreLnConfiguration).address
+    )
+
+    if (walletAlreadyExists) {
+      try {
+        notification.create({
+          heading: $translate('app.labels.wallet_connected'),
+          message: $translate('app.labels.wallet_already_connected_description', { label })
+        })
+      } catch (error) {
+        //
+      }
+    } else {
+      const wallet = {
+        id,
+        label,
+        type,
+        createdAt: nowSeconds(),
+        modifiedAt: nowSeconds(),
+        configuration:
+          token && configuration
+            ? { ...configuration, token: encryptWithAES(token, $session$.secret) }
+            : configuration,
+        lastSync: null,
+        syncing: false
+      }
+
+      db.wallets.add(wallet)
+
+      connect(wallet).then(connection => syncConnectionData(connection, null))
+
+      try {
+        notification.create({
+          heading: $translate('app.labels.wallet_connected'),
+          message: $translate('app.labels.wallet_connected_success_description', { label })
+        })
+      } catch (error) {
+        //
+      }
     }
 
-    db.wallets.add(wallet)
-
-    connect(wallet).then(connection => syncConnectionData(connection, null))
-
     autoConnectWallet$.next(null)
+
+    if (path !== '/') {
+      goto('/')
+    }
   }
 
   const initializeConnections = async () => {

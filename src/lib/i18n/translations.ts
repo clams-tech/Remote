@@ -18,6 +18,7 @@ export interface Payload extends Parser.PayloadDefault {
   amount?: number
   request?: string
   counterpartType?: CounterPart['type']
+  label?: string
 }
 
 const config: Config<Payload> = {

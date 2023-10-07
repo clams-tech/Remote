@@ -446,7 +446,10 @@
     "blocks": "Blocks",
     "included_in_block": "Included in block",
     "funding_transaction": "Funding transaction",
-    "process_time": "Process time"
+    "process_time": "Process time",
+    "wallet_connected": "Wallet Connected",
+    "wallet_already_connected_description": "{{label}} has already been added.",
+    "wallet_connected_success_description": "Successfully added {{label}}!"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
