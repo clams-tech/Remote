@@ -29,12 +29,14 @@ export const coreLnWorker = new Worker(
 const messages$ = fromEvent<MessageEvent>(coreLnWorker, 'message')
 
 export const createSocket = async (
-  connectioOptions: LnWebSocketOptions,
+  connectionOptions: LnWebSocketOptions,
   connectionStatusUpdates$: BehaviorSubject<ConnectionStatus>
 ): Promise<SocketWrapper> => {
-  const id = createRandomHex()
-  const initProm = firstValueFrom(messages$.pipe(filter(message => message.data.id === id)))
-  coreLnWorker.postMessage({ id, type: 'init', data: connectioOptions })
+  const initId = createRandomHex()
+  const socketId = createRandomHex()
+
+  const initProm = firstValueFrom(messages$.pipe(filter(message => message.data.id === initId)))
+  coreLnWorker.postMessage({ id: initId, type: 'init', data: connectionOptions, socketId })
 
   await initProm
 
@@ -46,9 +48,10 @@ export const createSocket = async (
     .subscribe(status => connectionStatusUpdates$.next(status as ConnectionStatus))
 
   const socket = {
+    id: socketId,
     connect: async () => {
       const id = createRandomHex()
-      coreLnWorker.postMessage({ id, type: 'connect' })
+      coreLnWorker.postMessage({ id, type: 'connect', socketId })
 
       return firstValueFrom(
         messages$.pipe(
@@ -59,7 +62,7 @@ export const createSocket = async (
     },
     disconnect: async () => {
       const id = createRandomHex()
-      coreLnWorker.postMessage({ id, type: 'disconnect' })
+      coreLnWorker.postMessage({ id, type: 'disconnect', socketId })
 
       return firstValueFrom(
         messages$.pipe(
@@ -70,7 +73,7 @@ export const createSocket = async (
     },
     commando: async (request: CommandoRequest) => {
       const id = createRandomHex()
-      coreLnWorker.postMessage({ id, type: 'commando', data: request })
+      coreLnWorker.postMessage({ id, type: 'commando', data: request, socketId })
 
       return firstValueFrom(
         messages$.pipe(
@@ -154,13 +157,15 @@ export const formatTransactions = async (
   )
 }
 
-export const getChannels = async (
-  rune: string,
-  version: number,
-  walletId: string,
+export const getChannels = async (params: {
+  rune: string
+  version: number
+  walletId: string
+  socketId: string
   channel?: { id: string; peerId: string }
-): Promise<Channel[]> => {
+}): Promise<Channel[]> => {
   const id = createRandomHex()
+  const { rune, version, walletId, channel, socketId } = params
 
   coreLnWorker.postMessage({
     id,
@@ -168,7 +173,8 @@ export const getChannels = async (
     rune,
     version,
     walletId,
-    channel
+    channel,
+    socketId
   })
 
   return firstValueFrom(

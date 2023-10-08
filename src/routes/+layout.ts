@@ -34,6 +34,7 @@ export const load: LayoutLoad = async ({ url }) => {
           autoConnectWallet$.next({ label, type, configuration })
         } catch (error) {
           log.error('Could not parse configuration search parameter for auto connection')
+          log.error(configurationStr)
         }
       }
     }

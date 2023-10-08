@@ -2,6 +2,8 @@ import { convertVersionNumber } from './utils.js'
 import type { ChannelsInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { satsToMsats } from '$lib/conversion.js'
+import type { CoreLnError, CorelnConnectionInterface, FundChannelResponse } from './types.js'
+import { getChannels } from './worker.js'
 
 import type {
   Channel,
@@ -10,8 +12,6 @@ import type {
   OpenChannelResult,
   UpdateChannelOptions
 } from '$lib/@types/channels.js'
-import type { CoreLnError, CorelnConnectionInterface, FundChannelResponse } from './types.js'
-import { getChannels } from './worker.js'
 
 class Channels implements ChannelsInterface {
   connection: CorelnConnectionInterface
@@ -25,12 +25,13 @@ class Channels implements ChannelsInterface {
       const { version } = await this.connection.info
       const versionNumber = convertVersionNumber(version as string)
 
-      const channels = await getChannels(
-        this.connection.rune,
-        versionNumber,
-        this.connection.walletId,
-        channel
-      )
+      const channels = await getChannels({
+        rune: this.connection.rune,
+        version: versionNumber,
+        walletId: this.connection.walletId,
+        channel,
+        socketId: this.connection.socket!.id
+      })
 
       return channels
     } catch (error) {

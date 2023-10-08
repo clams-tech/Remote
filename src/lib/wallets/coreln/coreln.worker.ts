@@ -45,23 +45,28 @@ type MessageBase = {
 
 type InitMessage = MessageBase & {
   type: 'init'
+  socketId: string
   data: LnWebSocketOptions
 }
 
 type ConnectMessage = MessageBase & {
+  socketId: string
   type: 'connect'
 }
 
 type DisconnectMessage = MessageBase & {
+  socketId: string
   type: 'disconnect'
 }
 
 type CommandoMessage = MessageBase & {
+  socketId: string
   type: 'commando'
   data: CommandoRequest
 }
 
 type GetChannelsMessage = MessageBase & {
+  socketId: string
   type: 'get_channels'
   rune: string
   version: number
@@ -108,12 +113,14 @@ type Message =
   | GetChannelsMessage
   | FormatUtxosMessage
 
-let socket: LnMessage
+const sockets: Record<string, LnMessage> = {}
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
     case 'init': {
-      socket = new LnMessage(message.data.data)
+      const socket = new LnMessage(message.data.data)
+      sockets[message.data.socketId] = socket
+
       socket.connectionStatus$.subscribe(status => {
         console.log('CONNECTION STATUS UPDATE:', status)
         self.postMessage({ id: 'connectionStatus$', result: status })
@@ -123,17 +130,20 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'connect': {
+      const socket = sockets[message.data.socketId]
       const result = await socket.connect()
       self.postMessage({ id: message.data.id, result })
       return
     }
     case 'disconnect': {
+      const socket = sockets[message.data.socketId]
       socket.disconnect()
       self.postMessage({ id: message.data.id })
       return
     }
     case 'commando': {
       try {
+        const socket = sockets[message.data.socketId]
         const result = await socket.commando(message.data.data)
         self.postMessage({ id: message.data.id, result })
         return
@@ -342,6 +352,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       let closedChannels: Channel[] = []
 
       try {
+        const socket = sockets[message.data.socketId]
         const result = await socket.commando({ method: 'listclosedchannels', rune })
 
         closedChannels = await Promise.all(
@@ -393,6 +404,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
 
       if (version < 2305) {
+        const socket = sockets[message.data.socketId]
         const listPeersResult = await socket.commando({
           method: 'listpeers',
           params: channel?.peerId ? { id: channel.peerId } : undefined,
@@ -486,6 +498,7 @@ onmessage = async (message: MessageEvent<Message>) => {
         })
         return
       } else {
+        const socket = sockets[message.data.socketId]
         const listPeerChannelsResult = await socket.commando({
           method: 'listpeerchannels',
           params: channel?.peerId ? { id: channel.peerId } : undefined,

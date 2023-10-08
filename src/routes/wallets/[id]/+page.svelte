@@ -49,7 +49,7 @@
       if (wallet) {
         const { token } = wallet.configuration as CoreLnConfiguration
 
-        if (token) {
+        if (token && session$.value) {
           ;(wallet.configuration as CoreLnConfiguration).token = decryptWithAES(
             token,
             (session$.value as Session).secret

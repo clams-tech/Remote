@@ -31,6 +31,7 @@ export type CommandoMsgs = Observable<
 >
 
 export type SocketWrapper = {
+  id: string
   connect: () => Promise<boolean>
   disconnect: () => void
   commando: (request: CommandoRequest) => Promise<unknown>
