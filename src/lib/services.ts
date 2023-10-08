@@ -37,14 +37,27 @@ export const clipboard = {
 }
 
 export const notification = {
-  supported: (): boolean => 'Notification' in window,
-  permission: () => Notification.permission === 'granted',
-  requestPermission: () => Notification.requestPermission(),
-  create: (options: { heading: string; message: string }) =>
-    new Notification(options.heading, {
+  supported: (): boolean => {
+    const isSupported = 'Notification' in window
+    console.log('CHECKING IF NOTIFICATIONS ARE SUPPORTED:', { isSupported })
+    return isSupported
+  },
+  permission: () => {
+    const granted = Notification.permission === 'granted'
+    console.log('CHECKING CURRENT NOTIFICATION PERMISSIONS:', Notification.permission)
+    return granted
+  },
+  requestPermission: () => {
+    console.log('REQUESTING NOTIFICATION PERMISSIONS:')
+    return Notification.requestPermission()
+  },
+  create: (options: { heading: string; message: string }) => {
+    console.log('CREATING NOTIFICATION:', options)
+    return new Notification(options.heading, {
       body: options.message,
       icon: '/icons/icon.png'
     })
+  }
 }
 
 export const file = {
@@ -105,9 +118,9 @@ export const nfc = {
       reader
         .scan()
         .then(() => {
-          reader.onreading = (event) => {
+          reader.onreading = event => {
             const decoder = new TextDecoder()
-            const decoded = event.message.records.map((record) => decoder.decode(record.data))
+            const decoded = event.message.records.map(record => decoder.decode(record.data))
             resolve(decoded)
           }
 
