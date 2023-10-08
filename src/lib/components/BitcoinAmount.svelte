@@ -31,7 +31,11 @@
 
   <div class="flex">
     <div class="mr-[0.375em] font-mono leading-snug">
-      {@html displayMsat ? satsToMsats(sats) : short ? sats.toLocaleString() : formattedBtc}
+      {@html displayMsat
+        ? satsToMsats(sats)
+        : short
+        ? Math.floor(sats).toLocaleString()
+        : formattedBtc}
     </div>
     <div class="text-[0.75em] text-neutral-50 flex items-end leading-none pb-[0.25em]">
       {$translate(`app.labels.${displayMsat ? 'msat' : 'sats'}`).toLowerCase()}

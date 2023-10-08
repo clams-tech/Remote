@@ -154,27 +154,23 @@
   {/if}
 
   <header class="flex w-full items-center justify-between">
-    <div class="flex items-center">
-      {#if routeRequiresSession(path) && $session$}
-        <button on:click={clearSession} class="w-8 ml-4">{@html lock}</button>
-        <a href="/input" class="w-9 ml-2">{@html scan}</a>
-        <a href="/payments/receive" class="w-9 ml-1">{@html plus}</a>
-      {/if}
-    </div>
-
-    <!-- show clams icon in top right if not welcome or decrypt routes -->
+    <!-- show clams icon in top left if not welcome or decrypt routes -->
     {#if routeRequiresSession(path)}
       {@const lastPathRouteTitle = $translate(`app.routes.${routeHistory[0]}.title`, {
         default: 'undefined'
       })}
-      <div class="flex items-center">
+      <div class="flex items-center p-1">
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 sm:w-20 sm:p-2"
+          >{@html clamsIconPlain}</button
+        >
+
         {#if routeHistory[0]}
           <button
             on:click={back}
             transition:slide={{ axis: 'x' }}
-            class="flex items-center ml-2 font-semibold whitespace-nowrap"
+            class="flex items-center font-semibold whitespace-nowrap"
           >
-            <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
+            <div class="w-6 -ml-2 rotate-90 flex-shrink-0">{@html caret}</div>
             <div>
               {!lastPathRouteTitle || lastPathRouteTitle === 'undefined'
                 ? $translate('app.labels.back')
@@ -182,12 +178,27 @@
             </div>
           </button>
         {/if}
-
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 sm:w-20 sm:p-2"
-          >{@html clamsIconPlain}</button
-        >
       </div>
     {/if}
+
+    <div class="grid grid-cols-3 gap-x-2 mr-2">
+      {#if routeRequiresSession(path) && $session$}
+        <button on:click={clearSession} class="flex flex-col items-center justify-center">
+          <div class="w-8">{@html lock}</div>
+          <span class="text-xs font-semibold">Lock</span>
+        </button>
+
+        <a href="/input" class="flex flex-col items-center justify-center no-underline">
+          <div class="w-8">{@html scan}</div>
+          <span class="text-xs font-semibold">Input</span>
+        </a>
+
+        <a href="/payments/receive" class="flex flex-col items-center justify-center no-underline">
+          <div class="w-8">{@html plus}</div>
+          <span class="text-xs font-semibold">Receive</span>
+        </a>
+      {/if}
+    </div>
   </header>
 
   <div

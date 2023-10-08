@@ -167,7 +167,7 @@
         <div class="w-full mb-4">
           <SummaryRow>
             <div slot="label">{$translate('app.labels.total')}:</div>
-            <div slot="value">{totals?.num} utxos</div>
+            <div slot="value">{totals?.num} utxo{totals?.num && totals.num > 1 ? 's' : ''}</div>
           </SummaryRow>
 
           <SummaryRow>
