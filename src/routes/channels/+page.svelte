@@ -94,7 +94,7 @@
   }
 
   let innerHeight: number
-  let rowSize = 84
+  let rowSize = 102.25
 
   $: maxHeight = innerHeight - 80 - 56 - 24
   $: fullHeight = processed ? processed.length * rowSize : 0
