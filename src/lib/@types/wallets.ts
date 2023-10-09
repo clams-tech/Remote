@@ -1,4 +1,6 @@
-export type WalletType = 'coreln' | 'lnd' | 'xpub' | 'multisig' | 'webln' | 'nostr-wallet-connect'
+import type { walletTypes } from '$lib/wallets/index.js'
+
+export type WalletType = (typeof walletTypes)[number]
 
 export type Wallet = {
   /** randomly generated id */

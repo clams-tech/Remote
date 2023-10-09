@@ -73,7 +73,10 @@
   }
 </script>
 
-<button on:click={() => (showModal = true)} class="w-[2em]">{@html filterIcon}</button>
+<div class="flex flex-col items-center justify-center">
+  <button on:click={() => (showModal = true)} class="w-[2em]">{@html filterIcon}</button>
+  <div class="text-xs font-semibold">{$translate('app.labels.filter')}</div>
+</div>
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
