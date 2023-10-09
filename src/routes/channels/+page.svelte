@@ -96,7 +96,7 @@
   let innerHeight: number
   let rowSize = 84
 
-  $: maxHeight = innerHeight - 147 - 56 - 24 - 80
+  $: maxHeight = innerHeight - 80 - 56 - 24
   $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
   $: channelsContainerScrollable = processed ? processed.length * rowSize > listHeight : false

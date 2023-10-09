@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Offer } from '$lib/@types/offers.js'
+  import type { Wallet } from '$lib/@types/wallets.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { db } from '$lib/db/index.js'
   import { translate } from '$lib/i18n/translations.js'
@@ -40,6 +41,14 @@
       : offer.singleUse && $offerPayments$?.length
       ? 'complete'
       : 'disabled'
+
+  let wallet: Wallet
+
+  db.wallets.get(offer.walletId).then(result => {
+    if (result) {
+      wallet = result
+    }
+  })
 </script>
 
 <a
@@ -53,11 +62,13 @@
       <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{offer.description}</div>
     {/if}
 
-    <div class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min mt-1 text-sm">
-      {#await db.wallets.get(offer.walletId) then wallet}
-        {wallet?.label}
-      {/await}
-    </div>
+    {#if wallet}
+      <div
+        class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min mt-1 text-sm"
+      >
+        {wallet.label}
+      </div>
+    {/if}
   </div>
 
   <div class="flex items-center ml-4 h-full">

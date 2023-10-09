@@ -23,12 +23,32 @@
   let offersContainer: HTMLDivElement
 
   let previousOffset = 0
+  let direction: 'up' | 'down'
+  let processingScroll = false
 
   const handleOffersScroll = (offset: number) => {
-    if (offset < previousOffset) {
-      showFullOpenButton = true
-    } else {
-      showFullOpenButton = false
+    if (processingScroll) return
+
+    if (offset + 10 < previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'up') {
+          showFullOpenButton = true
+        } else {
+          direction = 'up'
+        }
+        processingScroll = false
+      })
+    } else if (offset > previousOffset) {
+      processingScroll = true
+      requestAnimationFrame(() => {
+        if (direction === 'down') {
+          showFullOpenButton = false
+        } else {
+          direction = 'down'
+        }
+        processingScroll = false
+      })
     }
 
     previousOffset = offset
@@ -39,10 +59,10 @@
   // need to adjust this if you change the transaction row height
   const rowSize = 102
 
-  $: maxHeight = innerHeight - 147 - 56 - 24 - 80
+  $: maxHeight = innerHeight - 80 - 56 - 24
   $: fullHeight = processed ? processed.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
-  $: offersContainerScrollable = processed ? processed.length * 74 > listHeight : false
+  $: offersContainerScrollable = processed ? processed.length * rowSize > listHeight : false
 
   let processed: Offer[] = []
   let filters: Filter[] = []
@@ -180,13 +200,16 @@
     {/if}
   </div>
 
-  <div class="w-full flex justify-end">
+  <div
+    class="bottom-0 right-3 w-full flex justify-end mt-2"
+    class:absolute={offersContainerScrollable}
+  >
     <a
       href="/offers/offer/create"
       class:absolute={offersContainerScrollable}
       class:px-2={offersContainerScrollable}
       class:px-4={!offersContainerScrollable || showFullOpenButton}
-      class="bottom-2 right-2 no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
+      class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
       on:mouseenter={() => offersContainerScrollable && (showFullOpenButton = true)}
       on:mouseleave={() => offersContainerScrollable && (showFullOpenButton = false)}
     >
