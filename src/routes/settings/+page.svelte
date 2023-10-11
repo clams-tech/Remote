@@ -110,7 +110,7 @@
 </script>
 
 <svelte:head>
-  <title>{$translate('app.titles./settings')}</title>
+  <title>{$translate('app.routes./settings.title')}</title>
 </svelte:head>
 
 <Section>
