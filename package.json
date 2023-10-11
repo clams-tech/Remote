@@ -1,6 +1,6 @@
 {
   "name": "browser-app",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.11",
   "scripts": {
     "dev": "vite dev",
     "dev-https": "vite dev --mode https",

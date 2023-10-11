@@ -24,6 +24,7 @@
   import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
   import { notification } from '$lib/services.js'
+  import { browser } from '$app/environment'
 
   const clearSession = () => session$.next(null)
 
@@ -88,7 +89,9 @@
     }
   }
 
-  settings$.next({ ...$settings$, notifications: notification.permission() })
+  if (browser) {
+    settings$.next({ ...$settings$, notifications: notification.permission() })
+  }
 
   const initializeConnections = async () => {
     const connections = await Promise.all(

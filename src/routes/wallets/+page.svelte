@@ -186,7 +186,7 @@
     class:absolute={walletsContainerScrollable}
   >
     <a
-      href="/channels/open"
+      href="/wallets/add"
       class:px-2={walletsContainerScrollable}
       class:px-4={!walletsContainerScrollable || showFullAddButton}
       class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 hover:shadow-lg hover:shadow-neutral-50 relative w-min hover:bg-neutral-800"

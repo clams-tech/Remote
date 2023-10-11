@@ -221,6 +221,7 @@
     "no_payments": "No payments here, try adding a wallet connection and syncing it.",
     "no_utxos": "No utxos here, try adding a wallet connection and syncing it.",
     "no_forwards": "No forwards here, ensure that you have a lightning wallet connected and you have more than one open channel.",
+    "no_wallets": "No wallets here, add a wallet to get started.",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",
     "confirmed": "Spendable",

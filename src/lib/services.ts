@@ -42,8 +42,7 @@ export const notification = {
     return isSupported
   },
   permission: () => {
-    const granted = Notification.permission === 'granted'
-    return granted
+    return notification.supported() && Notification.permission === 'granted'
   },
   requestPermission: () => {
     return Notification.requestPermission()

@@ -31,7 +31,7 @@
   const handleOffersScroll = (offset: number) => {
     if (processingScroll) return
 
-    if (offset + 10 < previousOffset) {
+    if (offset + 2 < previousOffset) {
       processingScroll = true
       requestAnimationFrame(() => {
         if (direction === 'up') {
