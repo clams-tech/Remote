@@ -14,8 +14,10 @@
   import type { Utxo } from '$lib/@types/utxos.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import { filter, from, takeUntil } from 'rxjs'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import { fetchUtxos } from '$lib/wallets/index.js'
 
   const utxos$ = from(liveQuery(async () => db.utxos.toArray()))
 
@@ -142,6 +144,10 @@
         walletFilter
       ]
     })
+
+  const syncUtxos = async () => {
+    await Promise.all(connections$.value.map(connection => fetchUtxos(connection)))
+  }
 </script>
 
 <Section>
@@ -149,7 +155,10 @@
     <SectionHeading icon={wallet} />
 
     {#if $utxos$}
-      <FilterSort items={$utxos$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <div class="flex items-center gap-x-2">
+        <SyncRouteData sync={syncUtxos} />
+        <FilterSort items={$utxos$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      </div>
     {/if}
   </div>
 

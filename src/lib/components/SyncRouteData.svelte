@@ -24,6 +24,6 @@
   on:click|stopPropagation={syncData}
   class="flex flex-col items-center justify-center"
 >
-  <div class="w-8" class:animate-spin={syncing}>{@html refresh}</div>
+  <div class="w-6" class:animate-spin={syncing}>{@html refresh}</div>
   <div class="text-xs font-semibold">{$translate('app.labels.sync')}</div>
 </button>

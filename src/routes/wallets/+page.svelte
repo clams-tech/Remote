@@ -13,7 +13,7 @@
   import wallet from '$lib/icons/wallet.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
-  import { filter, takeUntil } from 'rxjs'
+  import { filter, firstValueFrom, takeUntil } from 'rxjs'
   import { syncConnectionData, walletTypes } from '$lib/wallets/index.js'
   import { firstLetterUpperCase } from '$lib/utils.js'
   import refresh from '$lib/icons/refresh.js'
@@ -95,9 +95,14 @@
     await Promise.all(
       $wallets$.map(async wallet => {
         const connection = connections$.value.find(connection => connection.walletId === wallet.id)
+        console.log({ connection })
 
         if (connection) {
-          await syncConnectionData(connection, wallet.lastSync || null)
+          await firstValueFrom(
+            syncConnectionData(connection, wallet.lastSync || null).pipe(
+              filter(progress => progress === 100)
+            )
+          )
         }
       })
     )

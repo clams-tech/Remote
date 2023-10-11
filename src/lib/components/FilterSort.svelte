@@ -74,7 +74,7 @@
 </script>
 
 <div class="flex flex-col items-center justify-center">
-  <button on:click={() => (showModal = true)} class="w-[2em]">{@html filterIcon}</button>
+  <button on:click={() => (showModal = true)} class="w-6">{@html filterIcon}</button>
   <div class="text-xs font-semibold">{$translate('app.labels.filter')}</div>
 </div>
 
