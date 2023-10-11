@@ -197,8 +197,8 @@
 
       <div>
         <div class="w-full flex justify-center items-center text-3xl font-semibold">
-          <div class="w-8 mr-1.5">{@html channels}</div>
-          <div class="flex items-center gap-x-2">
+          <div class="w-8 mr-1.5 flex-shrink-0">{@html channels}</div>
+          <div class="flex items-center gap-x-2 flex-wrap">
             <div>
               {$translate('app.labels.channel_with')}
             </div>
