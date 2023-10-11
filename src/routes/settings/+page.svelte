@@ -55,16 +55,14 @@
     notificationsError = ''
 
     if (!$settings$.notifications) {
-      if (!notification.permission()) {
-        try {
-          const permission = await notification.requestPermission()
+      try {
+        const permission = await notification.requestPermission()
 
-          if (permission !== 'granted') {
-            notificationsError = $translate('app.errors.permissions_notifications')
-            return
-          }
-        } catch (error) {}
-      }
+        if (permission !== 'granted') {
+          notificationsError = $translate('app.errors.permissions_notifications')
+          return
+        }
+      } catch (error) {}
     }
 
     toggle('notifications')

@@ -13,18 +13,35 @@
   import wallet from '$lib/icons/wallet.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
-  import { filter, firstValueFrom, takeUntil } from 'rxjs'
+  import { combineLatest, filter, firstValueFrom, map, takeUntil } from 'rxjs'
   import { syncConnectionData, walletTypes } from '$lib/wallets/index.js'
-  import { firstLetterUpperCase } from '$lib/utils.js'
-  import refresh from '$lib/icons/refresh.js'
+  import { firstLetterUpperCase, getWalletBalance } from '$lib/utils.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
 
   let showFullAddButton = false
   let walletsContainer: HTMLDivElement
-
   let previousOffset = 0
   let direction: 'up' | 'down'
   let processingScroll = false
+
+  let totalBalance: number
+
+  $: if ($wallets$) {
+    combineLatest($wallets$.map(wallet => getWalletBalance(wallet.id)))
+      .pipe(
+        takeUntil(onDestroy$),
+        map(
+          balances =>
+            balances.reduce(
+              (total, balance) => (balance ? (total || 0) + balance : total),
+              0
+            ) as number
+        )
+      )
+      .subscribe(balance => (totalBalance = balance))
+  }
 
   const handleWalletsScroll = (offset: number) => {
     if (processingScroll) return
@@ -95,7 +112,6 @@
     await Promise.all(
       $wallets$.map(async wallet => {
         const connection = connections$.value.find(connection => connection.walletId === wallet.id)
-        console.log({ connection })
 
         if (connection) {
           await firstValueFrom(
@@ -132,24 +148,14 @@
     {:else if processed.length}
       <div class="w-full flex flex-col h-full overflow-hidden">
         <div class="w-full mb-2">
-          <!-- <SummaryRow>
-            <div slot="label">{$translate('app.labels.active')}:</div>
-            <div slot="value">{totals.channels} channels</div>
-          </SummaryRow>
-
           <SummaryRow>
-            <div slot="label">{$translate('app.labels.sendable')}:</div>
+            <div slot="label">{$translate('app.labels.total_balance')}:</div>
             <div slot="value">
-              <BitcoinAmount sats={totals.sendable < 0 ? 0 : totals.sendable} />
+              {#if typeof totalBalance === 'number'}
+                <BitcoinAmount sats={totalBalance} />
+              {/if}
             </div>
           </SummaryRow>
-
-          <SummaryRow>
-            <div slot="label">{$translate('app.labels.receivable')}:</div>
-            <div slot="value">
-              <BitcoinAmount sats={totals.receivable < 0 ? 0 : totals.receivable} />
-            </div>
-          </SummaryRow> -->
         </div>
 
         <div

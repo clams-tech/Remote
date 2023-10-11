@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createRandomHex } from '$lib/crypto.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
-  import { BehaviorSubject, filter, firstValueFrom, map } from 'rxjs'
+  import { filter, firstValueFrom, map } from 'rxjs'
   import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
@@ -73,10 +73,12 @@
   }
 </script>
 
-<div class="flex flex-col items-center justify-center">
-  <button on:click={() => (showModal = true)} class="w-6">{@html filterIcon}</button>
+<button on:click={() => (showModal = true)} class="flex flex-col items-center justify-center">
+  <div class="w-6">
+    {@html filterIcon}
+  </div>
   <div class="text-xs font-semibold">{$translate('app.labels.filter')}</div>
-</div>
+</button>
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>

@@ -454,7 +454,8 @@
     "created": "Created",
     "modified": "Modified",
     "last_sync": "Last sync",
-    "filter": "Filter"
+    "filter": "Filter",
+    "total_balance": "Total balance"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

@@ -88,6 +88,8 @@
     }
   }
 
+  settings$.next({ ...$settings$, notifications: notification.permission() })
+
   const initializeConnections = async () => {
     const connections = await Promise.all(
       $wallets$.map(async wallet => {
