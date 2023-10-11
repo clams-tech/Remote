@@ -15,9 +15,11 @@
   import VirtualList from 'svelte-tiny-virtual-list'
   import { filter, from, takeUntil } from 'rxjs'
   import type { Channel } from '$lib/@types/channels.js'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import { fetchChannels } from '$lib/wallets/index.js'
 
   const channels$ = from(
     liveQuery(() =>
@@ -210,6 +212,10 @@
   $: if (virtualList && processed.length) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
+
+  const syncChannels = async () => {
+    await Promise.all(connections$.value.map(connection => fetchChannels(connection)))
+  }
 </script>
 
 <svelte:window bind:innerHeight />
@@ -218,7 +224,10 @@
   <div class="flex items-center justify-between w-full">
     <SectionHeading icon={channels} />
     {#if $channels$}
-      <FilterSort items={$channels$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <div class="flex items-center gap-x-2">
+        <SyncRouteData sync={syncChannels} />
+        <FilterSort items={$channels$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      </div>
     {/if}
   </div>
 

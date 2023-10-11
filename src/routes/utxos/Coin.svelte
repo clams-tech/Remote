@@ -6,6 +6,12 @@
   export let utxo: Utxo
 
   const padding = utxo.amount.toString().length * 8 - 24
+
+  let formattedDate: string
+
+  $: if (utxo.timestamp) {
+    formatDate(utxo.timestamp, 'dd/MM/yy').then(formatted => (formattedDate = formatted))
+  }
 </script>
 
 <a
@@ -32,12 +38,10 @@
       <span class="text-xs">{$translate('app.labels.sats').toLowerCase()}</span>
     </div>
 
-    {#if utxo.timestamp}
-      {#await formatDate(utxo.timestamp, 'dd/MM/yy') then date}
-        <div class="text-xs text-neutral-400 whitespace-nowrap">
-          {date}
-        </div>
-      {/await}
+    {#if formattedDate}
+      <div class="text-xs text-neutral-400 whitespace-nowrap">
+        {formattedDate}
+      </div>
     {/if}
   </div>
 </a>

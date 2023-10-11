@@ -14,8 +14,10 @@
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Offer } from '$lib/@types/offers.js'
   import { filter, from, takeUntil } from 'rxjs'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import { fetchOffers } from '$lib/wallets/index.js'
 
   const offers$ = from(liveQuery(() => db.offers.toArray()))
 
@@ -151,6 +153,10 @@
   $: if (virtualList && processed) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
+
+  const syncOffers = async () => {
+    await Promise.all(connections$.value.map(connection => fetchOffers(connection)))
+  }
 </script>
 
 <svelte:head>
@@ -165,7 +171,10 @@
   <div class="flex items-center justify-between">
     <SectionHeading icon={lightningOutline} />
     {#if $offers$}
-      <FilterSort items={$offers$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <div class="flex items-center gap-x-2">
+        <SyncRouteData sync={syncOffers} />
+        <FilterSort items={$offers$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      </div>
     {/if}
   </div>
 

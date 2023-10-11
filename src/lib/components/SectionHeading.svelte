@@ -25,9 +25,11 @@
     editing && dispatch('updated', text)
     editing = !editing
 
-    setTimeout(() => {
-      input && input.focus()
-    }, 10)
+    if (editing) {
+      setTimeout(() => {
+        input && input.focus()
+      }, 100)
+    }
   }
 </script>
 
@@ -41,7 +43,7 @@
 
     {#if editing}
       <input
-        size={text.length + 1}
+        size={text.length}
         bind:this={input}
         class="font-bold px-0 py-0 bg-transparent autofill:bg-transparent border-none w-4/5 appearance-none focus:outline-none focus:ring focus:ring-transparent flex"
         type="text"

@@ -24,6 +24,7 @@
   import { combineLatest, map } from 'rxjs'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
+  import Spinner from '$lib/components/Spinner.svelte'
 
   let selectedWalletId: Wallet['id']
   let amount = 0
@@ -123,11 +124,7 @@
     <SectionHeading icon={plus} />
   </div>
 
-  {#if $availableWallets$}
-    <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
-  {:else}
-    <Msg message={$translate('app.errors.wallet_receive_unavailable')} type="info" />
-  {/if}
+  <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
 
   <div class="my-4">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">

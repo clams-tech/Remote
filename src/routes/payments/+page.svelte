@@ -13,13 +13,15 @@
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
   import { filter, firstValueFrom, map, takeUntil } from 'rxjs'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Filter, Payment, Sorter, TagFilter } from '$lib/@types/common.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
+  import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
 
   let processed: Payment[] = []
   let filters: Filter[] = []
@@ -279,6 +281,14 @@
     summaryCache[payment.id] = { summary, formattedTimestamp }
     return { summary, formattedTimestamp }
   }
+
+  const syncPayments = async () => {
+    await Promise.all(
+      connections$.value.map(connection =>
+        Promise.all([fetchInvoices(connection), fetchTransactions(connection)])
+      )
+    )
+  }
 </script>
 
 <svelte:window bind:innerHeight />
@@ -287,7 +297,10 @@
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={list} />
     {#if $payments$}
-      <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <div class="flex items-center gap-x-2">
+        <SyncRouteData sync={syncPayments} />
+        <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      </div>
     {/if}
   </div>
 

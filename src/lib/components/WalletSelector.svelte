@@ -5,6 +5,7 @@
   import Msg from './Msg.svelte'
   import { translate } from '$lib/i18n/translations.js'
   import WalletComponent from './Wallet.svelte'
+  import Spinner from './Spinner.svelte'
 
   export let autoSelectLast: 'sent' | 'received' | '' = ''
   export let label: string = $translate('app.labels.wallet')
@@ -28,7 +29,7 @@
     }
   }
 
-  $: if (wallets.length && !selectedWalletId) {
+  $: if (wallets?.length && !selectedWalletId) {
     if (autoSelectLast) {
       try {
         const lastUsedWalletId = storage.get(
@@ -52,28 +53,28 @@
   }
 </script>
 
-{#if wallets}
-  <div class="w-full">
-    {#if !wallets.length}
-      <div class="mt-4">
-        <Msg closable={false} message={$translate('app.labels.add_wallet')} type="info" />
-      </div>
-    {:else}
-      {#if label}
-        <div class="mb-2 text-neutral-300 font-semibold text-sm">
-          {label}
-        </div>
-      {/if}
-
-      <div class="flex w-full flex-wrap gap-2 p-4 border border-neutral-600 rounded bg-neutral-900">
-        {#each wallets as wallet}
-          <WalletComponent
-            selected={selectedWalletId === wallet.id}
-            on:click={() => selectWallet(wallet.id)}
-            data={wallet}
-          />
-        {/each}
+<div class="w-full">
+  {#if !wallets}
+    <Spinner />
+  {:else if !wallets.length}
+    <div class="mt-4">
+      <Msg closable={false} message={$translate('app.labels.add_wallet')} type="info" />
+    </div>
+  {:else}
+    {#if label}
+      <div class="mb-2 text-neutral-300 font-semibold text-sm">
+        {label}
       </div>
     {/if}
-  </div>
-{/if}
+
+    <div class="flex w-full flex-wrap gap-2 p-4 border border-neutral-600 rounded bg-neutral-900">
+      {#each wallets as wallet}
+        <WalletComponent
+          selected={selectedWalletId === wallet.id}
+          on:click={() => selectWallet(wallet.id)}
+          data={wallet}
+        />
+      {/each}
+    </div>
+  {/if}
+</div>

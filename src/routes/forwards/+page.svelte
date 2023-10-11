@@ -12,11 +12,13 @@
   import forward from '$lib/icons/forward.js'
   import type { Forward } from '$lib/@types/forwards.js'
   import { filter, firstValueFrom, from, map, takeUntil } from 'rxjs'
-  import { onDestroy$ } from '$lib/streams.js'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
+  import SyncRouteData from '$lib/components/SyncRouteData.svelte'
+  import { fetchForwards } from '$lib/wallets/index.js'
 
   const forwards$ = from(liveQuery(() => db.forwards.toArray()))
 
@@ -164,6 +166,10 @@
     const forwards = dailyForwardChunks[index][1]
     return forwards.length * rowSize + 24 + 8
   }
+
+  const syncForwards = async () => {
+    await Promise.all(connections$.value.map(connection => fetchForwards(connection)))
+  }
 </script>
 
 <svelte:head>
@@ -179,7 +185,10 @@
     <SectionHeading icon={forward} />
 
     {#if $forwards$}
-      <FilterSort items={$forwards$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      <div class="flex items-center gap-x-2">
+        <SyncRouteData sync={syncForwards} />
+        <FilterSort items={$forwards$} bind:filters bind:tagFilters bind:sorters bind:processed />
+      </div>
     {/if}
   </div>
 

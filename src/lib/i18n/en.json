@@ -449,7 +449,13 @@
     "process_time": "Process time",
     "wallet_connected": "Wallet Connected",
     "wallet_already_connected_description": "{{label}} has already been added.",
-    "wallet_connected_success_description": "Successfully added {{label}}!"
+    "wallet_connected_success_description": "Successfully added {{label}}!",
+    "add": "Add",
+    "created": "Created",
+    "modified": "Modified",
+    "last_sync": "Last sync",
+    "filter": "Filter",
+    "total_balance": "Total balance"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

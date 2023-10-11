@@ -17,6 +17,15 @@ import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from 
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
+export const walletTypes = [
+  'coreln'
+  // 'lnd',
+  // 'xpub',
+  // 'multisig',
+  // 'webln',
+  // 'nostr-wallet-connect'
+] as const
+
 export const connectionOptions: Partial<
   Record<
     ConnectionCategory,
@@ -44,8 +53,6 @@ export const walletToConnection = (wallet: Wallet, session: Session): Connection
         // log
       )
   }
-
-  throw new Error(`Invalid wallet type: ${wallet.type}`)
 }
 
 export const walletTypeToInitialConfiguration = (type: Wallet['type']): Wallet['configuration'] => {
@@ -112,6 +119,87 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   return connection
 }
 
+export const fetchInvoices = async (connection: Connection) =>
+  connection.invoices &&
+  connection.invoices
+    .get()
+    .then(invoices => {
+      bulkPut('invoices', invoices)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchUtxos = async (connection: Connection) =>
+  connection.utxos &&
+  connection.utxos
+    .get()
+    .then(utxos => {
+      bulkPut('utxos', utxos)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchChannels = async (connection: Connection) =>
+  connection.channels &&
+  connection.channels
+    .get()
+    .then(channels => {
+      updateChannels(channels)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchTransactions = async (connection: Connection) =>
+  connection.transactions &&
+  connection.transactions
+    .get()
+    .then(transactions => {
+      updateTransactions(transactions)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchForwards = async (connection: Connection) =>
+  connection.forwards &&
+  connection.forwards
+    .get()
+    .then(forwards => {
+      bulkPut('forwards', forwards)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchOffers = async (connection: Connection) =>
+  connection.offers &&
+  connection.offers
+    .get()
+    .then(offers => {
+      bulkPut('offers', offers)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchTrades = async (connection: Connection) =>
+  connection.trades &&
+  connection.trades
+    .get()
+    .then(async trades => {
+      bulkPut('trades', trades)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchWithdrawals = async (connection: Connection) =>
+  connection.withdrawals &&
+  connection.withdrawals
+    .get()
+    .then(async withdrawals => {
+      bulkPut('withdrawals', withdrawals)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchDeposits = async (connection: Connection) =>
+  connection.deposits &&
+  connection.deposits
+    .get()
+    .then(async deposits => {
+      bulkPut('deposits', deposits)
+    })
+    .catch(error => log.error(error.detail.message))
+
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
  * since last sync
  */
@@ -127,112 +215,31 @@ export const syncConnectionData = (
   // progress percent
   const progress$ = new Subject<number>()
 
-  const invoicesRequest = async () =>
-    connection.invoices
-      ? connection.invoices
-          .get()
-          .then(invoices => {
-            bulkPut('invoices', invoices)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const invoicesRequest = () => fetchInvoices(connection)
   requestQueue.push(invoicesRequest)
 
-  const utxosRequest = () =>
-    connection.utxos
-      ? connection.utxos
-          .get()
-          .then(utxos => {
-            bulkPut('utxos', utxos)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const utxosRequest = () => fetchUtxos(connection)
   requestQueue.push(utxosRequest)
 
-  const channelsRequest = () =>
-    connection.channels
-      ? connection.channels
-          .get()
-          .then(channels => {
-            updateChannels(channels)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const channelsRequest = () => fetchChannels(connection)
   requestQueue.push(channelsRequest)
 
-  const transactionsRequest = () =>
-    connection.transactions
-      ? connection.transactions
-          .get()
-          .then(transactions => {
-            updateTransactions(transactions)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const transactionsRequest = () => fetchTransactions(connection)
   requestQueue.push(transactionsRequest)
 
-  const forwardsRequest = () =>
-    connection.forwards
-      ? connection.forwards
-          .get()
-          .then(forwards => {
-            bulkPut('forwards', forwards)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const forwardsRequest = () => fetchForwards(connection)
   requestQueue.push(forwardsRequest)
 
-  const offersRequest = () =>
-    connection.offers
-      ? connection.offers
-          .get()
-          .then(offers => {
-            bulkPut('offers', offers)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const offersRequest = () => fetchOffers(connection)
   requestQueue.push(offersRequest)
 
-  const tradesRequest = () =>
-    connection.trades
-      ? connection.trades
-          .get()
-          .then(async trades => {
-            bulkPut('trades', trades)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const tradesRequest = () => fetchTrades(connection)
   requestQueue.push(tradesRequest)
 
-  const withdrawalsRequest = () =>
-    connection.withdrawals
-      ? connection.withdrawals
-          .get()
-          .then(async withdrawals => {
-            bulkPut('withdrawals', withdrawals)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const withdrawalsRequest = () => fetchWithdrawals(connection)
   requestQueue.push(withdrawalsRequest)
 
-  const depositsRequest = () =>
-    connection.deposits
-      ? connection.deposits
-          .get()
-          .then(async deposits => {
-            bulkPut('deposits', deposits)
-          })
-          .catch(error => log.error(error.detail.message))
-      : Promise.resolve()
-
+  const depositsRequest = () => fetchDeposits(connection)
   requestQueue.push(depositsRequest)
 
   /** process request queue

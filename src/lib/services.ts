@@ -39,20 +39,16 @@ export const clipboard = {
 export const notification = {
   supported: (): boolean => {
     const isSupported = 'Notification' in window
-    console.log('CHECKING IF NOTIFICATIONS ARE SUPPORTED:', { isSupported })
     return isSupported
   },
   permission: () => {
     const granted = Notification.permission === 'granted'
-    console.log('CHECKING CURRENT NOTIFICATION PERMISSIONS:', Notification.permission)
     return granted
   },
   requestPermission: () => {
-    console.log('REQUESTING NOTIFICATION PERMISSIONS:')
     return Notification.requestPermission()
   },
   create: (options: { heading: string; message: string }) => {
-    console.log('CREATING NOTIFICATION:', options)
     return new Notification(options.heading, {
       body: options.message,
       icon: '/icons/icon.png'
