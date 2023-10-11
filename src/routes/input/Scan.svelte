@@ -37,11 +37,11 @@
     tickTimeout = setTimeout(tick, val ? 1000 : 0)
     timeout && clearTimeout(timeout)
     timeout = setTimeout(() => (parsed = null), 4000)
-  }
 
-  onDestroy(() => {
-    timeout && clearTimeout(timeout)
-  })
+    if (parsed && parsed.type !== 'unknown') {
+      dispatch('input', parsed)
+    }
+  }
 
   let video: HTMLVideoElement
   let canvas: HTMLCanvasElement
@@ -188,6 +188,7 @@
   }
 
   onDestroy(() => {
+    timeout && clearTimeout(timeout)
     tickTimeout && clearTimeout(tickTimeout)
     stream && stream.getVideoTracks().forEach(track => track.stop())
   })
@@ -229,9 +230,9 @@
     </div>
   {/if}
 
-  {#if parsed}
-    <div class="absolute">
-      <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+  {#if parsed?.type === 'unknown'}
+    <div class="absolute top-2 right-2">
+      <ParsedInputButton {parsed} />
     </div>
   {/if}
 
