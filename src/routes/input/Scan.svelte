@@ -230,7 +230,9 @@
   {/if}
 
   {#if parsed}
-    <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+    <div class="absolute">
+      <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+    </div>
   {/if}
 
   {#if loading && !err}
