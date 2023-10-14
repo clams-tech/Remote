@@ -7,17 +7,16 @@
   import list from '$lib/icons/list.js'
   import PaymentRow from './PaymentRow.svelte'
   import { fade, slide } from 'svelte/transition'
-  import { inPlaceSort } from 'fast-sort'
   import { formatDate } from '$lib/dates.js'
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { filter, firstValueFrom, map, takeUntil } from 'rxjs'
-  import { connections$, onDestroy$ } from '$lib/streams.js'
+  import { filter, firstValueFrom, map } from 'rxjs'
+  import { connections$, wallets$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import type { Filter, Payment, Sorter, TagFilter } from '$lib/@types/common.js'
   import type { PaymentSummary } from '$lib/summary.js'
-  import { getPaymentSummary, payments$ } from '$lib/db/helpers.js'
+  import { getAllTags, getPaymentSummary, payments$ } from '$lib/db/helpers.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
@@ -31,25 +30,10 @@
     { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
 
-  payments$.pipe(takeUntil(onDestroy$)).subscribe(async payments => {
-    const walletIdSet = new Set<string>()
-    const tagSet = new Set()
-
-    for (const { walletId, id } of payments) {
-      walletIdSet.add(walletId)
-
-      const metadata = await db.metadata.get(id)
-
-      if (metadata) {
-        metadata.tags.forEach(tag => tagSet.add(tag))
-      }
-    }
-
-    const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
-
+  getAllTags().then(tags => {
     const walletFilter = {
       label: $translate('app.labels.wallet'),
-      values: wallets.reduce((acc, wallet) => {
+      values: wallets$.value.reduce((acc, wallet) => {
         if (wallet) {
           acc.push({
             label: wallet.label,
@@ -62,7 +46,7 @@
       }, [] as Filter['values'])
     }
 
-    tagFilters = Array.from(tagSet.values()).map(tag => ({ tag: tag as string, checked: false }))
+    tagFilters = tags.map(tag => ({ tag, checked: false }))
 
     filters = [
       {
@@ -185,6 +169,8 @@
   type PaymentChunks = [number, Payment[]][]
   let dailyPaymentChunks: PaymentChunks = []
 
+  let sorting = true
+
   const sortDailyChunks = async () => {
     const id = createRandomHex()
 
@@ -208,7 +194,6 @@
   }
 
   let showFullReceiveButton = false
-  let transactionsContainer: HTMLDivElement
 
   // need to adjust this if you change the transaction row height
   const rowSize = 88
@@ -259,27 +244,16 @@
     : 0
 
   $: listHeight = Math.min(maxHeight, fullHeight)
-  $: transactionsContainerScrollable = dailyPaymentChunks ? fullHeight > listHeight : false
+  $: transactionsContainerScrollable = processing
+    ? false
+    : dailyPaymentChunks
+    ? fullHeight > listHeight
+    : false
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed && dailyPaymentChunks) {
-    setTimeout(() => virtualList.recomputeSizes(0), 25)
-  }
-
-  const summaryCache: Record<string, { summary: PaymentSummary; formattedTimestamp: string }> = {}
-
-  const getSummary = async (
-    payment: Payment
-  ): Promise<{ summary: PaymentSummary; formattedTimestamp: string }> => {
-    const cached = summaryCache[payment.id]
-
-    if (cached) return cached
-
-    const summary = await getPaymentSummary(payment)
-    const formattedTimestamp = await formatDate(summary.timestamp, 'hh:mma')
-    summaryCache[payment.id] = { summary, formattedTimestamp }
-    return { summary, formattedTimestamp }
+  $: if (processed && dailyPaymentChunks) {
+    setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
   }
 
   const syncPayments = async () => {
@@ -289,6 +263,8 @@
       )
     )
   }
+
+  let processing: boolean
 </script>
 
 <svelte:window bind:innerHeight />
@@ -299,14 +275,21 @@
     {#if $payments$}
       <div class="flex items-center gap-x-2">
         <SyncRouteData sync={syncPayments} />
-        <FilterSort items={$payments$} bind:filters bind:tagFilters bind:sorters bind:processed />
+        <FilterSort
+          items={$payments$}
+          bind:filters
+          bind:tagFilters
+          bind:sorters
+          bind:processed
+          bind:processing
+        />
       </div>
     {/if}
   </div>
 
   <div class="w-full overflow-hidden flex">
-    {#if !$payments$}
-      <div in:fade={{ duration: 250 }} class="mt-4 w-full flex justify-center">
+    {#if !$payments$ || processing}
+      <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />
       </div>
     {:else if !$payments$.length}
@@ -315,7 +298,6 @@
       </div>
     {:else}
       <div
-        bind:this={transactionsContainer}
         in:fade={{ duration: 250 }}
         class="w-full flex flex-col overflow-hidden gap-y-2 rounded mt-2"
       >
@@ -337,11 +319,18 @@
               </div>
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
-                  {#each inPlaceSort(dailyPaymentChunks[index][1]).desc(({ timestamp }) => timestamp) as payment (`${payment.id}`)}
-                    {#await getSummary(payment) then { summary, formattedTimestamp }}
-                      <PaymentRow {payment} {summary} {formattedTimestamp} />
-                    {/await}
-                  {/each}
+                  <VirtualList
+                    width="100%"
+                    height={Math.min(dailyPaymentChunks[index][1].length * rowSize, maxHeight - 32)}
+                    itemCount={dailyPaymentChunks[index][1].length}
+                    itemSize={rowSize}
+                    getKey={innerIndex => dailyPaymentChunks[index][1][innerIndex].id}
+                  >
+                    <div slot="item" let:index={innerIndex} let:style {style}>
+                      {@const payment = dailyPaymentChunks[index][1][innerIndex]}
+                      <PaymentRow {payment} />
+                    </div>
+                  </VirtualList>
                 </div>
               </div>
             </div>

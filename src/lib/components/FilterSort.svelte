@@ -13,6 +13,7 @@
   export let tagFilters: TagFilter[]
   export let sorters: Sorter[]
   export let processed: unknown[]
+  export let processing = false
 
   let showModal = false
   let selectedSorterKey: Sorter['key'] = sorters[0].key
@@ -24,15 +25,20 @@
     updateSorter()
   }
 
-  $: if (items || filters.length || tagFilters.length || selectedSorter) {
+  $: filterApplied = filters.some(filter => filter.values.some(({ checked }) => checked))
+  $: tagFilterApplied = filters.some(filter => filter.values.some(({ checked }) => checked))
+
+  $: if (filterApplied || tagFilterApplied || selectedSorter) {
     processItems()
   }
 
   const processItems = debounce(async () => {
+    processing = true
     const filtered = await filterItems(items)
     const sorted = await sortItems(filtered)
 
     processed = sorted
+    processing = false
   }, 50)
 
   const updateSorter = () =>

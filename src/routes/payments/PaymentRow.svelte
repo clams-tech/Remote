@@ -8,20 +8,31 @@
   import Summary from './Summary.svelte'
   import type { PaymentSummary } from '$lib/summary.js'
   import { updateCounterPartyNodeInfo } from './utils.js'
+  import { getPaymentSummary } from '$lib/db/helpers.js'
+  import { formatDate } from '$lib/dates.js'
+  import SummaryPlaceholder from './SummaryPlaceholder.svelte'
 
   export let payment: Payment
-  export let summary: PaymentSummary
-  export let formattedTimestamp: string
 
   const { type, network, amount, id, walletId, status } = payment
   const icon = type === 'invoice' ? lightning : bitcoin
-  let { primary, secondary, type: summaryType } = summary
 
-  updateCounterPartyNodeInfo(summary.secondary).then(node => {
-    if (node) {
-      summary.secondary = { type: 'node', value: node }
-    }
-  })
+  let summary: PaymentSummary
+  let formattedTimestamp: string
+
+  getPaymentSummary(payment).then(result => (summary = result))
+
+  $: if (summary) {
+    formatDate(summary.timestamp, 'hh:mma').then(result => (formattedTimestamp = result))
+  }
+
+  $: if (summary?.secondary) {
+    updateCounterPartyNodeInfo(summary.secondary).then(node => {
+      if (node) {
+        summary.secondary = { type: 'node', value: node }
+      }
+    })
+  }
 </script>
 
 <a
@@ -37,22 +48,27 @@
       {@html icon}
     </div>
 
-    <Summary
-      {primary}
-      {secondary}
-      {status}
-      type={summaryType}
-      timestamp={formattedTimestamp}
-      {network}
-      displayNetwork
-    />
+    {#if summary}
+      {@const { primary, secondary, type } = summary}
+      <Summary
+        {primary}
+        {secondary}
+        {status}
+        {type}
+        timestamp={formattedTimestamp}
+        {network}
+        displayNetwork
+      />
+    {:else}
+      <SummaryPlaceholder />
+    {/if}
   </div>
 
   <div class="flex items-center ml-2">
     <div>
-      {#if amount && status !== 'expired'}
+      {#if summary && amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
-          {$translate(`app.labels.summary_amount_${summaryType}`, { status })}:
+          {$translate(`app.labels.summary_amount_${summary.type}`, { status })}:
         </div>
         <BitcoinAmount sats={amount} />
       {/if}

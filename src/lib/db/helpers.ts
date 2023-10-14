@@ -122,3 +122,24 @@ export const getPaymentSummary = async (payment: {
 
   return complete as Promise<PaymentSummary>
 }
+
+export const getAllTags = (): Promise<string[]> => {
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+
+        return message.data.result
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'get_all_tags' })
+
+  return complete as Promise<string[]>
+}

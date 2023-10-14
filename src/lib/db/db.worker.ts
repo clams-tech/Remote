@@ -6,13 +6,14 @@ import { liveQuery } from 'dexie'
 import type { Invoice } from '$lib/@types/invoices.js'
 import { getNetwork } from '$lib/utils.js'
 import type { Payment, PaymentStatus } from '$lib/@types/common.js'
+import type { Address } from '$lib/@types/addresses.js'
+
 import {
   deriveAddressSummary,
   deriveInvoiceSummary,
   deriveTransactionSummary,
   type PaymentSummary
 } from '$lib/summary.js'
-import type { Address } from '$lib/@types/addresses.js'
 
 type MessageBase = {
   id: string
@@ -44,12 +45,17 @@ type GetPaymentSummaryMessage = MessageBase & {
   payment: Payment
 }
 
+type GetAllTagsMessage = MessageBase & {
+  type: 'get_all_tags'
+}
+
 type Message =
   | UpdateChannelsMessage
   | UpdateTransactionsMessage
   | BulkPutMessage
   | GetLastPayMessage
   | GetPaymentSummaryMessage
+  | GetAllTagsMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -162,6 +168,15 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
 
       return
+    }
+    case 'get_all_tags': {
+      const metadataWithTags = await db.metadata.filter(({ tags }) => !!tags.length).toArray()
+      const allTags = metadataWithTags.reduce((acc, { tags }) => {
+        acc.concat(tags)
+        return acc
+      }, [] as string[])
+
+      self.postMessage({ id: message.data.id, result: allTags })
     }
   }
 }

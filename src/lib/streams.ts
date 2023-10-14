@@ -10,6 +10,7 @@ import { log, storage } from './services.js'
 import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
+import { browser } from '$app/environment'
 
 import {
   BehaviorSubject,
@@ -33,7 +34,11 @@ export const autoConnectWallet$ = new BehaviorSubject<AutoConnectWalletOptions |
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
 export const connections$ = new BehaviorSubject<Connection[]>([])
-export const wallets$ = from(liveQuery(() => db.wallets.toArray()))
+export const wallets$ = new BehaviorSubject<Wallet[]>([])
+
+if (browser) {
+  from(liveQuery(() => db.wallets.toArray())).subscribe(wallets => wallets$.next(wallets))
+}
 
 type ConnectionErrors = Record<Wallet['id'], AppError[]>
 
