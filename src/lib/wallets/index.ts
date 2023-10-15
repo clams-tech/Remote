@@ -251,7 +251,10 @@ export const syncConnectionData = (
         if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
           connection.invoices
             .listenForAnyInvoicePayment(async invoice => {
-              const { amount, request, walletId } = invoice
+              const {
+                data: { amount, request },
+                walletId
+              } = invoice
               const wallet = (await db.wallets.get(walletId)) as Wallet
 
               notification.create({
@@ -263,8 +266,8 @@ export const syncConnectionData = (
                 })
               })
 
-              await db.invoices.put(invoice)
-            }, lastPaidInvoice?.payIndex)
+              await db.payments.put(invoice)
+            }, lastPaidInvoice?.data.payIndex)
             .catch(error => log.error(error.detail.message))
         }
       })

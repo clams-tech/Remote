@@ -8,7 +8,7 @@ import list from '$lib/icons/list.js'
 import settingsOutline from '$lib/icons/settings-outline.js'
 import wallet from '$lib/icons/wallet.js'
 import forward from '$lib/icons/forward.js'
-import type { Network } from './@types/common.js'
+import type { Network } from './@types/payments.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE

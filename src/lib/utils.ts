@@ -3,7 +3,7 @@ import type { BitcoinExchangeRates, FiatDenomination, Settings, Tile } from './@
 import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
 import { Buffer } from 'buffer'
-import type { Network } from './@types/common.js'
+import type { Network } from './@types/payments.js'
 import { combineLatest, from, map, type Observable } from 'rxjs'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'

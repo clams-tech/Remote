@@ -3,8 +3,9 @@ import type { AppError } from '$lib/@types/errors.js'
 import { merge, Subject, takeUntil } from 'rxjs'
 import handleError from './error.js'
 import { nowSeconds } from '$lib/utils.js'
-import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
+import type { SendTransactionOptions } from '$lib/@types/transactions.js'
 import { formatTransactions } from './worker.js'
+import type { TransactionPayment } from '$lib/@types/payments.js'
 
 import type {
   CorelnConnectionInterface,
@@ -22,7 +23,7 @@ class Transactions implements TransactionsInterface {
     this.connection = connection
   }
 
-  async get(): Promise<Transaction[]> {
+  async get(): Promise<TransactionPayment[]> {
     try {
       const listTransactionsResponse = await this.connection.rpc({ method: 'listtransactions' })
       const { transactions } = listTransactionsResponse as ListTransactionsResponse
@@ -76,7 +77,7 @@ class Transactions implements TransactionsInterface {
     }
   }
 
-  async send(options: SendTransactionOptions): Promise<Transaction> {
+  async send(options: SendTransactionOptions): Promise<TransactionPayment> {
     try {
       const { amount, address, feeRate, utxos } = options
       const feerate = feeRate ? `${feeRate * 1000}perkb` : undefined
@@ -95,7 +96,7 @@ class Transactions implements TransactionsInterface {
       const transactions = await this.get()
       const transaction = transactions.find(({ id }) => id === txid)
 
-      return transaction as Transaction
+      return transaction as TransactionPayment
     } catch (error) {
       const context = 'send (transactions)'
 
@@ -107,7 +108,9 @@ class Transactions implements TransactionsInterface {
   }
 
   // @TODO - need to test this works correctly and is without memory leaks
-  async listenForTransactionConfirmation(transaction: Transaction): Promise<Transaction> {
+  async listenForTransactionConfirmation(
+    transaction: TransactionPayment
+  ): Promise<TransactionPayment> {
     return new Promise(async (resolve, reject) => {
       const stopListening$ = new Subject<void>()
       const complete$ = merge(stopListening$, this.connection.destroy$)
@@ -135,7 +138,7 @@ class Transactions implements TransactionsInterface {
 
             this.connection.errors$.next(connectionError)
             reject(connectionError)
-          } else if (tx.blockheight) {
+          } else if (tx.data.blockHeight) {
             stopListening$.next()
             resolve(tx)
           }

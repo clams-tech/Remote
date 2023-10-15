@@ -13,8 +13,8 @@ export type PaymentBase = {
 export type TransactionPayment = PaymentBase & {
   type: 'transaction'
   data: {
-    rawtx: string
-    blockheight: number | null
+    rawTx: string
+    blockHeight: number | null
     txindex: number | null
     locktime: number
     version: number

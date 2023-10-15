@@ -1,4 +1,4 @@
-import type { SendTransactionOptions, Transaction } from '$lib/@types/transactions.js'
+import type { SendTransactionOptions } from '$lib/@types/transactions.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 import type { BehaviorSubject, Observable, Subject } from 'rxjs'
 import type { Wallet } from '$lib/@types/wallets.js'
@@ -7,6 +7,8 @@ import type { AppError } from '$lib/@types/errors.js'
 import type { Trade } from '$lib/@types/trades.js'
 import type { Withdrawal } from '$lib/@types/withdrawals.js'
 import type { Deposit } from '$lib/@types/deposits.js'
+import type { InvoicePayment, Network, TransactionPayment } from '$lib/@types/payments.js'
+import type { Node } from '$lib/@types/nodes.js'
 
 import type {
   Channel,
@@ -27,11 +29,8 @@ import type {
 import type {
   CreateInvoiceOptions,
   PayInvoiceOptions,
-  PayKeysendOptions,
-  Invoice
+  PayKeysendOptions
 } from '$lib/@types/invoices.js'
-import type { Network } from '$lib/@types/common.js'
-import type { Node } from '$lib/@types/nodes.js'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -100,30 +99,30 @@ export interface OffersInterface {
   /** Fetch an BOLT12 invoice for a BOLT12 Pay Offer */
   fetchInvoice?(options: FetchInvoiceOptions): Promise<string>
   /** Create an invoice for a BOLT12 Withdraw Offer and send it to be paid */
-  sendInvoice?(options: SendInvoiceOptions): Promise<Invoice>
-  payInvoice?(bolt12: string): Promise<Invoice>
+  sendInvoice?(options: SendInvoiceOptions): Promise<InvoicePayment>
+  payInvoice?(bolt12: string): Promise<InvoicePayment>
 }
 
 export interface InvoicesInterface {
   connection: Connection
   /** Get all invoice receive and send invoices and format to a list of Payments */
-  get(): Promise<Invoice[]>
+  get(): Promise<InvoicePayment[]>
   /** Create a BOLT 11 invoice to receive to */
-  create?(options: CreateInvoiceOptions): Promise<Invoice>
+  create?(options: CreateInvoiceOptions): Promise<InvoicePayment>
   /** Pay a BOLT11 invoice */
-  pay?(options: PayInvoiceOptions): Promise<Invoice>
+  pay?(options: PayInvoiceOptions): Promise<InvoicePayment>
   /** Pay to a node public key via Keysend */
-  keysend?(options: PayKeysendOptions): Promise<Invoice>
+  keysend?(options: PayKeysendOptions): Promise<InvoicePayment>
   /** listen for a specific invoice payment
    * must handle disconnection and reconnection logic
    */
-  listenForInvoicePayment?(invoice: Invoice): Promise<Invoice>
+  listenForInvoicePayment?(invoice: InvoicePayment): Promise<InvoicePayment>
   /** listen for any invoice payment after a particular pay index
    * must handle disconnection and reconnection logic
    */
   listenForAnyInvoicePayment?(
-    onPayment: (invoice: Invoice) => Promise<void>,
-    payIndex?: Invoice['payIndex']
+    onPayment: (invoice: InvoicePayment) => Promise<void>,
+    payIndex?: InvoicePayment['data']['payIndex']
   ): Promise<void>
 }
 
@@ -148,15 +147,15 @@ export interface ChannelsInterface {
 export interface TransactionsInterface {
   connection: Connection
   /** get all onchain transactions */
-  get(): Promise<Transaction[]>
+  get(): Promise<TransactionPayment[]>
   /** derive a new bech32 receive address */
   receive?(): Promise<string>
   /** send to an onchain address */
-  send?(options: SendTransactionOptions): Promise<Transaction>
+  send?(options: SendTransactionOptions): Promise<TransactionPayment>
   /** wait for an unconfirmed transaction to be included in a block
    * must handle disconnection and reconnection logic
    */
-  listenForTransactionConfirmation?(transaction: Transaction): Promise<Transaction>
+  listenForTransactionConfirmation?(transaction: TransactionPayment): Promise<TransactionPayment>
 }
 
 export interface ForwardsInterface {

@@ -1,11 +1,9 @@
 import { nowSeconds } from '$lib/utils.js'
-import type { Invoice } from '$lib/@types/invoices.js'
 import { invoiceStatusToPaymentStatus, formatMsatString } from './utils.js'
 import { BitcoinDenomination } from '$lib/@types/settings.js'
 import type { OffersInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
-import { createRandomHex } from '$lib/crypto.js'
 import Big from 'big.js'
 import { decodeBolt12 } from '$lib/invoices.js'
 
@@ -29,6 +27,7 @@ import type {
   PayResponse,
   SendInvoiceResponse
 } from './types.js'
+import type { InvoicePayment } from '$lib/@types/payments.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -254,7 +253,7 @@ class Offers implements OffersInterface {
     }
   }
 
-  async sendInvoice(options: SendInvoiceOptions): Promise<Invoice> {
+  async sendInvoice(options: SendInvoiceOptions): Promise<InvoicePayment> {
     try {
       const { offer, label, amount, timeout, quantity } = options
       const createdAt = nowSeconds()
@@ -278,21 +277,24 @@ class Offers implements OffersInterface {
       } = result as SendInvoiceResponse
 
       return {
-        id: label,
-        hash: payment_hash,
-        preimage: payment_preimage,
-        type: 'bolt12',
+        id: payment_hash,
         direction: 'receive',
-        amount: msatsToSats(formatMsatString(amount_received_msat || amountMsat)),
-        completedAt: paid_at ? paid_at : nowSeconds(),
-        expiresAt: expires_at,
-        createdAt: createdAt,
         timestamp: paid_at || createdAt,
-        fee: undefined,
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus, expires_at),
-        request: bolt12 as string,
-        payIndex: pay_index,
-        walletId: this.connection.walletId
+        walletId: this.connection.walletId,
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          preimage: payment_preimage,
+          type: 'bolt12',
+          amount: msatsToSats(formatMsatString(amount_received_msat || amountMsat)),
+          completedAt: paid_at ? paid_at : nowSeconds(),
+          expiresAt: expires_at,
+          createdAt: createdAt,
+          fee: undefined,
+          request: bolt12 as string,
+          payIndex: pay_index
+        }
       }
     } catch (error) {
       const context = 'sendInvoice (offers)'
@@ -303,7 +305,7 @@ class Offers implements OffersInterface {
       throw connectionError
     }
   }
-  async payInvoice(bolt12: string): Promise<Invoice> {
+  async payInvoice(bolt12: string): Promise<InvoicePayment> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
 
@@ -320,23 +322,26 @@ class Offers implements OffersInterface {
       const completedAt = nowSeconds()
 
       return {
-        id: createRandomHex(),
-        hash: payment_hash,
-        preimage: payment_preimage,
-        nodeId: destination,
-        type: 'bolt12',
+        id: payment_hash,
         direction: 'send',
-        amount: msatsToSats(formatMsatString(amount_msat)),
-        completedAt,
-        expiresAt: undefined,
-        createdAt: created_at,
         timestamp: completedAt,
-        fee: msatsToSats(
-          Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
-        ),
         status,
-        request: bolt12,
-        walletId: this.connection.walletId
+        walletId: this.connection.walletId,
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          preimage: payment_preimage,
+          counterpartyNode: destination,
+          type: 'bolt12',
+          amount: msatsToSats(formatMsatString(amount_msat)),
+          completedAt,
+          expiresAt: undefined,
+          createdAt: created_at,
+          fee: msatsToSats(
+            Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
+          ),
+          request: bolt12
+        }
       }
     } catch (error) {
       const context = 'sendInvoice (offers)'

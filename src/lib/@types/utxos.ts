@@ -11,5 +11,5 @@ export type Utxo = {
   walletId: string
   timestamp: number | null
   spendingTxid?: string
-  blockheight?: number
+  blockHeight?: number
 }
