@@ -25,6 +25,7 @@
   import { truncateValue } from '$lib/utils.js'
   import channels from '$lib/icons/channels.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { TransactionPayment } from '$lib/@types/payments.js'
 
   export let data: PageData // channel id
 
@@ -57,9 +58,14 @@
   const closingTransaction$ = channel$.pipe(
     filter(x => !!x),
     mergeMap(channel =>
-      db.transactions
-        .where({ 'channel.id': channel!.id, walletId: channel?.walletId })
-        .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
+      db.payments
+        .where({ 'data.channel.id': channel!.id, walletId: channel?.walletId })
+        .filter(transactionPayment => {
+          const {
+            data: { channel }
+          } = transactionPayment as TransactionPayment
+          return channel?.type === 'force_close' || channel?.type === 'close'
+        })
         .first()
     )
   )
