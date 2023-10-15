@@ -6,12 +6,13 @@ import handleError from './error.js'
 import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
 import { isBolt12Invoice } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
+import { formatPayments } from './worker.js'
+import type { Payment } from '$lib/@types/payments.js'
 
 import type {
   CreateInvoiceOptions,
   PayInvoiceOptions,
-  PayKeysendOptions,
-  Invoice
+  PayKeysendOptions
 } from '$lib/@types/invoices.js'
 
 import type {
@@ -25,7 +26,6 @@ import type {
   WaitAnyInvoiceResponse,
   WaitInvoiceResponse
 } from './types.js'
-import { formatPayments } from './worker.js'
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
@@ -42,7 +42,7 @@ class Invoices implements InvoicesInterface {
     })
   }
 
-  async get(): Promise<Invoice[]> {
+  async get(): Promise<Payment[]> {
     try {
       const [invoicesResponse, paysResponse] = await Promise.all([
         this.connection.rpc({ method: 'listinvoices' }),
@@ -64,7 +64,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async create(options: CreateInvoiceOptions): Promise<Invoice> {
+  async create(options: CreateInvoiceOptions): Promise<Payment> {
     try {
       const { id, amount, description, expiry } = options
       const createdAt = nowSeconds()
@@ -81,21 +81,25 @@ class Invoices implements InvoicesInterface {
 
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
 
-      const payment: Invoice = {
-        id,
+      const payment: Payment = {
+        id: payment_hash,
         status: 'pending',
+        timestamp: createdAt,
         direction: 'receive',
-        amount,
-        fee: undefined,
-        type: 'bolt11',
-        createdAt,
-        completedAt: undefined,
-        expiresAt: expires_at,
-        request: bolt11,
-        description,
-        hash: payment_hash,
-        preimage: payment_secret,
-        walletId: this.connection.walletId
+        walletId: this.connection.walletId,
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          amount,
+          fee: undefined,
+          type: 'bolt11',
+          createdAt,
+          completedAt: undefined,
+          expiresAt: expires_at,
+          request: bolt11,
+          description,
+          preimage: payment_secret
+        }
       }
 
       return payment
@@ -133,6 +137,8 @@ class Invoices implements InvoicesInterface {
         destination
       } = result as PayResponse
 
+      const completedAt = nowSeconds()
+
       return {
         id,
         hash: payment_hash,
@@ -141,7 +147,8 @@ class Invoices implements InvoicesInterface {
         type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
         direction: 'send',
         amount: msatsToSats(formatMsatString(amount_msat)),
-        completedAt: nowSeconds(),
+        completedAt,
+        timestamp: completedAt,
         expiresAt: undefined,
         createdAt: created_at,
         fee: msatsToSats(
@@ -179,6 +186,8 @@ class Invoices implements InvoicesInterface {
       const { payment_hash, payment_preimage, created_at, amount_sent_msat, status } =
         result as KeysendResponse
 
+      const completedAt = nowSeconds()
+
       return {
         id,
         hash: payment_hash,
@@ -187,7 +196,8 @@ class Invoices implements InvoicesInterface {
         type: 'bolt11',
         direction: 'send',
         amount,
-        completedAt: nowSeconds(),
+        completedAt,
+        timestamp: completedAt,
         expiresAt: undefined,
         createdAt: created_at,
         fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amountMsat).toString()),

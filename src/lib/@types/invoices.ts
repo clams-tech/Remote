@@ -1,32 +1,4 @@
-import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
-import type { PaymentStatus } from './common.js'
-
-export type Invoice = {
-  id: string
-  status: PaymentStatus
-  direction: PaymentDirection
-  amount: number
-  fee?: number
-  type: PaymentType
-  createdAt: number // unix seconds
-  completedAt?: number // unix seconds
-  expiresAt?: number // unix seconds
-  hash: string
-  walletId: string
-  /** BOLT11 | BOLT12 */
-  request?: string
-  /** the receiving if this is a send node id */
-  nodeId?: string
-  description?: string
-  preimage?: string
-  payIndex?: number
-  offer?: {
-    id?: string
-    issuer?: DecodedBolt12Offer['offer_issuer']
-    payerNote?: DecodedBolt12Invoice['invreq_payer_note']
-    description?: DecodedBolt12Offer['offer_description']
-  }
-}
+import type { PaymentType } from './payments.js'
 
 export type SendPaymentOptions = {
   id: string
@@ -64,10 +36,6 @@ export type PayInvoiceOptions = {
    */
   description?: unknown
 }
-
-export type PaymentType = 'keysend' | 'bolt11' | 'lightning_address' | 'lnurl' | 'bolt12'
-
-type PaymentDirection = 'receive' | 'send'
 
 export type DecodedBolt11Invoice = {
   nodeId: string

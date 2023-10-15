@@ -287,6 +287,7 @@ class Offers implements OffersInterface {
         completedAt: paid_at ? paid_at : nowSeconds(),
         expiresAt: expires_at,
         createdAt: createdAt,
+        timestamp: paid_at || createdAt,
         fee: undefined,
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus, expires_at),
         request: bolt12 as string,
@@ -305,7 +306,6 @@ class Offers implements OffersInterface {
   async payInvoice(bolt12: string): Promise<Invoice> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
-      const decoded = decodeBolt12(bolt12)
 
       const {
         payment_hash,
@@ -317,6 +317,8 @@ class Offers implements OffersInterface {
         destination
       } = result as PayResponse
 
+      const completedAt = nowSeconds()
+
       return {
         id: createRandomHex(),
         hash: payment_hash,
@@ -325,9 +327,10 @@ class Offers implements OffersInterface {
         type: 'bolt12',
         direction: 'send',
         amount: msatsToSats(formatMsatString(amount_msat)),
-        completedAt: nowSeconds(),
+        completedAt,
         expiresAt: undefined,
         createdAt: created_at,
+        timestamp: completedAt,
         fee: msatsToSats(
           Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
         ),

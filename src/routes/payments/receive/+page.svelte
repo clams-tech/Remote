@@ -20,11 +20,9 @@
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
-  import Msg from '$lib/components/Msg.svelte'
   import { combineLatest, map } from 'rxjs'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
-  import Spinner from '$lib/components/Spinner.svelte'
 
   let selectedWalletId: Wallet['id']
   let amount = 0
@@ -87,11 +85,14 @@
       if (createAddress && connection.transactions?.receive) {
         const receiveAddress = await connection.transactions.receive()
 
+        const createdAt = nowSeconds()
+
         const address: Address = {
           id,
           value: receiveAddress,
           walletId: selectedWalletId,
-          createdAt: nowSeconds(),
+          createdAt,
+          timestamp: createdAt,
           amount,
           message: description
         }

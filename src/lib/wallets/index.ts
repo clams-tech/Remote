@@ -221,11 +221,11 @@ export const syncConnectionData = (
   const utxosRequest = () => fetchUtxos(connection)
   requestQueue.push(utxosRequest)
 
-  const channelsRequest = () => fetchChannels(connection)
-  requestQueue.push(channelsRequest)
-
   const transactionsRequest = () => fetchTransactions(connection)
   requestQueue.push(transactionsRequest)
+
+  const channelsRequest = () => fetchChannels(connection)
+  requestQueue.push(channelsRequest)
 
   const forwardsRequest = () => fetchForwards(connection)
   requestQueue.push(forwardsRequest)
