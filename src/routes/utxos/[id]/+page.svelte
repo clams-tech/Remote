@@ -16,6 +16,7 @@
   import { from, take } from 'rxjs'
   import keys from '$lib/icons/keys.js'
   import caret from '$lib/icons/caret.js'
+  import type { AddressPayment } from '$lib/@types/payments.js'
 
   export let data: PageData
 
@@ -24,10 +25,16 @@
 
   const utxo$ = from(liveQuery(() => db.utxos.get(id)))
   let utxoNotFound = false
+  let addressPayment: AddressPayment
 
   utxo$.pipe(take(1)).subscribe(utxo => {
     if (!utxo) {
       utxoNotFound = true
+    } else {
+      db.payments
+        .where({ id: utxo.address })
+        .first()
+        .then(payment => (addressPayment = payment as AddressPayment))
     }
   })
 </script>
@@ -131,25 +138,23 @@
         </SummaryRow>
 
         <!-- RECEIVE INFO -->
-        {#await db.addresses.where('value').equals(address).first() then addressInfo}
-          {#if addressInfo}
-            {@const { message, label } = addressInfo}
+        {#if addressPayment}
+          {@const { message, label } = addressPayment.data}
 
-            {#if label}
-              <SummaryRow>
-                <div slot="label">{$translate('app.labels.label')}</div>
-                <div slot="value">{label}</div>
-              </SummaryRow>
-            {/if}
-
-            {#if message}
-              <SummaryRow>
-                <div slot="label">{$translate('app.labels.description')}</div>
-                <div slot="value">{message}</div>
-              </SummaryRow>
-            {/if}
+          {#if label}
+            <SummaryRow>
+              <div slot="label">{$translate('app.labels.label')}</div>
+              <div slot="value">{label}</div>
+            </SummaryRow>
           {/if}
-        {/await}
+
+          {#if message}
+            <SummaryRow>
+              <div slot="label">{$translate('app.labels.description')}</div>
+              <div slot="value">{message}</div>
+            </SummaryRow>
+          {/if}
+        {/if}
 
         {#if spendingTxid}
           <SummaryRow>

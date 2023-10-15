@@ -14,15 +14,15 @@
   import { filter, firstValueFrom, map } from 'rxjs'
   import { connections$, wallets$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Filter, Payment, Sorter, TagFilter } from '$lib/@types/common.js'
-  import type { PaymentSummary } from '$lib/summary.js'
-  import { getAllTags, getPaymentSummary, payments$ } from '$lib/db/helpers.js'
+  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import { getAllTags } from '$lib/db/helpers.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
+  import type { Payment } from '$lib/@types/payments.js'
 
-  let processed: Payment[] = []
+  let payments: Payment[] = []
   let filters: Filter[] = []
   let tagFilters: TagFilter[] = []
 
@@ -168,8 +168,6 @@
 
   type PaymentChunks = [number, Payment[]][]
   let dailyPaymentChunks: PaymentChunks = []
-
-  let sorting = true
 
   const sortDailyChunks = async () => {
     const id = createRandomHex()

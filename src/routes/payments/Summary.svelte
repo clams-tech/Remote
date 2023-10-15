@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Network, PaymentStatus } from '$lib/@types/common.js'
+  import type { Network, PaymentStatus } from '$lib/@types/payments.js'
   import { translate } from '$lib/i18n/translations.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { truncateValue } from '$lib/utils.js'

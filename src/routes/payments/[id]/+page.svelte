@@ -1,8 +1,5 @@
 <script lang="ts">
-  import type { Network, PaymentStatus } from '$lib/@types/common.js'
   import type { Wallet } from '$lib/@types/wallets.js'
-  import type { Invoice } from '$lib/@types/invoices.js'
-  import type { Transaction } from '$lib/@types/transactions.js'
   import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db/index.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
@@ -43,6 +40,13 @@
     type RegularTransactionSummary,
     type ChannelTransactionSummary
   } from '$lib/summary.js'
+  import type {
+    AddressPayment,
+    InvoicePayment,
+    Network,
+    PaymentStatus,
+    TransactionPayment
+  } from '$lib/@types/payments.js'
 
   export let data: PageData
 
@@ -69,7 +73,7 @@
     wallet: Wallet
     category: PaymentSummary['category']
     summaryType: PaymentSummary['type']
-    offer?: Invoice['offer']
+    offer?: InvoicePayment['data']['offer']
     channels?: Channel[]
     inputs?: EnhancedInput[]
     outputs?: EnhancedOutput[]
@@ -84,48 +88,61 @@
     liveQuery(async () => {
       return db.transaction(
         'r',
-        db.invoices,
-        db.addresses,
-        db.transactions,
+        db.payments,
         db.wallets,
         db.channels,
         db.withdrawals,
-        // @ts-ignore
         db.deposits,
         db.metadata,
+        // @ts-ignore
         db.contacts,
         db.utxos,
         db.offers,
         db.nodes,
         async (): Promise<TransactionDetail[]> => {
-          const [invoices, address, transactions] = await Promise.all([
-            db.invoices.where({ id }).toArray(),
-            db.addresses.get(id),
-            db.transactions.where({ id }).toArray()
-          ])
+          const payments = await db.payments.where({ id }).toArray()
+          const { invoicePayments, transactionPayments, addressPayment } = payments.reduce(
+            (acc, payment) => {
+              const { type } = payment
+
+              if (type === 'invoice') {
+                acc.invoicePayments.push(payment)
+              } else if (type === 'address') {
+                acc.addressPayment = payment
+              } else {
+                acc.transactionPayments.push(payment)
+              }
+
+              return acc
+            },
+            { invoicePayments: [], addressPayment: null, transactionPayments: [] } as {
+              invoicePayments: InvoicePayment[]
+              addressPayment: AddressPayment | null
+              transactionPayments: TransactionPayment[]
+            }
+          )
 
           const details: TransactionDetail[] = []
 
-          if (invoices.length) {
+          if (invoicePayments.length) {
             // prefer sender invoice if multiple copies
-            const invoice = invoices.find(({ direction }) => direction === 'send') || invoices[0]
+            const invoice =
+              invoicePayments.find(({ direction }) => direction === 'send') || invoicePayments[0]
+
+            const { status, walletId, direction, data } = invoice
 
             const {
               request,
-              status,
               amount,
               description,
               createdAt,
               completedAt,
-              walletId,
               offer,
-              direction,
               expiresAt,
               fee,
-              hash,
               preimage,
-              nodeId
-            } = invoice
+              counterpartyNode
+            } = data
 
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
@@ -133,10 +150,11 @@
             const formattedOffer =
               offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
 
-            let { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary({
-              ...invoice,
-              offer: formattedOffer
-            })) as PaymentSummary
+            ;(invoice as InvoicePayment).data.offer = formattedOffer
+
+            let { category, type, primary, secondary, timestamp } = (await deriveInvoiceSummary(
+              invoice
+            )) as PaymentSummary
 
             details.push({
               type: 'invoice',
@@ -159,9 +177,9 @@
               offer: formattedOffer,
               fee,
               request,
-              paymentHash: hash,
+              paymentHash: id,
               paymentPreimage: preimage,
-              peerNodeId: direction === 'send' ? nodeId : undefined,
+              peerNodeId: direction === 'send' ? counterpartyNode : undefined,
               category,
               summaryType: type,
               primary,
@@ -171,9 +189,11 @@
             })
           }
 
-          if (address) {
-            const { value, walletId, createdAt, amount, txid, message, completedAt, label } =
-              address
+          if (addressPayment) {
+            const {
+              walletId,
+              data: { createdAt, amount, txid, message, completedAt, label }
+            } = addressPayment
 
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const searchParams = new URLSearchParams()
@@ -190,38 +210,38 @@
               searchParams.append('message', message)
             }
 
-            let tx: Transaction | null = null
+            let tx: TransactionPayment | null = null
 
             if (txid) {
-              tx = (await db.transactions.where({ id: txid, walletId }).first()) as Transaction
+              tx = (await db.payments.where({ id: txid, walletId }).first()) as TransactionPayment
             }
 
-            const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
+            const status = txid ? (tx?.data.blockHeight ? 'complete' : 'pending') : 'waiting'
             const qrValues: QRValue[] = []
 
             if (status === 'waiting') {
               qrValues.push({
                 label: $translate('app.labels.address'),
-                value: `bitcoin:${value.toUpperCase()}${
+                value: `bitcoin:${id.toUpperCase()}${
                   Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
                 }`
               })
             }
 
-            const [invoice] = invoices
+            const [invoice] = invoicePayments
 
-            if (invoice?.request && invoice?.status === 'pending') {
-              searchParams.append('lightning', invoice.request.toUpperCase())
+            if (invoice?.data.request && invoice?.status === 'pending') {
+              searchParams.append('lightning', invoice.data.request.toUpperCase())
 
               qrValues.push({
                 label: $translate('app.labels.unified'),
-                value: `bitcoin:${value.toUpperCase()}${
+                value: `bitcoin:${id.toUpperCase()}${
                   Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
                 }`
               })
             }
 
-            const summary = await deriveAddressSummary(address)
+            const summary = await deriveAddressSummary(addressPayment)
 
             details.push({
               type: 'address',
@@ -238,22 +258,29 @@
               primary: summary.primary,
               secondary: summary.secondary,
               timestamp: createdAt,
-              network: getNetwork(value)
+              network: getNetwork(id)
             })
           }
 
-          if (transactions.length) {
+          if (transactionPayments.length) {
             const spentInputUtxo = await db.utxos
               .where('id')
-              .anyOf(transactions[0].inputs.map(({ txid, index }) => `${txid}:${index}`))
+              .anyOf(
+                transactionPayments[0].data.inputs.map(({ txid, index }) => `${txid}:${index}`)
+              )
               .first()
 
             // prefer spender transaction where possible
             const transaction =
-              transactions.find(({ walletId }) => walletId === spentInputUtxo?.walletId) ||
-              transactions[0]
+              transactionPayments.find(({ walletId }) => walletId === spentInputUtxo?.walletId) ||
+              transactionPayments[0]
 
-            const { id, walletId, fee, blockheight, timestamp } = transaction
+            const {
+              id,
+              walletId,
+              timestamp,
+              data: { fee, blockHeight }
+            } = transaction
             const wallet = (await db.wallets.get(walletId)) as Wallet
             const summary = await deriveTransactionSummary(transaction)
 
@@ -261,12 +288,12 @@
 
             details.push({
               type: 'onchain',
-              status: blockheight ? 'complete' : 'pending',
+              status: blockHeight ? 'complete' : 'pending',
               amount,
               fee,
               channels: (summary as ChannelTransactionSummary).channels,
               wallet,
-              completedAt: typeof blockheight === 'number' ? timestamp : undefined,
+              completedAt: typeof blockHeight === 'number' ? timestamp : undefined,
               txid: id,
               inputs,
               outputs,
@@ -275,8 +302,8 @@
               primary: summary.primary,
               secondary: summary.secondary,
               timestamp: summary.timestamp,
-              network: getNetwork(transaction.outputs[0].address),
-              blockHeight: blockheight
+              network: getNetwork(transaction.data.outputs[0].address),
+              blockHeight: blockHeight
             })
           }
 
@@ -323,10 +350,10 @@
     : []
 
   const handlePaymentExpire = async () => {
-    await db.invoices.where({ id }).modify({ status: 'expired' })
+    await db.payments.where({ id }).modify({ status: 'expired' })
   }
 
-  const tryFindWithdrawalOfferId = async (offerDetails: Invoice['offer']) => {
+  const tryFindWithdrawalOfferId = async (offerDetails: InvoicePayment['data']['offer']) => {
     const { description, issuer } = offerDetails!
     if (!issuer) return undefined
     const withdrawalOffer = await db.offers.get({ description, type: 'withdraw', issuer })

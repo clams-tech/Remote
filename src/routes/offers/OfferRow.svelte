@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Offer } from '$lib/@types/offers.js'
+  import type { InvoicePayment } from '$lib/@types/payments.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { db } from '$lib/db/index.js'
@@ -22,12 +23,12 @@
       : { 'offer.id': offer?.id }
 
   const offerPayments$ = liveQuery(() =>
-    db.invoices
+    db.payments
       .where(query)
-      .filter(
-        invoice =>
-          invoice.offer?.description === offer.description && invoice.offer?.issuer === offer.issuer
-      )
+      .filter(payment => {
+        const { data } = payment as InvoicePayment
+        return data.offer?.description === offer.description && data.offer?.issuer === offer.issuer
+      })
       .toArray()
   )
 

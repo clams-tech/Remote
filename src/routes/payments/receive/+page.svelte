@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import type { Address } from '$lib/@types/addresses.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
@@ -23,6 +22,7 @@
   import { combineLatest, map } from 'rxjs'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
+  import type { AddressPayment } from '$lib/@types/payments.js'
 
   let selectedWalletId: Wallet['id']
   let amount = 0
@@ -79,7 +79,7 @@
           expiry
         })
 
-        await db.invoices.add(invoice)
+        await db.payments.add(invoice)
       }
 
       if (createAddress && connection.transactions?.receive) {
@@ -87,17 +87,22 @@
 
         const createdAt = nowSeconds()
 
-        const address: Address = {
-          id,
-          value: receiveAddress,
+        const address: AddressPayment = {
+          id: receiveAddress,
           walletId: selectedWalletId,
-          createdAt,
           timestamp: createdAt,
-          amount,
-          message: description
+          status: 'waiting',
+          direction: 'receive',
+          network: connection.info.network,
+          type: 'address',
+          data: {
+            createdAt,
+            amount,
+            message: description
+          }
         }
 
-        await db.addresses.add(address)
+        await db.payments.add(address)
       }
     } catch (error) {
       createPaymentError = error as AppError

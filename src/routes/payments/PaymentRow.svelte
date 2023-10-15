@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Payment } from '$lib/@types/common.js'
   import bitcoin from '$lib/icons/bitcoin.js'
   import lightning from '$lib/icons/lightning.js'
   import { translate } from '$lib/i18n/translations.js'
@@ -11,10 +10,12 @@
   import { getPaymentSummary } from '$lib/db/helpers.js'
   import { formatDate } from '$lib/dates.js'
   import SummaryPlaceholder from './SummaryPlaceholder.svelte'
+  import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
 
   export let payment: Payment
 
-  const { type, network, amount, id, walletId, status } = payment
+  const { type, network, id, walletId, status } = payment
+  const { amount } = payment.data as InvoicePayment['data']
   const icon = type === 'invoice' ? lightning : bitcoin
 
   let summary: PaymentSummary
