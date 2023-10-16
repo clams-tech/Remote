@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { db } from '$lib/db/index.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
@@ -7,164 +6,47 @@
   import list from '$lib/icons/list.js'
   import PaymentRow from './PaymentRow.svelte'
   import { fade, slide } from 'svelte/transition'
-  import { formatDate } from '$lib/dates.js'
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
   import { filter, firstValueFrom, map } from 'rxjs'
   import { connections$, wallets$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
   import { getAllTags } from '$lib/db/helpers.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
+  import type { AppliedFilters, SortDirection } from '$lib/@types/common.js'
 
+  let offset = 0
   let payments: Payment[] = []
-  let filters: Filter[] = []
-  let tagFilters: TagFilter[] = []
+  let loadingPayment = false
+  let appliedFilters: AppliedFilters | undefined
+  let sortBy = 'timestamp'
+  let sortDirection: SortDirection = 'desc'
 
-  let sorters: Sorter[] = [
-    { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
-  ]
+  // on load get top 50 payments sorted by time stamp with no filtering
 
-  getAllTags().then(tags => {
-    const walletFilter = {
-      label: $translate('app.labels.wallet'),
-      values: wallets$.value.reduce((acc, wallet) => {
-        if (wallet) {
-          acc.push({
-            label: wallet.label,
-            checked: false,
-            predicate: { key: 'walletId', values: [wallet.id] }
-          })
-        }
+  // keep maximum 300 payments in memory at any time
+  // on scroll to bottom, load 50 more payments, trim start to ensure max 300
+  // on scroll to top, load 50 more and trim end to ensure max 300
 
-        return acc
-      }, [] as Filter['values'])
-    }
+  // on filter change, fetch the top 50 with filter(s) applied
+  // on sort change, fetch the top 50 with sort applied
 
-    tagFilters = tags.map(tag => ({ tag, checked: false }))
+  // let filters: Filter[] = []
+  // let tagFilters: TagFilter[] = []
 
-    filters = [
-      {
-        label: $translate('app.labels.status'),
-        values: [
-          {
-            label: $translate('app.labels.pending'),
-            checked: false,
-            predicate: {
-              key: 'status',
-              values: ['pending']
-            }
-          },
-          {
-            label: $translate('app.labels.waiting'),
-            checked: false,
-            predicate: {
-              key: 'status',
-              values: ['waiting']
-            }
-          },
-          {
-            label: $translate('app.labels.complete'),
-            checked: false,
-            predicate: {
-              key: 'status',
-              values: ['complete']
-            }
-          },
-          {
-            label: $translate('app.labels.expired'),
-            checked: false,
-            predicate: {
-              key: 'status',
-              values: ['expired']
-            }
-          },
-          {
-            label: $translate('app.labels.failed'),
-            checked: false,
-            predicate: {
-              key: 'status',
-              values: ['failed']
-            }
-          }
-        ]
-      },
-      {
-        label: $translate('app.labels.type'),
-        values: [
-          {
-            label: $translate('app.labels.lightning'),
-            checked: false,
-            predicate: {
-              key: 'type',
-              values: ['invoice']
-            }
-          },
-          {
-            label: $translate('app.labels.onchain'),
-            checked: false,
-            predicate: {
-              key: 'type',
-              values: ['transaction', 'address']
-            }
-          },
-          {
-            label: $translate('app.labels.channel'),
-            checked: false,
-            predicate: {
-              key: 'channel',
-              values: [],
-              compare: 'exists'
-            }
-          },
-          {
-            label: $translate('app.labels.offer'),
-            checked: false,
-            predicate: {
-              key: 'offer',
-              values: [],
-              compare: 'exists'
-            }
-          }
-        ]
-      },
-      walletFilter,
-      {
-        label: $translate('app.labels.network'),
-        values: [
-          {
-            label: $translate('app.labels.bitcoin'),
-            checked: false,
-            predicate: {
-              key: 'network',
-              values: ['bitcoin']
-            }
-          },
-          {
-            label: $translate('app.labels.regtest'),
-            checked: false,
-            predicate: {
-              key: 'network',
-              values: ['regtest']
-            }
-          },
-          {
-            label: $translate('app.labels.testnet'),
-            checked: false,
-            predicate: {
-              key: 'network',
-              values: ['testnet']
-            }
-          }
-        ]
-      }
-    ]
-  })
+  // let sorters: Sorter[] = [
+  //   { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
+  // ]
+
+  // getAllTags().then(tags => {
+  //   tagFilters = tags.map(tag => ({ tag, checked: false }))
+
+  // })
 
   type PaymentChunks = [number, Payment[]][]
   let dailyPaymentChunks: PaymentChunks = []

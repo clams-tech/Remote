@@ -3,6 +3,7 @@ import { createRandomHex } from '$lib/crypto.js'
 import type { Channel } from '$lib/@types/channels.js'
 import type { PaymentSummary } from '$lib/summary.js'
 import type { InvoicePayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
+import type { DBGetPaymentsOptions } from '$lib/@types/common.js'
 
 const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
   type: 'module'
@@ -128,4 +129,26 @@ export const getAllTags = (): Promise<string[]> => {
   worker.postMessage({ id, type: 'get_all_tags' })
 
   return complete as Promise<string[]>
+}
+
+export const getPayments = async (options: DBGetPaymentsOptions): Promise<Payment[]> => {
+  const { offset, limit, sortBy, sortDirection, filters } = options
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+
+        return message.data.result
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'get_payments', offset, limit, sortBy, sortDirection, filters })
+
+  return complete as Promise<Payment[]>
 }

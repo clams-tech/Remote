@@ -22,20 +22,20 @@ export type ParsedNodeAddress = {
   port: number
 }
 
-export type Filter = {
-  label: string
-  values: {
-    label: string
-    checked: boolean
-    predicate: FilterPredicate
-  }[]
+export type EqualsFilter = { comparison: 'equals'; value: string }
+export type IncludesFilter = { comparison: 'includes'; value: string[] }
+export type GtFilter = { comparison: 'gt'; value: number }
+export type LtFilter = { comparison: 'lt'; value: number }
+export type Filter = EqualsFilter | IncludesFilter | GtFilter | LtFilter
+export type AppliedFilters = Record<string, Filter>
+export type SortDirection = 'asc' | 'desc'
+
+export type DBGetPaymentsOptions = {
+  offset?: number
+  limit?: number
+  sortBy?: string
+  sortDirection?: SortDirection
+  filters?: AppliedFilters
 }
 
-export type FilterPredicate = {
-  key: string
-  values: unknown[]
-  compare?: 'eq' | 'gt' | 'lt' | 'exists'
-}
-
-export type TagFilter = { tag: string; checked: boolean }
-export type Sorter = { label: string; key: string; direction: 'asc' | 'desc' }
+export type ValueOf<Obj> = Obj[keyof Obj]
