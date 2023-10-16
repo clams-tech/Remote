@@ -22,20 +22,36 @@ export type ParsedNodeAddress = {
   port: number
 }
 
-export type EqualsFilter = { comparison: 'equals'; value: string }
-export type IncludesFilter = { comparison: 'includes'; value: string[] }
-export type GtFilter = { comparison: 'gt'; value: number }
-export type LtFilter = { comparison: 'lt'; value: number }
-export type Filter = EqualsFilter | IncludesFilter | GtFilter | LtFilter
-export type AppliedFilters = Record<string, Filter>
+type FilterBase = { key: string; label: string }
+export type ExistsFilter = FilterBase & { comparison: 'exists' }
+export type IncludesFilter = FilterBase & { comparison: 'one-of'; value: string[] }
+export type GreaterThanFilter = FilterBase & { comparison: 'gt'; value: number }
+export type LessThanFilter = FilterBase & { comparison: 'lt'; value: number }
+export type Filter = ExistsFilter | IncludesFilter | GreaterThanFilter | LessThanFilter
+
+export type OneOfFilterOption = FilterBase & {
+  type: 'one-of'
+  options: { label: string; value: string }
+}
+
+export type DateRangeFilterOption = FilterBase & { type: 'date-range' }
+export type AmountRangeFilterOption = FilterBase & { type: 'amount-range' }
+export type ExistsFilterOption = FilterBase & { type: 'exists' }
+
+export type FilterOption =
+  | OneOfFilterOption
+  | DateRangeFilterOption
+  | AmountRangeFilterOption
+  | ExistsFilterOption
+
 export type SortDirection = 'asc' | 'desc'
+export type Sorter = { label: string; key: string; direction: SortDirection }
 
 export type DBGetPaymentsOptions = {
-  offset?: number
-  limit?: number
-  sortBy?: string
-  sortDirection?: SortDirection
-  filters?: AppliedFilters
+  offset: number
+  limit: number
+  sort: Sorter
+  filters: Filter[]
 }
 
 export type ValueOf<Obj> = Obj[keyof Obj]

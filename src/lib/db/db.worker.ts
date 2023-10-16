@@ -190,49 +190,44 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'get_payments': {
-      const {
-        offset = 0,
-        limit = 50,
-        sortBy = 'timestamp',
-        sortDirection = 'desc',
-        filters
-      } = message.data
+      const { offset, limit, sort, filters } = message.data
 
-      let payments = db.payments.orderBy(sortBy)
+      let payments = db.payments.orderBy(sort.key)
 
-      if (sortDirection === 'desc') {
+      if (sort.direction === 'desc') {
         payments = payments.reverse()
       }
 
       if (filters) {
         payments = payments.filter(payment => {
-          const passes = Object.entries(filters).every(([key, filter]) => {
+          const passes = filters.every(filter => {
+            const { comparison, key } = filter
             const keys = key.split('.')
 
-            let value: ValueOf<Payment> = payment[keys[0] as keyof Payment]
+            let valueToTest: ValueOf<Payment> = payment[keys[0] as keyof Payment]
 
             if (keys.length > 1) {
-              value = keys
+              valueToTest = keys
                 .slice(1)
-                .reduce((acc, key) => acc[key as keyof ValueOf<Payment>], value as ValueOf<Payment>)
+                .reduce(
+                  (acc, key) => acc[key as keyof ValueOf<Payment>],
+                  valueToTest as ValueOf<Payment>
+                )
             }
 
-            if (typeof filter === 'string' && value !== filter) return false
-            if (Array.isArray(filter) && !filter.includes(value as string)) return false
-            if (
-              typeof filter === 'object' &&
-              'gt' in filter &&
-              filter.gt &&
-              (value as number) <= filter.gt
-            )
-              return false
-            if (
-              typeof filter === 'object' &&
-              'lt' in filter &&
-              filter.lt &&
-              (value as number) >= filter.lt
-            )
-              return false
+            if (comparison === 'exists' && !valueToTest) return false
+
+            if (comparison === 'one-of') {
+              if (!filter.value.includes(valueToTest as string)) return false
+            }
+
+            if (comparison === 'gt') {
+              if ((valueToTest as number) <= filter.value) return false
+            }
+
+            if (comparison === 'lt') {
+              if ((valueToTest as number) >= filter.value) return false
+            }
 
             return true
           })
