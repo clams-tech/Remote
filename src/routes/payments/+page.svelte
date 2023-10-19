@@ -18,14 +18,10 @@
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
-  import type { AppliedFilters, SortDirection } from '$lib/@types/common.js'
-
-  let offset = 0
-  let payments: Payment[] = []
-  let loadingPayment = false
-  let appliedFilters: AppliedFilters | undefined
-  let sortBy = 'timestamp'
-  let sortDirection: SortDirection = 'desc'
+  import type { Filter, SortDirection, Sorter } from '$lib/@types/common.js'
+  import { storage } from '$lib/services.js'
+  import { STORAGE_KEYS } from '$lib/constants.js'
+  import { PAYMENT_FILTER_OPTIONS, PAYMENT_SORTER_OPTIONS } from './constants.js'
 
   // on load get top 50 payments sorted by time stamp with no filtering
 
@@ -48,30 +44,45 @@
 
   // })
 
-  type PaymentChunks = [number, Payment[]][]
-  let dailyPaymentChunks: PaymentChunks = []
-
-  const sortDailyChunks = async () => {
-    const id = createRandomHex()
-
-    appWorker.postMessage({
-      id,
-      type: 'sort-daily-payment-chunks',
-      payments: processed,
-      direction: sorters[0].direction
-    })
-
-    dailyPaymentChunks = (await firstValueFrom(
-      appWorkerMessages$.pipe(
-        filter(message => message.data.id === id),
-        map(({ data }) => data.result)
-      )
-    )) as PaymentChunks
+  const getFilters = (): Filter[] => {
+    const filterStr = storage.get(STORAGE_KEYS.filters.payments)
+    return filterStr ? JSON.parse(filterStr) : PAYMENT_FILTER_OPTIONS
   }
 
-  $: if (processed) {
-    sortDailyChunks()
+  const getSorters = (): Sorter[] => {
+    const sorterStr = storage.get(STORAGE_KEYS.sorter.payments)
+    return sorterStr ? JSON.parse(sorterStr) : PAYMENT_SORTER_OPTIONS
   }
+
+  let payments: Payment[] | null = null
+  let filters: Filter[] = getFilters()
+  let sorters: Sorter[] = getSorters()
+
+  type timestamp = number
+  type DailyPayments = [timestamp, Payment[]][]
+  let dailyPayments: DailyPayments = []
+
+  // const sortDailyChunks = async () => {
+  //   const id = createRandomHex()
+
+  //   appWorker.postMessage({
+  //     id,
+  //     type: 'sort-daily-payment-chunks',
+  //     payments: processed,
+  //     direction: sorters[0].direction
+  //   })
+
+  //   dailyPayments = (await firstValueFrom(
+  //     appWorkerMessages$.pipe(
+  //       filter(message => message.data.id === id),
+  //       map(({ data }) => data.result)
+  //     )
+  //   )) as PaymentChunks
+  // }
+
+  // $: if (processed) {
+  //   sortDailyChunks()
+  // }
 
   let showFullReceiveButton = false
 
@@ -111,7 +122,7 @@
   }
 
   const getDaySize = (index: number) => {
-    const payments = dailyPaymentChunks[index][1]
+    const payments = dailyPayments[index][1]
     return payments.length * rowSize + 24 + 8
   }
 
@@ -119,20 +130,20 @@
 
   $: maxHeight = innerHeight - 80 - 56 - 24
 
-  $: fullHeight = dailyPaymentChunks
-    ? dailyPaymentChunks.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
+  $: fullHeight = dailyPayments
+    ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
 
   $: listHeight = Math.min(maxHeight, fullHeight)
   $: transactionsContainerScrollable = processing
     ? false
-    : dailyPaymentChunks
+    : dailyPayments
     ? fullHeight > listHeight
     : false
 
   let virtualList: VirtualList
 
-  $: if (processed && dailyPaymentChunks) {
+  $: if (dailyPayments) {
     setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
   }
 
@@ -152,27 +163,18 @@
 <Section>
   <div class="w-full flex items-center justify-between">
     <SectionHeading icon={list} />
-    {#if $payments$}
-      <div class="flex items-center gap-x-2">
-        <SyncRouteData sync={syncPayments} />
-        <FilterSort
-          items={$payments$}
-          bind:filters
-          bind:tagFilters
-          bind:sorters
-          bind:processed
-          bind:processing
-        />
-      </div>
-    {/if}
+    <div class="flex items-center gap-x-2">
+      <SyncRouteData sync={syncPayments} />
+      <FilterSort />
+    </div>
   </div>
 
   <div class="w-full overflow-hidden flex">
-    {#if !$payments$ || processing}
+    {#if !payments}
       <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />
       </div>
-    {:else if !$payments$.length}
+    {:else if !payments.length}
       <div class="mt-4 mb-2 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
       </div>
@@ -186,28 +188,28 @@
           on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
-          itemCount={dailyPaymentChunks.length}
+          itemCount={dailyPayments.length}
           itemSize={getDaySize}
-          getKey={index => dailyPaymentChunks[index][0]}
+          getKey={index => dailyPayments[index][0]}
         >
           <div slot="item" let:index let:style {style}>
             <div class="pt-1 pl-1">
               <div
                 class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
               >
-                {dailyPaymentChunks[index][0]}
+                {dailyPayments[index][0]}
               </div>
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   <VirtualList
                     width="100%"
-                    height={Math.min(dailyPaymentChunks[index][1].length * rowSize, maxHeight - 32)}
-                    itemCount={dailyPaymentChunks[index][1].length}
+                    height={Math.min(dailyPayments[index][1].length * rowSize, maxHeight - 32)}
+                    itemCount={dailyPayments[index][1].length}
                     itemSize={rowSize}
-                    getKey={innerIndex => dailyPaymentChunks[index][1][innerIndex].id}
+                    getKey={innerIndex => dailyPayments[index][1][innerIndex].id}
                   >
                     <div slot="item" let:index={innerIndex} let:style {style}>
-                      {@const payment = dailyPaymentChunks[index][1][innerIndex]}
+                      {@const payment = dailyPayments[index][1][innerIndex]}
                       <PaymentRow {payment} />
                     </div>
                   </VirtualList>

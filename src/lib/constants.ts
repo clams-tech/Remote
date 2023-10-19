@@ -125,7 +125,13 @@ export const STORAGE_KEYS = {
   settings: `clams:settings:${STORAGE_VERSION}`,
   lastReceiveWallet: `clams:last_receive_wallet:${STORAGE_VERSION}`,
   lastSendWallet: `clams:last_send_wallet:${STORAGE_VERSION}`,
-  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
+  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`,
+  filters: {
+    payments: `clams:filters:payments:${STORAGE_VERSION}`
+  },
+  sorter: {
+    payments: `clams:sorter:payments:${STORAGE_VERSION}`
+  }
 }
 
 export const TLV_RECORDS = {

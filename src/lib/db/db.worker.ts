@@ -209,7 +209,12 @@ onmessage = async (message: MessageEvent<Message>) => {
             if (type === 'exists' && !valueToTest) return false
 
             if (type === 'one-of') {
-              if (!filter.values.find(({ value }) => value === valueToTest)) return false
+              if (
+                !filter.values.every(({ value, checked }) =>
+                  checked ? value === valueToTest : true
+                )
+              )
+                return false
             }
 
             if (type === 'amount-range' || type === 'date-range') {
