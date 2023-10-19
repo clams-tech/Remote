@@ -1,5 +1,6 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
+import type { DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
 
 import {
   deriveAddressSummary,
@@ -7,13 +8,8 @@ import {
   deriveTransactionSummary,
   type PaymentSummary
 } from '$lib/summary.js'
-import type {
-  AddressPayment,
-  InvoicePayment,
-  Payment,
-  TransactionPayment
-} from '$lib/@types/payments.js'
-import type { DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
+
+import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
 
 type MessageBase = {
   id: string
@@ -142,12 +138,7 @@ onmessage = async (message: MessageEvent<Message>) => {
     }
     case 'get_lastpay_index': {
       try {
-        const [lastPaidInvoice] = await db.payments
-          .where({ walletId: message.data.walletId, direction: 'receive', type: 'invoice' })
-          .filter(payment => typeof (payment as InvoicePayment).data.payIndex !== 'undefined')
-          .reverse()
-          .sortBy('payIndex')
-
+        const lastPaidInvoice = await db.payments.orderBy('data.payIndex').reverse().first()
         self.postMessage({ id: message.data.id, result: lastPaidInvoice })
       } catch (error) {
         const { message: errMsg } = error as Error
@@ -201,7 +192,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       if (filters) {
         payments = payments.filter(payment => {
           const passes = filters.every(filter => {
-            const { comparison, key } = filter
+            const { type, key } = filter
             const keys = key.split('.')
 
             let valueToTest: ValueOf<Payment> = payment[keys[0] as keyof Payment]
@@ -215,18 +206,18 @@ onmessage = async (message: MessageEvent<Message>) => {
                 )
             }
 
-            if (comparison === 'exists' && !valueToTest) return false
+            if (type === 'exists' && !valueToTest) return false
 
-            if (comparison === 'one-of') {
-              if (!filter.value.includes(valueToTest as string)) return false
+            if (type === 'one-of') {
+              if (!filter.values.find(({ value }) => value === valueToTest)) return false
             }
 
-            if (comparison === 'gt') {
-              if ((valueToTest as number) <= filter.value) return false
-            }
-
-            if (comparison === 'lt') {
-              if ((valueToTest as number) >= filter.value) return false
+            if (type === 'amount-range' || type === 'date-range') {
+              const {
+                values: { gt, lt }
+              } = filter
+              if (gt && (valueToTest as number) <= gt) return false
+              if (lt && (valueToTest as number) >= lt) return false
             }
 
             return true

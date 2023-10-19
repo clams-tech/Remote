@@ -132,7 +132,7 @@ export const getAllTags = (): Promise<string[]> => {
 }
 
 export const getPayments = async (options: DBGetPaymentsOptions): Promise<Payment[]> => {
-  const { offset, limit, sortBy, sortDirection, filters } = options
+  const { offset, limit, sort, filters } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -148,7 +148,7 @@ export const getPayments = async (options: DBGetPaymentsOptions): Promise<Paymen
     )
   )
 
-  worker.postMessage({ id, type: 'get_payments', offset, limit, sortBy, sortDirection, filters })
+  worker.postMessage({ id, type: 'get_payments', offset, limit, sort, filters })
 
   return complete as Promise<Payment[]>
 }

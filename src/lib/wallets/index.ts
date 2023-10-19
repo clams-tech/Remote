@@ -119,21 +119,21 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   return connection
 }
 
-export const fetchInvoices = async (connection: Connection) =>
-  connection.invoices &&
-  connection.invoices
-    .get()
-    .then(invoices => {
-      bulkPut('invoices', invoices)
-    })
-    .catch(error => log.error(error.detail.message))
-
 export const fetchUtxos = async (connection: Connection) =>
   connection.utxos &&
   connection.utxos
     .get()
     .then(utxos => {
-      bulkPut('utxos', utxos)
+      return bulkPut('utxos', utxos)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchInvoices = async (connection: Connection) =>
+  connection.invoices &&
+  connection.invoices
+    .get()
+    .then(invoices => {
+      return bulkPut('payments', invoices)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -142,7 +142,7 @@ export const fetchChannels = async (connection: Connection) =>
   connection.channels
     .get()
     .then(channels => {
-      updateChannels(channels)
+      return updateChannels(channels)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -151,7 +151,7 @@ export const fetchTransactions = async (connection: Connection) =>
   connection.transactions
     .get()
     .then(transactions => {
-      updateTransactions(transactions)
+      return updateTransactions(transactions)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -160,7 +160,7 @@ export const fetchForwards = async (connection: Connection) =>
   connection.forwards
     .get()
     .then(forwards => {
-      bulkPut('forwards', forwards)
+      return bulkPut('forwards', forwards)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -169,7 +169,7 @@ export const fetchOffers = async (connection: Connection) =>
   connection.offers
     .get()
     .then(offers => {
-      bulkPut('offers', offers)
+      return bulkPut('offers', offers)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -178,7 +178,7 @@ export const fetchTrades = async (connection: Connection) =>
   connection.trades
     .get()
     .then(async trades => {
-      bulkPut('trades', trades)
+      return bulkPut('trades', trades)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -187,7 +187,7 @@ export const fetchWithdrawals = async (connection: Connection) =>
   connection.withdrawals
     .get()
     .then(async withdrawals => {
-      bulkPut('withdrawals', withdrawals)
+      return bulkPut('withdrawals', withdrawals)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -196,7 +196,7 @@ export const fetchDeposits = async (connection: Connection) =>
   connection.deposits
     .get()
     .then(async deposits => {
-      bulkPut('deposits', deposits)
+      return bulkPut('deposits', deposits)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -215,14 +215,16 @@ export const syncConnectionData = (
   // progress percent
   const progress$ = new Subject<number>()
 
-  const invoicesRequest = () => fetchInvoices(connection)
-  requestQueue.push(invoicesRequest)
-
   const utxosRequest = () => fetchUtxos(connection)
   requestQueue.push(utxosRequest)
 
   const transactionsRequest = () => fetchTransactions(connection)
   requestQueue.push(transactionsRequest)
+
+  if (!lastSync) {
+    const invoicesRequest = () => fetchInvoices(connection)
+    requestQueue.push(invoicesRequest)
+  }
 
   const channelsRequest = () => fetchChannels(connection)
   requestQueue.push(channelsRequest)
@@ -318,14 +320,17 @@ const processQueue = async (queue: Request[], progress$: Subject<number>) => {
 
         /** if rate limited, wait some time and increase next wait time */
         if (key === 'connection_rate_limited') {
+          console.log('RATE LIMITED, WAITING:', { nextWait })
           readyForNextRequest = wait(nextWait)
           nextWait = nextWait * 2
           queue.unshift(req)
         }
       } finally {
         const processed = requestsTotalLength - queue.length
+
         const progressPercent =
           processed > 0 ? Math.round((processed / requestsTotalLength) * 100) : 0
+
         progress$.next(progressPercent)
       }
     }

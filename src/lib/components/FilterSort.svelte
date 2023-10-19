@@ -2,16 +2,37 @@
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
-  import type { Filter, FilterOption, Sorter } from '$lib/@types/common.js'
+  import type { Filter, Sorter } from '$lib/@types/common.js'
   import { createEventDispatcher } from 'svelte'
+  import OneOfFilter from './OneOfFilter.svelte'
 
-  const dispatch = createEventDispatcher<{ filters: Filter[]; sort: Sorter }>()
+  const dispatch = createEventDispatcher()
 
-  export let filterOptions: FilterOption[]
-  export let sortOptions: Sorter[]
+  export let filters: Filter[]
+  export let sorter: Sorter
+  export let sorterOptions: Sorter[]
 
-  const appliedFilters: Filter[] = []
-  const appliedSorter: Sorter = sortOptions[0]
+  let editedFilters = filters
+  let editedSorter = sorter
+  let modified = false
+
+  $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
+    modified = true
+  } else {
+    modified = false
+  }
+
+  $: if (JSON.stringify(sorter) !== JSON.stringify(editedSorter)) {
+    modified = true
+  } else {
+    modified = false
+  }
+
+  const applyChanges = () => {
+    dispatch('update')
+    filters = editedFilters
+    sorter = editedSorter
+  }
 
   let showModal = false
 </script>
@@ -29,34 +50,18 @@
       <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each filters as { label, value, comparison, key }}
-          <div class="w-full">
-            <div class="font-semibold text-sm text-neutral-300 mb-2">{label}</div>
-            {#if comparison === 'includes'}
-              <div
-                class="flex items-center flex-wrap gap-x-4 gap-y-2 bg-neutral-900 px-4 py-3 border border-neutral-600 rounded w-full"
-              >
-                {#each value as val}
-                  <div class="flex items-center">
-                    <input
-                      id={value.label}
-                      type="checkbox"
-                      bind:checked={value.checked}
-                      class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
-                    />
-                    <label class="ml-1 cursor-pointer" for={value.label}>{value.label}</label>
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          </div>
+        {#each filters as filter}
+          {@const { type } = filter}
+          {#if type === 'one-of'}
+            <OneOfFilter {filter} />
+          {/if}
         {/each}
       </div>
 
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each sorters as sorter}
+        <!-- {#each sorters as sorter}
           <div class="w-full">
             <div class="flex items-center">
               <input
@@ -85,7 +90,7 @@
               {/each}
             </div>
           </div>
-        {/each}
+        {/each} -->
       </div>
     </div>
   </Modal>

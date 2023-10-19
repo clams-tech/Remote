@@ -23,29 +23,23 @@ export type ParsedNodeAddress = {
 }
 
 type FilterBase = { key: string; label: string }
-export type ExistsFilter = FilterBase & { comparison: 'exists' }
-export type IncludesFilter = FilterBase & { comparison: 'one-of'; value: string[] }
-export type GreaterThanFilter = FilterBase & { comparison: 'gt'; value: number }
-export type LessThanFilter = FilterBase & { comparison: 'lt'; value: number }
-export type Filter = ExistsFilter | IncludesFilter | GreaterThanFilter | LessThanFilter
-
-export type OneOfFilterOption = FilterBase & {
+export type ExistsFilter = FilterBase & { type: 'exists' }
+export type OneOfFilter = FilterBase & {
   type: 'one-of'
-  options: { label: string; value: string }
+  values: { label: string; value: string; checked: boolean }[]
 }
-
-export type DateRangeFilterOption = FilterBase & { type: 'date-range' }
-export type AmountRangeFilterOption = FilterBase & { type: 'amount-range' }
-export type ExistsFilterOption = FilterBase & { type: 'exists' }
-
-export type FilterOption =
-  | OneOfFilterOption
-  | DateRangeFilterOption
-  | AmountRangeFilterOption
-  | ExistsFilterOption
+export type DateRangeFilter = FilterBase & {
+  type: 'date-range'
+  values: { gt: number | null; lt: number | null }
+}
+export type AmountRangeFilter = FilterBase & {
+  type: 'amount-range'
+  values: { gt: number | null; lt: number | null }
+}
+export type Filter = ExistsFilter | OneOfFilter | DateRangeFilter | AmountRangeFilter
 
 export type SortDirection = 'asc' | 'desc'
-export type Sorter = { label: string; key: string; direction: SortDirection }
+export type Sorter = { label: string; key: string; direction: SortDirection; applied: boolean }
 
 export type DBGetPaymentsOptions = {
   offset: number

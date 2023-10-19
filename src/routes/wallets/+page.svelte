@@ -7,15 +7,13 @@
   import { connections$, onDestroy$, wallets$ } from '$lib/streams.js'
   import VirtualList from 'svelte-tiny-virtual-list'
   import WalletRow from './WalletRow.svelte'
-  import FilterSort from '$lib/components/FilterSort.svelte'
+  // import FilterSort from '$lib/components/FilterSort.svelte'
   import { fade, slide } from 'svelte/transition'
   import Msg from '$lib/components/Msg.svelte'
   import wallet from '$lib/icons/wallet.js'
-  import type { Wallet } from '$lib/@types/wallets.js'
-  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
   import { combineLatest, filter, firstValueFrom, map, takeUntil } from 'rxjs'
-  import { syncConnectionData, walletTypes } from '$lib/wallets/index.js'
-  import { firstLetterUpperCase, getWalletBalance } from '$lib/utils.js'
+  import { syncConnectionData } from '$lib/wallets/index.js'
+  import { getWalletBalance } from '$lib/utils.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
@@ -75,36 +73,36 @@
   let rowSize = 82.44
 
   $: maxHeight = innerHeight - 147 - 56 - 24 - 80
-  $: fullHeight = processed ? processed.length * rowSize : 0
+  $: fullHeight = $wallets$ ? $wallets$.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
-  $: walletsContainerScrollable = processed ? processed.length * rowSize > listHeight : false
+  $: walletsContainerScrollable = $wallets$ ? $wallets$.length * rowSize > listHeight : false
 
-  let processed: Wallet[] = []
-  let tagFilters: TagFilter[] = []
+  // let processed: Wallet[] = []
+  // let tagFilters: TagFilter[] = []
 
-  let filters: Filter[] = [
-    {
-      label: $translate('app.labels.type'),
-      values: walletTypes.map(type => ({
-        label: firstLetterUpperCase(type),
-        checked: false,
-        predicate: {
-          key: 'type',
-          values: [type]
-        }
-      }))
-    }
-  ]
+  // let filters: Filter[] = [
+  //   {
+  //     label: $translate('app.labels.type'),
+  //     values: walletTypes.map(type => ({
+  //       label: firstLetterUpperCase(type),
+  //       checked: false,
+  //       predicate: {
+  //         key: 'type',
+  //         values: [type]
+  //       }
+  //     }))
+  //   }
+  // ]
 
-  let sorters: Sorter[] = [
-    { label: $translate('app.labels.created'), key: 'createdAt', direction: 'desc' },
-    { label: $translate('app.labels.modified'), key: 'modifiedAt', direction: 'desc' },
-    { label: $translate('app.labels.last_sync'), key: 'lastSync', direction: 'desc' }
-  ]
+  // let sorters: Sorter[] = [
+  //   { label: $translate('app.labels.created'), key: 'createdAt', direction: 'desc' },
+  //   { label: $translate('app.labels.modified'), key: 'modifiedAt', direction: 'desc' },
+  //   { label: $translate('app.labels.last_sync'), key: 'lastSync', direction: 'desc' }
+  // ]
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed.length) {
+  $: if (virtualList && $wallets$.length) {
     setTimeout(() => virtualList.recomputeSizes(0), 25)
   }
 
@@ -131,7 +129,7 @@
     {#if $wallets$}
       <div class="flex items-center gap-x-2">
         <SyncRouteData sync={syncWallets} />
-        <FilterSort items={$wallets$} bind:filters bind:tagFilters bind:sorters bind:processed />
+        <!-- <FilterSort items={$wallets$} bind:filters bind:tagFilters bind:sorters bind:processed /> -->
       </div>
     {/if}
   </div>
@@ -145,7 +143,7 @@
       <div class="mt-4 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_wallets')} />
       </div>
-    {:else if processed.length}
+    {:else if $wallets$.length}
       <div class="w-full flex flex-col h-full overflow-hidden">
         <div class="w-full mb-2">
           <SummaryRow>
@@ -167,12 +165,12 @@
             on:afterScroll={e => handleWalletsScroll(e.detail.offset)}
             width="100%"
             height={listHeight}
-            itemCount={processed.length}
+            itemCount={$wallets$.length}
             itemSize={rowSize}
-            getKey={index => processed[index].id}
+            getKey={index => $wallets$[index].id}
           >
             <div slot="item" let:index let:style {style}>
-              {@const wallet = processed[index]}
+              {@const wallet = $wallets$[index]}
               <WalletRow {wallet} />
             </div>
           </VirtualList>
