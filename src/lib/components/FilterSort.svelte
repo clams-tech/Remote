@@ -2,18 +2,18 @@
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
-  import type { Filter, Sorter } from '$lib/@types/common.js'
+  import type { Filter, Sorters } from '$lib/@types/common.js'
   import { createEventDispatcher } from 'svelte'
   import OneOfFilter from './OneOfFilter.svelte'
+  import Button from './Button.svelte'
 
   const dispatch = createEventDispatcher()
 
   export let filters: Filter[]
-  export let sorter: Sorter
-  export let sorterOptions: Sorter[]
+  export let sorters: Sorters
 
   let editedFilters = filters
-  let editedSorter = sorter
+  let editedSorter = sorters.applied
   let modified = false
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
@@ -22,16 +22,16 @@
     modified = false
   }
 
-  $: if (JSON.stringify(sorter) !== JSON.stringify(editedSorter)) {
+  $: if (JSON.stringify(sorters.applied) !== JSON.stringify(editedSorter)) {
     modified = true
   } else {
     modified = false
   }
 
   const applyChanges = () => {
-    dispatch('update')
     filters = editedFilters
-    sorter = editedSorter
+    sorters.applied = editedSorter
+    dispatch('update')
   }
 
   let showModal = false
@@ -53,7 +53,7 @@
         {#each filters as filter}
           {@const { type } = filter}
           {#if type === 'one-of'}
-            <OneOfFilter {filter} />
+            <OneOfFilter bind:filter />
           {/if}
         {/each}
       </div>
@@ -92,6 +92,8 @@
           </div>
         {/each} -->
       </div>
+
+      <Button text={$translate('app.labels.apply')} disabled={!modified} on:click={applyChanges} />
     </div>
   </Modal>
 {/if}

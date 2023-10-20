@@ -23,10 +23,10 @@ export type ParsedNodeAddress = {
 }
 
 type FilterBase = { key: string; label: string }
-export type ExistsFilter = FilterBase & { type: 'exists' }
+export type ExistsFilter = FilterBase & { type: 'exists'; applied: boolean }
 export type OneOfFilter = FilterBase & {
   type: 'one-of'
-  values: { label: string; value: string; checked: boolean }[]
+  values: { label: string; value: string; applied: boolean }[]
 }
 export type DateRangeFilter = FilterBase & {
   type: 'date-range'
@@ -39,7 +39,12 @@ export type AmountRangeFilter = FilterBase & {
 export type Filter = ExistsFilter | OneOfFilter | DateRangeFilter | AmountRangeFilter
 
 export type SortDirection = 'asc' | 'desc'
-export type Sorter = { label: string; key: string; direction: SortDirection; applied: boolean }
+export type Sorter = { label: string; key: string; direction: SortDirection }
+
+export type Sorters = {
+  applied: { key: Sorter['key']; direction: SortDirection }
+  options: Sorter[]
+}
 
 export type DBGetPaymentsOptions = {
   offset: number

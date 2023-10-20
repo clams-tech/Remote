@@ -9,19 +9,13 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { filter, firstValueFrom, map } from 'rxjs'
-  import { connections$, wallets$ } from '$lib/streams.js'
+  import { connections$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import { getAllTags } from '$lib/db/helpers.js'
-  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
-  import { createRandomHex } from '$lib/crypto.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
-  import type { Filter, SortDirection, Sorter } from '$lib/@types/common.js'
-  import { storage } from '$lib/services.js'
-  import { STORAGE_KEYS } from '$lib/constants.js'
-  import { PAYMENT_FILTER_OPTIONS, PAYMENT_SORTER_OPTIONS } from './constants.js'
+  import type { Filter, Sorter, Sorters } from '$lib/@types/common.js'
+  import { getFilters, getSorters } from './filters.js'
 
   // on load get top 50 payments sorted by time stamp with no filtering
 
@@ -44,19 +38,9 @@
 
   // })
 
-  const getFilters = (): Filter[] => {
-    const filterStr = storage.get(STORAGE_KEYS.filters.payments)
-    return filterStr ? JSON.parse(filterStr) : PAYMENT_FILTER_OPTIONS
-  }
-
-  const getSorters = (): Sorter[] => {
-    const sorterStr = storage.get(STORAGE_KEYS.sorter.payments)
-    return sorterStr ? JSON.parse(sorterStr) : PAYMENT_SORTER_OPTIONS
-  }
-
   let payments: Payment[] | null = null
   let filters: Filter[] = getFilters()
-  let sorters: Sorter[] = getSorters()
+  let sorters: Sorters = getSorters()
 
   type timestamp = number
   type DailyPayments = [timestamp, Payment[]][]
@@ -165,7 +149,7 @@
     <SectionHeading icon={list} />
     <div class="flex items-center gap-x-2">
       <SyncRouteData sync={syncPayments} />
-      <FilterSort />
+      <FilterSort {filters} {sorters} />
     </div>
   </div>
 
