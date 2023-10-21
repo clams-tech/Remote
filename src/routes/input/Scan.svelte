@@ -10,7 +10,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
-  import { filter, map, takeUntil } from 'rxjs'
+  import { filter, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
 
   const dispatch = createEventDispatcher()
@@ -90,9 +90,7 @@
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 99999 },
-            height: { ideal: 99999 }
+            facingMode: { ideal: 'environment' }
           },
           audio: false
         })
@@ -198,7 +196,7 @@
 
 <div class="relative items-center flex-col flex justify-center w-full min-h-[304px]">
   <div class="flex items-center justify-center w-full h-full">
-    <div class="transition-all overflow-hidden w-full h-full">
+    <div class="transition-all overflow-hidden w-full h-full flex items-center justify-center">
       <!-- svelte-ignore a11y-media-has-caption -->
       <video bind:this={video} class:-scale-x-100={desktopDevice} />
     </div>
@@ -225,7 +223,7 @@
   </div>
 
   {#if err}
-    <div transition:slide={{ axis: 'y' }} class="absolute bottom-2">
+    <div transition:slide={{ axis: 'y' }} class="absolute p-2 bottom-0">
       <ErrorDetail error={err} />
     </div>
   {/if}
