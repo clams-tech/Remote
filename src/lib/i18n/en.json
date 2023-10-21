@@ -456,7 +456,8 @@
     "modified": "Modified",
     "last_sync": "Last sync",
     "filter": "Filter",
-    "total_balance": "Total balance"
+    "total_balance": "Total balance",
+    "apply": "Apply"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

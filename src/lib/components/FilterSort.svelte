@@ -6,15 +6,16 @@
   import { createEventDispatcher } from 'svelte'
   import OneOfFilter from './OneOfFilter.svelte'
   import Button from './Button.svelte'
+  import { simpleDeepClone } from '$lib/utils.js'
 
   const dispatch = createEventDispatcher()
 
   export let filters: Filter[]
   export let sorters: Sorters
 
-  let editedFilters = filters
-  let selectedSorterKey = sorters.applied.key
-  let selectedSorterDirection = sorters.applied.direction
+  let editedFilters = simpleDeepClone(filters)
+  let selectedSorterKey = simpleDeepClone(sorters.applied.key)
+  let selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
   let modified = false
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
@@ -33,9 +34,14 @@
   }
 
   const applyChanges = () => {
-    filters = editedFilters
-    sorters.applied = { key: selectedSorterKey, direction: selectedSorterDirection }
-    dispatch('update')
+    filters = simpleDeepClone(editedFilters)
+
+    sorters.applied = simpleDeepClone({
+      key: selectedSorterKey,
+      direction: selectedSorterDirection
+    })
+
+    dispatch('updated')
   }
 
   let showModal = false
@@ -56,7 +62,7 @@
       <div class="w-full flex flex-col gap-y-4">
         {#each editedFilters as filter}
           {@const { type } = filter}
-          {#if type === 'one-of'}
+          {#if type === 'one-of' && filter.values.length}
             <OneOfFilter bind:filter />
           {/if}
         {/each}
@@ -97,7 +103,15 @@
         {/each}
       </div>
 
-      <Button text={$translate('app.labels.apply')} disabled={!modified} on:click={applyChanges} />
+      <div class="w-full flex justify-end mt-2">
+        <div class="w-min">
+          <Button
+            text={$translate('app.labels.apply')}
+            disabled={!modified}
+            on:click={applyChanges}
+          />
+        </div>
+      </div>
     </div>
   </Modal>
 {/if}

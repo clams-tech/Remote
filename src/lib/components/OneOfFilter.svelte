@@ -14,7 +14,7 @@
         <input
           id={value.label}
           type="checkbox"
-          bind:checked={value.checked}
+          bind:checked={value.applied}
           class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
         />
         <label class="ml-1 cursor-pointer" for={value.label}>{value.label}</label>

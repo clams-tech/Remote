@@ -9,13 +9,15 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { connections$ } from '$lib/streams.js'
+  import { connections$, wallets$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
   import type { Filter, Sorter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters } from './filters.js'
+  import { storage } from '$lib/services.js'
+  import { STORAGE_KEYS } from '$lib/constants.js'
 
   // on load get top 50 payments sorted by time stamp with no filtering
 
@@ -45,6 +47,21 @@
   type timestamp = number
   type DailyPayments = [timestamp, Payment[]][]
   let dailyPayments: DailyPayments = []
+
+  const handleFilterSortUpdate = () => {
+    // filter and sort payments
+
+    updateStoredFiltersAndSorter()
+  }
+
+  const updateStoredFiltersAndSorter = () => {
+    try {
+      storage.write(STORAGE_KEYS.filters.payments, JSON.stringify(filters))
+      storage.write(STORAGE_KEYS.sorter.payments, JSON.stringify(sorters))
+    } catch (error) {
+      // can't write to storage
+    }
+  }
 
   // const sortDailyChunks = async () => {
   //   const id = createRandomHex()
@@ -194,7 +211,7 @@
                   >
                     <div slot="item" let:index={innerIndex} let:style {style}>
                       {@const payment = dailyPayments[index][1][innerIndex]}
-                      <PaymentRow {payment} />
+                      <!-- <PaymentRow {payment} /> -->
                     </div>
                   </VirtualList>
                 </div>
