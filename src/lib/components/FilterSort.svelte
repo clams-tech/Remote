@@ -13,7 +13,8 @@
   export let sorters: Sorters
 
   let editedFilters = filters
-  let editedSorter = sorters.applied
+  let selectedSorterKey = sorters.applied.key
+  let selectedSorterDirection = sorters.applied.direction
   let modified = false
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
@@ -22,7 +23,10 @@
     modified = false
   }
 
-  $: if (JSON.stringify(sorters.applied) !== JSON.stringify(editedSorter)) {
+  $: if (
+    JSON.stringify(sorters.applied) !==
+    JSON.stringify({ key: selectedSorterKey, direction: selectedSorterDirection })
+  ) {
     modified = true
   } else {
     modified = false
@@ -30,7 +34,7 @@
 
   const applyChanges = () => {
     filters = editedFilters
-    sorters.applied = editedSorter
+    sorters.applied = { key: selectedSorterKey, direction: selectedSorterDirection }
     dispatch('update')
   }
 
@@ -50,7 +54,7 @@
       <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each filters as filter}
+        {#each editedFilters as filter}
           {@const { type } = filter}
           {#if type === 'one-of'}
             <OneOfFilter bind:filter />
@@ -61,7 +65,7 @@
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        <!-- {#each sorters as sorter}
+        {#each sorters.options as sorter}
           <div class="w-full">
             <div class="flex items-center">
               <input
@@ -74,23 +78,23 @@
             </div>
 
             <div class="flex items-center gap-x-2 text-sm ml-4">
-              {#each ['desc', 'asc'] as d}
+              {#each ['desc', 'asc'] as direction}
                 <div class="flex items-center">
                   <input
                     type="radio"
                     class="w-3 h-3"
-                    bind:group={selectedSorter.direction}
-                    value={d}
-                    id={`${d}:${sorter.label}`}
+                    bind:group={selectedSorterDirection}
+                    value={direction}
+                    id={`${direction}:${sorter.label}`}
                   />
-                  <label class="ml-1" for={`${d}:${sorter.label}`}
-                    >{$translate(`app.labels.${d}`)}</label
+                  <label class="ml-1" for={`${direction}:${sorter.label}`}
+                    >{$translate(`app.labels.${direction}`)}</label
                   >
                 </div>
               {/each}
             </div>
           </div>
-        {/each} -->
+        {/each}
       </div>
 
       <Button text={$translate('app.labels.apply')} disabled={!modified} on:click={applyChanges} />
