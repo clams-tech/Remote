@@ -36,6 +36,9 @@ module.exports = {
       },
       screens: {
         xs: '420px'
+      },
+      height: {
+        screen: ['100vh', '100dvh']
       }
     }
   },

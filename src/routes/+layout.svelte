@@ -151,7 +151,7 @@
   >
 </svelte:head>
 
-<main class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-50 overflow-hidden">
+<main class="flex flex-col w-screen h-screen text-neutral-50">
   {#if $settings$.lavaLamp}
     <div transition:fade class="-z-10 overflow-hidden">
       <Lava />
