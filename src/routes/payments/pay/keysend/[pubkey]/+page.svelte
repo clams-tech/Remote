@@ -25,6 +25,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { getNodeInfo } from '../../../utils.js'
   import Spinner from '$lib/components/Spinner.svelte'
+  import ShowMoar from '$lib/components/ShowMoar.svelte'
 
   export let data: PageData
 
@@ -117,21 +118,12 @@
       </div>
     </SummaryRow>
 
-    <div class="mt-6 flex flex-col gap-y-6">
+    <div class="mt-6 flex flex-col gap-y-4">
       {#if $availableWallets$}
         <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
       {:else}
         <Msg message={$translate('app.labels.wallet_keysend_unavailable')} type="info" />
       {/if}
-
-      <TextInput
-        label={$translate('app.labels.message')}
-        name="message"
-        bind:value={message}
-        type="textarea"
-        rows={3}
-        hint={$translate('app.labels.optional')}
-      />
 
       <TextInput
         label={$translate('app.labels.amount')}
@@ -140,6 +132,21 @@
         type="number"
         sats={amountSats || 0}
       />
+
+      <div class="w-full text-sm">
+        <ShowMoar label={$translate('app.labels.more_options')}>
+          <div class="w-full flex flex-col gap-y-4">
+            <TextInput
+              label={$translate('app.labels.message')}
+              name="message"
+              bind:value={message}
+              type="textarea"
+              rows={3}
+              hint={$translate('app.labels.optional')}
+            />
+          </div>
+        </ShowMoar>
+      </div>
     </div>
 
     <div class="w-full flex items-center justify-between mt-6">

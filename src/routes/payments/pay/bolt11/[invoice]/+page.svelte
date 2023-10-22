@@ -143,7 +143,7 @@
         </div>
       </SummaryRow>
 
-      <div class="mt-6 flex flex-col gap-y-6">
+      <div class="mt-6 flex flex-col gap-y-4">
         {#if $availableWallets$}
           <WalletSelector
             autoSelectLast="sent"

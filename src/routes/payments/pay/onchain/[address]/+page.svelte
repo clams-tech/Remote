@@ -128,7 +128,7 @@
       </SummaryRow>
     {/if}
 
-    <div class="mt-6 flex flex-col gap-y-6">
+    <div class="mt-6 flex flex-col gap-y-4">
       {#if $availableWallets$}
         <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
       {:else}
