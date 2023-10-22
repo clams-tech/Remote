@@ -10,6 +10,7 @@ import {
 } from '$lib/summary.js'
 
 import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
+import type { Collection } from 'dexie'
 
 type MessageBase = {
   id: string
@@ -170,69 +171,86 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'get_all_tags': {
-      const metadataWithTags = await db.metadata.filter(({ tags }) => !!tags.length).toArray()
-      const allTags = metadataWithTags.reduce((acc, { tags }) => {
-        acc.concat(tags)
-        return acc
-      }, [] as string[])
-
-      self.postMessage({ id: message.data.id, result: allTags })
+      const tags = await db.tags.toArray()
+      self.postMessage({ id: message.data.id, result: tags })
 
       return
     }
     case 'get_payments': {
-      const { offset, limit, sort, filters } = message.data
+      const { offset, limit, sort, filters, tags, lastPayment } = message.data
 
-      let payments = db.payments.orderBy(sort.key)
-
-      if (sort.direction === 'desc') {
-        payments = payments.reverse()
+      // A helper function we will use below.
+      // It will prevent the same results to be returned again for next page.
+      const fastForward = (
+        lastRow: Payment,
+        idProp: keyof Payment,
+        otherCriterion: (payment: Payment) => boolean
+      ) => {
+        let fastForwardComplete = false
+        return (item: Payment) => {
+          if (fastForwardComplete) return otherCriterion(item)
+          if (item[idProp] === lastRow[idProp]) {
+            fastForwardComplete = true
+          }
+          return false
+        }
       }
 
-      if (filters) {
-        payments = payments.filter(payment => {
-          const passes = filters.every(filter => {
-            const { type, key } = filter
-            const keys = key.split('.')
+      const filter = (payment: Payment) => {
+        if (tags.length) {
+          if (!payment.metadata || !payment.metadata.tags.length) return false
+          const validTag = payment.metadata.tags.some(tag => tags.includes(tag))
+          if (!validTag) return false
+        }
 
-            let valueToTest: ValueOf<Payment> = payment[keys[0] as keyof Payment]
+        return filters.every(filter => {
+          const { type, key } = filter
+          const keys = key.split('.')
 
-            if (keys.length > 1) {
-              valueToTest = keys
-                .slice(1)
-                .reduce(
-                  (acc, key) => acc[key as keyof ValueOf<Payment>],
-                  valueToTest as ValueOf<Payment>
-                )
-            }
+          let valueToTest: ValueOf<Payment> = payment[keys[0] as keyof Payment]
 
-            if (type === 'exists' && !valueToTest) return false
+          if (keys.length > 1) {
+            valueToTest = keys.slice(1).reduce((acc, key) => {
+              const res = acc ? acc[key as keyof ValueOf<Payment>] : acc
+              return res
+            }, valueToTest as ValueOf<Payment>)
+          }
 
-            if (type === 'one-of') {
-              if (
-                !filter.values.every(({ value, checked }) =>
-                  checked ? value === valueToTest : true
-                )
-              )
-                return false
-            }
+          if (type === 'exists' && !valueToTest) return false
 
-            if (type === 'amount-range' || type === 'date-range') {
-              const {
-                values: { gt, lt }
-              } = filter
-              if (gt && (valueToTest as number) <= gt) return false
-              if (lt && (valueToTest as number) >= lt) return false
-            }
+          if (type === 'one-of') {
+            if (
+              !filter.values.every(({ value, applied }) => (applied ? value === valueToTest : true))
+            )
+              return false
+          }
 
-            return true
-          })
+          if (type === 'amount-range' || type === 'date-range') {
+            const {
+              values: { gt, lt }
+            } = filter
+            if (gt && (valueToTest as number) <= gt) return false
+            if (lt && (valueToTest as number) >= lt) return false
+          }
 
-          return passes
+          return true
         })
       }
 
-      return payments.distinct().offset(offset).limit(limit)
+      let collection: Collection
+
+      if (offset > 0 && lastPayment) {
+        collection = db.payments
+          .where(sort.key)
+          .aboveOrEqual(lastPayment[sort.key as keyof Payment])
+          .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+      } else {
+        collection = db.payments.orderBy(sort.key).filter(filter)
+      }
+
+      const result = collection.distinct().offset(offset).limit(limit)
+
+      self.postMessage({ id: message.data.id, result })
     }
   }
 }

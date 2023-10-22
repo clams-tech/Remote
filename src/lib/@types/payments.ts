@@ -1,4 +1,5 @@
 import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
+import type { Metadata } from './metadata.js'
 
 export type PaymentBase = {
   /** payment hash, txid or address */
@@ -8,6 +9,7 @@ export type PaymentBase = {
   timestamp: number
   direction: PaymentDirection
   network: Network
+  metadata?: Metadata
 }
 
 export type TransactionPayment = PaymentBase & {

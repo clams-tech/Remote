@@ -1,22 +1,13 @@
-export type Metadata = {
-  // refers to the id of the item the metadata is attached to
+import type { Contact } from './contacts.js'
+
+export type Tag = {
   id: string
-  // the type of item this metadata is attached to
-  type:
-    | 'invoice'
-    | 'transaction'
-    | 'channel'
-    | 'address'
-    | 'forward'
-    | 'utxo'
-    | 'offer'
-    | 'nodeId'
-    | 'deposit'
-    | 'withdrawal'
-    | 'forward'
-    | 'trade'
-  tags: string[]
+  label: string
+  description?: string
+}
+
+export type Metadata = {
+  tags: Tag['id'][]
+  contact?: Contact['id']
   note?: string
-  /** id of contact associated with this data */
-  contact?: string
 }

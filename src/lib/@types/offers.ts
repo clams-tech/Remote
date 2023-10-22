@@ -1,3 +1,4 @@
+import type { Metadata } from './metadata.js'
 import type { BitcoinDenomination, FiatDenomination } from './settings.js'
 
 export type Offer = {
@@ -15,6 +16,7 @@ export type Offer = {
   expiry?: number
   issuer?: string
   quantityMax?: number
+  metadata?: Metadata
 }
 
 export type CreatePayOfferOptions = {

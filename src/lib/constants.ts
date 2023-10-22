@@ -125,12 +125,19 @@ export const STORAGE_KEYS = {
   settings: `clams:settings:${STORAGE_VERSION}`,
   lastReceiveWallet: `clams:last_receive_wallet:${STORAGE_VERSION}`,
   lastSendWallet: `clams:last_send_wallet:${STORAGE_VERSION}`,
+  // whether has dismissed the get started hint
   getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`,
+  // saved filters
   filters: {
     payments: `clams:filters:payments:${STORAGE_VERSION}`
   },
+  // saved sorter
   sorter: {
     payments: `clams:sorter:payments:${STORAGE_VERSION}`
+  },
+  // saved tag filters
+  tags: {
+    payments: `clams:tags:payments:${STORAGE_VERSION}`
   }
 }
 

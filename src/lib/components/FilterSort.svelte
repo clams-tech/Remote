@@ -2,21 +2,37 @@
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
-  import type { Filter, Sorters } from '$lib/@types/common.js'
+  import type { Filter, SortDirection, Sorters } from '$lib/@types/common.js'
   import { createEventDispatcher } from 'svelte'
   import OneOfFilter from './OneOfFilter.svelte'
   import Button from './Button.svelte'
   import { simpleDeepClone } from '$lib/utils.js'
+  import { getAllTags } from '$lib/db/helpers.js'
+  import TagFilters from './TagFilters.svelte'
+  import { slide } from 'svelte/transition'
 
   const dispatch = createEventDispatcher()
 
   export let filters: Filter[]
   export let sorters: Sorters
+  export let tags: string[]
 
-  let editedFilters = simpleDeepClone(filters)
-  let selectedSorterKey = simpleDeepClone(sorters.applied.key)
-  let selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+  let editedFilters: Filter[] = []
+  let selectedSorterKey: string = ''
+  let selectedSorterDirection: SortDirection = 'desc'
+  let editedTags: string[] = []
+  let tagFiltersOptions: string[] = []
   let modified = false
+
+  // get all tags and set them as options
+  getAllTags().then(allTags => {
+    if (allTags.length) {
+      tagFiltersOptions = allTags
+    }
+
+    // remove tags that no longer exist
+    tags = tags.filter(tag => allTags.includes(tag))
+  })
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
     modified = true
@@ -28,6 +44,12 @@
     JSON.stringify(sorters.applied) !==
     JSON.stringify({ key: selectedSorterKey, direction: selectedSorterDirection })
   ) {
+    modified = true
+  } else {
+    modified = false
+  }
+
+  $: if (JSON.stringify(tags) !== JSON.stringify(editedTags)) {
     modified = true
   } else {
     modified = false
@@ -45,6 +67,14 @@
   }
 
   let showModal = false
+
+  // reset edited filters and sorter when modal is closed
+  $: if ((showModal = false)) {
+    editedFilters = simpleDeepClone(filters)
+    selectedSorterKey = simpleDeepClone(sorters.applied.key)
+    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+    editedTags = simpleDeepClone(tags)
+  }
 </script>
 
 <button on:click={() => (showModal = true)} class="flex flex-col items-center justify-center">
@@ -67,6 +97,12 @@
           {/if}
         {/each}
       </div>
+
+      {#if tagFiltersOptions.length}
+        <div class="w-full" in:slide={{ axis: 'y' }}>
+          <TagFilters options={tagFiltersOptions} bind:tags={editedTags} />
+        </div>
+      {/if}
 
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 

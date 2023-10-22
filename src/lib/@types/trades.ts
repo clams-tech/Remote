@@ -1,3 +1,4 @@
+import type { Metadata } from './metadata.js'
 import type { FiatDenomination } from './settings.js'
 
 export type Trade = {
@@ -18,4 +19,5 @@ export type Trade = {
   side: 'buy' | 'sell'
   tradeId?: string
   orderId?: string
+  metadata?: Metadata
 }

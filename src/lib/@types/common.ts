@@ -1,3 +1,5 @@
+import type { Payment } from './payments.js'
+
 export type ParsedInput = {
   type:
     | 'onchain'
@@ -51,6 +53,9 @@ export type DBGetPaymentsOptions = {
   limit: number
   sort: Sorter
   filters: Filter[]
+  tags: string[]
+  /** this is used for efficient paging and is required if using offset > 0 */
+  lastPayment?: Payment
 }
 
 export type ValueOf<Obj> = Obj[keyof Obj]

@@ -222,3 +222,17 @@ export const getSorters = (): Sorters => {
     options: defaultSorters.options
   }
 }
+
+export const getTags = (): string[] => {
+  let tagStr: string | null = null
+
+  try {
+    tagStr = storage.get(STORAGE_KEYS.tags.payments)
+  } catch (error) {
+    // no access to local storage
+  }
+
+  const savedTagFilters: string[] | null = tagStr && JSON.parse(tagStr)
+
+  return savedTagFilters || []
+}

@@ -15,7 +15,7 @@
   import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
   import type { Filter, Sorter, Sorters } from '$lib/@types/common.js'
-  import { getFilters, getSorters } from './filters.js'
+  import { getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
 
@@ -41,16 +41,25 @@
   // })
 
   let payments: Payment[] | null = null
+  let processing = false
   let filters: Filter[] = getFilters()
   let sorters: Sorters = getSorters()
+  let tags: string[] = getTags()
 
   type timestamp = number
   type DailyPayments = [timestamp, Payment[]][]
   let dailyPayments: DailyPayments = []
 
-  const handleFilterSortUpdate = () => {
-    // filter and sort payments
+  const getPayments = async () => {
+    processing = true
 
+    //
+
+    processing = false
+  }
+
+  const handleFilterSortUpdate = () => {
+    getPayments()
     updateStoredFiltersAndSorter()
   }
 
@@ -154,9 +163,9 @@
         Promise.all([fetchInvoices(connection), fetchTransactions(connection)])
       )
     )
-  }
 
-  let processing: boolean
+    getPayments()
+  }
 </script>
 
 <svelte:window bind:innerHeight />
@@ -166,7 +175,7 @@
     <SectionHeading icon={list} />
     <div class="flex items-center gap-x-2">
       <SyncRouteData sync={syncPayments} />
-      <FilterSort {filters} {sorters} />
+      <FilterSort {filters} {sorters} {tags} on:updated={handleFilterSortUpdate} />
     </div>
   </div>
 

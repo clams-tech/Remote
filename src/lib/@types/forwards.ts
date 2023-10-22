@@ -1,3 +1,5 @@
+import type { Metadata } from './metadata.js'
+
 export type Forward = {
   /** hash of the whole forward */
   id: string
@@ -22,4 +24,5 @@ export type Forward = {
   /** unix timestamp seconds complete */
   completedAt?: number
   walletId: string
+  metadata?: Metadata
 }
