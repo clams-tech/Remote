@@ -62,7 +62,10 @@
           notificationsError = $translate('app.errors.permissions_notifications')
           return
         }
-      } catch (error) {}
+      } catch (error) {
+        notificationsError = $translate('app.errors.permissions_notifications')
+        return
+      }
     }
 
     toggle('notifications')
