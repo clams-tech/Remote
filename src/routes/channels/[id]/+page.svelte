@@ -64,7 +64,7 @@
     )
   )
 
-  $: if ($channel$) {
+  $: if ($channel$ && !loaded) {
     loadData()
   }
 
