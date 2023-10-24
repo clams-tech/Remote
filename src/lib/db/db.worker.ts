@@ -127,12 +127,7 @@ onmessage = async (message: MessageEvent<Message>) => {
     }
     case 'get_lastpay_index': {
       try {
-        const [lastPaidInvoice] = await db.invoices
-          .where({ walletId: message.data.walletId, direction: 'receive' })
-          .filter(({ payIndex }) => typeof payIndex !== 'undefined')
-          .reverse()
-          .sortBy('payIndex')
-
+        const lastPaidInvoice = await db.invoices.orderBy('payIndex').reverse().first()
         self.postMessage({ id: message.data.id, result: lastPaidInvoice })
       } catch (error) {
         const { message: errMsg } = error as Error
