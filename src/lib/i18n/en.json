@@ -495,7 +495,7 @@
     "nfc_read": "Could not read NFC.",
     "camera": "Camera Error",
     "camera_browser_support": "Connection to your device's camera is not supported on this browser.",
-    "camera_permissions": "Permission to connect to your camera was rejected, adjust your browser preferences and try again.",
+    "camera_permissions": "Permission to connect to your camera was rejected, if you meant to approve access to the camera, simply refresh the page and try again.",
     "node_connect": "Connection error",
     "bolt11_decode": "Could not decode BOLT11 invoice.",
     "invalid_qr": "Unrecognized QR encoding",
