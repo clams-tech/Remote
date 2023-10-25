@@ -33,7 +33,7 @@
   let paying = false
   let payingError: AppError | null = null
 
-  let amountSats = 0
+  let amountSats: number
   let message = ''
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
@@ -159,7 +159,7 @@
         <Button
           on:click={pay}
           requesting={paying}
-          disabled={amountSats === 0 || !selectedWalletId}
+          disabled={!amountSats || !selectedWalletId}
           primary
           text={$translate('app.labels.pay')}
         >

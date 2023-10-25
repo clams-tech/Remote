@@ -50,7 +50,11 @@
     decodeError = $translate('app.errors.bolt11_decode')
   }
 
-  let amountSats = !decoded.amount ? 0 : decoded.amount
+  let amountSats: number
+
+  if (decoded.amount) {
+    amountSats = decoded.amount
+  }
 
   const pay = async () => {
     paying = true
@@ -175,7 +179,7 @@
           <Button
             on:click={pay}
             requesting={paying}
-            disabled={amountSats === 0 || !selectedWalletId}
+            disabled={!amountSats || !selectedWalletId}
             primary
             text={$translate('app.labels.pay')}
           >

@@ -27,7 +27,7 @@
   import Spinner from '$lib/components/Spinner.svelte'
 
   let selectedWalletId: Wallet['id']
-  let amount = 0
+  let amount: number
   let expiry = DAY_IN_SECS
   let description = ''
   let creatingPayment = false
@@ -72,6 +72,10 @@
 
     const id = createRandomHex()
 
+    if (typeof amount !== 'number') {
+      amount = 0
+    }
+
     try {
       if (createInvoice && connection.invoices?.create) {
         const invoice = await connection.invoices.create({
@@ -101,8 +105,11 @@
     } catch (error) {
       createPaymentError = error as AppError
     } finally {
-      await goto(`/payments/${id}`)
       creatingPayment = false
+    }
+
+    if (!createPaymentError) {
+      await goto(`/payments/${id}`)
     }
   }
 

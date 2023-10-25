@@ -3,9 +3,10 @@ import { nowSeconds } from '$lib/utils.js'
 import { formatInvoice, formatMsatString } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
-import { filter, firstValueFrom, from, map, merge, take, takeUntil } from 'rxjs'
+import { filter, firstValueFrom, map, take, takeUntil } from 'rxjs'
 import { isBolt12Invoice } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
+import { formatPayments } from './worker.js'
 
 import type {
   CreateInvoiceOptions,
@@ -22,20 +23,17 @@ import type {
   ListinvoicesResponse,
   ListpaysResponse,
   PayResponse,
-  WaitAnyInvoiceResponse,
+  RawInvoice,
   WaitInvoiceResponse
 } from './types.js'
-import { formatPayments } from './worker.js'
 
 class Invoices implements InvoicesInterface {
   connection: CorelnConnectionInterface
   destroyed: boolean
-  listeningPayIndex: number | null
 
   constructor(connection: CorelnConnectionInterface) {
     this.connection = connection
     this.destroyed = false
-    this.listeningPayIndex = null
 
     this.connection.destroy$.pipe(take(1)).subscribe(() => {
       this.destroyed = true
@@ -83,7 +81,7 @@ class Invoices implements InvoicesInterface {
 
       const payment: Invoice = {
         id,
-        status: 'pending',
+        status: 'waiting',
         direction: 'receive',
         amount,
         fee: undefined,
@@ -240,52 +238,30 @@ class Invoices implements InvoicesInterface {
     onPayment: (invoice: Invoice) => Promise<void>,
     payIndex?: Invoice['payIndex']
   ): Promise<void> {
-    try {
-      this.listeningPayIndex = payIndex || null
+    const disconnectProm = firstValueFrom(
+      this.connection.connectionStatus$.pipe(
+        filter(status => status === 'disconnected'),
+        map(() => null)
+      )
+    )
 
-      const request$ = from(
+    let invoice: Invoice | null = null
+
+    // make a listen request for this pay index
+    try {
+      console.log(`Listening for invoice updates after pay index: ${payIndex}`)
+
+      const rawInvoice = await Promise.race([
         this.connection.rpc({
           method: 'waitanyinvoice',
           params: { lastpay_index: payIndex }
-        })
-      )
+        }),
+        disconnectProm
+      ])
 
-      const disconnect$ = this.connection.connectionStatus$.pipe(
-        filter(status => status === 'disconnected'),
-        map(() => ({ disconnected: true }))
-      )
-
-      const response = await firstValueFrom(merge(request$, disconnect$))
-
-      const { disconnected } = response as { disconnected: boolean }
-
-      // if socket disconnected and not destroyed, relisten for invoice payment
-      if (disconnected) {
-        if (!this.destroyed) {
-          await firstValueFrom(
-            this.connection.connectionStatus$.pipe(
-              filter(status => status === 'connected'),
-              takeUntil(this.connection.destroy$)
-            )
-          )
-
-          if (!this.destroyed) {
-            return this.listenForAnyInvoicePayment(onPayment, payIndex)
-          }
-        }
-      } else {
-        const formattedInvoice = await formatInvoice(
-          response as WaitAnyInvoiceResponse,
-          this.connection.walletId
-        )
-
-        onPayment(formattedInvoice)
-
-        // only listen for next pay index if not already listening
-        if (this.listeningPayIndex !== formattedInvoice.payIndex) {
-          return this.listenForAnyInvoicePayment(onPayment, formattedInvoice.payIndex)
-        }
-      }
+      invoice = rawInvoice
+        ? await formatInvoice(rawInvoice as RawInvoice, this.connection.walletId)
+        : null
     } catch (error) {
       const context = 'listenForAnyInvoicePayment (payments)'
 
@@ -293,6 +269,27 @@ class Invoices implements InvoicesInterface {
 
       this.connection.errors$.next(connectionError)
       throw connectionError
+    }
+
+    // disconnected
+    if (!invoice) {
+      if (!this.destroyed) {
+        await firstValueFrom(
+          this.connection.connectionStatus$.pipe(
+            filter(status => status === 'connected'),
+            takeUntil(this.connection.destroy$)
+          )
+        )
+
+        if (!this.destroyed) {
+          return this.listenForAnyInvoicePayment(onPayment, payIndex)
+        }
+      }
+    } else {
+      console.log(`Invoice update received with status: ${invoice.status}`)
+      onPayment(invoice)
+      const newLastPayIndex = invoice.payIndex ? invoice.payIndex : payIndex
+      this.listenForAnyInvoicePayment(onPayment, newLastPayIndex)
     }
   }
 }

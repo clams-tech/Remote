@@ -141,7 +141,7 @@
             details.push({
               type: 'invoice',
               qrValues:
-                status === 'pending' && request
+                status === 'waiting' && request
                   ? [
                       {
                         label: $translate('app.labels.invoice'),
@@ -401,7 +401,6 @@
       network,
       blockHeight
     } = transactionDetailToShow}
-
     <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
       <Summary {primary} {secondary} type={summaryType} {network} {status} centered />
     </div>

@@ -33,7 +33,7 @@ export function invoiceStatusToPaymentStatus(
     case 'paid':
       return 'complete'
     case 'unpaid':
-      return expired ? 'expired' : 'pending'
+      return expired ? 'expired' : 'waiting'
     default:
       return 'expired'
   }
