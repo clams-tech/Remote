@@ -12,8 +12,9 @@ import { db } from '$lib/db/index.js'
 import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
-import { decryptWithAES } from '$lib/crypto.js'
+import { createRandomHex, decryptWithAES } from '$lib/crypto.js'
 import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from '$lib/db/helpers.js'
+import { goto } from '$app/navigation'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -255,12 +256,14 @@ export const syncConnectionData = (
               const wallet = (await db.wallets.get(walletId)) as Wallet
 
               notification.create({
+                id: createRandomHex(8),
                 heading: get(translate)('app.labels.received_sats'),
                 message: get(translate)('app.labels.invoice_receive_description', {
                   amount,
                   request: request ? truncateValue(request) : 'keysend',
                   wallet: wallet.label
-                })
+                }),
+                onclick: () => goto(`/payments/${invoice.id}`)
               })
 
               await db.invoices.put(invoice)
