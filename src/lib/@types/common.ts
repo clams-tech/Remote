@@ -61,3 +61,5 @@ export type FilterPredicate = {
 
 export type TagFilter = { tag: string; checked: boolean }
 export type Sorter = { label: string; key: string; direction: 'asc' | 'desc' }
+
+export type Notification = { id: string; heading: string; message: string; onclick?: () => void }

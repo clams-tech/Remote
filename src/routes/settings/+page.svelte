@@ -14,6 +14,7 @@
   import discord from '$lib/icons/discord.js'
   import github from '$lib/icons/github.js'
   import twitter from '$lib/icons/twitter.js'
+  import { createRandomHex } from '$lib/crypto.js'
 
   import {
     FiatDenomination,
@@ -29,7 +30,6 @@
     DOCS_LINK,
     GITHUB_LINK,
     SUPPORTED_LANGUAGES,
-    TILES,
     TWITTER_LINK
   } from '$lib/constants.js'
 
@@ -74,19 +74,15 @@
   const toggleLavaLamp = () => toggle('lavaLamp')
 
   const showTestNotification = () => {
-    if (showingTestNotification?.close) {
-      showingTestNotification.close()
-      showingTestNotification = null
-    } else {
-      try {
-        showingTestNotification = notification.create({
-          heading: $translate('app.labels.test'),
-          message: $translate('app.labels.testing')
-        })
-      } catch (error) {
-        const { message } = error as Error
-        notificationsError = message
-      }
+    try {
+      notification.create({
+        id: createRandomHex(8),
+        heading: $translate('app.labels.test'),
+        message: $translate('app.labels.testing')
+      })
+    } catch (error) {
+      const { message } = error as Error
+      notificationsError = message
     }
   }
 

@@ -1,4 +1,8 @@
 import type { DialogFilter } from '@tauri-apps/api/dialog'
+import type { Notification } from './@types/common.js'
+import { Subject } from 'rxjs'
+
+export const notifications$ = new Subject<Notification>()
 
 export const clipboard = {
   permission: async (name: PermissionName): Promise<boolean> => {
@@ -38,8 +42,12 @@ export const clipboard = {
 
 export const notification = {
   supported: (): boolean => {
-    const isSupported = 'Notification' in window
-    return isSupported
+    if (window.__TAURI__) {
+      const isSupported = 'Notification' in window
+      return isSupported
+    } else {
+      return true
+    }
   },
   permission: () => {
     return notification.supported() && Notification.permission === 'granted'
@@ -47,11 +55,17 @@ export const notification = {
   requestPermission: () => {
     return Notification.requestPermission()
   },
-  create: (options: { heading: string; message: string }) => {
-    return new Notification(options.heading, {
-      body: options.message,
-      icon: '/icons/icon.png'
-    })
+  create: (notification: Notification) => {
+    const { heading, message } = notification
+
+    if (window.__TAURI__) {
+      return new Notification(heading, {
+        body: message,
+        icon: '/icons/icon.png'
+      })
+    } else {
+      notifications$.next(notification)
+    }
   }
 }
 

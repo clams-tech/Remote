@@ -305,7 +305,6 @@ class Offers implements OffersInterface {
   async payInvoice(bolt12: string): Promise<Invoice> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
-      const decoded = decodeBolt12(bolt12)
 
       const {
         payment_hash,

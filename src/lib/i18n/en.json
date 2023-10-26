@@ -313,7 +313,7 @@
     "payments": "Payments",
     "complete": "Complete",
     "pending": "Pending",
-    "waiting": "Awaiting transaction",
+    "waiting": "Waiting",
     "withdrawals": "Withdrawals",
     "label": "Label",
     "max_quantity": "Max Quantity",

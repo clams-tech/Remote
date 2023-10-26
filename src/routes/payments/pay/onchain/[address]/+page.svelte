@@ -32,7 +32,11 @@
   let selectedWalletId: Wallet['id']
   let paying = false
   let payingError: AppError | null = null
-  let amountSats = !amount ? 0 : btcToSats(amount)
+  let amountSats: number
+
+  if (amount) {
+    amountSats = btcToSats(amount)
+  }
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -156,7 +160,7 @@
         <Button
           on:click={pay}
           requesting={paying}
-          disabled={amountSats === 0 || !selectedWalletId}
+          disabled={!amountSats || !selectedWalletId}
           primary
           text={$translate('app.labels.pay')}
         >
