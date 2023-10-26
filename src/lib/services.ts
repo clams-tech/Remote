@@ -50,10 +50,18 @@ export const notification = {
     }
   },
   permission: () => {
-    return notification.supported() && Notification.permission === 'granted'
+    if (window.__TAURI__) {
+      return notification.supported() && Notification.permission === 'granted'
+    }
+
+    return true
   },
   requestPermission: () => {
-    return Notification.requestPermission()
+    if (window.__TAURI__) {
+      return Notification.requestPermission()
+    } else {
+      true
+    }
   },
   create: (notification: Notification) => {
     const { heading, message } = notification

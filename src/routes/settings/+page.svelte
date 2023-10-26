@@ -15,6 +15,7 @@
   import github from '$lib/icons/github.js'
   import twitter from '$lib/icons/twitter.js'
   import { createRandomHex } from '$lib/crypto.js'
+  import type { Notification } from '$lib/@types/common.js'
 
   import {
     FiatDenomination,
@@ -143,9 +144,7 @@
               <button
                 class="mt-2 text-sm font-semibold px-2 border-2 rounded"
                 on:click|stopPropagation={showTestNotification}
-                >{$translate(
-                  `app.labels.${showingTestNotification?.close ? 'close' : 'test'}`
-                )}</button
+                >{$translate('app.labels.test')}</button
               >
             </div>
           {/if}
