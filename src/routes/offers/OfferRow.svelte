@@ -24,10 +24,14 @@
   const offerPayments$ = liveQuery(() =>
     db.invoices
       .where(query)
-      .filter(
-        invoice =>
-          invoice.offer?.description === offer.description && invoice.offer?.issuer === offer.issuer
-      )
+      .filter(invoice => {
+        return (
+          !!invoice.offer &&
+          invoice.offer?.description === offer.description &&
+          invoice.offer?.issuer === offer.issuer &&
+          (offer.type === 'withdraw' ? !invoice.offer.id : !!invoice.offer.id)
+        )
+      })
       .toArray()
   )
 
