@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { toBlob } from 'html-to-image'
   import { slide } from 'svelte/transition'
-  import { QrCodeUtil } from '$lib/qr.js'
   import copy from '$lib/icons/copy'
   import photo from '$lib/icons/photo'
   import { onDestroy } from 'svelte'
@@ -10,21 +8,14 @@
   import info from '$lib/icons/info.js'
   import save from '$lib/icons/save.js'
   import { clipboard, file } from '$lib/services.js'
-  import clamsIcon from '$lib/icons/clamsIcon.js'
+  import { QrCode, Ecc } from '$lib/qrcodegen.js'
 
   export let values: { label: string; value: string }[]
-  export let size = Math.min(window.innerWidth - 72, 400)
-
-  export function getQrImage() {
-    return canvas?.toDataURL()
-  }
 
   let selectedValueIndex = 0
-
   $: selectedValue = values[selectedValueIndex]
 
-  let canvas: HTMLCanvasElement | null = null
-  let qrElement: HTMLDivElement
+  let canvas: HTMLCanvasElement
 
   type Message = {
     value: string
@@ -32,6 +23,27 @@
   }
 
   let message: Message | null = null
+
+  let width = Math.min(window.innerWidth - 32, 400)
+
+  $: if (selectedValue && canvas) {
+    const qr: QrCode = QrCode.encodeText(selectedValue.value, Ecc.LOW)
+    const scale = 4
+    const border = 2
+    const lightColor = '#FFFFFF'
+    const darkColor = '#000000'
+
+    const width = (qr.size + border * 2) * scale
+    canvas.width = width
+    canvas.height = width
+    let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    for (let y = -border; y < qr.size + border; y++) {
+      for (let x = -border; x < qr.size + border; x++) {
+        ctx.fillStyle = qr.getModule(x, y) ? darkColor : lightColor
+        ctx.fillRect((x + border) * scale, (y + border) * scale, scale, scale)
+      }
+    }
+  }
 
   function setMessage(value: string) {
     // clear current timeout
@@ -44,11 +56,8 @@
   }
 
   async function copyImage() {
-    qrElement.classList.add('rounded-lg')
-
     try {
-      await clipboard.writeImage(toBlob(qrElement) as Promise<Blob>)
-      qrElement.classList.remove('rounded-lg')
+      await clipboard.writeImage(getBlob())
       setMessage($translate('app.labels.image_copied'))
     } catch (error) {
       const { message } = error as Error
@@ -56,12 +65,26 @@
     }
   }
 
+  function getBlob(): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (blob) {
+          resolve(blob)
+        }
+
+        reject(new Error('Could get image data'))
+      })
+    })
+  }
+
   async function saveImage() {
     try {
-      qrElement.classList.add('rounded-lg')
-      const rawData = (await toBlob(qrElement)) as Blob
-      qrElement.classList.remove('rounded-lg')
-      await file.save(rawData, `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}`)
+      const rawData = await getBlob()
+
+      await file.save(
+        rawData,
+        `${selectedValue.label}-${truncateValue(selectedValue.value, 6)}.png`
+      )
 
       setMessage($translate('app.labels.image_saved'))
     } catch (error) {
@@ -86,17 +109,17 @@
 </script>
 
 <div class="w-full flex flex-col items-center justify-center overflow-hidden">
-  <div style="min-width: {size}px;">
+  <div>
     <div class="flex items-center justify-start w-full">
       <div
-        class="flex items-center text-xs font-semibold rounded-t-lg border-t-2 border-x-2 border-neutral-400 overflow-hidden"
+        class="flex items-center text-xs font-semibold rounded-t-lg overflow-hidden border-t-2 border-x-2 border-white"
       >
         {#each values as { label }, index}
           <button
             on:click={() => (selectedValueIndex = index)}
             class="px-3 py-1 block"
             class:text-neutral-900={index === selectedValueIndex}
-            class:bg-neutral-50={index === selectedValueIndex}
+            class:bg-white={index === selectedValueIndex}
           >
             {label}
           </button>
@@ -105,26 +128,14 @@
     </div>
 
     <div
-      class="border-2 bg-black border-neutral-400 rounded-b-lg rounded-tr-lg shadow-md max-w-full p-2 flex flex-col justify-center items-center overflow-hidden w-min"
-      bind:this={qrElement}
+      class="bg-black rounded-b-lg rounded-tr-lg w-full flex flex-col justify-center items-center overflow-hidden"
     >
       <button
         on:click={copyText}
-        class="rounded overflow-hidden flex items-center justify-center relative"
+        class="flex items-center justify-center"
+        style="width: {width}px;"
       >
-        <svg width={size} height={size}>
-          <!-- <defs>
-            <linearGradient id="purple" x1="25%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#C099FF" stop-opacity="1" />
-              <stop offset="100%" stop-color="#904DFF" stop-opacity="1" />
-            </linearGradient>
-          </defs> -->
-          {@html QrCodeUtil.generate(selectedValue.value, size, size / 5)}
-        </svg>
-
-        <div class="absolute" style="width: {size / 5}px; height: {size / 5}px;">
-          {@html clamsIcon}
-        </div>
+        <canvas bind:this={canvas} class="w-full" />
       </button>
     </div>
 
