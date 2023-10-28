@@ -1,6 +1,6 @@
 {
   "name": "clams-app",
-  "version": "2.0.0-beta.19",
+  "version": "2.0.0-beta.20",
   "scripts": {
     "dev": "vite dev",
     "dev-https": "vite dev --mode https",
@@ -71,7 +71,6 @@
     "dexie": "^3.2.4",
     "fast-sort": "^3.4.0",
     "hammerjs": "^2.0.8",
-    "html-to-image": "^1.11.11",
     "js-lnurl": "^0.6.0",
     "jsqr": "^1.4.0",
     "lnmessage": "^0.2.6",
