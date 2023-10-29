@@ -16,6 +16,7 @@
 
   function handleCloseHint() {
     storage.write(STORAGE_KEYS.getStartedHint, 'true')
+    showGetStartedHint = false
   }
 
   const getIcon = (tile: string) => TILE_ICONS[tile as Tile]

@@ -35,8 +35,8 @@
 
 <svelte:window on:keyup|stopPropagation={handleKeyup} />
 
-<div class="flex justify-start items-center mr-2 py-2 text-4xl whitespace-nowrap">
-  <div class="flex items-center">
+<div class="flex justify-start items-center mr-2 py-2 text-4xl whitespace-nowrap overflow-hidden">
+  <div class="flex items-center flex-grow overflow-hidden">
     {#if icon}
       <div class="w-10 mr-2 flex-shrink-0">{@html icon}</div>
     {/if}
@@ -50,7 +50,7 @@
         bind:value={text}
       />
     {:else}
-      <h1 class="font-bold break-all">
+      <h1 class="font-bold break-all truncate w-full">
         {text}
       </h1>
     {/if}

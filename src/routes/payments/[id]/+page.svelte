@@ -93,9 +93,8 @@
         db.channels,
         db.withdrawals,
         db.deposits,
-        db.metadata,
-        // @ts-ignore
         db.contacts,
+        // @ts-ignore
         db.utxos,
         db.offers,
         db.nodes,
@@ -159,7 +158,7 @@
             details.push({
               type: 'invoice',
               qrValues:
-                status === 'pending' && request
+                status === 'waiting' && request
                   ? [
                       {
                         label: $translate('app.labels.invoice'),
@@ -218,8 +217,9 @@
 
             const status = txid ? (tx?.data.blockHeight ? 'complete' : 'pending') : 'waiting'
             const qrValues: QRValue[] = []
+            const [invoice] = invoicePayments
 
-            if (status === 'waiting') {
+            if (status === 'waiting' && (!invoice || invoice.status === 'waiting')) {
               qrValues.push({
                 label: $translate('app.labels.address'),
                 value: `bitcoin:${id.toUpperCase()}${
@@ -228,9 +228,7 @@
               })
             }
 
-            const [invoice] = invoicePayments
-
-            if (invoice?.data.request && invoice?.status === 'pending') {
+            if (invoice?.data.request && invoice?.status === 'waiting') {
               searchParams.append('lightning', invoice.data.request.toUpperCase())
 
               qrValues.push({
@@ -318,9 +316,11 @@
   $: if ($transactionDetails$) {
     const details = $transactionDetails$
     const completed = details.find(({ status }) => status === 'complete')
+
     const pendingTransaction = details.find(
       ({ type, status }) => type === 'onchain' && status === 'pending'
     )
+
     const invoice = details.find(({ type }) => type === 'invoice')
 
     if (details.length === 1) {
@@ -428,7 +428,6 @@
       network,
       blockHeight
     } = transactionDetailToShow}
-
     <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
       <Summary {primary} {secondary} type={summaryType} {network} {status} centered />
     </div>

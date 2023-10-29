@@ -59,3 +59,5 @@ export type DBGetPaymentsOptions = {
 }
 
 export type ValueOf<Obj> = Obj[keyof Obj]
+
+export type Notification = { id: string; heading: string; message: string; onclick?: () => void }

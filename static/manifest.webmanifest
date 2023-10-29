@@ -2,7 +2,7 @@
 	"short_name": "Clams",
 	"name": "Clams",
 	"start_url": "/",
-	"display": "fullscreen",
+	"display": "standalone",
   "description": "Unified Bitcoin management.",
   "icons": [
     {

@@ -76,13 +76,13 @@
 
       <div
         class:text-utility-success={status === 'complete'}
-        class:text-utility-pending={status === 'pending'}
+        class:text-utility-pending={status === 'pending' || status === 'waiting'}
         class:text-utility-error={status === 'expired' || status === 'failed'}
         class="flex items-center justify-end text-xs"
       >
         <div
           class:bg-utility-success={status === 'complete'}
-          class:bg-utility-pending={status === 'pending'}
+          class:bg-utility-pending={status === 'pending' || status === 'waiting'}
           class:bg-utility-error={status === 'expired' || status === 'failed'}
           class="w-1.5 h-1.5 rounded-full mr-1"
         />

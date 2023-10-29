@@ -32,7 +32,11 @@
   let selectedWalletId: Wallet['id']
   let paying = false
   let payingError: AppError | null = null
-  let amountSats = !amount ? 0 : btcToSats(amount)
+  let amountSats: number
+
+  if (amount) {
+    amountSats = btcToSats(amount)
+  }
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -128,11 +132,11 @@
       </SummaryRow>
     {/if}
 
-    <div class="mt-6 flex flex-col gap-y-6">
+    <div class="mt-6 flex flex-col gap-y-4">
       {#if $availableWallets$}
         <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
       {:else}
-        <Msg message={$translate('app.labels.wallet_transaction_send_unavailable')} type="info" />
+        <Msg message={$translate('app.errors.wallet_transaction_send_unavailable')} type="info" />
       {/if}
 
       {#if customAmountRequired}
@@ -156,7 +160,7 @@
         <Button
           on:click={pay}
           requesting={paying}
-          disabled={amountSats === 0 || !selectedWalletId}
+          disabled={!amountSats || !selectedWalletId}
           primary
           text={$translate('app.labels.pay')}
         >

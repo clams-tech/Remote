@@ -34,7 +34,7 @@
 
   let selectedWalletId: string
   let address: string
-  let channelSize = 0
+  let channelSize: number
   let announce = true
 
   let validAddress: boolean

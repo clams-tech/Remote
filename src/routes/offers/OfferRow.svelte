@@ -27,7 +27,11 @@
       .where(query)
       .filter(payment => {
         const { data } = payment as InvoicePayment
-        return data.offer?.description === offer.description && data.offer?.issuer === offer.issuer
+        return (
+          data.offer?.description === offer.description &&
+          data.offer?.issuer === offer.issuer &&
+          (offer.type === 'withdraw' ? !data.offer.id : !!data.offer.id)
+        )
       })
       .toArray()
   )

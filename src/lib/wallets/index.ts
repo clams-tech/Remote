@@ -12,8 +12,9 @@ import { db } from '$lib/db/index.js'
 import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
-import { decryptWithAES } from '$lib/crypto.js'
+import { createRandomHex, decryptWithAES } from '$lib/crypto.js'
 import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from '$lib/db/helpers.js'
+import { goto } from '$app/navigation'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -200,6 +201,8 @@ export const fetchDeposits = async (connection: Connection) =>
     })
     .catch(error => log.error(error.detail.message))
 
+let lastPaidInvoiceIndexNotification: number
+
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
  * since last sync
  */
@@ -254,19 +257,25 @@ export const syncConnectionData = (
           connection.invoices
             .listenForAnyInvoicePayment(async invoice => {
               const {
-                data: { amount, request },
+                data: { amount, request, payIndex },
                 walletId
               } = invoice
               const wallet = (await db.wallets.get(walletId)) as Wallet
 
-              notification.create({
-                heading: get(translate)('app.labels.received_sats'),
-                message: get(translate)('app.labels.invoice_receive_description', {
-                  amount,
-                  request: request ? truncateValue(request) : 'keysend',
-                  wallet: wallet.label
+              if (payIndex && payIndex !== lastPaidInvoiceIndexNotification) {
+                notification.create({
+                  id: createRandomHex(8),
+                  heading: get(translate)('app.labels.received_sats'),
+                  message: get(translate)('app.labels.invoice_receive_description', {
+                    amount,
+                    request: request ? truncateValue(request) : 'keysend',
+                    wallet: wallet.label
+                  }),
+                  onclick: () => goto(`/payments/${invoice.id}`)
                 })
-              })
+
+                lastPaidInvoiceIndexNotification = payIndex
+              }
 
               await db.payments.put(invoice)
             }, lastPaidInvoice?.data.payIndex)

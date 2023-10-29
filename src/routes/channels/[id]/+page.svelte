@@ -70,7 +70,7 @@
     )
   )
 
-  $: if ($channel$) {
+  $: if ($channel$ && !loaded) {
     loadData()
   }
 
@@ -443,7 +443,7 @@
               </SummaryRow>
             {/if}
 
-            {#if htlcMin}
+            {#if typeof htlcMin === 'number'}
               <SummaryRow>
                 <div slot="label">
                   {$translate('app.labels.min_forward')}:
@@ -454,7 +454,7 @@
               </SummaryRow>
             {/if}
 
-            {#if htlcMax}
+            {#if typeof htlcMax === 'number'}
               <SummaryRow>
                 <div slot="label">
                   {$translate('app.labels.max_forward')}:

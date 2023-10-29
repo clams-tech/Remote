@@ -17,7 +17,7 @@
   import { connections$, onDestroy$ } from '$lib/streams.js'
   import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
-  import { fetchOffers } from '$lib/wallets/index.js'
+  import { fetchInvoices, fetchOffers } from '$lib/wallets/index.js'
 
   const offers$ = from(liveQuery(() => db.offers.toArray()))
 
@@ -155,7 +155,11 @@
   }
 
   const syncOffers = async () => {
-    await Promise.all(connections$.value.map(connection => fetchOffers(connection)))
+    await Promise.all(
+      connections$.value.map(connection =>
+        Promise.all([fetchOffers(connection), fetchInvoices(connection)])
+      )
+    )
   }
 </script>
 

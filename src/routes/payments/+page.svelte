@@ -12,7 +12,7 @@
   import { connections$, wallets$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
-  import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
+  import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
   import type { Payment } from '$lib/@types/payments.js'
   import type { Filter, Sorter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters, getTags } from './filters.js'
@@ -160,7 +160,11 @@
   const syncPayments = async () => {
     await Promise.all(
       connections$.value.map(connection =>
-        Promise.all([fetchInvoices(connection), fetchTransactions(connection)])
+        Promise.all([
+          fetchInvoices(connection),
+          fetchTransactions(connection),
+          fetchUtxos(connection)
+        ])
       )
     )
 

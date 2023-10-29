@@ -14,6 +14,8 @@
   import discord from '$lib/icons/discord.js'
   import github from '$lib/icons/github.js'
   import twitter from '$lib/icons/twitter.js'
+  import { createRandomHex } from '$lib/crypto.js'
+  import type { Notification } from '$lib/@types/common.js'
 
   import {
     FiatDenomination,
@@ -29,7 +31,6 @@
     DOCS_LINK,
     GITHUB_LINK,
     SUPPORTED_LANGUAGES,
-    TILES,
     TWITTER_LINK
   } from '$lib/constants.js'
 
@@ -62,7 +63,10 @@
           notificationsError = $translate('app.errors.permissions_notifications')
           return
         }
-      } catch (error) {}
+      } catch (error) {
+        notificationsError = $translate('app.errors.permissions_notifications')
+        return
+      }
     }
 
     toggle('notifications')
@@ -71,19 +75,15 @@
   const toggleLavaLamp = () => toggle('lavaLamp')
 
   const showTestNotification = () => {
-    if (showingTestNotification?.close) {
-      showingTestNotification.close()
-      showingTestNotification = null
-    } else {
-      try {
-        showingTestNotification = notification.create({
-          heading: $translate('app.labels.test'),
-          message: $translate('app.labels.testing')
-        })
-      } catch (error) {
-        const { message } = error as Error
-        notificationsError = message
-      }
+    try {
+      notification.create({
+        id: createRandomHex(8),
+        heading: $translate('app.labels.test'),
+        message: $translate('app.labels.testing')
+      })
+    } catch (error) {
+      const { message } = error as Error
+      notificationsError = message
     }
   }
 
@@ -144,9 +144,7 @@
               <button
                 class="mt-2 text-sm font-semibold px-2 border-2 rounded"
                 on:click|stopPropagation={showTestNotification}
-                >{$translate(
-                  `app.labels.${showingTestNotification?.close ? 'close' : 'test'}`
-                )}</button
+                >{$translate('app.labels.test')}</button
               >
             </div>
           {/if}

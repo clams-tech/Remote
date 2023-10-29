@@ -50,7 +50,11 @@
     decodeError = $translate('app.errors.bolt11_decode')
   }
 
-  let amountSats = !decoded.amount ? 0 : decoded.amount
+  let amountSats: number
+
+  if (decoded.amount) {
+    amountSats = decoded.amount
+  }
 
   const pay = async () => {
     paying = true
@@ -143,7 +147,7 @@
         </div>
       </SummaryRow>
 
-      <div class="mt-6 flex flex-col gap-y-6">
+      <div class="mt-6 flex flex-col gap-y-4">
         {#if $availableWallets$}
           <WalletSelector
             autoSelectLast="sent"
@@ -151,7 +155,7 @@
             wallets={$availableWallets$}
           />
         {:else}
-          <Msg message={$translate('app.labels.wallet_pay_invoice_unavailable')} type="info" />
+          <Msg message={$translate('app.errors.wallet_pay_invoice_unavailable')} type="info" />
         {/if}
 
         {#if !decoded.amount}
@@ -175,7 +179,7 @@
           <Button
             on:click={pay}
             requesting={paying}
-            disabled={amountSats === 0 || !selectedWalletId}
+            disabled={!amountSats || !selectedWalletId}
             primary
             text={$translate('app.labels.pay')}
           >

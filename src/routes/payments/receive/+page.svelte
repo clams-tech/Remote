@@ -25,7 +25,7 @@
   import type { AddressPayment } from '$lib/@types/payments.js'
 
   let selectedWalletId: Wallet['id']
-  let amount = 0
+  let amount: number
   let expiry = DAY_IN_SECS
   let description = ''
   let creatingPayment = false
@@ -70,6 +70,10 @@
 
     const id = createRandomHex()
 
+    if (typeof amount !== 'number') {
+      amount = 0
+    }
+
     try {
       if (createInvoice && connection.invoices?.create) {
         const invoice = await connection.invoices.create({
@@ -107,8 +111,11 @@
     } catch (error) {
       createPaymentError = error as AppError
     } finally {
-      await goto(`/payments/${id}`)
       creatingPayment = false
+    }
+
+    if (!createPaymentError) {
+      await goto(`/payments/${id}`)
     }
   }
 
@@ -130,7 +137,11 @@
     <SectionHeading icon={plus} />
   </div>
 
-  <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
+  {#if $availableWallets$}
+    <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
+  {:else}
+    <Msg message={$translate('app.errors.wallet_receive_unavailable')} type="info" />
+  {/if}
 
   <div class="my-4">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">

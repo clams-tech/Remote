@@ -25,6 +25,7 @@
   import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
   import { notification } from '$lib/services.js'
   import { browser } from '$app/environment'
+  import Notifications from '$lib/components/Notifications.svelte'
 
   const clearSession = () => session$.next(null)
 
@@ -47,6 +48,7 @@
     if (walletAlreadyExists) {
       try {
         notification.create({
+          id: createRandomHex(8),
           heading: $translate('app.labels.wallet_connected'),
           message: $translate('app.labels.wallet_already_connected_description', { label })
         })
@@ -74,8 +76,10 @@
 
       try {
         notification.create({
+          id: createRandomHex(8),
           heading: $translate('app.labels.wallet_connected'),
-          message: $translate('app.labels.wallet_connected_success_description', { label })
+          message: $translate('app.labels.wallet_connected_success_description', { label }),
+          onclick: () => goto(`/wallets/${wallet.id}`)
         })
       } catch (error) {
         //
@@ -151,7 +155,7 @@
   >
 </svelte:head>
 
-<main class="flex flex-col w-screen h-[calc(100dvh)] text-neutral-50 overflow-hidden">
+<main class="flex flex-col w-screen h-screen text-neutral-50">
   {#if $settings$.lavaLamp}
     <div transition:fade class="-z-10 overflow-hidden">
       <Lava />
@@ -226,4 +230,6 @@
       </Modal>
     {/if}
   </div>
+
+  <Notifications />
 </main>
