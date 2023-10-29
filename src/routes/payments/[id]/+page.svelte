@@ -290,7 +290,6 @@
 
   $: if ($transactionDetails$) {
     const details = $transactionDetails$
-    console.log({ details })
     const completed = details.find(({ status }) => status === 'complete')
     const pendingTransaction = details.find(
       ({ type, status }) => type === 'onchain' && status === 'pending'
