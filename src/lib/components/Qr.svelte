@@ -24,12 +24,12 @@
 
   let message: Message | null = null
 
-  let width = Math.min(window.innerWidth - 32, 400)
+  let containerWidth = Math.min(window.innerWidth - 16, 400)
 
   $: if (selectedValue && canvas) {
     const qr: QrCode = QrCode.encodeText(selectedValue.value, Ecc.LOW)
-    const scale = 4
-    const border = 2
+    const border = 4
+    const scale = Math.round(containerWidth / (qr.size + border * 2))
     const lightColor = '#FFFFFF'
     const darkColor = '#000000'
 
@@ -128,14 +128,14 @@
     </div>
 
     <div
-      class="bg-black rounded-b-lg rounded-tr-lg w-full flex flex-col justify-center items-center overflow-hidden"
+      class="bg-white rounded-b-lg rounded-tr-lg w-full flex flex-col justify-center items-center overflow-hidden"
     >
       <button
         on:click={copyText}
         class="flex items-center justify-center"
-        style="width: {width}px;"
+        style="width: {containerWidth}px; height: {containerWidth}px;"
       >
-        <canvas bind:this={canvas} class="w-full" />
+        <canvas bind:this={canvas} />
       </button>
     </div>
 

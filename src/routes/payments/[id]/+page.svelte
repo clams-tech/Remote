@@ -199,7 +199,7 @@
             const status = txid ? (tx?.blockheight ? 'complete' : 'pending') : 'waiting'
             const qrValues: QRValue[] = []
 
-            if (status === 'waiting') {
+            if (status === 'waiting' && (!invoices[0] || invoices[0].status === 'waiting')) {
               qrValues.push({
                 label: $translate('app.labels.address'),
                 value: `bitcoin:${value.toUpperCase()}${
@@ -210,7 +210,7 @@
 
             const [invoice] = invoices
 
-            if (invoice?.request && invoice?.status === 'pending') {
+            if (invoice?.request && invoice?.status === 'waiting') {
               searchParams.append('lightning', invoice.request.toUpperCase())
 
               qrValues.push({
@@ -290,6 +290,7 @@
 
   $: if ($transactionDetails$) {
     const details = $transactionDetails$
+    console.log({ details })
     const completed = details.find(({ status }) => status === 'complete')
     const pendingTransaction = details.find(
       ({ type, status }) => type === 'onchain' && status === 'pending'

@@ -131,7 +131,11 @@
     <SectionHeading icon={plus} />
   </div>
 
-  <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
+  {#if $availableWallets$}
+    <WalletSelector autoSelectLast="received" bind:selectedWalletId wallets={$availableWallets$} />
+  {:else}
+    <Msg message={$translate('app.errors.wallet_receive_unavailable')} type="info" />
+  {/if}
 
   <div class="my-4">
     <div class="mb-2 text-neutral-300 font-semibold text-sm">

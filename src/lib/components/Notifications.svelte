@@ -1,12 +1,9 @@
 <script lang="ts">
   import { filter, switchMap, takeUntil } from 'rxjs/operators'
   import { flip } from 'svelte/animate'
-  import { fly, fade } from 'svelte/transition'
-  import { DIRECTION_UP } from 'hammerjs'
-  import { quintOut } from 'svelte/easing'
+  import { fly } from 'svelte/transition'
   import { onDestroy$, settings$ } from '$lib/streams'
   import close from '$lib/icons/close'
-  import { drag, swipe } from '$lib/touch'
   import { noop } from '$lib/utils'
   import type { Notification } from '$lib/@types/common.js'
   import { notifications$ } from '$lib/services.js'
@@ -57,18 +54,10 @@
   >
     {#each notificationsToRender as { id, heading, message, onclick = noop } (id)}
       <button
-        use:swipe={{
-          direction: DIRECTION_UP,
-          threshold: 30,
-          velocity: 0.2
-        }}
-        on:swipe={() => removeNotification(id)}
-        use:drag={{ direction: DIRECTION_UP, threshold: 0, maxDrag: 50 }}
         on:click={onclick}
-        animate:flip={{ duration: 700 }}
+        animate:flip={{ duration: 500 }}
         in:fly|={{ duration: 1200, x: 0, y: -50, easing: elasticOut }}
-        out:fade={{ duration: 500, easing: quintOut }}
-        class="w-full cursor-grab shadow-md shadow-neutral-600 border bg-neutral-900 text-neutral-50 border-neutral-400 z-20 p-4 relative rounded-lg mb-2 block text-start"
+        class="w-full shadow-md shadow-neutral-600 border bg-neutral-900 text-neutral-50 border-neutral-400 z-20 p-4 relative rounded-lg mb-2 block text-start"
       >
         <button
           on:click|stopPropagation={() => removeNotification(id)}

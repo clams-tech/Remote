@@ -122,7 +122,7 @@
       {#if $availableWallets$}
         <WalletSelector autoSelectLast="sent" bind:selectedWalletId wallets={$availableWallets$} />
       {:else}
-        <Msg message={$translate('app.labels.wallet_keysend_unavailable')} type="info" />
+        <Msg message={$translate('app.errors.wallet_keysend_unavailable')} type="info" />
       {/if}
 
       <TextInput

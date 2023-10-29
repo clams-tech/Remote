@@ -201,6 +201,8 @@ export const fetchDeposits = async (connection: Connection) =>
     })
     .catch(error => log.error(error.detail.message))
 
+let lastPaidInvoiceIndexNotification: number
+
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
  * since last sync
  */
@@ -252,19 +254,23 @@ export const syncConnectionData = (
         if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
           connection.invoices
             .listenForAnyInvoicePayment(async invoice => {
-              const { amount, request, walletId } = invoice
+              const { amount, request, walletId, payIndex } = invoice
               const wallet = (await db.wallets.get(walletId)) as Wallet
 
-              notification.create({
-                id: createRandomHex(8),
-                heading: get(translate)('app.labels.received_sats'),
-                message: get(translate)('app.labels.invoice_receive_description', {
-                  amount,
-                  request: request ? truncateValue(request) : 'keysend',
-                  wallet: wallet.label
-                }),
-                onclick: () => goto(`/payments/${invoice.id}`)
-              })
+              if (payIndex && payIndex !== lastPaidInvoiceIndexNotification) {
+                notification.create({
+                  id: createRandomHex(8),
+                  heading: get(translate)('app.labels.received_sats'),
+                  message: get(translate)('app.labels.invoice_receive_description', {
+                    amount,
+                    request: request ? truncateValue(request) : 'keysend',
+                    wallet: wallet.label
+                  }),
+                  onclick: () => goto(`/payments/${invoice.id}`)
+                })
+
+                lastPaidInvoiceIndexNotification = payIndex
+              }
 
               await db.invoices.put(invoice)
             }, lastPaidInvoice?.payIndex)

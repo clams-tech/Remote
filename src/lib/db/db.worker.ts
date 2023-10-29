@@ -270,19 +270,30 @@ const payments$ = from(
           .filter(({ txid }) => !txid)
           .toArray()
           .then(addrs =>
-            addrs.map(data => {
+            addrs.reduce(async (acc, data) => {
               const { id, createdAt, walletId, amount, value } = data
-              return {
-                id,
-                type: 'address' as const,
-                status: 'waiting' as PaymentStatus,
-                timestamp: createdAt,
-                walletId,
-                amount,
-                network: getNetwork(value),
-                data
+              // super inefficient, will be fixed as part of the db refactor
+              // this prevents duplicate ids in the payments list if an invoice and
+              // address have been created at the same time for the same payment
+              const invoiceWithSameId = db.invoices.where({ id }).first()
+
+              if (!invoiceWithSameId) {
+                acc.then(addrs =>
+                  addrs.push({
+                    id,
+                    type: 'address' as const,
+                    status: 'waiting' as PaymentStatus,
+                    timestamp: createdAt,
+                    walletId,
+                    amount,
+                    network: getNetwork(value),
+                    data
+                  })
+                )
               }
-            })
+
+              return acc
+            }, Promise.resolve([]) as Promise<Payment[]>)
           )
 
         return Promise.all([invoices, transactions, addresses]).then(results => results.flat())

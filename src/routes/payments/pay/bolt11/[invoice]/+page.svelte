@@ -155,7 +155,7 @@
             wallets={$availableWallets$}
           />
         {:else}
-          <Msg message={$translate('app.labels.wallet_pay_invoice_unavailable')} type="info" />
+          <Msg message={$translate('app.errors.wallet_pay_invoice_unavailable')} type="info" />
         {/if}
 
         {#if !decoded.amount}
