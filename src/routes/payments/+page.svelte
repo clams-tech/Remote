@@ -30,7 +30,6 @@
   let sorters: Sorter[] = [
     { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
   ]
-  $: console.log($payments$)
 
   payments$.pipe(takeUntil(onDestroy$)).subscribe(async payments => {
     const walletIdSet = new Set<string>()

@@ -24,7 +24,7 @@
 
   let message: Message | null = null
 
-  let containerWidth = Math.min(window.innerWidth - 16, 400)
+  let containerWidth = Math.min(window.innerWidth - 32, 400)
 
   $: if (selectedValue && canvas) {
     const qr: QrCode = QrCode.encodeText(selectedValue.value, Ecc.LOW)
@@ -109,7 +109,7 @@
 </script>
 
 <div class="w-full flex flex-col items-center justify-center overflow-hidden">
-  <div>
+  <div class="w-full" style="max-width: {containerWidth}px;">
     <div class="flex items-center justify-start w-full">
       <div
         class="flex items-center text-xs font-semibold rounded-t-lg overflow-hidden border-t-2 border-x-2 border-white"

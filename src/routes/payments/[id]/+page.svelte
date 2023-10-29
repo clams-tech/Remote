@@ -291,9 +291,11 @@
   $: if ($transactionDetails$) {
     const details = $transactionDetails$
     const completed = details.find(({ status }) => status === 'complete')
+
     const pendingTransaction = details.find(
       ({ type, status }) => type === 'onchain' && status === 'pending'
     )
+
     const invoice = details.find(({ type }) => type === 'invoice')
 
     if (details.length === 1) {
