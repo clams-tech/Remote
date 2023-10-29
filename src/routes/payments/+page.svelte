@@ -21,7 +21,7 @@
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { createRandomHex } from '$lib/crypto.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
-  import { fetchInvoices, fetchTransactions } from '$lib/wallets/index.js'
+  import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
 
   let processed: Payment[] = []
   let filters: Filter[] = []
@@ -285,7 +285,11 @@
   const syncPayments = async () => {
     await Promise.all(
       connections$.value.map(connection =>
-        Promise.all([fetchInvoices(connection), fetchTransactions(connection)])
+        Promise.all([
+          fetchInvoices(connection),
+          fetchTransactions(connection),
+          fetchUtxos(connection)
+        ])
       )
     )
   }
