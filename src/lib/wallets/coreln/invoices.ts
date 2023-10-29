@@ -4,7 +4,7 @@ import { formatInvoice, formatMsatString } from './utils.js'
 import type { InvoicesInterface } from '../interfaces.js'
 import handleError from './error.js'
 import { filter, firstValueFrom, map, take, takeUntil } from 'rxjs'
-import { isBolt12Invoice } from '$lib/invoices.js'
+import { decodeBolt11, isBolt12Invoice } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 import { formatPayments } from './worker.js'
 
@@ -131,6 +131,8 @@ class Invoices implements InvoicesInterface {
         destination
       } = result as PayResponse
 
+      const decoded = decodeBolt11(request)
+
       return {
         id,
         hash: payment_hash,
@@ -147,7 +149,8 @@ class Invoices implements InvoicesInterface {
         ),
         status,
         request,
-        walletId: this.connection.walletId
+        walletId: this.connection.walletId,
+        description: decoded?.description || undefined
       }
     } catch (error) {
       const context = 'payInvoice (payments)'
