@@ -64,3 +64,12 @@ button {
 [type='text'] {
   font-size: inherit;
 }
+
+:root {
+  --date-picker-background: theme('colors.neutral.900');
+  --date-picker-foreground: theme('colors.neutral.50');
+  --date-picker-highlight-border: theme('colors.purple.500');
+  --date-picker-highlight-shadow: theme('colors.purple.800');
+  --date-picker-selected-color: theme('colors.neutral.50');
+  --date-picker-selected-background: theme('colors.black');
+}

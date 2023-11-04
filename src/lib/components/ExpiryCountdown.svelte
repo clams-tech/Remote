@@ -14,7 +14,7 @@
 
   const msToExpire$ = timer(0, 1000).pipe(
     mergeMap(() => {
-      return formatCountdown({ date, language: settings$.getValue().language })
+      return formatCountdown(date)
     }),
     takeUntil(onDestroy$),
     startWith('')
@@ -22,7 +22,7 @@
 
   msToExpire$
     .pipe(
-      filter((val) => val.includes('ago')),
+      filter(val => val.includes('ago')),
       take(1)
     )
     .subscribe(() => {

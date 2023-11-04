@@ -1,5 +1,6 @@
 import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
 import type { Metadata } from './metadata.js'
+import type { PaymentSummary } from '$lib/summary.js'
 
 export type PaymentBase = {
   /** payment hash, txid or address */
@@ -25,11 +26,13 @@ export type TransactionPayment = PaymentBase & {
       txid: string
       index: number
       sequence: number
+      metadata?: Metadata
     }>
     outputs: Array<{
       index: number
       amount: number
       address: string
+      metadata?: Metadata
     }>
     channel?: {
       type: 'open' | 'close' | 'force_close'
@@ -73,6 +76,7 @@ export type InvoicePayment = PaymentBase & {
     description?: string
     preimage?: string
     payIndex?: number
+    fallbackAddress?: string
     offer?: {
       id?: string
       issuer?: DecodedBolt12Offer['offer_issuer']
@@ -87,3 +91,4 @@ export type PaymentType = 'invoice' | 'transaction' | 'address'
 export type PaymentDirection = 'receive' | 'send'
 export type PaymentStatus = 'waiting' | 'pending' | 'complete' | 'expired' | 'failed'
 export type Network = 'testnet' | 'regtest' | 'signet' | 'bitcoin'
+export type PaymentWithSummary = Payment & { summary: PaymentSummary | null }

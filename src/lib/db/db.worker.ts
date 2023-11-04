@@ -1,6 +1,16 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
-import type { DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
+import type { DBGetPaymentsOptions, Sorter, ValueOf } from '$lib/@types/common.js'
+import type {
+  AddressPayment,
+  Payment,
+  PaymentWithSummary,
+  TransactionPayment
+} from '$lib/@types/payments.js'
+import type { Collection } from 'dexie'
+import { endOfDay } from 'date-fns'
+import { inPlaceSort } from 'fast-sort'
+import { formatDate } from '$lib/dates.js'
 
 import {
   deriveAddressSummary,
@@ -8,9 +18,6 @@ import {
   deriveTransactionSummary,
   type PaymentSummary
 } from '$lib/summary.js'
-
-import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
-import type { Collection } from 'dexie'
 
 type MessageBase = {
   id: string
@@ -41,11 +48,6 @@ type GetPaymentsMessage = MessageBase & {
   type: 'get_payments'
 } & DBGetPaymentsOptions
 
-type GetPaymentSummaryMessage = MessageBase & {
-  type: 'get_payment_summary'
-  payment: Payment
-}
-
 type GetAllTagsMessage = MessageBase & {
   type: 'get_all_tags'
 }
@@ -55,7 +57,6 @@ type Message =
   | UpdateTransactionsMessage
   | BulkPutMessage
   | GetLastPayMessage
-  | GetPaymentSummaryMessage
   | GetAllTagsMessage
   | GetPaymentsMessage
 
@@ -148,28 +149,6 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
-    case 'get_payment_summary': {
-      const { payment } = message.data
-
-      let summary: PaymentSummary
-
-      try {
-        if (payment.type === 'transaction') {
-          summary = await deriveTransactionSummary(payment)
-        } else if (payment.type === 'invoice') {
-          summary = await deriveInvoiceSummary(payment)
-        } else {
-          summary = await deriveAddressSummary(payment)
-        }
-
-        self.postMessage({ id: message.data.id, result: summary })
-      } catch (error) {
-        const { message: errMsg } = error as Error
-        self.postMessage({ id: message.data.id, error: errMsg })
-      }
-
-      return
-    }
     case 'get_all_tags': {
       const tags = await db.tags.toArray()
       self.postMessage({ id: message.data.id, result: tags })
@@ -216,28 +195,45 @@ onmessage = async (message: MessageEvent<Message>) => {
             }, valueToTest as ValueOf<Payment>)
           }
 
-          if (type === 'exists' && !valueToTest) return false
+          if (type === 'exists' && filter.applied && !valueToTest) return false
 
           if (type === 'one-of') {
+            const applied = filter.values.filter(({ applied }) => applied)
+
             if (
-              !filter.values.every(({ value, applied }) => (applied ? value === valueToTest : true))
-            )
+              applied.length &&
+              !applied.some(({ value }) => {
+                console.log({ value, valueToTest })
+                return value === valueToTest
+              })
+            ) {
               return false
+            }
           }
 
-          if (type === 'amount-range' || type === 'date-range') {
+          if (type === 'amount-range') {
             const {
               values: { gt, lt }
             } = filter
+
             if (gt && (valueToTest as number) <= gt) return false
             if (lt && (valueToTest as number) >= lt) return false
+          }
+
+          if (type === 'date-range') {
+            const {
+              values: { gt, lt }
+            } = filter
+
+            if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
+            if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
           }
 
           return true
         })
       }
 
-      let collection: Collection
+      let collection: Collection<Payment>
 
       if (offset > 0 && lastPayment) {
         collection = db.payments
@@ -248,10 +244,68 @@ onmessage = async (message: MessageEvent<Message>) => {
         collection = db.payments.orderBy(sort.key).filter(filter)
       }
 
-      const result = collection.distinct().offset(offset).limit(limit)
+      const payments = await collection.distinct().offset(offset).limit(limit).toArray()
 
-      self.postMessage({ id: message.data.id, result })
+      console.log({ payments })
+
+      const paymentsWithSummary: PaymentWithSummary[] = await Promise.all(
+        payments.map(async payment => {
+          const summary = await getSummary(payment)
+          return { ...payment, summary }
+        })
+      )
+
+      const sortedDailyChunks = await sortDailyChunks(paymentsWithSummary, sort.direction)
+
+      self.postMessage({ id: message.data.id, result: sortedDailyChunks })
     }
+  }
+}
+
+type ItemsMap = Map<number, unknown[]>
+
+const sortDailyChunks = async <T>(items: T[], direction: Sorter['direction']) => {
+  const map = items.reduce((acc, item) => {
+    const date = new Date((item as { timestamp: number }).timestamp * 1000)
+    const dateKey = endOfDay(date).getTime() / 1000
+    acc.set(dateKey, [...(acc.get(dateKey) || []), item])
+
+    return acc
+  }, new Map() as ItemsMap)
+
+  const dailyPaymentChunks = inPlaceSort(Array.from(map.entries()))[direction](
+    ([timestamp]) => timestamp
+  )
+
+  const sortedChunks = await Promise.all(
+    dailyPaymentChunks.map(async ([date, items]) => {
+      const formattedDate = await formatDate(date)
+
+      return [
+        formattedDate,
+        inPlaceSort(items).desc(item => (item as { timestamp: number }).timestamp)
+      ]
+    })
+  )
+
+  return sortedChunks
+}
+
+const getSummary = async (payment: Payment): Promise<PaymentSummary | null> => {
+  let summary: PaymentSummary
+
+  try {
+    if (payment.type === 'transaction') {
+      summary = await deriveTransactionSummary(payment)
+    } else if (payment.type === 'invoice') {
+      summary = await deriveInvoiceSummary(payment)
+    } else {
+      summary = await deriveAddressSummary(payment)
+    }
+
+    return summary
+  } catch (error) {
+    return null
   }
 }
 

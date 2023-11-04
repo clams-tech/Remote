@@ -174,10 +174,16 @@ export const getFilters = (): Filter[] => {
           }
         }
 
-        if (
-          (type === 'date-range' || type === 'amount-range') &&
-          (savedFilter.type === 'date-range' || savedFilter.type === 'amount-range')
-        ) {
+        if (type === 'date-range' && savedFilter.type === 'date-range') {
+          return {
+            label,
+            key,
+            type,
+            values: { ...filter.values, ...savedFilter.values }
+          }
+        }
+
+        if (type === 'amount-range' && savedFilter.type === 'amount-range') {
           return {
             label,
             key,

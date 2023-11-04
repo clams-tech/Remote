@@ -457,7 +457,11 @@
     "last_sync": "Last sync",
     "filter": "Filter",
     "total_balance": "Total balance",
-    "apply": "Apply"
+    "apply": "Apply",
+    "greater_than": "Greater than",
+    "less_than": "Less than",
+    "select_date": "Select date",
+    "from": "From"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

@@ -6,9 +6,9 @@
   type InputType = 'text' | 'number' | 'textarea' | 'password' | 'email'
 
   export let type: InputType = 'text'
-  export let value: string | number
+  export let value: string | number | null | undefined
   export let label = ''
-  export let sats = 0
+  export let sats: number | null | undefined = 0
   export let name: string
   export let invalid = ''
   export let placeholder = ''

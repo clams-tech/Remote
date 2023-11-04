@@ -8,7 +8,7 @@
   export let type: PaymentSummary['type']
   export let secondary: PaymentSummary['secondary']
   export let status: PaymentStatus
-  export let timestamp: string = ''
+  export let timestamp: number
   export let network: Network
   export let centered = false
   export let displayNetwork = false

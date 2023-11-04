@@ -4,25 +4,27 @@
   import Modal from './Modal.svelte'
   import type { Filter, SortDirection, Sorters } from '$lib/@types/common.js'
   import { createEventDispatcher } from 'svelte'
-  import OneOfFilter from './OneOfFilter.svelte'
+  import Filters from './Filters.svelte'
   import Button from './Button.svelte'
   import { simpleDeepClone } from '$lib/utils.js'
   import { getAllTags } from '$lib/db/helpers.js'
   import TagFilters from './TagFilters.svelte'
   import { slide } from 'svelte/transition'
 
-  const dispatch = createEventDispatcher()
-
   export let filters: Filter[]
   export let sorters: Sorters
   export let tags: string[]
 
-  let editedFilters: Filter[] = []
-  let selectedSorterKey: string = ''
-  let selectedSorterDirection: SortDirection = 'desc'
+  const dispatch = createEventDispatcher()
+
+  let editedFilters: Filter[] = simpleDeepClone(filters)
+  let selectedSorterKey: string = simpleDeepClone(sorters.applied.key)
+  let selectedSorterDirection: SortDirection = simpleDeepClone(sorters.applied.direction)
   let editedTags: string[] = []
   let tagFiltersOptions: string[] = []
-  let modified = false
+  let filtersModified = false
+  let sorterModified = false
+  let tagsModified = false
 
   // get all tags and set them as options
   getAllTags().then(allTags => {
@@ -32,27 +34,28 @@
 
     // remove tags that no longer exist
     tags = tags.filter(tag => allTags.includes(tag))
+    editedTags = tags
   })
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
-    modified = true
+    filtersModified = true
   } else {
-    modified = false
+    filtersModified = false
   }
 
   $: if (
     JSON.stringify(sorters.applied) !==
     JSON.stringify({ key: selectedSorterKey, direction: selectedSorterDirection })
   ) {
-    modified = true
+    sorterModified = true
   } else {
-    modified = false
+    sorterModified = false
   }
 
   $: if (JSON.stringify(tags) !== JSON.stringify(editedTags)) {
-    modified = true
+    tagsModified = true
   } else {
-    modified = false
+    tagsModified = false
   }
 
   const applyChanges = () => {
@@ -69,7 +72,7 @@
   let showModal = false
 
   // reset edited filters and sorter when modal is closed
-  $: if ((showModal = false)) {
+  $: if (showModal === false) {
     editedFilters = simpleDeepClone(filters)
     selectedSorterKey = simpleDeepClone(sorters.applied.key)
     selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
@@ -90,12 +93,7 @@
       <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each editedFilters as filter}
-          {@const { type } = filter}
-          {#if type === 'one-of' && filter.values.length}
-            <OneOfFilter bind:filter />
-          {/if}
-        {/each}
+        <Filters bind:filters={editedFilters} />
       </div>
 
       {#if tagFiltersOptions.length}
@@ -143,8 +141,7 @@
         <div class="w-min">
           <Button
             text={$translate('app.labels.apply')}
-            disabled={!modified}
-            on:click={applyChanges}
+            disabled={!filtersModified && !sorterModified && !tagsModified}
           />
         </div>
       </div>

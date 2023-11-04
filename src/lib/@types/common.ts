@@ -32,7 +32,7 @@ export type OneOfFilter = FilterBase & {
 }
 export type DateRangeFilter = FilterBase & {
   type: 'date-range'
-  values: { gt: number | null; lt: number | null }
+  values: { gt: Date | null; lt: Date | null }
 }
 export type AmountRangeFilter = FilterBase & {
   type: 'amount-range'
@@ -51,7 +51,7 @@ export type Sorters = {
 export type DBGetPaymentsOptions = {
   offset: number
   limit: number
-  sort: Sorter
+  sort: Sorters['applied']
   filters: Filter[]
   tags: string[]
   /** this is used for efficient paging and is required if using offset > 0 */

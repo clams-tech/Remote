@@ -7,6 +7,7 @@ import type { Withdrawal } from './@types/withdrawals.js'
 import type { Contact } from './@types/contacts.js'
 import type { Node } from './@types/nodes.js'
 import type { AddressPayment, InvoicePayment, TransactionPayment } from './@types/payments.js'
+import type { Metadata } from './@types/metadata.js'
 
 export type CounterPart =
   | { type: 'wallet'; value: Wallet }
@@ -51,44 +52,40 @@ export type AddressSummary = SummaryCommon & {
 
 export type PaymentSummary = TransactionSummary | InvoiceSummary | AddressSummary
 
-export type ChannelCloseInput = {
+export type InputBase = {
   outpoint: string
+  metadata?: Metadata
+}
+
+export type ChannelCloseInput = InputBase & {
   type: 'channel_close'
   channel: Channel
 }
 
-export type WithdrawalInput = {
-  outpoint: string
+export type WithdrawalInput = InputBase & {
   type: 'withdrawal'
   withdrawal: Withdrawal
 }
 
-export type SpendInput = {
-  outpoint: string
+export type SpendInput = InputBase & {
   type: 'spend'
   utxo: Utxo
 }
 
-export type TimelockedInput = {
-  outpoint: string
+export type TimelockedInput = InputBase & {
   type: 'timelocked'
   channel: Channel
 }
 
-export type EnhancedInput =
-  | ChannelCloseInput
-  | WithdrawalInput
-  | SpendInput
-  | TimelockedInput
-  | {
-      outpoint: string
-      type: 'unknown'
-    }
+export type UnknownInput = InputBase & { type: 'unknown' }
+
+export type EnhancedInput = ChannelCloseInput | WithdrawalInput | SpendInput | TimelockedInput
 
 export type OutputCommon = {
   outpoint: string
   amount: number
   address: string
+  metadata?: Metadata
 }
 
 export type UtxoOutput = OutputCommon & {
@@ -193,11 +190,10 @@ export const deriveTransactionSummary = ({
     db.wallets,
     db.withdrawals,
     db.deposits,
-    db.metadata,
     db.contacts,
+    db.utxos,
     // eslint-disable-next-line
     // @ts-ignore
-    db.utxos,
     db.payments,
     async () => {
       const enhancedInputs: EnhancedInput[] = await Promise.all(
@@ -208,7 +204,7 @@ export const deriveTransactionSummary = ({
            * the input was owned by a custodian and we withdrew to self custody (requires looking at outputs address to match with withdrawal destination)(withdrawal)
            * we don't know about this input (return outpoint))(unknown)
            */
-          const { txid, index } = input
+          const { txid, index, metadata } = input
           const outpoint = `${txid}:${index}`
 
           const closedChannel = await db.channels
@@ -218,6 +214,7 @@ export const deriveTransactionSummary = ({
           if (closedChannel) {
             return {
               outpoint,
+              metadata,
               type: 'channel_close',
               channel: closedChannel
             }
@@ -229,7 +226,7 @@ export const deriveTransactionSummary = ({
             .first()
 
           if (withdrawal) {
-            return { outpoint, type: 'withdrawal', withdrawal }
+            return { outpoint, type: 'withdrawal', withdrawal, metadata }
           }
 
           const ownedInputUtxo = await db.utxos.get(outpoint)
@@ -238,11 +235,12 @@ export const deriveTransactionSummary = ({
             return {
               type: 'spend',
               outpoint,
-              utxo: ownedInputUtxo
+              utxo: ownedInputUtxo,
+              metadata
             }
           }
 
-          return { type: 'unknown', outpoint }
+          return { type: 'unknown', outpoint, metadata }
         })
       )
 
@@ -257,7 +255,7 @@ export const deriveTransactionSummary = ({
            * the output address matches with a deposit to a custodian (deposit)
            * we don't know about this output (return address)(unknown)
            */
-          const { address, index, amount } = output
+          const { address, index, amount, metadata } = output
           const outpoint = `${id}:${index}`
           const ownedOutputUtxo = await db.utxos.get(outpoint)
 
@@ -275,15 +273,23 @@ export const deriveTransactionSummary = ({
                 amount,
                 utxo: ownedOutputUtxo,
                 address,
-                outpoint
+                outpoint,
+                metadata
               }
             } else if (
               (closedChannel.finalToUs && Math.floor(closedChannel.finalToUs) === amount) ||
               closedChannel.balanceLocal - (fee || 0) === amount
             ) {
-              return { type: 'timelocked', channel: closedChannel, amount, address, outpoint }
+              return {
+                type: 'timelocked',
+                channel: closedChannel,
+                amount,
+                address,
+                outpoint,
+                metadata
+              }
             } else {
-              return { type: 'settle', channel: closedChannel, address, outpoint, amount }
+              return { type: 'settle', channel: closedChannel, address, outpoint, amount, metadata }
             }
           }
 
@@ -292,7 +298,14 @@ export const deriveTransactionSummary = ({
             .first()
 
           if (openedChannel) {
-            return { type: 'channel_open', channel: openedChannel, amount, address, outpoint }
+            return {
+              type: 'channel_open',
+              channel: openedChannel,
+              amount,
+              address,
+              outpoint,
+              metadata
+            }
           }
 
           const { forceClosedChannelId, outpoint: inputOutpoint } = await isSweepOutput(inputs)
@@ -312,9 +325,16 @@ export const deriveTransactionSummary = ({
 
           if (ownedOutputUtxo) {
             if (isChangeOutput(enhancedInputs, ownedOutputUtxo)) {
-              return { type: 'change', utxo: ownedOutputUtxo, amount, address, outpoint }
+              return { type: 'change', utxo: ownedOutputUtxo, amount, address, outpoint, metadata }
             } else if (isTransferOutput(enhancedInputs, ownedOutputUtxo)) {
-              return { type: 'transfer', utxo: ownedOutputUtxo, amount, address, outpoint }
+              return {
+                type: 'transfer',
+                utxo: ownedOutputUtxo,
+                amount,
+                address,
+                outpoint,
+                metadata
+              }
             } else if (sweptChannel) {
               return {
                 type: 'sweep',
@@ -322,24 +342,25 @@ export const deriveTransactionSummary = ({
                 channel: sweptChannel,
                 amount,
                 address,
-                outpoint
+                outpoint,
+                metadata
               }
             } else {
-              return { type: 'receive', utxo: ownedOutputUtxo, amount, address, outpoint }
+              return { type: 'receive', utxo: ownedOutputUtxo, amount, address, outpoint, metadata }
             }
           }
 
           const deposit = await db.deposits.where({ destination: address }).first()
 
           if (deposit) {
-            return { type: 'deposit', deposit, amount, address, outpoint }
+            return { type: 'deposit', deposit, amount, address, outpoint, metadata }
           }
 
           if (ownedInputUtxo) {
-            return { type: 'send', amount, address, outpoint }
+            return { type: 'send', amount, address, outpoint, metadata }
           }
 
-          return { type: 'unknown', amount, address, outpoint }
+          return { type: 'unknown', amount, address, outpoint, metadata }
         })
       )
 
@@ -544,7 +565,7 @@ export const deriveTransactionSummary = ({
         const sourceInput = enhancedInputs.find(({ type }) => type === 'spend') as SpendInput
         const sourceWallet = (await db.wallets.get(sourceInput.utxo.walletId)) as Wallet
         const destinationAddress = sendOutput.address
-        const destinationMetadata = await db.metadata.get(destinationAddress)
+        const destinationMetadata = sendOutput.metadata
 
         const destinationContact = destinationMetadata?.contact
           ? await db.contacts.get(destinationMetadata.contact)

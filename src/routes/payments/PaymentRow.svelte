@@ -7,30 +7,19 @@
   import Summary from './Summary.svelte'
   import type { PaymentSummary } from '$lib/summary.js'
   import { updateCounterPartyNodeInfo } from './utils.js'
-  import { getPaymentSummary } from '$lib/db/helpers.js'
-  import { formatDate } from '$lib/dates.js'
   import SummaryPlaceholder from './SummaryPlaceholder.svelte'
-  import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
+  import type { InvoicePayment, Payment, PaymentWithSummary } from '$lib/@types/payments.js'
 
-  export let payment: Payment
+  export let payment: PaymentWithSummary
 
   const { type, network, id, walletId, status } = payment
   const { amount } = payment.data as InvoicePayment['data']
   const icon = type === 'invoice' ? lightning : bitcoin
 
-  let summary: PaymentSummary
-  let formattedTimestamp: string
-
-  getPaymentSummary(payment).then(result => (summary = result))
-
-  $: if (summary) {
-    formatDate(summary.timestamp, 'hh:mma').then(result => (formattedTimestamp = result))
-  }
-
-  $: if (summary?.secondary) {
-    updateCounterPartyNodeInfo(summary.secondary).then(node => {
+  $: if (payment.summary?.secondary) {
+    updateCounterPartyNodeInfo(payment.summary.secondary).then(node => {
       if (node) {
-        summary.secondary = { type: 'node', value: node }
+        payment.summary!.secondary = { type: 'node', value: node }
       }
     })
   }
@@ -49,17 +38,9 @@
       {@html icon}
     </div>
 
-    {#if summary}
-      {@const { primary, secondary, type } = summary}
-      <Summary
-        {primary}
-        {secondary}
-        {status}
-        {type}
-        timestamp={formattedTimestamp}
-        {network}
-        displayNetwork
-      />
+    {#if payment.summary}
+      {@const { primary, secondary, type, timestamp } = payment.summary}
+      <Summary {primary} {secondary} {status} {type} {timestamp} {network} displayNetwork />
     {:else}
       <SummaryPlaceholder />
     {/if}
@@ -67,9 +48,9 @@
 
   <div class="flex items-center ml-2">
     <div>
-      {#if summary && amount && status !== 'expired'}
+      {#if payment.summary && amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
-          {$translate(`app.labels.summary_amount_${summary.type}`, { status })}:
+          {$translate(`app.labels.summary_amount_${payment.summary.type}`, { status })}:
         </div>
         <BitcoinAmount sats={amount} />
       {/if}

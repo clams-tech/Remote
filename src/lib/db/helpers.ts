@@ -1,8 +1,11 @@
 import { filter, firstValueFrom, fromEvent, map } from 'rxjs'
 import { createRandomHex } from '$lib/crypto.js'
 import type { Channel } from '$lib/@types/channels.js'
-import type { PaymentSummary } from '$lib/summary.js'
-import type { InvoicePayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
+import type {
+  InvoicePayment,
+  PaymentWithSummary,
+  TransactionPayment
+} from '$lib/@types/payments.js'
 import type { DBGetPaymentsOptions } from '$lib/@types/common.js'
 
 const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
@@ -89,27 +92,6 @@ export const getLastPaidInvoice = async (walletId: string): Promise<InvoicePayme
   return complete as Promise<InvoicePayment>
 }
 
-export const getPaymentSummary = async (payment: Payment): Promise<PaymentSummary> => {
-  const id = createRandomHex()
-
-  const complete = firstValueFrom(
-    messages$.pipe(
-      filter(message => message.data.id === id),
-      map(message => {
-        if (message.data.error) {
-          throw new Error(message.data.error)
-        }
-
-        return message.data.result
-      })
-    )
-  )
-
-  worker.postMessage({ id, type: 'get_payment_summary', payment })
-
-  return complete as Promise<PaymentSummary>
-}
-
 export const getAllTags = (): Promise<string[]> => {
   const id = createRandomHex()
 
@@ -131,8 +113,10 @@ export const getAllTags = (): Promise<string[]> => {
   return complete as Promise<string[]>
 }
 
-export const getPayments = async (options: DBGetPaymentsOptions): Promise<Payment[]> => {
-  const { offset, limit, sort, filters } = options
+export const getPayments = async (
+  options: DBGetPaymentsOptions
+): Promise<[number, PaymentWithSummary[]][]> => {
+  const { offset, limit, sort, filters, tags } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -148,7 +132,7 @@ export const getPayments = async (options: DBGetPaymentsOptions): Promise<Paymen
     )
   )
 
-  worker.postMessage({ id, type: 'get_payments', offset, limit, sort, filters })
+  worker.postMessage({ id, type: 'get_payments', offset, limit, sort, filters, tags })
 
-  return complete as Promise<Payment[]>
+  return complete as Promise<[number, PaymentWithSummary[]][]>
 }

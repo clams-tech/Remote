@@ -13,32 +13,13 @@
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
-  import type { Payment } from '$lib/@types/payments.js'
-  import type { Filter, Sorter, Sorters } from '$lib/@types/common.js'
+  import type { Payment, PaymentWithSummary } from '$lib/@types/payments.js'
+  import type { Filter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
-
-  // on load get top 50 payments sorted by time stamp with no filtering
-
-  // keep maximum 300 payments in memory at any time
-  // on scroll to bottom, load 50 more payments, trim start to ensure max 300
-  // on scroll to top, load 50 more and trim end to ensure max 300
-
-  // on filter change, fetch the top 50 with filter(s) applied
-  // on sort change, fetch the top 50 with sort applied
-
-  // let filters: Filter[] = []
-  // let tagFilters: TagFilter[] = []
-
-  // let sorters: Sorter[] = [
-  //   { label: $translate('app.labels.date'), key: 'timestamp', direction: 'desc' }
-  // ]
-
-  // getAllTags().then(tags => {
-  //   tagFilters = tags.map(tag => ({ tag, checked: false }))
-
-  // })
+  import { getPayments } from '$lib/db/helpers.js'
+  import type { PaymentSummary } from '$lib/summary.js'
 
   let payments: Payment[] | null = null
   let processing = false
@@ -47,19 +28,31 @@
   let tags: string[] = getTags()
 
   type timestamp = number
-  type DailyPayments = [timestamp, Payment[]][]
+  type DailyPayments = [timestamp, PaymentWithSummary[]][]
   let dailyPayments: DailyPayments = []
 
-  const getPayments = async () => {
+  const getCurrentNumLoadedPayments = () =>
+    dailyPayments.reduce((total, day) => {
+      total += day[1].length
+      return total
+    }, 0)
+
+  const loadPayments = async () => {
     processing = true
 
-    //
+    dailyPayments = await getPayments({
+      filters,
+      tags,
+      sort: sorters.applied,
+      limit: 25,
+      offset: getCurrentNumLoadedPayments()
+    })
 
     processing = false
   }
 
   const handleFilterSortUpdate = () => {
-    getPayments()
+    loadPayments()
     updateStoredFiltersAndSorter()
   }
 
@@ -71,28 +64,6 @@
       // can't write to storage
     }
   }
-
-  // const sortDailyChunks = async () => {
-  //   const id = createRandomHex()
-
-  //   appWorker.postMessage({
-  //     id,
-  //     type: 'sort-daily-payment-chunks',
-  //     payments: processed,
-  //     direction: sorters[0].direction
-  //   })
-
-  //   dailyPayments = (await firstValueFrom(
-  //     appWorkerMessages$.pipe(
-  //       filter(message => message.data.id === id),
-  //       map(({ data }) => data.result)
-  //     )
-  //   )) as PaymentChunks
-  // }
-
-  // $: if (processed) {
-  //   sortDailyChunks()
-  // }
 
   let showFullReceiveButton = false
 
@@ -168,8 +139,10 @@
       )
     )
 
-    getPayments()
+    loadPayments()
   }
+
+  loadPayments()
 </script>
 
 <svelte:window bind:innerHeight />
@@ -179,16 +152,16 @@
     <SectionHeading icon={list} />
     <div class="flex items-center gap-x-2">
       <SyncRouteData sync={syncPayments} />
-      <FilterSort {filters} {sorters} {tags} on:updated={handleFilterSortUpdate} />
+      <FilterSort bind:filters bind:sorters bind:tags on:updated={handleFilterSortUpdate} />
     </div>
   </div>
 
   <div class="w-full overflow-hidden flex">
-    {#if !payments}
+    {#if processing}
       <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />
       </div>
-    {:else if !payments.length}
+    {:else if !dailyPayments.length}
       <div class="mt-4 mb-2 w-full">
         <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
       </div>
@@ -224,7 +197,7 @@
                   >
                     <div slot="item" let:index={innerIndex} let:style {style}>
                       {@const payment = dailyPayments[index][1][innerIndex]}
-                      <!-- <PaymentRow {payment} /> -->
+                      <PaymentRow {payment} />
                     </div>
                   </VirtualList>
                 </div>
