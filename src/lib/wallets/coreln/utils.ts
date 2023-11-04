@@ -99,13 +99,13 @@ export async function formatInvoice(
 
   return {
     id: payment_hash,
-    direction: 'receive',
     status: invoiceStatusToPaymentStatus(status, expires_at),
     timestamp: paid_at || createdAt,
     network,
     walletId,
     type: 'invoice',
     data: {
+      direction: 'receive',
       type: bolt12 ? 'bolt12' : 'bolt11',
       request: (bolt12 || bolt11) as string,
       preimage: payment_preimage,
@@ -174,11 +174,11 @@ export async function payToInvoice(
     id: payment_hash,
     status,
     timestamp,
-    direction: 'send',
     walletId,
     network,
     type: 'invoice',
     data: {
+      direction: 'send',
       counterpartyNode: nodeId,
       request: (bolt12 || bolt11) as string,
       createdAt: timestamp,

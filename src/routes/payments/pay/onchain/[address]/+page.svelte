@@ -75,7 +75,7 @@
       if (connection.utxos?.get) {
         try {
           const updatedUtxos = await connection.utxos.get()
-          await db.utxos.bulkPut(updatedUtxos)
+          await db.utxos.updateTableItems(updatedUtxos)
         } catch (error) {
           const { detail } = error as AppError
           const { message } = error as Error

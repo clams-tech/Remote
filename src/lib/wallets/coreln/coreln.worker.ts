@@ -33,6 +33,7 @@ import type {
   ListPeerChannelsResponse,
   ListfundsResponse
 } from './types.js'
+import { distinctUntilChanged } from 'rxjs'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -120,7 +121,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       const socket = new LnMessage(message.data.data)
       sockets[message.data.socketId] = socket
 
-      socket.connectionStatus$.subscribe(status => {
+      socket.connectionStatus$.pipe(distinctUntilChanged()).subscribe(status => {
         console.log('CONNECTION STATUS UPDATE:', status)
         self.postMessage({ id: 'connectionStatus$', result: status })
       })
@@ -286,11 +287,13 @@ onmessage = async (message: MessageEvent<Message>) => {
               })
             }
 
-            return {
+            const payment: TransactionPayment = {
               id: hash,
               walletId: walletId,
               timestamp,
               network,
+              status: blockheight ? 'complete' : 'waiting',
+              type: 'transaction',
               data: {
                 rawTx: rawtx,
                 blockHeight: blockheight,
@@ -337,7 +340,9 @@ onmessage = async (message: MessageEvent<Message>) => {
                     )
                   : undefined
               }
-            } as TransactionPayment
+            }
+
+            return payment
           }
         )
 

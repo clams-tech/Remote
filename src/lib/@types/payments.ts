@@ -8,7 +8,6 @@ export type PaymentBase = {
   walletId: string
   status: PaymentStatus
   timestamp: number
-  direction: PaymentDirection
   network: Network
   metadata?: Metadata
 }
@@ -58,6 +57,7 @@ export type AddressPayment = PaymentBase & {
     message?: string
     /** the tx id of the tx sent to this address */
     txid?: string
+    direction: PaymentDirection
   }
 }
 
@@ -77,6 +77,7 @@ export type InvoicePayment = PaymentBase & {
     preimage?: string
     payIndex?: number
     fallbackAddress?: string
+    direction: PaymentDirection
     offer?: {
       id?: string
       issuer?: DecodedBolt12Offer['offer_issuer']

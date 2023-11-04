@@ -79,7 +79,12 @@ export type TimelockedInput = InputBase & {
 
 export type UnknownInput = InputBase & { type: 'unknown' }
 
-export type EnhancedInput = ChannelCloseInput | WithdrawalInput | SpendInput | TimelockedInput
+export type EnhancedInput =
+  | ChannelCloseInput
+  | WithdrawalInput
+  | SpendInput
+  | TimelockedInput
+  | UnknownInput
 
 export type OutputCommon = {
   outpoint: string
@@ -621,13 +626,15 @@ export const deriveTransactionSummary = ({
 
       if (receiveOutput) {
         const receiveWallet = (await db.wallets.get(receiveOutput.utxo.walletId)) as Wallet
-        const inputOutpoints = enhancedInputs.map(({ outpoint }) => outpoint)
-        const inputMetadata = await db.metadata.where('id').anyOf(inputOutpoints).toArray()
-        const inputMetadatWithContact = inputMetadata.find(({ contact }) => contact)
+        const inputContacts = enhancedInputs
+          .map(({ metadata }) => metadata?.contact)
+          .filter(x => !!x) as string[]
 
-        const sourceContact = inputMetadatWithContact?.contact
-          ? await db.contacts.get(inputMetadatWithContact.contact)
-          : null
+        let sourceContact: Contact | undefined = undefined
+
+        if (inputContacts.length) {
+          sourceContact = await db.contacts.get(inputContacts[0])
+        }
 
         const receiveSummary: RegularTransactionSummary = {
           timestamp,
@@ -664,33 +671,24 @@ export const deriveTransactionSummary = ({
 }
 
 export const deriveInvoiceSummary = ({
-  direction,
   walletId,
-  data: { amount, fee, counterpartyNode, request, createdAt, completedAt }
+  data: { amount, fee, counterpartyNode, request, createdAt, completedAt, direction },
+  metadata
 }: InvoicePayment): Promise<InvoiceSummary> => {
-  return db.transaction('r', db.wallets, db.contacts, db.metadata, db.nodes, async () => {
+  return db.transaction('r', db.wallets, db.contacts, db.nodes, async () => {
     const wallet = (await db.wallets.get(walletId)) as Wallet
 
     let transferWallet: Wallet | undefined
-    let nodeIdContact: Contact | undefined
-    let requestContact: Contact | undefined
+    let paymentContact: Contact | undefined
     let node: Node | undefined
 
     if (counterpartyNode) {
       node = await db.nodes.get(counterpartyNode)
       transferWallet = await db.wallets.where({ nodeId: counterpartyNode }).first()
-
-      nodeIdContact = (await db.transaction('r', db.metadata, db.contacts, async () => {
-        const nodeIdMetadata = await db.metadata.get(counterpartyNode)
-        return nodeIdMetadata?.contact ? db.contacts.get(nodeIdMetadata.contact) : undefined
-      })) as Contact
     }
 
-    if (request) {
-      requestContact = (await db.transaction('r', db.metadata, db.contacts, async () => {
-        const requestMetadata = await await db.metadata.get(request)
-        return requestMetadata?.contact ? await db.contacts.get(requestMetadata.contact) : undefined
-      })) as Contact
+    if (metadata?.contact) {
+      paymentContact = await db.contacts.get(metadata.contact)
     }
 
     const type = transferWallet ? 'transfer' : direction
@@ -699,10 +697,8 @@ export const deriveInvoiceSummary = ({
 
     if (transferWallet) {
       secondary = { type: 'wallet', value: transferWallet }
-    } else if (nodeIdContact) {
-      secondary = { type: 'contact', value: nodeIdContact }
-    } else if (requestContact) {
-      secondary = { type: 'contact', value: requestContact }
+    } else if (paymentContact) {
+      secondary = { type: 'contact', value: paymentContact }
     } else if (node) {
       secondary = { type: 'node', value: node }
     } else {

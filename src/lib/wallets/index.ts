@@ -13,7 +13,12 @@ import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
 import { createRandomHex, decryptWithAES } from '$lib/crypto.js'
-import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from '$lib/db/helpers.js'
+import {
+  updateTableItems,
+  getLastPaidInvoice,
+  updateChannels,
+  updateTransactions
+} from '$lib/db/helpers.js'
 import { goto } from '$app/navigation'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
@@ -125,7 +130,7 @@ export const fetchUtxos = async (connection: Connection) =>
   connection.utxos
     .get()
     .then(utxos => {
-      return bulkPut('utxos', utxos)
+      return updateTableItems('utxos', utxos)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -134,7 +139,7 @@ export const fetchInvoices = async (connection: Connection) =>
   connection.invoices
     .get()
     .then(invoices => {
-      return bulkPut('payments', invoices)
+      return updateTableItems('payments', invoices)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -161,7 +166,7 @@ export const fetchForwards = async (connection: Connection) =>
   connection.forwards
     .get()
     .then(forwards => {
-      return bulkPut('forwards', forwards)
+      return updateTableItems('forwards', forwards)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -170,7 +175,7 @@ export const fetchOffers = async (connection: Connection) =>
   connection.offers
     .get()
     .then(offers => {
-      return bulkPut('offers', offers)
+      return updateTableItems('offers', offers)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -179,7 +184,7 @@ export const fetchTrades = async (connection: Connection) =>
   connection.trades
     .get()
     .then(async trades => {
-      return bulkPut('trades', trades)
+      return updateTableItems('trades', trades)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -188,7 +193,7 @@ export const fetchWithdrawals = async (connection: Connection) =>
   connection.withdrawals
     .get()
     .then(async withdrawals => {
-      return bulkPut('withdrawals', withdrawals)
+      return updateTableItems('withdrawals', withdrawals)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -197,7 +202,7 @@ export const fetchDeposits = async (connection: Connection) =>
   connection.deposits
     .get()
     .then(async deposits => {
-      return bulkPut('deposits', deposits)
+      return updateTableItems('deposits', deposits)
     })
     .catch(error => log.error(error.detail.message))
 

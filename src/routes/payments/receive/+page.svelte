@@ -23,6 +23,7 @@
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
   import type { AddressPayment } from '$lib/@types/payments.js'
+  import Msg from '$lib/components/Msg.svelte'
 
   let selectedWalletId: Wallet['id']
   let amount: number

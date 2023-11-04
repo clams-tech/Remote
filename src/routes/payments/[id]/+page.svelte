@@ -426,10 +426,11 @@
       secondary,
       summaryType,
       network,
-      blockHeight
+      blockHeight,
+      timestamp
     } = transactionDetailToShow}
     <div class="w-full flex justify-center items-center text-3xl font-semibold text-center">
-      <Summary {primary} {secondary} type={summaryType} {network} {status} centered />
+      <Summary {primary} {secondary} type={summaryType} {network} {status} {timestamp} centered />
     </div>
     {#if qrValues.length}
       <div class="flex flex-col w-full items-center my-4">

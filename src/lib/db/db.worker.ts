@@ -1,16 +1,17 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
 import type { DBGetPaymentsOptions, Sorter, ValueOf } from '$lib/@types/common.js'
+import type { Collection } from 'dexie'
+import { endOfDay } from 'date-fns'
+import { inPlaceSort } from 'fast-sort'
+import { formatDate } from '$lib/dates.js'
+
 import type {
   AddressPayment,
   Payment,
   PaymentWithSummary,
   TransactionPayment
 } from '$lib/@types/payments.js'
-import type { Collection } from 'dexie'
-import { endOfDay } from 'date-fns'
-import { inPlaceSort } from 'fast-sort'
-import { formatDate } from '$lib/dates.js'
 
 import {
   deriveAddressSummary,
@@ -31,6 +32,12 @@ type UpdateChannelsMessage = MessageBase & {
 type UpdateTransactionsMessage = MessageBase & {
   type: 'update_transactions'
   transactions: TransactionPayment[]
+}
+
+type UpdateTableItemsMessage = MessageBase & {
+  type: 'update_table_items'
+  table: string
+  data: unknown[]
 }
 
 type BulkPutMessage = MessageBase & {
@@ -55,10 +62,11 @@ type GetAllTagsMessage = MessageBase & {
 type Message =
   | UpdateChannelsMessage
   | UpdateTransactionsMessage
-  | BulkPutMessage
+  | UpdateTableItemsMessage
   | GetLastPayMessage
   | GetAllTagsMessage
   | GetPaymentsMessage
+  | BulkPutMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -91,31 +99,33 @@ onmessage = async (message: MessageEvent<Message>) => {
       try {
         const { transactions } = message.data
 
-        const addressesWithoutTxid = await db.payments
-          .where({ walletId: transactions[0].walletId, type: 'address' })
-          .filter(payment => !(payment as AddressPayment).data.txid)
-          .toArray()
+        if (transactions.length) {
+          const addressesWithoutTxid = await db.payments
+            .where({ walletId: transactions[0].walletId, type: 'address' })
+            .filter(payment => !(payment as AddressPayment).data.txid)
+            .toArray()
 
-        // update all addresses that have a corresponding tx
-        await Promise.all(
-          addressesWithoutTxid.map(address => {
-            const tx = transactions.find(transaction =>
-              (transaction as TransactionPayment).data.outputs.find(
-                output => output.address === address.id
+          // update all addresses that have a corresponding tx
+          await Promise.all(
+            addressesWithoutTxid.map(address => {
+              const tx = transactions.find(transaction =>
+                (transaction as TransactionPayment).data.outputs.find(
+                  output => output.address === address.id
+                )
               )
-            )
 
-            if (tx) {
-              return db.payments.update(address.id, {
-                data: { txid: tx.id, completedAt: tx.timestamp }
-              })
-            }
+              if (tx) {
+                return db.payments.update(address.id, {
+                  data: { txid: tx.id, completedAt: tx.timestamp }
+                })
+              }
 
-            return Promise.resolve()
-          })
-        )
+              return Promise.resolve()
+            })
+          )
 
-        await db.payments.bulkPut(transactions)
+          await db.payments.bulkPut(transactions)
+        }
 
         self.postMessage({ id: message.data.id })
       } catch (error) {
@@ -130,6 +140,38 @@ onmessage = async (message: MessageEvent<Message>) => {
         // eslint-disable-next-line
         // @ts-ignore
         await db[message.data.table].bulkPut(message.data.data)
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
+    case 'update_table_items': {
+      try {
+        const table = message.data.table
+        const { data } = message.data
+
+        /**
+         * Try to update item in db so as to not overwrite
+         * any metadata that may be there. if item is new and
+         * cannot be updated, then put in the db.
+         */
+        await Promise.all(
+          data.map(val =>
+            // eslint-disable-next-line
+            // @ts-ignore
+            db[table].update(val.id, val).then(updated => {
+              if (!updated) {
+                // eslint-disable-next-line
+                // @ts-ignore
+                return db[table].put(val)
+              }
+            })
+          )
+        )
+
         self.postMessage({ id: message.data.id })
       } catch (error) {
         const { message: errMsg } = error as Error
@@ -200,13 +242,7 @@ onmessage = async (message: MessageEvent<Message>) => {
           if (type === 'one-of') {
             const applied = filter.values.filter(({ applied }) => applied)
 
-            if (
-              applied.length &&
-              !applied.some(({ value }) => {
-                console.log({ value, valueToTest })
-                return value === valueToTest
-              })
-            ) {
+            if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
               return false
             }
           }
@@ -245,8 +281,6 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
 
       const payments = await collection.distinct().offset(offset).limit(limit).toArray()
-
-      console.log({ payments })
 
       const paymentsWithSummary: PaymentWithSummary[] = await Promise.all(
         payments.map(async payment => {

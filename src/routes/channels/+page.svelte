@@ -17,7 +17,7 @@
   import type { Channel } from '$lib/@types/channels.js'
   import { connections$, onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import type { Filter, Sorter } from '$lib/@types/common.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchChannels } from '$lib/wallets/index.js'
 

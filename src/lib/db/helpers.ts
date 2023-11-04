@@ -52,6 +52,25 @@ export const updateTransactions = async (transactions: TransactionPayment[]): Pr
   return complete
 }
 
+export const updateTableItems = async (table: string, data: unknown[]): Promise<void> => {
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'update_table_items', table, data })
+
+  return complete
+}
+
 export const bulkPut = async (table: string, data: unknown[]): Promise<void> => {
   const id = createRandomHex()
 

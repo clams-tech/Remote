@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Network, PaymentStatus } from '$lib/@types/payments.js'
+  import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations.js'
   import type { PaymentSummary } from '$lib/summary.js'
   import { truncateValue } from '$lib/utils.js'
@@ -51,7 +52,9 @@
 
   <div class="flex items-center gap-x-1" class:justify-center={centered}>
     {#if timestamp}
-      <div class="text-[0.75em] font-semibold mt-1">{timestamp}</div>
+      {#await formatDate(timestamp, 'hh:mma') then formatted}
+        <div class="text-[0.75em] font-semibold mt-1">{formatted}</div>
+      {/await}
     {/if}
 
     {#if network !== 'bitcoin' && displayNetwork}
