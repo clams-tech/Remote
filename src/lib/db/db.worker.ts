@@ -1,9 +1,8 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
-import type { DBGetPaymentsOptions, Sorter, ValueOf } from '$lib/@types/common.js'
+import type { DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
 import { endOfDay } from 'date-fns'
-import { inPlaceSort } from 'fast-sort'
 import { formatDate } from '$lib/dates.js'
 
 import type {
@@ -289,7 +288,7 @@ onmessage = async (message: MessageEvent<Message>) => {
         })
       )
 
-      const sortedDailyChunks = await sortDailyChunks(paymentsWithSummary, sort.direction)
+      const sortedDailyChunks = await sortDailyChunks(paymentsWithSummary)
 
       self.postMessage({ id: message.data.id, result: sortedDailyChunks })
     }
@@ -298,8 +297,8 @@ onmessage = async (message: MessageEvent<Message>) => {
 
 type ItemsMap = Map<number, unknown[]>
 
-const sortDailyChunks = async <T>(items: T[], direction: Sorter['direction']) => {
-  const map = items.reduce((acc, item) => {
+const sortDailyChunks = async <T>(items: T[]) => {
+  const itemsMap = items.reduce((acc, item) => {
     const date = new Date((item as { timestamp: number }).timestamp * 1000)
     const dateKey = endOfDay(date).getTime() / 1000
     acc.set(dateKey, [...(acc.get(dateKey) || []), item])
@@ -307,18 +306,11 @@ const sortDailyChunks = async <T>(items: T[], direction: Sorter['direction']) =>
     return acc
   }, new Map() as ItemsMap)
 
-  const dailyPaymentChunks = inPlaceSort(Array.from(map.entries()))[direction](
-    ([timestamp]) => timestamp
-  )
-
   const sortedChunks = await Promise.all(
-    dailyPaymentChunks.map(async ([date, items]) => {
+    Array.from(itemsMap.entries()).map(async ([date, items]) => {
       const formattedDate = await formatDate(date)
 
-      return [
-        formattedDate,
-        inPlaceSort(items).desc(item => (item as { timestamp: number }).timestamp)
-      ]
+      return [formattedDate, items]
     })
   )
 

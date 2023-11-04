@@ -9,19 +9,17 @@
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { connections$, wallets$ } from '$lib/streams.js'
+  import { connections$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
-  import type { Payment, PaymentWithSummary } from '$lib/@types/payments.js'
+  import type { PaymentWithSummary } from '$lib/@types/payments.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import { getPayments } from '$lib/db/helpers.js'
-  import type { PaymentSummary } from '$lib/summary.js'
 
-  let payments: Payment[] | null = null
   let processing = false
   let filters: Filter[] = getFilters()
   let sorters: Sorters = getSorters()
@@ -104,21 +102,22 @@
 
   const getDaySize = (index: number) => {
     const payments = dailyPayments[index][1]
-    return payments.length * rowSize + 24 + 8
+    return Math.min(payments.length * rowSize + 24 + 8, maxHeight)
   }
 
   let innerHeight: number
 
-  $: maxHeight = innerHeight - 80 - 56 - 24
+  $: maxHeight = innerHeight ? innerHeight - 80 - 56 - 80 : 0
 
-  $: fullHeight = dailyPayments
+  $: fullHeight = dailyPayments.length
     ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
 
   $: listHeight = Math.min(maxHeight, fullHeight)
+
   $: transactionsContainerScrollable = processing
     ? false
-    : dailyPayments
+    : dailyPayments.length
     ? fullHeight > listHeight
     : false
 
@@ -156,7 +155,7 @@
     </div>
   </div>
 
-  <div class="w-full overflow-hidden flex">
+  <div class="w-full flex">
     {#if processing}
       <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />
@@ -166,10 +165,7 @@
         <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
       </div>
     {:else}
-      <div
-        in:fade={{ duration: 250 }}
-        class="w-full flex flex-col overflow-hidden gap-y-2 rounded mt-2"
-      >
+      <div in:fade={{ duration: 250 }} class="w-full flex flex-col gap-y-2 rounded mt-2">
         <VirtualList
           bind:this={virtualList}
           on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
@@ -180,15 +176,17 @@
           getKey={index => dailyPayments[index][0]}
         >
           <div slot="item" let:index let:style {style}>
-            <div class="pt-1 pl-1">
+            <div class="pt-1">
               <div
                 class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
               >
+                <!-- day date -->
                 {dailyPayments[index][0]}
               </div>
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
                   <VirtualList
+                    on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
                     width="100%"
                     height={Math.min(dailyPayments[index][1].length * rowSize, maxHeight - 32)}
                     itemCount={dailyPayments[index][1].length}
