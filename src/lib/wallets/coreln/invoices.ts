@@ -88,11 +88,11 @@ class Invoices implements InvoicesInterface {
         id: payment_hash,
         status: 'waiting',
         timestamp: createdAt,
-        direction: 'receive',
         walletId: this.connection.walletId,
         network: this.connection.info.network,
         type: 'invoice',
         data: {
+          direction: 'receive',
           amount,
           fee: undefined,
           type: 'bolt11',
@@ -146,12 +146,12 @@ class Invoices implements InvoicesInterface {
       return {
         id: payment_hash,
         timestamp: completedAt,
-        direction: 'send',
         status,
         walletId: this.connection.walletId,
         network: this.connection.info.network,
         type: 'invoice',
         data: {
+          direction: 'send',
           preimage: payment_preimage,
           counterpartyNode: destination,
           type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
@@ -198,13 +198,13 @@ class Invoices implements InvoicesInterface {
 
       return {
         id: payment_hash,
-        direction: 'send',
         timestamp: completedAt,
         status,
         walletId: this.connection.walletId,
         network: this.connection.info.network,
         type: 'invoice',
         data: {
+          direction: 'send',
           preimage: payment_preimage,
           counterpartyNode: destination,
           type: 'bolt11',
