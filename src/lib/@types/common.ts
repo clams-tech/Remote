@@ -48,6 +48,8 @@ export type Sorters = {
   options: Sorter[]
 }
 
+export type TagFilterOption = { id: string; label: string; applied: boolean }
+
 export type DBGetPaymentsOptions = {
   offset: number
   limit: number

@@ -2,7 +2,7 @@
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
-  import type { Filter, SortDirection, Sorters } from '$lib/@types/common.js'
+  import type { Filter, SortDirection, Sorters, TagFilterOption } from '$lib/@types/common.js'
   import { createEventDispatcher } from 'svelte'
   import Filters from './Filters.svelte'
   import Button from './Button.svelte'
@@ -10,31 +10,33 @@
   import { getAllTags } from '$lib/db/helpers.js'
   import TagFilters from './TagFilters.svelte'
   import { slide } from 'svelte/transition'
+  import type { Tag } from '$lib/@types/metadata.js'
+  import {
+    getDefaultPaymentFilterOptions,
+    getDefaultPaymentSorters
+  } from '../../routes/payments/filters.js'
 
   export let filters: Filter[]
   export let sorters: Sorters
-  export let tags: string[]
+  export let tags: Tag['id'][]
 
   const dispatch = createEventDispatcher()
 
   let editedFilters: Filter[] = simpleDeepClone(filters)
   let selectedSorterKey: string = simpleDeepClone(sorters.applied.key)
   let selectedSorterDirection: SortDirection = simpleDeepClone(sorters.applied.direction)
-  let editedTags: string[] = []
-  let tagFiltersOptions: string[] = []
+  let tagFiltersOptions: TagFilterOption[] = []
   let filtersModified = false
   let sorterModified = false
   let tagsModified = false
 
   // get all tags and set them as options
   getAllTags().then(allTags => {
-    if (allTags.length) {
-      tagFiltersOptions = allTags
-    }
-
-    // remove tags that no longer exist
-    tags = tags.filter(tag => allTags.includes(tag))
-    editedTags = tags
+    tagFiltersOptions = allTags.map(({ id, label }) => ({
+      id,
+      label,
+      applied: tags.includes(id)
+    }))
   })
 
   $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
@@ -52,7 +54,7 @@
     sorterModified = false
   }
 
-  $: if (JSON.stringify(tags) !== JSON.stringify(editedTags)) {
+  $: if (tagFiltersOptions.filter(({ applied }) => !!applied).length !== tags.length) {
     tagsModified = true
   } else {
     tagsModified = false
@@ -66,6 +68,28 @@
       direction: selectedSorterDirection
     })
 
+    tags = tagFiltersOptions.filter(({ applied }) => !!applied).map(({ id }) => id)
+
+    dispatch('updated')
+    showModal = false
+  }
+
+  const reset = () => {
+    filters = getDefaultPaymentFilterOptions()
+    editedFilters = simpleDeepClone(filters)
+
+    sorters = getDefaultPaymentSorters()
+    selectedSorterKey = simpleDeepClone(sorters.applied.key)
+    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+
+    tags = []
+
+    tagFiltersOptions = tagFiltersOptions.map(({ id, label }) => ({
+      id,
+      label,
+      applied: false
+    }))
+
     dispatch('updated')
   }
 
@@ -76,7 +100,6 @@
     editedFilters = simpleDeepClone(filters)
     selectedSorterKey = simpleDeepClone(sorters.applied.key)
     selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
-    editedTags = simpleDeepClone(tags)
   }
 </script>
 
@@ -98,7 +121,7 @@
 
       {#if tagFiltersOptions.length}
         <div class="w-full" in:slide={{ axis: 'y' }}>
-          <TagFilters options={tagFiltersOptions} bind:tags={editedTags} />
+          <TagFilters bind:tags={tagFiltersOptions} />
         </div>
       {/if}
 
@@ -139,7 +162,12 @@
 
       <div class="w-full flex justify-end mt-2">
         <div class="w-min">
+          <Button on:click={reset} text={$translate('app.labels.reset')} />
+        </div>
+
+        <div class="w-min">
           <Button
+            on:click={applyChanges}
             text={$translate('app.labels.apply')}
             disabled={!filtersModified && !sorterModified && !tagsModified}
           />

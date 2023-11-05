@@ -7,6 +7,7 @@ import type {
   TransactionPayment
 } from '$lib/@types/payments.js'
 import type { DBGetPaymentsOptions } from '$lib/@types/common.js'
+import type { Tag } from '$lib/@types/metadata.js'
 
 const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
   type: 'module'
@@ -111,7 +112,7 @@ export const getLastPaidInvoice = async (walletId: string): Promise<InvoicePayme
   return complete as Promise<InvoicePayment>
 }
 
-export const getAllTags = (): Promise<string[]> => {
+export const getAllTags = (): Promise<Tag[]> => {
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -129,13 +130,13 @@ export const getAllTags = (): Promise<string[]> => {
 
   worker.postMessage({ id, type: 'get_all_tags' })
 
-  return complete as Promise<string[]>
+  return complete as Promise<Tag[]>
 }
 
 export const getPayments = async (
   options: DBGetPaymentsOptions
 ): Promise<[number, PaymentWithSummary[]][]> => {
-  const { offset, limit, sort, filters, tags } = options
+  const { offset, limit, sort, filters, tags, lastPayment } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -151,7 +152,7 @@ export const getPayments = async (
     )
   )
 
-  worker.postMessage({ id, type: 'get_payments', offset, limit, sort, filters, tags })
+  worker.postMessage({ id, type: 'get_payments', offset, limit, sort, filters, tags, lastPayment })
 
   return complete as Promise<[number, PaymentWithSummary[]][]>
 }

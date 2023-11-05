@@ -15,7 +15,7 @@
   import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
   import type { PaymentWithSummary } from '$lib/@types/payments.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
-  import { getFilters, getSorters, getTags } from './filters.js'
+  import { getDefaultPaymentFilterOptions, getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import { getPayments } from '$lib/db/helpers.js'
@@ -35,7 +35,7 @@
       return total
     }, 0)
 
-  const loadPayments = async () => {
+  const loadPayments = async (loadingMore?: boolean) => {
     processing = true
 
     dailyPayments = await getPayments({
@@ -43,11 +43,14 @@
       tags,
       sort: sorters.applied,
       limit: 25,
-      offset: getCurrentNumLoadedPayments()
+      offset: loadingMore ? getCurrentNumLoadedPayments() : 0,
+      lastPayment: loadingMore ? dailyPayments.reverse()[0][1].reverse()[0] : undefined
     })
 
     processing = false
   }
+
+  $: filtersApplied = JSON.stringify(filters) !== JSON.stringify(getDefaultPaymentFilterOptions)
 
   const handleFilterSortUpdate = () => {
     loadPayments()
@@ -57,7 +60,7 @@
   const updateStoredFiltersAndSorter = () => {
     try {
       storage.write(STORAGE_KEYS.filters.payments, JSON.stringify(filters))
-      storage.write(STORAGE_KEYS.sorter.payments, JSON.stringify(sorters))
+      storage.write(STORAGE_KEYS.sorter.payments, JSON.stringify(sorters.applied))
     } catch (error) {
       // can't write to storage
     }
@@ -162,7 +165,13 @@
       </div>
     {:else if !dailyPayments.length}
       <div class="mt-4 mb-2 w-full">
-        <Msg type="info" closable={false} message={$translate('app.labels.no_payments')} />
+        <Msg
+          type="info"
+          closable={false}
+          message={$translate(
+            `app.labels.${filtersApplied ? 'no_payments_filtered' : 'no_payments'}`
+          )}
+        />
       </div>
     {:else}
       <div in:fade={{ duration: 250 }} class="w-full flex flex-col gap-y-2 rounded mt-2">

@@ -5,7 +5,7 @@ import { storage } from '$lib/services.js'
 import { wallets$ } from '$lib/streams.js'
 import { get } from 'svelte/store'
 
-const getDefaultPaymentFilterOptions = (): Filter[] => {
+export const getDefaultPaymentFilterOptions = (): Filter[] => {
   return [
     {
       label: get(translate)('app.labels.status'),
