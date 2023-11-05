@@ -21,6 +21,7 @@
   import { getPayments } from '$lib/db/helpers.js'
 
   let processing = false
+  let gettingMorePayments = false
   let filters: Filter[] = getFilters()
   let sorters: Sorters = getSorters()
   let tags: string[] = getTags()
@@ -35,7 +36,7 @@
       return total
     }, 0)
 
-  const loadPayments = async (loadingMore?: boolean) => {
+  const loadPayments = async () => {
     processing = true
 
     dailyPayments = await getPayments({
@@ -43,11 +44,38 @@
       tags,
       sort: sorters.applied,
       limit: 25,
-      offset: loadingMore ? getCurrentNumLoadedPayments() : 0,
-      lastPayment: loadingMore ? dailyPayments.reverse()[0][1].reverse()[0] : undefined
+      offset: 0
     })
 
     processing = false
+  }
+
+  const getMorePayments = async () => {
+    gettingMorePayments = true
+    const lastDay = dailyPayments[dailyPayments.length - 1]
+    const lastPayment = lastDay[1][lastDay[1].length - 1]
+
+    const morePayments = await getPayments({
+      filters,
+      tags,
+      sort: sorters.applied,
+      limit: 25,
+      offset: getCurrentNumLoadedPayments(),
+      lastPayment
+    })
+
+    const morePaymentsFirstDay = morePayments.shift()
+
+    if (morePaymentsFirstDay) {
+      // add payments to the last day as they have the same date
+      if (lastDay[0] === morePaymentsFirstDay[0]) {
+        lastDay[1].push(...morePaymentsFirstDay[1])
+      }
+
+      dailyPayments = [...dailyPayments, ...morePayments]
+    }
+
+    gettingMorePayments = false
   }
 
   $: filtersApplied = JSON.stringify(filters) !== JSON.stringify(getDefaultPaymentFilterOptions)
@@ -76,6 +104,11 @@
   let processingScroll = false
 
   const handleTransactionsScroll = (offset: number) => {
+    // scrolled to bottom
+    if (offset >= bottom) {
+      getMorePayments()
+    }
+
     if (processingScroll) return
 
     if (offset + 10 < previousOffset) {
@@ -115,6 +148,8 @@
   $: fullHeight = dailyPayments.length
     ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
+
+  $: bottom = fullHeight - maxHeight
 
   $: listHeight = Math.min(maxHeight, fullHeight)
 
@@ -174,7 +209,10 @@
         />
       </div>
     {:else}
-      <div in:fade={{ duration: 250 }} class="w-full flex flex-col gap-y-2 rounded mt-2">
+      <div
+        in:fade={{ duration: 250 }}
+        class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2"
+      >
         <VirtualList
           bind:this={virtualList}
           on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
@@ -212,6 +250,12 @@
             </div>
           </div>
         </VirtualList>
+
+        {#if gettingMorePayments}
+          <div class="absolute bottom-1 text-neutral-400">
+            <Spinner size="1.5rem" />
+          </div>
+        {/if}
       </div>
     {/if}
   </div>

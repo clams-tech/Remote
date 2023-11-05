@@ -11,6 +11,7 @@
   import TagFilters from './TagFilters.svelte'
   import { slide } from 'svelte/transition'
   import type { Tag } from '$lib/@types/metadata.js'
+
   import {
     getDefaultPaymentFilterOptions,
     getDefaultPaymentSorters
@@ -160,13 +161,14 @@
         {/each}
       </div>
 
-      <div class="w-full flex justify-end mt-2">
+      <div class="w-full flex justify-end mt-2 gap-x-2">
         <div class="w-min">
           <Button on:click={reset} text={$translate('app.labels.reset')} />
         </div>
 
         <div class="w-min">
           <Button
+            primary
             on:click={applyChanges}
             text={$translate('app.labels.apply')}
             disabled={!filtersModified && !sorterModified && !tagsModified}
