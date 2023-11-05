@@ -7,6 +7,7 @@ import type { Network } from './@types/payments.js'
 import { combineLatest, from, map, type Observable } from 'rxjs'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
+import type { Filter } from './@types/common.js'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -180,4 +181,64 @@ export const getWalletBalance = (walletId: string): Observable<number | null> =>
   return combineLatest([channelsBalance$, utxosBalance]).pipe(
     map(([channelsBalance, utxosBalance]) => channelsBalance + utxosBalance)
   )
+}
+
+export const mergeDefaultWithSavedFilters = (defaults: Filter[], saved: Filter[] | null) => {
+  if (saved) {
+    const savedFilterOptions = defaults.map(filter => {
+      const { key, label, type } = filter
+      const savedFilter = saved.find(savedFilter => savedFilter.key === key)
+
+      if (savedFilter) {
+        if (type === 'one-of' && savedFilter.type === 'one-of') {
+          return {
+            label,
+            key,
+            type,
+            values: filter.values.map(oneOf => {
+              const savedOneOfValue = savedFilter.values.find(({ value }) => value === oneOf.value)
+              if (savedOneOfValue) {
+                return { ...oneOf, applied: savedOneOfValue.applied }
+              } else {
+                return oneOf
+              }
+            })
+          }
+        }
+
+        if (type === 'date-range' && savedFilter.type === 'date-range') {
+          return {
+            label,
+            key,
+            type,
+            values: { ...filter.values, ...savedFilter.values }
+          }
+        }
+
+        if (type === 'amount-range' && savedFilter.type === 'amount-range') {
+          return {
+            label,
+            key,
+            type,
+            values: { ...filter.values, ...savedFilter.values }
+          }
+        }
+
+        if (type === 'exists' && savedFilter.type === 'exists') {
+          return {
+            label,
+            key,
+            type,
+            applied: savedFilter.applied
+          }
+        }
+      }
+
+      return filter
+    })
+
+    return savedFilterOptions
+  } else {
+    return defaults
+  }
 }

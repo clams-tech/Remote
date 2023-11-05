@@ -222,6 +222,7 @@
     "no_payments_filtered": "No payments match your current filters.",
     "no_utxos": "No utxos here, try adding a wallet connection and syncing it.",
     "no_forwards": "No forwards here, ensure that you have a lightning wallet connected and you have more than one open channel.",
+    "no_forwards_filtered": "No forwards match your current filters.",
     "no_wallets": "No wallets here, add a wallet to get started.",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",

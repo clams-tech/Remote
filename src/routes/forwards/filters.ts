@@ -6,7 +6,7 @@ import { wallets$ } from '$lib/streams.js'
 import { mergeDefaultWithSavedFilters } from '$lib/utils.js'
 import { get } from 'svelte/store'
 
-export const getDefaultPaymentFilterOptions = (): Filter[] => {
+export const getDefaultFilterOptions = (): Filter[] => {
   return [
     {
       label: get(translate)('app.labels.status'),
@@ -14,50 +14,23 @@ export const getDefaultPaymentFilterOptions = (): Filter[] => {
       type: 'one-of',
       values: [
         {
-          label: get(translate)('app.labels.pending'),
-          value: 'pending',
+          label: get(translate)('app.labels.settled'),
+          value: 'settled',
           applied: false
         },
         {
-          label: get(translate)('app.labels.waiting'),
-          value: 'waiting',
-          applied: false
-        },
-        {
-          label: get(translate)('app.labels.complete'),
-          value: 'complete',
-          applied: false
-        },
-        {
-          label: get(translate)('app.labels.expired'),
-          value: 'expired',
+          label: get(translate)('app.labels.offered'),
+          value: 'offered',
           applied: false
         },
         {
           label: get(translate)('app.labels.failed'),
           value: 'failed',
           applied: false
-        }
-      ]
-    },
-    {
-      key: 'type',
-      type: 'one-of',
-      label: get(translate)('app.labels.type'),
-      values: [
-        {
-          label: get(translate)('app.labels.lightning'),
-          value: 'invoice',
-          applied: false
         },
         {
-          label: get(translate)('app.labels.receive_address'),
-          value: 'address',
-          applied: false
-        },
-        {
-          label: get(translate)('app.labels.onchain'),
-          value: 'transaction',
+          label: get(translate)('app.labels.local_failed'),
+          value: 'local_failed',
           applied: false
         }
       ]
@@ -77,6 +50,18 @@ export const getDefaultPaymentFilterOptions = (): Filter[] => {
 
         return acc
       }, [] as OneOfFilter['values'])
+    },
+    {
+      label: get(translate)('app.labels.date'),
+      key: 'timestamp',
+      type: 'date-range',
+      values: { gt: null, lt: null }
+    },
+    {
+      label: get(translate)('app.labels.fee'),
+      key: 'fee',
+      type: 'amount-range',
+      values: { gt: null, lt: null }
     },
     {
       key: 'network',
@@ -99,41 +84,17 @@ export const getDefaultPaymentFilterOptions = (): Filter[] => {
           applied: false
         }
       ]
-    },
-    {
-      label: get(translate)('app.labels.date'),
-      key: 'timestamp',
-      type: 'date-range',
-      values: { gt: null, lt: null }
-    },
-    {
-      label: get(translate)('app.labels.amount'),
-      key: 'data.amount',
-      type: 'amount-range',
-      values: { gt: null, lt: null }
-    },
-    {
-      label: get(translate)('app.labels.channel'),
-      key: 'data.channel',
-      type: 'exists',
-      applied: false
-    },
-    {
-      key: 'data.offer',
-      type: 'exists',
-      label: get(translate)('app.labels.offer'),
-      applied: false
     }
   ]
 }
 
-export const getDefaultPaymentSorters = (): Sorters => ({
+export const getDefaultSorters = (): Sorters => ({
   applied: { key: 'timestamp', direction: 'desc' },
   options: [
     { label: get(translate)('app.labels.date'), key: 'timestamp', direction: 'desc' },
     {
-      label: get(translate)('app.labels.amount'),
-      key: 'data.amount',
+      label: get(translate)('app.labels.fee'),
+      key: 'fee',
       direction: 'desc'
     }
   ]
@@ -144,13 +105,13 @@ export const getFilters = (): Filter[] => {
   let filterJson: string | null = null
 
   try {
-    filterJson = storage.get(STORAGE_KEYS.filters.payments)
+    filterJson = storage.get(STORAGE_KEYS.filters.forwards)
   } catch (error) {
     // no access to local storage
   }
 
   const saved: Filter[] | null = filterJson ? JSON.parse(filterJson) : null
-  const defaultOptions = getDefaultPaymentFilterOptions()
+  const defaultOptions = getDefaultFilterOptions()
 
   return mergeDefaultWithSavedFilters(defaultOptions, saved)
 }
@@ -159,13 +120,13 @@ export const getSorters = (): Sorters => {
   let sorterStr: string | null = null
 
   try {
-    sorterStr = storage.get(STORAGE_KEYS.sorter.payments)
+    sorterStr = storage.get(STORAGE_KEYS.sorter.forwards)
   } catch (error) {
     // no access to local storage
   }
 
   const savedSorter: Sorters['applied'] | null = sorterStr && JSON.parse(sorterStr)
-  const defaultSorters = getDefaultPaymentSorters()
+  const defaultSorters = getDefaultSorters()
 
   return {
     applied: savedSorter || defaultSorters.applied,
@@ -177,7 +138,7 @@ export const getTags = (): string[] => {
   let tagStr: string | null = null
 
   try {
-    tagStr = storage.get(STORAGE_KEYS.tags.payments)
+    tagStr = storage.get(STORAGE_KEYS.tags.forwards)
   } catch (error) {
     // no access to local storage
   }

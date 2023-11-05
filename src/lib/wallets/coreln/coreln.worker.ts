@@ -34,6 +34,7 @@ import type {
   ListfundsResponse
 } from './types.js'
 import { distinctUntilChanged } from 'rxjs'
+import type { Forward } from '$lib/@types/forwards.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -183,7 +184,7 @@ onmessage = async (message: MessageEvent<Message>) => {
           received_time,
           resolved_time
         }) => {
-          const forward = {
+          const forward: Omit<Forward, 'id'> = {
             shortIdIn: in_channel,
             shortIdOut: out_channel,
             htlcInId: in_htlc_id,
@@ -195,6 +196,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             style,
             createdAt: received_time,
             completedAt: resolved_time,
+            timestamp: resolved_time | received_time,
             walletId
           }
 

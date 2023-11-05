@@ -1,6 +1,6 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
-import type { DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
+import type { DBGetForwardsOptions, DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
 import { endOfDay } from 'date-fns'
 import { formatDate } from '$lib/dates.js'
@@ -18,6 +18,7 @@ import {
   deriveTransactionSummary,
   type PaymentSummary
 } from '$lib/summary.js'
+import type { Forward } from '$lib/@types/forwards.js'
 
 type MessageBase = {
   id: string
@@ -50,9 +51,13 @@ type GetLastPayMessage = MessageBase & {
   walletId: string
 }
 
-type GetPaymentsMessage = MessageBase & {
-  type: 'get_payments'
+type GetDailyPaymentsMessage = MessageBase & {
+  type: 'get_daily_payments'
 } & DBGetPaymentsOptions
+
+type GetDailyForwardsMessage = MessageBase & {
+  type: 'get_daily_forwards'
+} & DBGetForwardsOptions
 
 type GetAllTagsMessage = MessageBase & {
   type: 'get_all_tags'
@@ -64,7 +69,8 @@ type Message =
   | UpdateTableItemsMessage
   | GetLastPayMessage
   | GetAllTagsMessage
-  | GetPaymentsMessage
+  | GetDailyPaymentsMessage
+  | GetDailyForwardsMessage
   | BulkPutMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
@@ -122,8 +128,13 @@ onmessage = async (message: MessageEvent<Message>) => {
               return Promise.resolve()
             })
           )
-
-          await db.payments.bulkPut(transactions)
+          await Promise.all(
+            transactions.map(transaction =>
+              db.payments.update(transaction.id, transaction).then(updated => {
+                !updated && db.payments.put(transaction)
+              })
+            )
+          )
         }
 
         self.postMessage({ id: message.data.id })
@@ -196,7 +207,7 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
-    case 'get_payments': {
+    case 'get_daily_payments': {
       const { offset, limit, sort, filters, tags, lastPayment } = message.data
 
       // A helper function we will use below.
@@ -291,6 +302,96 @@ onmessage = async (message: MessageEvent<Message>) => {
       const sortedDailyChunks = await sortDailyChunks(paymentsWithSummary)
 
       self.postMessage({ id: message.data.id, result: sortedDailyChunks })
+      return
+    }
+    case 'get_daily_forwards': {
+      const { offset, limit, sort, filters, tags, lastForward } = message.data
+
+      // A helper function we will use below.
+      // It will prevent the same results to be returned again for next page.
+      const fastForward = (
+        lastRow: Forward,
+        idProp: keyof Forward,
+        otherCriterion: (forward: Forward) => boolean
+      ) => {
+        let fastForwardComplete = false
+        return (item: Forward) => {
+          if (fastForwardComplete) return otherCriterion(item)
+          if (item[idProp] === lastRow[idProp]) {
+            fastForwardComplete = true
+          }
+          return false
+        }
+      }
+
+      const filter = (forward: Forward) => {
+        if (tags.length) {
+          if (!forward.metadata || !forward.metadata.tags.length) return false
+          const validTag = forward.metadata.tags.some(tag => tags.includes(tag))
+          if (!validTag) return false
+        }
+
+        return filters.every(filter => {
+          const { type, key } = filter
+          const keys = key.split('.')
+
+          let valueToTest: ValueOf<Forward> = forward[keys[0] as keyof Forward]
+
+          if (keys.length > 1) {
+            valueToTest = keys.slice(1).reduce((acc, key) => {
+              const res = acc ? acc[key as keyof ValueOf<Forward>] : acc
+              return res
+            }, valueToTest as ValueOf<Forward>)
+          }
+
+          if (type === 'exists' && filter.applied && !valueToTest) return false
+
+          if (type === 'one-of') {
+            const applied = filter.values.filter(({ applied }) => applied)
+
+            if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
+              return false
+            }
+          }
+
+          if (type === 'amount-range') {
+            const {
+              values: { gt, lt }
+            } = filter
+
+            if (gt && (valueToTest as number) <= gt) return false
+            if (lt && (valueToTest as number) >= lt) return false
+          }
+
+          if (type === 'date-range') {
+            const {
+              values: { gt, lt }
+            } = filter
+
+            if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
+            if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
+          }
+
+          return true
+        })
+      }
+
+      let collection: Collection<Forward>
+
+      if (offset > 0 && lastForward) {
+        collection = db.forwards
+          .where(sort.key)
+          .aboveOrEqual(lastForward[sort.key as keyof Forward])
+          .filter(fastForward(lastForward, sort.key as keyof Forward, filter))
+      } else {
+        collection = db.forwards.orderBy(sort.key).filter(filter)
+      }
+
+      const forwards = await collection.distinct().offset(offset).limit(limit).toArray()
+      const sortedDailyChunks = await sortDailyChunks(forwards)
+
+      self.postMessage({ id: message.data.id, result: sortedDailyChunks })
+      return
     }
   }
 }

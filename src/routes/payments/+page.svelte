@@ -18,7 +18,8 @@
   import { getDefaultPaymentFilterOptions, getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
-  import { getPayments } from '$lib/db/helpers.js'
+  import { getDailyPayments } from '$lib/db/helpers.js'
+  import { sort } from 'fast-sort'
 
   let processing = false
   let gettingMorePayments = false
@@ -39,7 +40,7 @@
   const loadPayments = async () => {
     processing = true
 
-    dailyPayments = await getPayments({
+    dailyPayments = await getDailyPayments({
       filters,
       tags,
       sort: sorters.applied,
@@ -55,7 +56,7 @@
     const lastDay = dailyPayments[dailyPayments.length - 1]
     const lastPayment = lastDay[1][lastDay[1].length - 1]
 
-    const morePayments = await getPayments({
+    const morePayments = await getDailyPayments({
       filters,
       tags,
       sort: sorters.applied,
@@ -161,7 +162,7 @@
 
   let virtualList: VirtualList
 
-  $: if (dailyPayments) {
+  $: if (dailyPayments.length) {
     setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
   }
 
@@ -209,10 +210,7 @@
         />
       </div>
     {:else}
-      <div
-        in:fade={{ duration: 250 }}
-        class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2"
-      >
+      <div class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2">
         <VirtualList
           bind:this={virtualList}
           on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
@@ -252,7 +250,7 @@
         </VirtualList>
 
         {#if gettingMorePayments}
-          <div class="absolute bottom-1 text-neutral-400">
+          <div class="absolute bottom-1 text-neutral-500">
             <Spinner size="1.5rem" />
           </div>
         {/if}

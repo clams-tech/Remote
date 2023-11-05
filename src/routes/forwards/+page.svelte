@@ -2,8 +2,6 @@
   import { translate } from '$lib/i18n/translations'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import { liveQuery } from 'dexie'
-  import { db } from '$lib/db/index.js'
   import Spinner from '$lib/components/Spinner.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import { fade } from 'svelte/transition'
@@ -11,165 +9,129 @@
   import ForwardRow from './ForwardRow.svelte'
   import forward from '$lib/icons/forward.js'
   import type { Forward } from '$lib/@types/forwards.js'
-  import { filter, firstValueFrom, from, map, takeUntil } from 'rxjs'
-  import { connections$, onDestroy$ } from '$lib/streams.js'
+  import { connections$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
-  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
-  import { createRandomHex } from '$lib/crypto.js'
-  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchForwards } from '$lib/wallets/index.js'
+  import { getDefaultFilterOptions, getFilters, getSorters, getTags } from './filters.js'
+  import type { Filter, Sorters } from '$lib/@types/common.js'
+  import { storage } from '$lib/services.js'
+  import { STORAGE_KEYS } from '$lib/constants.js'
+  import { getDailyForwards } from '$lib/db/helpers.js'
 
-  const forwards$ = from(liveQuery(() => db.forwards.toArray()))
+  let processing = false
+  let gettingMore = false
+  let filters: Filter[] = getFilters()
+  let sorters: Sorters = getSorters()
+  let tags: string[] = getTags()
 
-  let forwardsContainer: HTMLDivElement
+  type timestamp = number
+  type DailyItems = [timestamp, Forward[]][]
+  let dailyItems: DailyItems = []
+
+  const getCurrentNumLoaded = () =>
+    dailyItems.reduce((total, day) => {
+      total += day[1].length
+      return total
+    }, 0)
+
+  const loadItems = async () => {
+    processing = true
+
+    dailyItems = await getDailyForwards({
+      filters,
+      tags,
+      sort: sorters.applied,
+      limit: 25,
+      offset: 0
+    })
+
+    processing = false
+  }
+
+  const getMore = async () => {
+    gettingMore = true
+    const lastDay = dailyItems[dailyItems.length - 1]
+    const lastForward = lastDay[1][lastDay[1].length - 1]
+
+    const more = await getDailyForwards({
+      filters,
+      tags,
+      sort: sorters.applied,
+      limit: 25,
+      offset: getCurrentNumLoaded(),
+      lastForward
+    })
+
+    const moreFirstDay = more.shift()
+
+    if (moreFirstDay) {
+      // add payments to the last day as they have the same date
+      if (lastDay[0] === moreFirstDay[0]) {
+        lastDay[1].push(...moreFirstDay[1])
+      }
+
+      dailyItems = [...dailyItems, ...more]
+    }
+
+    gettingMore = false
+  }
+
+  $: filtersApplied = JSON.stringify(filters) !== JSON.stringify(getDefaultFilterOptions())
+
+  const handleFilterSortUpdate = () => {
+    loadItems()
+    updateStoredFiltersAndSorter()
+  }
+
+  const updateStoredFiltersAndSorter = () => {
+    try {
+      storage.write(STORAGE_KEYS.filters.forwards, JSON.stringify(filters))
+      storage.write(STORAGE_KEYS.sorter.forwards, JSON.stringify(sorters.applied))
+    } catch (error) {
+      // can't write to storage
+    }
+  }
+
+  const handleTransactionsScroll = (offset: number) => {
+    // scrolled to bottom
+    if (offset >= bottom) {
+      getMore()
+    }
+  }
 
   // need to adjust this if you change the forward row height
   const rowSize = 104
 
   let innerHeight: number
 
-  $: maxHeight = innerHeight - 80 - 56 - 24
-  $: fullHeight = $forwards$ ? $forwards$.length * rowSize + 24 + 8 : 0
+  $: maxHeight = innerHeight ? innerHeight - 80 - 56 - 80 : 0
+
+  $: fullHeight = dailyItems.length
+    ? dailyItems.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
+    : 0
+
+  $: bottom = fullHeight - maxHeight
+
   $: listHeight = Math.min(maxHeight, fullHeight)
-
-  let processed: Forward[] = []
-  let filters: Filter[] = []
-  let tagFilters: TagFilter[] = []
-
-  let sorters: Sorter[] = [
-    { label: $translate('app.labels.date'), key: 'completedAt', direction: 'desc' },
-    { label: $translate('app.labels.fee'), key: 'fee', direction: 'desc' },
-    { label: $translate('app.labels.in'), key: 'in', direction: 'desc' },
-    { label: $translate('app.labels.out'), key: 'out', direction: 'desc' }
-  ]
-
-  // once we have offers, create filters, tag filters
-  forwards$
-    .pipe(
-      filter(x => !!x),
-      takeUntil(onDestroy$)
-    )
-    .subscribe(async offers => {
-      const walletIdSet = new Set<string>()
-      const tagSet = new Set()
-
-      for (const { walletId, id } of offers) {
-        walletIdSet.add(walletId)
-
-        const metadata = await db.metadata.get(id)
-
-        if (metadata) {
-          metadata.tags.forEach(tag => tagSet.add(tag))
-        }
-      }
-
-      const wallets = await db.wallets.bulkGet(Array.from(walletIdSet.values()))
-
-      const walletFilter = {
-        label: $translate('app.labels.wallet'),
-        values: wallets.reduce((acc, wallet) => {
-          if (wallet) {
-            acc.push({
-              label: wallet.label,
-              checked: false,
-              predicate: {
-                key: 'walletId',
-                values: [wallet.id]
-              }
-            })
-          }
-
-          return acc
-        }, [] as Filter['values'])
-      }
-
-      tagFilters = Array.from(tagSet.values()).map(tag => ({
-        tag: tag as string,
-        checked: false
-      }))
-
-      filters = [
-        {
-          label: $translate('app.labels.status'),
-          values: [
-            {
-              label: $translate('app.labels.settled'),
-              checked: false,
-              predicate: {
-                key: 'status',
-                values: ['settled']
-              }
-            },
-            {
-              label: $translate('app.labels.offered'),
-              checked: false,
-              predicate: {
-                key: 'status',
-                values: ['offered']
-              }
-            },
-            {
-              label: $translate('app.labels.failed'),
-              checked: false,
-              predicate: {
-                key: 'status',
-                values: ['failed']
-              }
-            },
-            {
-              label: $translate('app.labels.local_failed'),
-              checked: false,
-              predicate: {
-                key: 'status',
-                values: ['local_failed']
-              }
-            }
-          ]
-        },
-        walletFilter
-      ]
-    })
 
   let virtualList: VirtualList
 
-  $: if (virtualList && processed && dailyForwardChunks) {
-    setTimeout(() => virtualList.recomputeSizes(0), 25)
-  }
-
-  type ForwardChunks = [number, Forward[]][]
-  let dailyForwardChunks: ForwardChunks = []
-
-  const sortDailyChunks = async () => {
-    const id = createRandomHex()
-
-    appWorker.postMessage({
-      id,
-      type: 'sort-daily-forward-chunks',
-      forwards: processed,
-      direction: sorters[0].direction
-    })
-
-    dailyForwardChunks = (await firstValueFrom(
-      appWorkerMessages$.pipe(
-        filter(message => message.data.id === id),
-        map(({ data }) => data.result)
-      )
-    )) as ForwardChunks
-  }
-
-  $: if (processed) {
-    sortDailyChunks()
+  $: if (dailyItems.length) {
+    setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
   }
 
   const getDaySize = (index: number) => {
-    const forwards = dailyForwardChunks[index][1]
-    return forwards.length * rowSize + 24 + 8
+    const forwards = dailyItems[index][1]
+    return Math.min(forwards.length * rowSize + 24 + 8, maxHeight)
   }
 
   const syncForwards = async () => {
     await Promise.all(connections$.value.map(connection => fetchForwards(connection)))
+    loadItems()
   }
+
+  loadItems()
 </script>
 
 <svelte:head>
@@ -184,53 +146,72 @@
   <div class="flex items-center justify-between">
     <SectionHeading icon={forward} />
 
-    {#if $forwards$}
-      <div class="flex items-center gap-x-2">
-        <SyncRouteData sync={syncForwards} />
-        <FilterSort items={$forwards$} bind:filters bind:tagFilters bind:sorters bind:processed />
-      </div>
-    {/if}
+    <div class="flex items-center gap-x-2">
+      <SyncRouteData sync={syncForwards} />
+      <FilterSort bind:filters bind:tags on:updated={handleFilterSortUpdate} bind:sorters />
+    </div>
   </div>
 
-  <div class="w-full overflow-hidden flex flex-grow">
-    {#if !$forwards$}
-      <div in:fade class="mt-4">
+  <div class="w-full flex">
+    {#if processing}
+      <div in:fade class="mt-4 w-full">
         <Spinner />
       </div>
-    {:else if !$forwards$.length}
-      <div class="w-full mt-4">
-        <Msg message={$translate('app.labels.no_forwards')} type="info" closable={false} />
+    {:else if !dailyItems.length}
+      <div class="mt-4 mb-2 w-full">
+        <Msg
+          type="info"
+          closable={false}
+          message={$translate(
+            `app.labels.${filtersApplied ? 'no_forwards_filtered' : 'no_forwards'}`
+          )}
+        />
       </div>
-    {:else if dailyForwardChunks.length}
-      <div
-        bind:this={forwardsContainer}
-        class="w-full flex flex-col flex-grow overflow-hidden gap-y-2 mt-2"
-      >
+    {:else}
+      <div class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2">
         <VirtualList
           bind:this={virtualList}
+          on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
-          itemCount={dailyForwardChunks.length}
+          itemCount={dailyItems.length}
           itemSize={getDaySize}
-          getKey={index => dailyForwardChunks[index][0]}
+          getKey={index => dailyItems[index][0]}
         >
           <div slot="item" let:index let:style {style}>
-            <div class="pt-1 pl-1">
+            <div class="pt-1">
               <div
                 class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
               >
-                {dailyForwardChunks[index][0]}
+                <!-- day date -->
+                {dailyItems[index][0]}
               </div>
               <div class="rounded overflow-hidden">
                 <div class="overflow-hidden rounded">
-                  {#each dailyForwardChunks[index][1] as forward (`${forward.id}`)}
-                    <ForwardRow {forward} />
-                  {/each}
+                  <VirtualList
+                    on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
+                    width="100%"
+                    height={Math.min(dailyItems[index][1].length * rowSize, maxHeight - 32)}
+                    itemCount={dailyItems[index][1].length}
+                    itemSize={rowSize}
+                    getKey={innerIndex => dailyItems[index][1][innerIndex].id}
+                  >
+                    <div slot="item" let:index={innerIndex} let:style {style}>
+                      {@const forward = dailyItems[index][1][innerIndex]}
+                      <ForwardRow {forward} />
+                    </div>
+                  </VirtualList>
                 </div>
               </div>
             </div>
           </div>
         </VirtualList>
+
+        {#if gettingMore}
+          <div class="absolute bottom-1 text-neutral-500">
+            <Spinner size="1.5rem" />
+          </div>
+        {/if}
       </div>
     {/if}
   </div>

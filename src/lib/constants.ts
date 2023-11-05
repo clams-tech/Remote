@@ -129,15 +129,27 @@ export const STORAGE_KEYS = {
   getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`,
   // saved filters
   filters: {
-    payments: `clams:filters:payments:${STORAGE_VERSION}`
+    payments: `clams:filters:payments:${STORAGE_VERSION}`,
+    forwards: `clams:filters:forwards:${STORAGE_VERSION}`,
+    channels: `clams:filters:channels:${STORAGE_VERSION}`,
+    offers: `clams:filters:offers:${STORAGE_VERSION}`,
+    utxos: `clams:filters:utxos:${STORAGE_VERSION}`
   },
   // saved sorter
   sorter: {
-    payments: `clams:sorter:payments:${STORAGE_VERSION}`
+    payments: `clams:sorter:payments:${STORAGE_VERSION}`,
+    forwards: `clams:sorter:forwards:${STORAGE_VERSION}`,
+    channels: `clams:sorter:channels:${STORAGE_VERSION}`,
+    offers: `clams:sorter:offers:${STORAGE_VERSION}`,
+    utxos: `clams:sorter:utxos:${STORAGE_VERSION}`
   },
   // saved tag filters
   tags: {
-    payments: `clams:tags:payments:${STORAGE_VERSION}`
+    payments: `clams:tags:payments:${STORAGE_VERSION}`,
+    forwards: `clams:tags:forwards:${STORAGE_VERSION}`,
+    channels: `clams:tags:channels:${STORAGE_VERSION}`,
+    offers: `clams:tags:offers:${STORAGE_VERSION}`,
+    utxos: `clams:tags:utxos:${STORAGE_VERSION}`
   }
 }
 
