@@ -19,10 +19,11 @@
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import { getDailyPayments } from '$lib/db/helpers.js'
-  import { sort } from 'fast-sort'
+  import { anyFiltersApplied } from '$lib/utils.js'
 
   let processing = false
   let gettingMorePayments = false
+  let noMorePayments = false
   let filters: Filter[] = getFilters()
   let sorters: Sorters = getSorters()
   let tags: string[] = getTags()
@@ -52,6 +53,8 @@
   }
 
   const getMorePayments = async () => {
+    if (noMorePayments) return
+
     gettingMorePayments = true
     const lastDay = dailyPayments[dailyPayments.length - 1]
     const lastPayment = lastDay[1][lastDay[1].length - 1]
@@ -71,17 +74,22 @@
       // add payments to the last day as they have the same date
       if (lastDay[0] === morePaymentsFirstDay[0]) {
         lastDay[1].push(...morePaymentsFirstDay[1])
+      } else {
+        dailyPayments.push(morePaymentsFirstDay)
       }
 
       dailyPayments = [...dailyPayments, ...morePayments]
+    } else {
+      noMorePayments = true
     }
 
     gettingMorePayments = false
   }
 
-  $: filtersApplied = JSON.stringify(filters) !== JSON.stringify(getDefaultPaymentFilterOptions)
+  $: filtersApplied = anyFiltersApplied(filters)
 
   const handleFilterSortUpdate = () => {
+    noMorePayments = false
     loadPayments()
     updateStoredFiltersAndSorter()
   }
@@ -104,9 +112,9 @@
   let direction: 'up' | 'down'
   let processingScroll = false
 
-  const handleTransactionsScroll = (offset: number) => {
+  const handleTransactionsScroll = (offset: number, diff: number) => {
     // scrolled to bottom
-    if (offset >= bottom) {
+    if (offset === diff) {
       getMorePayments()
     }
 
@@ -143,14 +151,13 @@
   }
 
   let innerHeight: number
+  let virtualList: VirtualList
 
   $: maxHeight = innerHeight ? innerHeight - 80 - 56 - 80 : 0
 
   $: fullHeight = dailyPayments.length
     ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
     : 0
-
-  $: bottom = fullHeight - maxHeight
 
   $: listHeight = Math.min(maxHeight, fullHeight)
 
@@ -159,8 +166,6 @@
     : dailyPayments.length
     ? fullHeight > listHeight
     : false
-
-  let virtualList: VirtualList
 
   $: if (dailyPayments.length) {
     setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
@@ -213,7 +218,7 @@
       <div class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2">
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
+          on:afterScroll={e => handleTransactionsScroll(e.detail.offset, fullHeight - listHeight)}
           width="100%"
           height={listHeight}
           itemCount={dailyPayments.length}
@@ -221,29 +226,33 @@
           getKey={index => dailyPayments[index][0]}
         >
           <div slot="item" let:index let:style {style}>
+            {@const day = dailyPayments[index]}
+            {@const [date, payments] = day}
+            {@const fullPaymentsHeight = payments.length * rowSize}
+            {@const innerListHeight = Math.min(fullPaymentsHeight, listHeight - 32)}
+
             <div class="pt-1">
               <div
-                class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-900 w-min whitespace-nowrap shadow shadow-neutral-700/50"
+                class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-700 w-min whitespace-nowrap shadow shadow-neutral-700/50"
               >
                 <!-- day date -->
-                {dailyPayments[index][0]}
+                {date}
               </div>
-              <div class="rounded overflow-hidden">
-                <div class="overflow-hidden rounded">
-                  <VirtualList
-                    on:afterScroll={e => handleTransactionsScroll(e.detail.offset)}
-                    width="100%"
-                    height={Math.min(dailyPayments[index][1].length * rowSize, maxHeight - 32)}
-                    itemCount={dailyPayments[index][1].length}
-                    itemSize={rowSize}
-                    getKey={innerIndex => dailyPayments[index][1][innerIndex].id}
-                  >
-                    <div slot="item" let:index={innerIndex} let:style {style}>
-                      {@const payment = dailyPayments[index][1][innerIndex]}
-                      <PaymentRow {payment} />
-                    </div>
-                  </VirtualList>
-                </div>
+              <div>
+                <VirtualList
+                  width="100%"
+                  on:afterScroll={e =>
+                    handleTransactionsScroll(e.detail.offset, fullPaymentsHeight - innerListHeight)}
+                  height={innerListHeight}
+                  itemCount={dailyPayments[index][1].length}
+                  itemSize={rowSize}
+                  getKey={innerIndex => dailyPayments[index][1][innerIndex].id}
+                >
+                  <div slot="item" let:index={innerIndex} let:style {style}>
+                    {@const payment = dailyPayments[index][1][innerIndex]}
+                    <PaymentRow {payment} />
+                  </div>
+                </VirtualList>
               </div>
             </div>
           </div>

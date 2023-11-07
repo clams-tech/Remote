@@ -242,3 +242,19 @@ export const mergeDefaultWithSavedFilters = (defaults: Filter[], saved: Filter[]
     return defaults
   }
 }
+
+export const anyFiltersApplied = (filters: Filter[]): boolean =>
+  filters.some(filter => {
+    if (filter.type === 'one-of' && filter.values.some(({ applied }) => applied)) {
+      return true
+    } else if (filter.type === 'exists' && filter.applied) {
+      return true
+    } else if (
+      (filter.type === 'amount-range' || filter.type === 'date-range') &&
+      (filter.values.gt !== null || filter.values.lt !== null)
+    ) {
+      return true
+    } else {
+      return false
+    }
+  })

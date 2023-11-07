@@ -282,12 +282,23 @@ onmessage = async (message: MessageEvent<Message>) => {
       let collection: Collection<Payment>
 
       if (offset > 0 && lastPayment) {
-        collection = db.payments
-          .where(sort.key)
-          .aboveOrEqual(lastPayment[sort.key as keyof Payment])
-          .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+        if (sort.direction === 'asc') {
+          collection = db.payments
+            .where(sort.key)
+            .aboveOrEqual(lastPayment[sort.key as keyof Payment])
+            .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+        } else {
+          collection = db.payments
+            .where(sort.key)
+            .belowOrEqual(lastPayment[sort.key as keyof Payment])
+            .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+        }
       } else {
         collection = db.payments.orderBy(sort.key).filter(filter)
+      }
+
+      if (sort.direction === 'desc') {
+        collection.reverse()
       }
 
       const payments = await collection.distinct().offset(offset).limit(limit).toArray()

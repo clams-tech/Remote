@@ -13,7 +13,7 @@
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchForwards } from '$lib/wallets/index.js'
-  import { getDefaultFilterOptions, getFilters, getSorters, getTags } from './filters.js'
+  import { getDefaultFilte$lib/components/Filter.svelte getTags } from './filters.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
