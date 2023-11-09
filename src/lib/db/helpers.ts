@@ -1,15 +1,9 @@
 import { filter, firstValueFrom, fromEvent, map } from 'rxjs'
 import { createRandomHex } from '$lib/crypto.js'
 import type { Channel } from '$lib/@types/channels.js'
-import type { DBGetForwardsOptions, DBGetPaymentsOptions } from '$lib/@types/common.js'
+import type { GetSortedFilteredItemsOptions } from '$lib/@types/common.js'
 import type { Tag } from '$lib/@types/metadata.js'
-
-import type {
-  InvoicePayment,
-  PaymentWithSummary,
-  TransactionPayment
-} from '$lib/@types/payments.js'
-import type { Forward } from '$lib/@types/forwards.js'
+import type { InvoicePayment, TransactionPayment } from '$lib/@types/payments.js'
 
 const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
   type: 'module'
@@ -135,10 +129,10 @@ export const getAllTags = (): Promise<Tag[]> => {
   return complete as Promise<Tag[]>
 }
 
-export const getDailyPayments = async (
-  options: DBGetPaymentsOptions
-): Promise<[number, PaymentWithSummary[]][]> => {
-  const { offset, limit, sort, filters, tags, lastPayment } = options
+export const getSortedFilteredItems = async (
+  options: GetSortedFilteredItemsOptions
+): Promise<unknown[]> => {
+  const { offset, limit, sort, filters, tags, lastItem, table } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -156,47 +150,15 @@ export const getDailyPayments = async (
 
   worker.postMessage({
     id,
-    type: 'get_daily_payments',
+    type: 'get_filtered_sorted_items',
     offset,
     limit,
     sort,
     filters,
     tags,
-    lastPayment
+    table,
+    lastItem
   })
 
-  return complete as Promise<[number, PaymentWithSummary[]][]>
-}
-
-export const getDailyForwards = async (
-  options: DBGetForwardsOptions
-): Promise<[number, Forward[]][]> => {
-  const { offset, limit, sort, filters, tags, lastForward } = options
-  const id = createRandomHex()
-
-  const complete = firstValueFrom(
-    messages$.pipe(
-      filter(message => message.data.id === id),
-      map(message => {
-        if (message.data.error) {
-          throw new Error(message.data.error)
-        }
-
-        return message.data.result
-      })
-    )
-  )
-
-  worker.postMessage({
-    id,
-    type: 'get_daily_forwards',
-    offset,
-    limit,
-    sort,
-    filters,
-    tags,
-    lastForward
-  })
-
-  return complete as Promise<[number, Forward[]][]>
+  return complete as Promise<unknown[]>
 }

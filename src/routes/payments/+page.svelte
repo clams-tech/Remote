@@ -13,84 +13,66 @@
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import { fetchInvoices, fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
-  import type { PaymentWithSummary } from '$lib/@types/payments.js'
+  import type { Payment } from '$lib/@types/payments.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
-  import { getDefaultPaymentFilterOptions, getFilters, getSorters, getTags } from './filters.js'
+  import { getFilters, getSorters, getTags } from './filters.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
-  import { getDailyPayments } from '$lib/db/helpers.js'
+  import { getSortedFilteredItems } from '$lib/db/helpers.js'
   import { anyFiltersApplied } from '$lib/utils.js'
 
   let processing = false
-  let gettingMorePayments = false
-  let noMorePayments = false
+  let items: Payment[]
+  let gettingMoreItems = false
+  let noMoreItems = false
   let filters: Filter[] = getFilters()
   let sorters: Sorters = getSorters()
   let tags: string[] = getTags()
 
-  type timestamp = number
-  type DailyPayments = [timestamp, PaymentWithSummary[]][]
-  let dailyPayments: DailyPayments = []
-
-  const getCurrentNumLoadedPayments = () =>
-    dailyPayments.reduce((total, day) => {
-      total += day[1].length
-      return total
-    }, 0)
-
-  const loadPayments = async () => {
+  const loadItems = async () => {
     processing = true
 
-    dailyPayments = await getDailyPayments({
+    items = (await getSortedFilteredItems({
       filters,
       tags,
       sort: sorters.applied,
       limit: 25,
-      offset: 0
-    })
+      offset: 0,
+      table: 'payments'
+    })) as Payment[]
 
     processing = false
   }
 
-  const getMorePayments = async () => {
-    if (noMorePayments) return
+  const getMoreItems = async () => {
+    if (noMoreItems) return
 
-    gettingMorePayments = true
-    const lastDay = dailyPayments[dailyPayments.length - 1]
-    const lastPayment = lastDay[1][lastDay[1].length - 1]
+    gettingMoreItems = true
 
-    const morePayments = await getDailyPayments({
+    const moreItems = (await getSortedFilteredItems({
       filters,
       tags,
       sort: sorters.applied,
       limit: 25,
-      offset: getCurrentNumLoadedPayments(),
-      lastPayment
-    })
+      offset: items.length,
+      lastItem: items[items.length - 1],
+      table: 'payments'
+    })) as Payment[]
 
-    const morePaymentsFirstDay = morePayments.shift()
-
-    if (morePaymentsFirstDay) {
-      // add payments to the last day as they have the same date
-      if (lastDay[0] === morePaymentsFirstDay[0]) {
-        lastDay[1].push(...morePaymentsFirstDay[1])
-      } else {
-        dailyPayments.push(morePaymentsFirstDay)
-      }
-
-      dailyPayments = [...dailyPayments, ...morePayments]
+    if (moreItems.length) {
+      items = [...items, ...moreItems]
     } else {
-      noMorePayments = true
+      noMoreItems = true
     }
 
-    gettingMorePayments = false
+    gettingMoreItems = false
   }
 
   $: filtersApplied = anyFiltersApplied(filters)
 
   const handleFilterSortUpdate = () => {
-    noMorePayments = false
-    loadPayments()
+    noMoreItems = false
+    loadItems()
     updateStoredFiltersAndSorter()
   }
 
@@ -115,7 +97,7 @@
   const handleTransactionsScroll = (offset: number, diff: number) => {
     // scrolled to bottom
     if (offset === diff) {
-      getMorePayments()
+      getMoreItems()
     }
 
     if (processingScroll) return
@@ -145,29 +127,20 @@
     previousOffset = offset
   }
 
-  const getDaySize = (index: number) => {
-    const payments = dailyPayments[index][1]
-    return Math.min(payments.length * rowSize + 24 + 8, maxHeight)
-  }
-
   let innerHeight: number
   let virtualList: VirtualList
 
   $: maxHeight = innerHeight ? innerHeight - 80 - 56 - 80 : 0
-
-  $: fullHeight = dailyPayments.length
-    ? dailyPayments.reduce((acc, data) => acc + data[1].length * rowSize + 24 + 8, 0)
-    : 0
-
+  $: fullHeight = items ? items.length * rowSize : 0
   $: listHeight = Math.min(maxHeight, fullHeight)
 
   $: transactionsContainerScrollable = processing
     ? false
-    : dailyPayments.length
+    : items.length
     ? fullHeight > listHeight
     : false
 
-  $: if (dailyPayments.length) {
+  $: if (items.length) {
     setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
   }
 
@@ -182,10 +155,10 @@
       )
     )
 
-    loadPayments()
+    loadItems()
   }
 
-  loadPayments()
+  loadItems()
 </script>
 
 <svelte:window bind:innerHeight />
@@ -204,7 +177,7 @@
       <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />
       </div>
-    {:else if !dailyPayments.length}
+    {:else if !items.length}
       <div class="mt-4 mb-2 w-full">
         <Msg
           type="info"
@@ -221,44 +194,17 @@
           on:afterScroll={e => handleTransactionsScroll(e.detail.offset, fullHeight - listHeight)}
           width="100%"
           height={listHeight}
-          itemCount={dailyPayments.length}
-          itemSize={getDaySize}
-          getKey={index => dailyPayments[index][0]}
+          itemCount={items.length}
+          itemSize={rowSize}
+          getKey={index => items[index].id}
         >
           <div slot="item" let:index let:style {style}>
-            {@const day = dailyPayments[index]}
-            {@const [date, payments] = day}
-            {@const fullPaymentsHeight = payments.length * rowSize}
-            {@const innerListHeight = Math.min(fullPaymentsHeight, listHeight - 32)}
-
-            <div class="pt-1">
-              <div
-                class="text-xs font-semibold sticky top-1 mb-1 py-1 px-3 rounded bg-neutral-700 w-min whitespace-nowrap shadow shadow-neutral-700/50"
-              >
-                <!-- day date -->
-                {date}
-              </div>
-              <div>
-                <VirtualList
-                  width="100%"
-                  on:afterScroll={e =>
-                    handleTransactionsScroll(e.detail.offset, fullPaymentsHeight - innerListHeight)}
-                  height={innerListHeight}
-                  itemCount={dailyPayments[index][1].length}
-                  itemSize={rowSize}
-                  getKey={innerIndex => dailyPayments[index][1][innerIndex].id}
-                >
-                  <div slot="item" let:index={innerIndex} let:style {style}>
-                    {@const payment = dailyPayments[index][1][innerIndex]}
-                    <PaymentRow {payment} />
-                  </div>
-                </VirtualList>
-              </div>
-            </div>
+            {@const item = items[index]}
+            <PaymentRow payment={item} />
           </div>
         </VirtualList>
 
-        {#if gettingMorePayments}
+        {#if gettingMoreItems}
           <div class="absolute bottom-1 text-neutral-500">
             <Spinner size="1.5rem" />
           </div>

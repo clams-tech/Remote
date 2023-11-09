@@ -1,6 +1,3 @@
-import type { Forward } from './forwards.js'
-import type { Payment } from './payments.js'
-
 export type ParsedInput = {
   type:
     | 'onchain'
@@ -51,22 +48,16 @@ export type Sorters = {
 
 export type TagFilterOption = { id: string; label: string; applied: boolean }
 
-export type GetDailyItemsBase = {
+export type GetSortedFilteredItemsOptions = {
   offset: number
   limit: number
   sort: Sorters['applied']
   filters: Filter[]
   tags: string[]
-}
-
-export type DBGetPaymentsOptions = GetDailyItemsBase & {
+  /** the table to lookup items */
+  table: string
   /** this is used for efficient paging and is required if using offset > 0 */
-  lastPayment?: Payment
-}
-
-export type DBGetForwardsOptions = GetDailyItemsBase & {
-  /** this is used for efficient paging and is required if using offset > 0 */
-  lastForward?: Forward
+  lastItem?: unknown
 }
 
 export type ValueOf<Obj> = Obj[keyof Obj]

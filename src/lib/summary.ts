@@ -6,7 +6,12 @@ import type { Wallet } from './@types/wallets.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import type { Contact } from './@types/contacts.js'
 import type { Node } from './@types/nodes.js'
-import type { AddressPayment, InvoicePayment, TransactionPayment } from './@types/payments.js'
+import type {
+  AddressPayment,
+  InvoicePayment,
+  Payment,
+  TransactionPayment
+} from './@types/payments.js'
 import type { Metadata } from './@types/metadata.js'
 
 export type CounterPart =
@@ -741,5 +746,23 @@ export const deriveAddressSummary = async ({
     amount,
     primary: { type: 'wallet', value: wallet },
     secondary: { type: 'unknown', value: id }
+  }
+}
+
+export const getPaymentSummary = async (payment: Payment): Promise<PaymentSummary | null> => {
+  let summary: PaymentSummary
+
+  try {
+    if (payment.type === 'transaction') {
+      summary = await deriveTransactionSummary(payment)
+    } else if (payment.type === 'invoice') {
+      summary = await deriveInvoiceSummary(payment)
+    } else {
+      summary = await deriveAddressSummary(payment)
+    }
+
+    return summary
+  } catch (error) {
+    return null
   }
 }

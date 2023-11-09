@@ -1,24 +1,8 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
-import type { DBGetForwardsOptions, DBGetPaymentsOptions, ValueOf } from '$lib/@types/common.js'
+import type { GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
-import { endOfDay } from 'date-fns'
-import { formatDate } from '$lib/dates.js'
-
-import type {
-  AddressPayment,
-  Payment,
-  PaymentWithSummary,
-  TransactionPayment
-} from '$lib/@types/payments.js'
-
-import {
-  deriveAddressSummary,
-  deriveInvoiceSummary,
-  deriveTransactionSummary,
-  type PaymentSummary
-} from '$lib/summary.js'
-import type { Forward } from '$lib/@types/forwards.js'
+import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
 
 type MessageBase = {
   id: string
@@ -51,13 +35,9 @@ type GetLastPayMessage = MessageBase & {
   walletId: string
 }
 
-type GetDailyPaymentsMessage = MessageBase & {
-  type: 'get_daily_payments'
-} & DBGetPaymentsOptions
-
-type GetDailyForwardsMessage = MessageBase & {
-  type: 'get_daily_forwards'
-} & DBGetForwardsOptions
+type GetSortedFilteredItemsMessage = MessageBase & {
+  type: 'get_filtered_sorted_items'
+} & GetSortedFilteredItemsOptions
 
 type GetAllTagsMessage = MessageBase & {
   type: 'get_all_tags'
@@ -69,8 +49,7 @@ type Message =
   | UpdateTableItemsMessage
   | GetLastPayMessage
   | GetAllTagsMessage
-  | GetDailyPaymentsMessage
-  | GetDailyForwardsMessage
+  | GetSortedFilteredItemsMessage
   | BulkPutMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
@@ -207,18 +186,18 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
-    case 'get_daily_payments': {
-      const { offset, limit, sort, filters, tags, lastPayment } = message.data
+    case 'get_filtered_sorted_items': {
+      const { offset, limit, sort, filters, tags, lastItem, table } = message.data
 
       // A helper function we will use below.
       // It will prevent the same results to be returned again for next page.
-      const fastForward = (
-        lastRow: Payment,
-        idProp: keyof Payment,
-        otherCriterion: (payment: Payment) => boolean
+      const fastForward = <T>(
+        lastRow: T,
+        idProp: keyof T,
+        otherCriterion: (item: T) => boolean
       ) => {
         let fastForwardComplete = false
-        return (item: Payment) => {
+        return (item: T) => {
           if (fastForwardComplete) return otherCriterion(item)
           if (item[idProp] === lastRow[idProp]) {
             fastForwardComplete = true
@@ -227,10 +206,14 @@ onmessage = async (message: MessageEvent<Message>) => {
         }
       }
 
-      const filter = (payment: Payment) => {
+      const filter = (item: unknown) => {
         if (tags.length) {
-          if (!payment.metadata || !payment.metadata.tags.length) return false
-          const validTag = payment.metadata.tags.some(tag => tags.includes(tag))
+          // eslint-disable-next-line
+          // @ts-ignore
+          if (!item.metadata || !item.metadata.tags.length) return false
+          // eslint-disable-next-line
+          // @ts-ignore
+          const validTag = item.metadata.tags.some(tag => tags.includes(tag))
           if (!validTag) return false
         }
 
@@ -238,13 +221,19 @@ onmessage = async (message: MessageEvent<Message>) => {
           const { type, key } = filter
           const keys = key.split('.')
 
-          let valueToTest: ValueOf<Payment> = payment[keys[0] as keyof Payment]
+          // eslint-disable-next-line
+          // @ts-ignore
+          let valueToTest: ValueOf<typeof item> = item[keys[0]]
 
           if (keys.length > 1) {
+            // eslint-disable-next-line
+            // @ts-ignore
             valueToTest = keys.slice(1).reduce((acc, key) => {
-              const res = acc ? acc[key as keyof ValueOf<Payment>] : acc
+              // eslint-disable-next-line
+              // @ts-ignore
+              const res = acc ? acc[key] : acc
               return res
-            }, valueToTest as ValueOf<Payment>)
+            }, valueToTest)
           }
 
           if (type === 'exists' && filter.applied && !valueToTest) return false
@@ -281,17 +270,29 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       let collection: Collection<Payment>
 
-      if (offset > 0 && lastPayment) {
+      if (offset > 0 && lastItem) {
         if (sort.direction === 'asc') {
-          collection = db.payments
+          // eslint-disable-next-line
+          // @ts-ignore
+          collection = db[table]
             .where(sort.key)
-            .aboveOrEqual(lastPayment[sort.key as keyof Payment])
-            .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+            // eslint-disable-next-line
+            // @ts-ignore
+            .aboveOrEqual(lastItem[sort.key])
+            // eslint-disable-next-line
+            // @ts-ignore
+            .filter(fastForward(lastItem, sort.key, filter))
         } else {
-          collection = db.payments
+          // eslint-disable-next-line
+          // @ts-ignore
+          collection = db[table]
             .where(sort.key)
-            .belowOrEqual(lastPayment[sort.key as keyof Payment])
-            .filter(fastForward(lastPayment, sort.key as keyof Payment, filter))
+            // eslint-disable-next-line
+            // @ts-ignore
+            .belowOrEqual(lastItem[sort.key])
+            // eslint-disable-next-line
+            // @ts-ignore
+            .filter(fastForward(lastItem, sort.key, filter))
         }
       } else {
         collection = db.payments.orderBy(sort.key).filter(filter)
@@ -301,149 +302,11 @@ onmessage = async (message: MessageEvent<Message>) => {
         collection.reverse()
       }
 
-      const payments = await collection.distinct().offset(offset).limit(limit).toArray()
+      const items = await collection.distinct().offset(offset).limit(limit).toArray()
 
-      const paymentsWithSummary: PaymentWithSummary[] = await Promise.all(
-        payments.map(async payment => {
-          const summary = await getSummary(payment)
-          return { ...payment, summary }
-        })
-      )
-
-      const sortedDailyChunks = await sortDailyChunks(paymentsWithSummary)
-
-      self.postMessage({ id: message.data.id, result: sortedDailyChunks })
+      self.postMessage({ id: message.data.id, result: items })
       return
     }
-    case 'get_daily_forwards': {
-      const { offset, limit, sort, filters, tags, lastForward } = message.data
-
-      // A helper function we will use below.
-      // It will prevent the same results to be returned again for next page.
-      const fastForward = (
-        lastRow: Forward,
-        idProp: keyof Forward,
-        otherCriterion: (forward: Forward) => boolean
-      ) => {
-        let fastForwardComplete = false
-        return (item: Forward) => {
-          if (fastForwardComplete) return otherCriterion(item)
-          if (item[idProp] === lastRow[idProp]) {
-            fastForwardComplete = true
-          }
-          return false
-        }
-      }
-
-      const filter = (forward: Forward) => {
-        if (tags.length) {
-          if (!forward.metadata || !forward.metadata.tags.length) return false
-          const validTag = forward.metadata.tags.some(tag => tags.includes(tag))
-          if (!validTag) return false
-        }
-
-        return filters.every(filter => {
-          const { type, key } = filter
-          const keys = key.split('.')
-
-          let valueToTest: ValueOf<Forward> = forward[keys[0] as keyof Forward]
-
-          if (keys.length > 1) {
-            valueToTest = keys.slice(1).reduce((acc, key) => {
-              const res = acc ? acc[key as keyof ValueOf<Forward>] : acc
-              return res
-            }, valueToTest as ValueOf<Forward>)
-          }
-
-          if (type === 'exists' && filter.applied && !valueToTest) return false
-
-          if (type === 'one-of') {
-            const applied = filter.values.filter(({ applied }) => applied)
-
-            if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
-              return false
-            }
-          }
-
-          if (type === 'amount-range') {
-            const {
-              values: { gt, lt }
-            } = filter
-
-            if (gt && (valueToTest as number) <= gt) return false
-            if (lt && (valueToTest as number) >= lt) return false
-          }
-
-          if (type === 'date-range') {
-            const {
-              values: { gt, lt }
-            } = filter
-
-            if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
-            if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
-          }
-
-          return true
-        })
-      }
-
-      let collection: Collection<Forward>
-
-      if (offset > 0 && lastForward) {
-        collection = db.forwards
-          .where(sort.key)
-          .aboveOrEqual(lastForward[sort.key as keyof Forward])
-          .filter(fastForward(lastForward, sort.key as keyof Forward, filter))
-      } else {
-        collection = db.forwards.orderBy(sort.key).filter(filter)
-      }
-
-      const forwards = await collection.distinct().offset(offset).limit(limit).toArray()
-      const sortedDailyChunks = await sortDailyChunks(forwards)
-
-      self.postMessage({ id: message.data.id, result: sortedDailyChunks })
-      return
-    }
-  }
-}
-
-type ItemsMap = Map<number, unknown[]>
-
-const sortDailyChunks = async <T>(items: T[]) => {
-  const itemsMap = items.reduce((acc, item) => {
-    const date = new Date((item as { timestamp: number }).timestamp * 1000)
-    const dateKey = endOfDay(date).getTime() / 1000
-    acc.set(dateKey, [...(acc.get(dateKey) || []), item])
-
-    return acc
-  }, new Map() as ItemsMap)
-
-  const sortedChunks = await Promise.all(
-    Array.from(itemsMap.entries()).map(async ([date, items]) => {
-      const formattedDate = await formatDate(date)
-
-      return [formattedDate, items]
-    })
-  )
-
-  return sortedChunks
-}
-
-const getSummary = async (payment: Payment): Promise<PaymentSummary | null> => {
-  let summary: PaymentSummary
-
-  try {
-    if (payment.type === 'transaction') {
-      summary = await deriveTransactionSummary(payment)
-    } else if (payment.type === 'invoice') {
-      summary = await deriveInvoiceSummary(payment)
-    } else {
-      summary = await deriveAddressSummary(payment)
-    }
-
-    return summary
-  } catch (error) {
-    return null
   }
 }
 
