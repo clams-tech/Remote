@@ -120,13 +120,16 @@ export const CURRENCY_SYMBOLS = {
 
 const STORAGE_VERSION = 1
 
-export const STORAGE_KEYS = {
+export const STORAGE_KEYS: Record<string, string> = {
   session: `clams:session:${STORAGE_VERSION}`,
   settings: `clams:settings:${STORAGE_VERSION}`,
   lastReceiveWallet: `clams:last_receive_wallet:${STORAGE_VERSION}`,
   lastSendWallet: `clams:last_send_wallet:${STORAGE_VERSION}`,
   // whether has dismissed the get started hint
-  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`,
+  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
+}
+
+export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {
   // saved filters
   filters: {
     payments: `clams:filters:payments:${STORAGE_VERSION}`,

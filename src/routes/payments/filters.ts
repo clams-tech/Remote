@@ -1,5 +1,5 @@
 import type { Filter, OneOfFilter, Sorters } from '$lib/@types/common.js'
-import { STORAGE_KEYS } from '$lib/constants.js'
+import { FILTER_STORAGE_KEYS } from '$lib/constants.js'
 import { translate } from '$lib/i18n/translations.js'
 import { storage } from '$lib/services.js'
 import { wallets$ } from '$lib/streams.js'
@@ -144,7 +144,7 @@ export const getFilters = (): Filter[] => {
   let filterJson: string | null = null
 
   try {
-    filterJson = storage.get(STORAGE_KEYS.filters.payments)
+    filterJson = storage.get(FILTER_STORAGE_KEYS.filters.payments)
   } catch (error) {
     // no access to local storage
   }
@@ -159,7 +159,7 @@ export const getSorters = (): Sorters => {
   let sorterStr: string | null = null
 
   try {
-    sorterStr = storage.get(STORAGE_KEYS.sorter.payments)
+    sorterStr = storage.get(FILTER_STORAGE_KEYS.sorter.payments)
   } catch (error) {
     // no access to local storage
   }
@@ -177,7 +177,7 @@ export const getTags = (): string[] => {
   let tagStr: string | null = null
 
   try {
-    tagStr = storage.get(STORAGE_KEYS.tags.payments)
+    tagStr = storage.get(FILTER_STORAGE_KEYS.tags.payments)
   } catch (error) {
     // no access to local storage
   }

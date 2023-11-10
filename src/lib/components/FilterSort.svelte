@@ -128,7 +128,7 @@
 
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 
-      <div class="w-full flex flex-col gap-y-4">
+      <div class="w-full flex flex-col gap-y-4 ml-1">
         {#each sorters.options as sorter}
           <div class="w-full">
             <div class="flex items-center">

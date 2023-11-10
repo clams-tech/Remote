@@ -199,9 +199,27 @@ onmessage = async (message: MessageEvent<Message>) => {
         let fastForwardComplete = false
         return (item: T) => {
           if (fastForwardComplete) return otherCriterion(item)
-          if (item[idProp] === lastRow[idProp]) {
-            fastForwardComplete = true
+
+          if (typeof idProp === 'string') {
+            const keys = idProp.split('.')
+
+            // eslint-disable-next-line
+            // @ts-ignore
+            const itemVal = keys.reduce((endVal, val) => endVal[val], item)
+
+            // eslint-disable-next-line
+            // @ts-ignore
+            const lastRowVal = keys.reduce((endVal, val) => endVal[val], lastRow)
+
+            if (itemVal === lastRowVal) {
+              fastForwardComplete = true
+            }
+          } else {
+            if (item[idProp] === lastRow[idProp]) {
+              fastForwardComplete = true
+            }
           }
+
           return false
         }
       }
@@ -271,6 +289,12 @@ onmessage = async (message: MessageEvent<Message>) => {
       let collection: Collection<Payment>
 
       if (offset > 0 && lastItem) {
+        const keys = sort.key.split('.')
+
+        // eslint-disable-next-line
+        // @ts-ignore
+        const lastItemVal = keys.reduce((final, key) => final[key], lastItem)
+
         if (sort.direction === 'asc') {
           // eslint-disable-next-line
           // @ts-ignore
@@ -278,7 +302,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             .where(sort.key)
             // eslint-disable-next-line
             // @ts-ignore
-            .aboveOrEqual(lastItem[sort.key])
+            .aboveOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
             .filter(fastForward(lastItem, sort.key, filter))
@@ -289,7 +313,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             .where(sort.key)
             // eslint-disable-next-line
             // @ts-ignore
-            .belowOrEqual(lastItem[sort.key])
+            .belowOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
             .filter(fastForward(lastItem, sort.key, filter))
