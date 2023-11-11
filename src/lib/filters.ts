@@ -39,6 +39,39 @@ const paymentStatusFilter = (): Filter => ({
   ]
 })
 
+const utxoStatusFilter = (): Filter => ({
+  label: get(translate)('app.labels.status'),
+  key: 'status',
+  type: 'one-of',
+  values: [
+    {
+      label: get(translate)('app.labels.unconfirmed'),
+      value: 'unconfirmed',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.confirmed'),
+      value: 'confirmed',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.spent'),
+      value: 'spent',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.spent_unconfirmed'),
+      value: 'spent_unconfirmed',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.immature'),
+      value: 'immature',
+      applied: false
+    }
+  ]
+})
+
 const paymentTypeFilter = (): Filter => ({
   key: 'type',
   type: 'one-of',
@@ -127,7 +160,7 @@ const timestampFilter = (): Filter => ({
   values: { gt: null, lt: null }
 })
 
-const amountFilter = (key: string = 'data.amount'): Filter => ({
+const amountFilter = (key: string = 'amount'): Filter => ({
   label: get(translate)('app.labels.amount'),
   key,
   type: 'amount-range',
@@ -196,7 +229,7 @@ const feeSorter = (): Sorter => ({
   direction: 'desc'
 })
 
-const amountSorter = (key: string = 'data.amount'): Sorter => ({
+const amountSorter = (key: string = 'amount'): Sorter => ({
   label: get(translate)('app.labels.amount'),
   key,
   direction: 'desc'
@@ -217,17 +250,25 @@ export const routeFilters = (route: string): Filter[] => {
         walletFilter(),
         networkFilter(),
         timestampFilter(),
-        amountFilter(),
+        amountFilter('data.amount'),
         channelTransactionFilter(),
         offerInvoiceFilter()
       ]
+    case 'utxos':
+      return [
+        utxoStatusFilter(),
+        walletFilter(),
+        amountFilter(),
+        networkFilter(),
+        timestampFilter()
+      ]
     case 'offers':
       return [
-        offerActiveFilter(),
-        amountFilter('amount'),
+        amountFilter(),
         offerTypeFilter(),
         walletFilter(),
-        networkFilter()
+        networkFilter(),
+        offerActiveFilter()
       ]
     case 'forwards':
       return [
@@ -249,11 +290,19 @@ export const routeSorters = (route: string): Sorters => {
 
       return {
         applied: { key: timestamp.key, direction: timestamp.direction },
+        options: [timestamp, amountSorter('data.amount')]
+      }
+    }
+    case 'utxos': {
+      const timestamp = timestampSorter()
+
+      return {
+        applied: { key: timestamp.key, direction: timestamp.direction },
         options: [timestamp, amountSorter()]
       }
     }
     case 'offers': {
-      const amount = amountSorter('amount')
+      const amount = amountSorter()
 
       return {
         applied: { key: amount.key, direction: amount.direction },
