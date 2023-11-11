@@ -46,7 +46,7 @@ class DB extends Dexie {
       offers:
         '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer], *metadata.tags, metadata.contact',
       payments:
-        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee',
+        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, *data.outputs, [type+status]',
       tags: '&id, label',
       trades:
         '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination, *metadata.tags, metadata.contact',

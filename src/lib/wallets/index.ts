@@ -17,7 +17,9 @@ import {
   updateTableItems,
   getLastPaidInvoice,
   updateChannels,
-  updateTransactions
+  updateTransactions,
+  updateInvoices,
+  updateAddresses
 } from '$lib/db/helpers.js'
 import { goto } from '$app/navigation'
 
@@ -255,7 +257,11 @@ export const syncConnectionData = (
   /** process request queue
    * then listen for invoice updates
    */
-  processQueue(requestQueue, progress$).then(() => {
+  processQueue(requestQueue, progress$).then(async () => {
+    // update all invoices with fallback and all addresses if associated tx
+    await Promise.all([updateInvoices(), updateAddresses()])
+
+    // start listening for invoice updates
     if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
       getLastPaidInvoice(connection.walletId).then(lastPaidInvoice => {
         if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {

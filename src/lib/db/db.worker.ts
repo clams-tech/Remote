@@ -2,7 +2,12 @@ import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
 import type { Filter, GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
-import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
+import type {
+  AddressPayment,
+  InvoicePayment,
+  Payment,
+  TransactionPayment
+} from '$lib/@types/payments.js'
 import type TagFilters from '$lib/components/TagFilters.svelte'
 
 type MessageBase = {
@@ -17,6 +22,14 @@ type UpdateChannelsMessage = MessageBase & {
 type UpdateTransactionsMessage = MessageBase & {
   type: 'update_transactions'
   transactions: TransactionPayment[]
+}
+
+type UpdateAddressesMessage = MessageBase & {
+  type: 'update_addresses'
+}
+
+type UpdateInvoicesMessage = MessageBase & {
+  type: 'update_invoices'
 }
 
 type UpdateTableItemsMessage = MessageBase & {
@@ -52,6 +65,8 @@ type Message =
   | GetAllTagsMessage
   | GetSortedFilteredItemsMessage
   | BulkPutMessage
+  | UpdateAddressesMessage
+  | UpdateInvoicesMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -115,6 +130,73 @@ onmessage = async (message: MessageEvent<Message>) => {
               })
             )
           )
+        }
+
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
+    case 'update_addresses': {
+      try {
+        const unconfirmedAddresses = (await db.payments
+          .where({ type: 'address' })
+          .filter(({ data }) => !(data as AddressPayment['data']).txid)
+          .toArray()) as AddressPayment[]
+
+        for (const address of unconfirmedAddresses) {
+          try {
+            const transaction = await db.payments
+              .where({ 'data.outputs.address': address.id })
+              .first()
+
+            if (transaction) {
+              const updated: AddressPayment = {
+                ...address,
+                data: { ...address.data, txid: transaction.id }
+              }
+              await db.payments.put(updated)
+            }
+          } catch (error) {
+            //
+          }
+        }
+
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
+    case 'update_invoices': {
+      try {
+        const invoicesWaitingWithFallback = (await db.payments
+          .where({ type: 'invoice', status: 'waiting' })
+          .filter(({ data }) => !(data as InvoicePayment['data']).fallbackAddress)
+          .toArray()) as InvoicePayment[]
+
+        for (const invoice of invoicesWaitingWithFallback) {
+          try {
+            const transaction = (await db.payments
+              .where({ type: 'transaction', 'data.outputs.address': invoice.data.fallbackAddress })
+              .first()) as TransactionPayment
+
+            if (transaction) {
+              const updated: InvoicePayment = {
+                ...invoice,
+                status: transaction.data.blockHeight ? 'complete' : 'pending'
+              }
+
+              await db.payments.put(updated)
+            }
+          } catch (error) {
+            //
+          }
         }
 
         self.postMessage({ id: message.data.id })
