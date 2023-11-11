@@ -276,7 +276,7 @@ export const syncConnectionData = (
                     request: request ? truncateValue(request) : 'keysend',
                     wallet: wallet.label
                   }),
-                  onclick: () => goto(`/payments/${invoice.id}`)
+                  onclick: () => goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
                 })
 
                 lastPaidInvoiceIndexNotification = payIndex

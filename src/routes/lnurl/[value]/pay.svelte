@@ -298,7 +298,9 @@
         <Msg type="info" message={$translate('app.labels.lnurl_pay_success')} />
       </div>
 
-      <a href={`/payments/${paidInvoice.id}`} class="flex items-center"
+      <a
+        href={`/payments/${paidInvoice.id}?wallet=${paidInvoice.walletId}`}
+        class="flex items-center"
         >{$translate('app.labels.goto_payment')}
         <div class="w-4 -rotate-90">{@html caret}</div>
       </a>

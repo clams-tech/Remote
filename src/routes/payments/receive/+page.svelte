@@ -22,7 +22,7 @@
   import { combineLatest, map } from 'rxjs'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
-  import type { AddressPayment } from '$lib/@types/payments.js'
+  import type { AddressPayment, InvoicePayment } from '$lib/@types/payments.js'
   import Msg from '$lib/components/Msg.svelte'
 
   let selectedWalletId: Wallet['id']
@@ -75,9 +75,12 @@
       amount = 0
     }
 
+    let invoice: InvoicePayment | null = null
+    let address: AddressPayment | null = null
+
     try {
       if (createInvoice && connection.invoices?.create) {
-        const invoice = await connection.invoices.create({
+        invoice = await connection.invoices.create({
           id,
           amount,
           description,
@@ -92,22 +95,29 @@
 
         const createdAt = nowSeconds()
 
-        const address: AddressPayment = {
+        address = {
           id: receiveAddress,
           walletId: selectedWalletId,
           timestamp: createdAt,
           status: 'waiting',
-          direction: 'receive',
           network: connection.info.network,
           type: 'address',
           data: {
             createdAt,
             amount,
-            message: description
+            message: description,
+            direction: 'receive'
           }
         }
 
-        await db.payments.add(address)
+        if (invoice) {
+          /** if also creating an invoice, then just add as a fallback address*/
+          invoice.data.fallbackAddress = receiveAddress
+          await db.payments.put(invoice)
+        } else {
+          /** otherwise create a separate onchain receive address payment*/
+          await db.payments.add(address)
+        }
       }
     } catch (error) {
       createPaymentError = error as AppError
@@ -116,7 +126,7 @@
     }
 
     if (!createPaymentError) {
-      await goto(`/payments/${id}`)
+      await goto(`/payments/${id}?wallet=${connection.walletId}`)
     }
   }
 

@@ -131,7 +131,10 @@
         <!-- TXID -->
         <SummaryRow>
           <div slot="label">{$translate('app.labels.receive_transaction')}</div>
-          <a class="no-underline flex items-center" href={`/payments/${txid}`} slot="value"
+          <a
+            class="no-underline flex items-center"
+            href={`/payments/${txid}?wallet=${walletId}`}
+            slot="value"
             >{truncateValue(txid)}
             <div class="-rotate-90 w-6 ml-1">{@html caret}</div>
           </a>

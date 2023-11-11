@@ -138,7 +138,7 @@
       }
 
       await db.payments.add(invoice)
-      await goto(`/payments/${invoice.id}`)
+      await goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
     } catch (error) {
       requestingError = error as AppError
     } finally {

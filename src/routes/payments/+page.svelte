@@ -81,7 +81,12 @@
           }
         }
       } else {
-        deduped.set(payment.id, payment)
+        /**don't include address types that already have a txid
+         * meaning that there is already a transaction for this
+         */
+        if (payment.type !== 'address' || !payment.data.txid) {
+          deduped.set(payment.id, payment)
+        }
       }
     }
 

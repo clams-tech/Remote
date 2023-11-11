@@ -73,7 +73,7 @@
       })
 
       await db.payments.add(paid)
-      await goto(`/payments/${paid.id}`)
+      await goto(`/payments/${paid.id}?wallet=${paid.walletId}`)
     } catch (error) {
       payingError = error as AppError
     } finally {

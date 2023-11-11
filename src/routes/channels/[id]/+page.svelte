@@ -319,7 +319,10 @@
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.funding_transaction')}</div>
-            <a slot="value" class="flex items-center" href={`/payments/${fundingTransactionId}`}
+            <a
+              slot="value"
+              class="flex items-center"
+              href={`/payments/${fundingTransactionId}?wallet=${walletId}`}
               >{truncateValue(fundingTransactionId)}
               <div class="w-4 -rotate-90">{@html caret}</div>
             </a>
@@ -349,7 +352,9 @@
                 {$translate('app.labels.closing_transaction')}:
               </div>
               <div slot="value">
-                <a href={`/payments/${$closingTransaction$.id}`} class="flex items-center"
+                <a
+                  href={`/payments/${$closingTransaction$.id}?wallet=${walletId}`}
+                  class="flex items-center"
                   >{truncateValue($closingTransaction$.id)}
                   <div class="w-4 -rotate-90">{@html caret}</div>
                 </a>
