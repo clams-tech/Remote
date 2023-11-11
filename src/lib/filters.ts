@@ -72,6 +72,39 @@ const utxoStatusFilter = (): Filter => ({
   ]
 })
 
+const channelStatusFilter = (): Filter => ({
+  label: get(translate)('app.labels.status'),
+  key: 'status',
+  type: 'one-of',
+  values: [
+    {
+      label: get(translate)('app.labels.active'),
+      value: 'active',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.opening'),
+      value: 'opening',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.closing'),
+      value: 'closing',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.closed'),
+      value: 'closed',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.force_closed'),
+      value: 'force_closed',
+      applied: false
+    }
+  ]
+})
+
 const paymentTypeFilter = (): Filter => ({
   key: 'type',
   type: 'one-of',
@@ -160,8 +193,8 @@ const timestampFilter = (): Filter => ({
   values: { gt: null, lt: null }
 })
 
-const amountFilter = (key: string = 'amount'): Filter => ({
-  label: get(translate)('app.labels.amount'),
+const amountFilter = (key: string = 'amount', labelKey: string = 'amount'): Filter => ({
+  label: get(translate)(`app.labels.${labelKey}`),
   key,
   type: 'amount-range',
   values: { gt: null, lt: null }
@@ -229,8 +262,8 @@ const feeSorter = (): Sorter => ({
   direction: 'desc'
 })
 
-const amountSorter = (key: string = 'amount'): Sorter => ({
-  label: get(translate)('app.labels.amount'),
+const amountSorter = (key: string = 'amount', labelKey: string = 'amount'): Sorter => ({
+  label: get(translate)(`app.labels.${labelKey}`),
   key,
   direction: 'desc'
 })
@@ -261,6 +294,14 @@ export const routeFilters = (route: string): Filter[] => {
         amountFilter(),
         networkFilter(),
         timestampFilter()
+      ]
+    case 'channels':
+      return [
+        channelStatusFilter(),
+        walletFilter(),
+        amountFilter('balanceLocal', 'balance_local'),
+        amountFilter('balanceRemote', 'balance_remote'),
+        networkFilter()
       ]
     case 'offers':
       return [
@@ -307,6 +348,15 @@ export const routeSorters = (route: string): Sorters => {
       return {
         applied: { key: amount.key, direction: amount.direction },
         options: [amount]
+      }
+    }
+    case 'channels': {
+      const balanceLocal = amountSorter('balanceLocal', 'balance_local')
+      const balanceRemote = amountSorter('balanceRemote', 'balance_remote')
+
+      return {
+        applied: { key: balanceLocal.key, direction: balanceLocal.direction },
+        options: [balanceLocal, balanceRemote]
       }
     }
     case 'forwards': {
