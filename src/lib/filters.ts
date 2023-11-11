@@ -62,6 +62,24 @@ const paymentTypeFilter = (): Filter => ({
   ]
 })
 
+const offerTypeFilter = (): Filter => ({
+  key: 'type',
+  type: 'one-of',
+  label: get(translate)('app.labels.type'),
+  values: [
+    {
+      label: get(translate)('app.labels.pay'),
+      value: 'pay',
+      applied: false
+    },
+    {
+      label: get(translate)('app.labels.withdraw'),
+      value: 'withdraw',
+      applied: false
+    }
+  ]
+})
+
 const walletFilter = (): Filter => ({
   key: 'wallet',
   type: 'one-of',
@@ -109,9 +127,9 @@ const timestampFilter = (): Filter => ({
   values: { gt: null, lt: null }
 })
 
-const amountFilter = (): Filter => ({
+const amountFilter = (key: string = 'data.amount'): Filter => ({
   label: get(translate)('app.labels.amount'),
-  key: 'data.amount',
+  key,
   type: 'amount-range',
   values: { gt: null, lt: null }
 })
@@ -127,6 +145,13 @@ const offerInvoiceFilter = (): Filter => ({
   key: 'data.offer',
   type: 'exists',
   label: get(translate)('app.labels.offer'),
+  applied: false
+})
+
+const offerActiveFilter = (): Filter => ({
+  key: 'active',
+  type: 'exists',
+  label: get(translate)('app.labels.active'),
   applied: false
 })
 
@@ -171,9 +196,9 @@ const feeSorter = (): Sorter => ({
   direction: 'desc'
 })
 
-const amountSorter = (): Sorter => ({
+const amountSorter = (key: string = 'data.amount'): Sorter => ({
   label: get(translate)('app.labels.amount'),
-  key: 'data.amount',
+  key,
   direction: 'desc'
 })
 
@@ -196,6 +221,14 @@ export const routeFilters = (route: string): Filter[] => {
         channelTransactionFilter(),
         offerInvoiceFilter()
       ]
+    case 'offers':
+      return [
+        offerActiveFilter(),
+        amountFilter('amount'),
+        offerTypeFilter(),
+        walletFilter(),
+        networkFilter()
+      ]
     case 'forwards':
       return [
         forwardStatusFilter(),
@@ -217,6 +250,14 @@ export const routeSorters = (route: string): Sorters => {
       return {
         applied: { key: timestamp.key, direction: timestamp.direction },
         options: [timestamp, amountSorter()]
+      }
+    }
+    case 'offers': {
+      const amount = amountSorter('amount')
+
+      return {
+        applied: { key: amount.key, direction: amount.direction },
+        options: [amount]
       }
     }
     case 'forwards': {
