@@ -7,6 +7,9 @@
   import { getFilters, getSorters, getTags } from '$lib/filters.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import ItemsList from '$lib/components/ItemsList.svelte'
+  import type { Payment } from '$lib/@types/payments.js'
+  import { db } from '$lib/db/index.js'
+  import type { Channel } from '$lib/@types/channels.js'
 
   const route = 'payments'
   const rowSize = 88
@@ -27,9 +30,66 @@
     text: $translate('app.labels.receive'),
     icon: plus
   }
+
+  const dedupe = async (payments: Payment[]): Promise<Payment[]> => {
+    const deduped = new Map<string, Payment>()
+
+    for (const payment of payments) {
+      const currentPaymentWithSameId = deduped.get(payment.id)
+
+      if (currentPaymentWithSameId) {
+        if (payment.type === 'transaction') {
+          const {
+            data: { channel, inputs },
+            walletId,
+            id
+          } = payment
+
+          let transactionChannel: Channel | undefined
+
+          if (channel) {
+            const channels = await db.channels.where({ id: channel.id }).toArray()
+
+            transactionChannel = channels.find(
+              ({ opener, closer }) =>
+                ((channel?.type === 'close' || channel?.type === 'force_close') &&
+                  closer === 'local') ||
+                opener === 'local'
+            )
+          }
+
+          // favour channel closer or opener
+          if (transactionChannel?.walletId === walletId) {
+            deduped.set(id, payment)
+          } else {
+            const spentInputUtxo = await db.utxos
+              .where('id')
+              .anyOf(inputs.map(({ txid, index }) => `${txid}:${index}`))
+              .first()
+
+            if (spentInputUtxo?.walletId === walletId) {
+              // favour spender
+              deduped.set(id, payment)
+            }
+          }
+        }
+
+        if (payment.type === 'invoice' && currentPaymentWithSameId.type === 'invoice') {
+          // if duplicates (we are both parties to invoice), keep the sender copy
+          if (currentPaymentWithSameId.data.direction === 'receive') {
+            deduped.set(payment.id, payment)
+          }
+        }
+      } else {
+        deduped.set(payment.id, payment)
+      }
+    }
+
+    return Array.from(deduped.values())
+  }
 </script>
 
-<ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize}>
+<ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize} {dedupe}>
   <div slot="row" let:item>
     <PaymentRow payment={item} />
   </div>

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { translate } from '$lib/i18n/translations.js'
-
   import type { Connection } from '$lib/wallets/interfaces.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
@@ -21,30 +20,38 @@
   type T = $$Generic
   type Item = T & { id: string }
 
+  export let items: Item[] = []
   export let filters: Filter[]
   export let sorters: Sorters
   export let tags: string[]
   export let route: string
   export let rowSize: number
+  export let limit = 25
   export let sync: (connection: Connection) => Promise<void>
   export let button: { text: string; icon: string; href: string } | null = null
+  export let dedupe: ((items: Item[]) => Promise<Item[]>) | null = null
 
   let processing = false
-  let items: Item[] = []
   let gettingMoreItems = false
   let noMoreItems = false
 
   const loadItems = async () => {
     processing = true
 
-    items = (await getSortedFilteredItems({
+    const rawItems = (await getSortedFilteredItems({
       filters,
       tags,
       sort: sorters.applied,
-      limit: 25,
+      limit,
       offset: 0,
       table: route
     })) as Item[]
+
+    if (dedupe) {
+      items = await dedupe(rawItems)
+    } else {
+      items = rawItems
+    }
 
     processing = false
   }
@@ -54,15 +61,19 @@
 
     gettingMoreItems = true
 
-    const moreItems = (await getSortedFilteredItems({
+    let moreItems = (await getSortedFilteredItems({
       filters,
       tags,
       sort: sorters.applied,
-      limit: 25,
+      limit,
       offset: items.length,
       lastItem: items[items.length - 1],
       table: route
     })) as Item[]
+
+    if (dedupe) {
+      moreItems = await dedupe(moreItems)
+    }
 
     if (moreItems.length) {
       items = [...items, ...moreItems]
@@ -143,7 +154,6 @@
 
   const syncItems = async () => {
     await Promise.all(connections$.value.map(connection => sync(connection)))
-
     loadItems()
   }
 
@@ -160,6 +170,8 @@
       <FilterSort bind:filters bind:sorters bind:tags {route} on:updated={handleFilterSortUpdate} />
     </div>
   </div>
+
+  <slot name="summary" />
 
   <div class="w-full flex">
     {#if processing}

@@ -464,7 +464,8 @@
     "less_than": "Less than",
     "select_date": "Select date",
     "from": "From",
-    "reset": "Reset"
+    "reset": "Reset",
+    "coreln": "Core Lightning"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

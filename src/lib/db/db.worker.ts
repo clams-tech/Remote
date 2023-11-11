@@ -1,8 +1,9 @@
 import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
-import type { GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
+import type { Filter, GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
 import type { AddressPayment, Payment, TransactionPayment } from '$lib/@types/payments.js'
+import type TagFilters from '$lib/components/TagFilters.svelte'
 
 type MessageBase = {
   id: string
@@ -189,103 +190,6 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'get_filtered_sorted_items': {
       const { offset, limit, sort, filters, tags, lastItem, table } = message.data
 
-      // A helper function we will use below.
-      // It will prevent the same results to be returned again for next page.
-      const fastForward = <T>(
-        lastRow: T,
-        idProp: keyof T,
-        otherCriterion: (item: T) => boolean
-      ) => {
-        let fastForwardComplete = false
-        return (item: T) => {
-          if (fastForwardComplete) return otherCriterion(item)
-
-          if (typeof idProp === 'string') {
-            const keys = idProp.split('.')
-
-            // eslint-disable-next-line
-            // @ts-ignore
-            const itemVal = keys.reduce((endVal, val) => endVal[val], item)
-
-            // eslint-disable-next-line
-            // @ts-ignore
-            const lastRowVal = keys.reduce((endVal, val) => endVal[val], lastRow)
-
-            if (itemVal === lastRowVal) {
-              fastForwardComplete = true
-            }
-          } else {
-            if (item[idProp] === lastRow[idProp]) {
-              fastForwardComplete = true
-            }
-          }
-
-          return false
-        }
-      }
-
-      const filter = (item: unknown) => {
-        if (tags.length) {
-          // eslint-disable-next-line
-          // @ts-ignore
-          if (!item.metadata || !item.metadata.tags.length) return false
-          // eslint-disable-next-line
-          // @ts-ignore
-          const validTag = item.metadata.tags.some(tag => tags.includes(tag))
-          if (!validTag) return false
-        }
-
-        return filters.every(filter => {
-          const { type, key } = filter
-          const keys = key.split('.')
-
-          // eslint-disable-next-line
-          // @ts-ignore
-          let valueToTest: ValueOf<typeof item> = item[keys[0]]
-
-          if (keys.length > 1) {
-            // eslint-disable-next-line
-            // @ts-ignore
-            valueToTest = keys.slice(1).reduce((acc, key) => {
-              // eslint-disable-next-line
-              // @ts-ignore
-              const res = acc ? acc[key] : acc
-              return res
-            }, valueToTest)
-          }
-
-          if (type === 'exists' && filter.applied && !valueToTest) return false
-
-          if (type === 'one-of') {
-            const applied = filter.values.filter(({ applied }) => applied)
-
-            if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
-              return false
-            }
-          }
-
-          if (type === 'amount-range') {
-            const {
-              values: { gt, lt }
-            } = filter
-
-            if (gt && (valueToTest as number) <= gt) return false
-            if (lt && (valueToTest as number) >= lt) return false
-          }
-
-          if (type === 'date-range') {
-            const {
-              values: { gt, lt }
-            } = filter
-
-            if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
-            if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
-          }
-
-          return true
-        })
-      }
-
       let collection: Collection<Payment>
 
       if (offset > 0 && lastItem) {
@@ -305,7 +209,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             .aboveOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
-            .filter(fastForward(lastItem, sort.key, filter))
+            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
         } else {
           // eslint-disable-next-line
           // @ts-ignore
@@ -316,24 +220,117 @@ onmessage = async (message: MessageEvent<Message>) => {
             .belowOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
-            .filter(fastForward(lastItem, sort.key, filter))
+            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
         }
       } else {
         // eslint-disable-next-line
         // @ts-ignore
-        collection = db[table].orderBy(sort.key).filter(filter)
+        collection = db[table].orderBy(sort.key).filter(filter(filters, tags))
       }
 
       if (sort.direction === 'desc') {
         collection.reverse()
       }
 
-      const items = await collection.distinct().offset(offset).limit(limit).toArray()
+      const items = await collection.offset(offset).limit(limit).toArray()
 
       self.postMessage({ id: message.data.id, result: items })
       return
     }
   }
+}
+
+// A helper function we will use below.
+// It will prevent the same results to be returned again for next page.
+const fastForward = <T>(lastRow: T, idProp: keyof T, otherCriterion: (item: T) => boolean) => {
+  let fastForwardComplete = false
+  return (item: T) => {
+    if (fastForwardComplete) return otherCriterion(item)
+
+    if (typeof idProp === 'string') {
+      const keys = idProp.split('.')
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const itemVal = keys.reduce((endVal, val) => endVal[val], item)
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      const lastRowVal = keys.reduce((endVal, val) => endVal[val], lastRow)
+
+      if (itemVal === lastRowVal) {
+        fastForwardComplete = true
+      }
+    } else {
+      if (item[idProp] === lastRow[idProp]) {
+        fastForwardComplete = true
+      }
+    }
+
+    return false
+  }
+}
+
+const filter = (filters: Filter[], tags: TagFilters) => (item: unknown) => {
+  if (tags.length) {
+    // eslint-disable-next-line
+    // @ts-ignore
+    if (!item.metadata || !item.metadata.tags.length) return false
+    // eslint-disable-next-line
+    // @ts-ignore
+    const validTag = item.metadata.tags.some(tag => tags.includes(tag))
+    if (!validTag) return false
+  }
+
+  return filters.every(filter => {
+    const { type, key } = filter
+    const keys = key.split('.')
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    let valueToTest: ValueOf<typeof item> = item[keys[0]]
+
+    if (keys.length > 1) {
+      // eslint-disable-next-line
+      // @ts-ignore
+      valueToTest = keys.slice(1).reduce((acc, key) => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const res = acc ? acc[key] : acc
+        return res
+      }, valueToTest)
+    }
+
+    if (type === 'exists' && filter.applied && !valueToTest) return false
+
+    if (type === 'one-of') {
+      const applied = filter.values.filter(({ applied }) => applied)
+
+      if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
+        return false
+      }
+    }
+
+    if (type === 'amount-range') {
+      const {
+        values: { gt, lt }
+      } = filter
+
+      if (gt && (valueToTest as number) <= gt) return false
+      if (lt && (valueToTest as number) >= lt) return false
+    }
+
+    if (type === 'date-range') {
+      const {
+        values: { gt, lt }
+      } = filter
+
+      if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
+      if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
+    }
+
+    return true
+  })
 }
 
 export {}

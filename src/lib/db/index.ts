@@ -51,7 +51,7 @@ class DB extends Dexie {
       trades:
         '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination, *metadata.tags, metadata.contact',
       utxos: '&id, walletId, txid, timestamp, spendingTxid, *metadata.tags, metadata.contact',
-      wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact',
+      wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
       withdrawals:
         '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
     })

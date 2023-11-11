@@ -5,6 +5,7 @@ import { storage } from '$lib/services.js'
 import { wallets$ } from '$lib/streams.js'
 import { mergeDefaultWithSavedFilters } from '$lib/utils.js'
 import { get } from 'svelte/store'
+import { walletTypes } from './wallets/index.js'
 
 const paymentStatusFilter = (): Filter => ({
   label: get(translate)('app.labels.status'),
@@ -186,9 +187,9 @@ const networkFilter = (): Filter => ({
   ]
 })
 
-const timestampFilter = (): Filter => ({
-  label: get(translate)('app.labels.date'),
-  key: 'timestamp',
+const timestampFilter = (key: string = 'timestamp', labelKey: string = 'date'): Filter => ({
+  label: get(translate)(`app.labels.${labelKey}`),
+  key,
   type: 'date-range',
   values: { gt: null, lt: null }
 })
@@ -249,6 +250,17 @@ const forwardStatusFilter = (): Filter => ({
   ]
 })
 
+const walletTypeFilter = (): Filter => ({
+  label: get(translate)('app.labels.status'),
+  key: 'status',
+  type: 'one-of',
+  values: walletTypes.map(type => ({
+    label: get(translate)(`app.labels.${type}`),
+    value: type,
+    applied: false
+  }))
+})
+
 const feeFilter = (): Filter => ({
   label: get(translate)('app.labels.fee'),
   key: 'fee',
@@ -268,9 +280,9 @@ const amountSorter = (key: string = 'amount', labelKey: string = 'amount'): Sort
   direction: 'desc'
 })
 
-const timestampSorter = (): Sorter => ({
-  label: get(translate)('app.labels.date'),
-  key: 'timestamp',
+const timestampSorter = (key: string = 'timestamp', labelKey: string = 'date'): Sorter => ({
+  label: get(translate)(`app.labels.${labelKey}`),
+  key,
   direction: 'desc'
 })
 
@@ -319,6 +331,8 @@ export const routeFilters = (route: string): Filter[] => {
         networkFilter(),
         timestampFilter()
       ]
+    case 'wallets':
+      return [walletFilter(), walletTypeFilter(), timestampFilter('createdAt', 'created_at')]
     default:
       throw new Error(`Unknown route: ${route}`)
   }
@@ -365,6 +379,14 @@ export const routeSorters = (route: string): Sorters => {
       return {
         applied: { key: timestamp.key, direction: timestamp.direction },
         options: [timestamp, feeSorter()]
+      }
+    }
+    case 'wallets': {
+      const timestamp = timestampSorter('createdAt', 'created_at')
+
+      return {
+        applied: { key: timestamp.key, direction: timestamp.direction },
+        options: [timestamp]
       }
     }
     default: {
