@@ -27,9 +27,6 @@
     text: $translate('app.labels.receive'),
     icon: plus
   }
-
-  const noItemsMessage = (filtersApplied: boolean) =>
-    $translate(`app.labels.${filtersApplied ? 'no_payments_filtered' : 'no_payments'}`)
 </script>
 
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize}>
