@@ -224,7 +224,7 @@
       </div>
 
       <div class="flex flex-col w-full overflow-hidden justify-center items-center mt-2">
-        <div class="flex flex-col w-full flex-grow overflow-auto max-w-lg">
+        <div class="flex flex-col w-full flex-grow overflow-auto">
           <SummaryRow>
             <div slot="label">
               {$translate('app.labels.wallet')}:
@@ -474,7 +474,7 @@
       </div>
 
       {#if status !== 'closed' && connection && connection.channels?.update}
-        <div class="flex w-full justify-end mt-4 mb-1 max-w-lg">
+        <div class="flex w-full justify-end mt-4 mb-1">
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}

@@ -67,7 +67,7 @@
     </div>
 
     <div class="w-full flex justify-center mt-2">
-      <div class="w-full max-w-lg">
+      <div class="w-full">
         <!-- WALLET -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
