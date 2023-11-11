@@ -1,15 +1,21 @@
 <script lang="ts">
   import type { Forward } from '$lib/@types/forwards.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import { formatDate } from '$lib/dates.js'
   import { db } from '$lib/db/index.js'
   import { translate } from '$lib/i18n/translations.js'
   import arrow from '$lib/icons/arrow.js'
   import caret from '$lib/icons/caret.js'
+  import channels from '$lib/icons/channels.js'
   import { truncateValue } from '$lib/utils.js'
   import { liveQuery } from 'dexie'
   import { from } from 'rxjs'
 
   export let forward: Forward
+
+  let formattedTimestamp: string
+
+  formatDate(forward.timestamp, 'do MMM hh:mma').then(result => (formattedTimestamp = result))
 
   const data$ = from(
     liveQuery(() =>
@@ -41,26 +47,32 @@
   class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
-    <div class="flex flex-col text-sm">
-      <div class="flex items-center">
-        <div class="w-6 text-utility-success rotate-180">{@html arrow}</div>
-        <div class="font-semibold">
-          {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
+    <div class="flex flex-col items-center max-w-[70%]">
+      <div class="flex items-center text-sm gap-x-2 overflow-hidden w-full">
+        <div class="flex items-center w-[40%]">
+          <div class="w-6 text-utility-success rotate-180 flex-shrink-0">{@html arrow}</div>
+          <div class="truncate uppercase">
+            {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
+          </div>
+        </div>
+
+        <div class="w-6 flex-shrink-0">{@html channels}</div>
+
+        <div class="flex items-center w-[40%]">
+          <div class="truncate uppercase">
+            {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
+          </div>
+          <div class="w-6 text-utility-error flex-shrink-0">{@html arrow}</div>
         </div>
       </div>
 
-      <div class="flex items-center">
-        <div class="w-6 text-utility-error">{@html arrow}</div>
-        <div class="font-semibold">
-          {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
-        </div>
-      </div>
-
-      <div
-        class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min mt-1 text-sm"
-      >
+      <div class="font-semibold text-purple-100 bg-neutral-800 rounded-full px-2 w-min text-sm">
         {$data$.wallet?.label?.toUpperCase()}
       </div>
+
+      {#if formattedTimestamp}
+        <div class="text-xs font-semibold mt-1 ml-2">{formattedTimestamp}</div>
+      {/if}
     </div>
 
     <div class="flex items-center h-full">

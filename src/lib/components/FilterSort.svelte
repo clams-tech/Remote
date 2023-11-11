@@ -11,15 +11,12 @@
   import TagFilters from './TagFilters.svelte'
   import { slide } from 'svelte/transition'
   import type { Tag } from '$lib/@types/metadata.js'
-
-  import {
-    getDefaultPaymentFilterOptions,
-    getDefaultPaymentSorters
-  } from '../../routes/payments/filters.js'
+  import { routeFilters, routeSorters } from '$lib/filters.js'
 
   export let filters: Filter[]
   export let sorters: Sorters
   export let tags: Tag['id'][]
+  export let route: string
 
   const dispatch = createEventDispatcher()
 
@@ -76,10 +73,10 @@
   }
 
   const reset = () => {
-    filters = getDefaultPaymentFilterOptions()
+    filters = routeFilters(route)
     editedFilters = simpleDeepClone(filters)
 
-    sorters = getDefaultPaymentSorters()
+    sorters = routeSorters(route)
     selectedSorterKey = simpleDeepClone(sorters.applied.key)
     selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
 

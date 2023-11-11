@@ -319,7 +319,9 @@ onmessage = async (message: MessageEvent<Message>) => {
             .filter(fastForward(lastItem, sort.key, filter))
         }
       } else {
-        collection = db.payments.orderBy(sort.key).filter(filter)
+        // eslint-disable-next-line
+        // @ts-ignore
+        collection = db[table].orderBy(sort.key).filter(filter)
       }
 
       if (sort.direction === 'desc') {

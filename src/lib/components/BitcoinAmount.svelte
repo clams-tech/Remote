@@ -29,7 +29,7 @@
     <div class="w-[1.25em] text-neutral-50 -ml-1">{@html bitcoin}</div>
   {/if}
 
-  <div class="flex">
+  <div class="flex w-full justify-end">
     <div class="mr-[0.375em] font-mono leading-snug">
       {@html displayMsat
         ? satsToMsats(sats)

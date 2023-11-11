@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { translate } from '$lib/i18n/translations.js'
+
   import type { Connection } from '$lib/wallets/interfaces.js'
   import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
@@ -22,10 +24,9 @@
   export let filters: Filter[]
   export let sorters: Sorters
   export let tags: string[]
-  export let table: string
+  export let route: string
   export let rowSize: number
   export let sync: (connection: Connection) => Promise<void>
-  export let noItemsMessage: (filtersApplied: boolean) => string
   export let button: { text: string; icon: string; href: string } | null = null
 
   let processing = false
@@ -42,7 +43,7 @@
       sort: sorters.applied,
       limit: 25,
       offset: 0,
-      table
+      table: route
     })) as Item[]
 
     processing = false
@@ -60,7 +61,7 @@
       limit: 25,
       offset: items.length,
       lastItem: items[items.length - 1],
-      table
+      table: route
     })) as Item[]
 
     if (moreItems.length) {
@@ -82,8 +83,8 @@
 
   const updateStoredFiltersAndSorter = () => {
     try {
-      storage.write(FILTER_STORAGE_KEYS.filters[table], JSON.stringify(filters))
-      storage.write(FILTER_STORAGE_KEYS.sorter[table], JSON.stringify(sorters.applied))
+      storage.write(FILTER_STORAGE_KEYS.filters[route], JSON.stringify(filters))
+      storage.write(FILTER_STORAGE_KEYS.sorter[route], JSON.stringify(sorters.applied))
     } catch (error) {
       // can't write to storage
     }
@@ -156,7 +157,7 @@
     <SectionHeading icon={list} />
     <div class="flex items-center gap-x-2">
       <SyncRouteData sync={syncItems} />
-      <FilterSort bind:filters bind:sorters bind:tags on:updated={handleFilterSortUpdate} />
+      <FilterSort bind:filters bind:sorters bind:tags {route} on:updated={handleFilterSortUpdate} />
     </div>
   </div>
 
@@ -167,7 +168,13 @@
       </div>
     {:else if !items.length}
       <div class="mt-4 mb-2 w-full">
-        <Msg type="info" closable={false} message={noItemsMessage(filtersApplied)} />
+        <Msg
+          type="info"
+          closable={false}
+          message={$translate(
+            `app.labels.${filtersApplied ? `no_${route}_filtered` : `no_${route}`}`
+          )}
+        />
       </div>
     {:else}
       <div class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2">
