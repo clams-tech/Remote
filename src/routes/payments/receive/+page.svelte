@@ -125,8 +125,8 @@
       creatingPayment = false
     }
 
-    if (!createPaymentError) {
-      await goto(`/payments/${id}?wallet=${connection.walletId}`)
+    if (!createPaymentError && (address || invoice)) {
+      await goto(`/payments/${invoice ? invoice.id : address?.id}?wallet=${connection.walletId}`)
     }
   }
 

@@ -111,7 +111,7 @@
 
                 qrValues.push({
                   label: $translate('app.labels.address'),
-                  value: `bitcoin:${id.toUpperCase()}${
+                  value: `bitcoin:${fallbackAddress.toUpperCase()}${
                     Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
                   }`
                 })

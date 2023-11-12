@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fetchUtxos } from '$lib/wallets/index.js'
+  import { fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters, getTags } from '$lib/filters.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
@@ -18,7 +18,7 @@
   const tags: string[] = getTags(route)
 
   const sync = async (connection: Connection) => {
-    await fetchUtxos(connection)
+    await Promise.all([fetchUtxos(connection), fetchTransactions(connection)])
   }
 
   let utxos: Utxo[] = []

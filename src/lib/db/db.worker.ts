@@ -150,7 +150,13 @@ onmessage = async (message: MessageEvent<Message>) => {
         for (const address of unconfirmedAddresses) {
           try {
             const transaction = await db.payments
-              .where({ 'data.outputs.address': address.id })
+              .where({ type: 'transaction' })
+              .filter(
+                transaction =>
+                  !!(transaction.data as TransactionPayment['data']).outputs.find(
+                    output => output.address === address.id
+                  )
+              )
               .first()
 
             if (transaction) {
@@ -183,7 +189,13 @@ onmessage = async (message: MessageEvent<Message>) => {
         for (const invoice of invoicesWaitingWithFallback) {
           try {
             const transaction = (await db.payments
-              .where({ type: 'transaction', 'data.outputs.address': invoice.data.fallbackAddress })
+              .where({ type: 'transaction' })
+              .filter(
+                transaction =>
+                  !!(transaction.data as TransactionPayment['data']).outputs.find(
+                    ({ address }) => address === invoice.data.fallbackAddress
+                  )
+              )
               .first()) as TransactionPayment
 
             if (transaction) {

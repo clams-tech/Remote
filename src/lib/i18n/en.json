@@ -358,7 +358,7 @@
     "summary_channel_open_complete": "opened a channel with",
     "summary_channel_multiple_open_pending": "is opening channels with",
     "summary_channel_multiple_open_complete": "opened channels with",
-    "summary_channel_close_pending": "is closing a channel with",
+    "summary_channel_close_waiting": "is closing a channel with",
     "summary_channel_close_complete": "closed a channel with",
     "summary_channel_force_close_pending": "is force closing a channel with",
     "summary_channel_force_close_complete": "force closed a channel with",
