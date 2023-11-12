@@ -47,9 +47,9 @@
   class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
-    <div class="flex flex-col items-center max-w-[70%]">
+    <div class="flex flex-col items-center w-full mr-4">
       <div class="flex items-center text-sm gap-x-2 overflow-hidden w-full">
-        <div class="flex items-center w-[40%]">
+        <div class="flex items-center w-full">
           <div class="w-6 text-utility-success rotate-180 flex-shrink-0">{@html arrow}</div>
           <div class="truncate uppercase">
             {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
@@ -58,7 +58,7 @@
 
         <div class="w-6 flex-shrink-0">{@html channels}</div>
 
-        <div class="flex items-center w-[40%]">
+        <div class="flex items-center">
           <div class="truncate uppercase">
             {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
           </div>
