@@ -168,8 +168,8 @@
       {@const lastPathRouteTitle = $translate(`app.routes.${routeHistory[0]}.title`, {
         default: 'undefined'
       })}
-      <div class="flex items-center p-1">
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 sm:w-20 sm:p-2"
+      <div class="flex items-center">
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 p-1"
           >{@html clamsIconPlain}</button
         >
 
@@ -212,7 +212,7 @@
 
   <div
     in:fade
-    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-2"
+    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-2 sm:pb-4 md:pb-8 lg:pb-12"
   >
     {#if $session$ || path === '/welcome'}
       <slot />

@@ -32,6 +32,10 @@ module.exports = {
         },
         black: '#000000',
         white: '#ffffff',
+        neutral: {
+          50: '#fafafa',
+          900: '#171717'
+        },
         transparent: 'transparent'
       },
       screens: {

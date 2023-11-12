@@ -1,13 +1,11 @@
 import LnMessage from 'lnmessage'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
-import type { Invoice } from '$lib/@types/invoices.js'
 import { formatInvoice, formatMsatString, payToInvoice, stateToChannelStatus } from './utils.js'
 import { msatsToSats } from '$lib/conversion.js'
 import { hash } from '$lib/crypto.js'
-import type { Network } from '$lib/@types/common.js'
+import type { InvoicePayment, Network, TransactionPayment } from '$lib/@types/payments.js'
 import { Transaction as BitcoinTransaction } from 'bitcoinjs-lib/src/transaction'
 import { fromOutputScript } from 'bitcoinjs-lib/src/address'
-import type { Transaction } from '$lib/@types/transactions.js'
 import { nowSeconds } from '$lib/utils.js'
 import { initEccLib, networks } from 'bitcoinjs-lib'
 import secp256k1 from '@bitcoinerlab/secp256k1'
@@ -35,6 +33,8 @@ import type {
   ListPeerChannelsResponse,
   ListfundsResponse
 } from './types.js'
+import { distinctUntilChanged } from 'rxjs'
+import type { Forward } from '$lib/@types/forwards.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -79,6 +79,7 @@ type FormatPaymentsMessage = MessageBase & {
   invoices: RawInvoice[]
   pays: Pay[]
   walletId: string
+  network: Network
 }
 
 type FormatForwardsMessage = MessageBase & {
@@ -121,7 +122,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       const socket = new LnMessage(message.data.data)
       sockets[message.data.socketId] = socket
 
-      socket.connectionStatus$.subscribe(status => {
+      socket.connectionStatus$.pipe(distinctUntilChanged()).subscribe(status => {
         console.log('CONNECTION STATUS UPDATE:', status)
         self.postMessage({ id: 'connectionStatus$', result: status })
       })
@@ -153,14 +154,14 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
     }
     case 'format_payments': {
-      const { id, invoices, pays, walletId } = message.data
+      const { id, invoices, pays, walletId, network } = message.data
 
-      const invoicePayments: Invoice[] = await Promise.all(
-        invoices.map(invoice => formatInvoice(invoice, walletId))
+      const invoicePayments: InvoicePayment[] = await Promise.all(
+        invoices.map(invoice => formatInvoice(invoice, walletId, network))
       )
 
-      const sentPayments: Invoice[] = await Promise.all(
-        pays.map(pay => payToInvoice(pay, walletId))
+      const sentPayments: InvoicePayment[] = await Promise.all(
+        pays.map(pay => payToInvoice(pay, walletId, network))
       )
 
       self.postMessage({ id, result: invoicePayments.concat(sentPayments) })
@@ -183,7 +184,7 @@ onmessage = async (message: MessageEvent<Message>) => {
           received_time,
           resolved_time
         }) => {
-          const forward = {
+          const forward: Omit<Forward, 'id'> = {
             shortIdIn: in_channel,
             shortIdOut: out_channel,
             htlcInId: in_htlc_id,
@@ -195,6 +196,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             style,
             createdAt: received_time,
             completedAt: resolved_time,
+            timestamp: resolved_time | received_time,
             walletId
           }
 
@@ -217,7 +219,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             const bitcoinTransaction = BitcoinTransaction.fromHex(rawtx)
 
             const fees: string[] = []
-            let channel: Transaction['channel']
+            let channel: TransactionPayment['data']['channel']
             let timestamp = nowSeconds()
 
             if (accountEvents) {
@@ -287,55 +289,62 @@ onmessage = async (message: MessageEvent<Message>) => {
               })
             }
 
-            return {
+            const payment: TransactionPayment = {
               id: hash,
-              rawtx,
-              blockheight,
-              txindex,
-              locktime,
-              version,
-              rbfEnabled,
-              inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
-              outputs: outputs.map(({ index, amount_msat }) => {
-                let address: string
-
-                try {
-                  address = fromOutputScript(
-                    bitcoinTransaction.outs[index].script,
-                    networks[network === 'signet' ? 'testnet' : network]
-                  )
-                } catch (error) {
-                  address = ''
-                  const context = 'get (transactions)'
-
-                  throw {
-                    key: 'connection_derive_output_address',
-                    detail: {
-                      message: 'Could not derive address from output script',
-                      context,
-                      walletId,
-                      timestamp: nowSeconds()
-                    }
-                  }
-                }
-
-                return {
-                  index,
-                  amount: msatsToSats(formatMsatString(amount_msat)),
-                  address
-                }
-              }),
               walletId: walletId,
               timestamp,
-              channel,
-              fee: fees.length
-                ? msatsToSats(
-                    fees.reduce((total, msat) => {
-                      return Big(total).plus(msat).toString()
-                    }, '0')
-                  )
-                : undefined
-            } as Transaction
+              network,
+              status: blockheight ? 'complete' : 'waiting',
+              type: 'transaction',
+              data: {
+                rawTx: rawtx,
+                blockHeight: blockheight,
+                txindex,
+                locktime,
+                version,
+                rbfEnabled,
+                inputs: inputs.map(({ txid, index, sequence }) => ({ txid, index, sequence })),
+                outputs: outputs.map(({ index, amount_msat }) => {
+                  let address: string
+
+                  try {
+                    address = fromOutputScript(
+                      bitcoinTransaction.outs[index].script,
+                      networks[network === 'signet' ? 'testnet' : network]
+                    )
+                  } catch (error) {
+                    address = ''
+                    const context = 'get (transactions)'
+
+                    throw {
+                      key: 'connection_derive_output_address',
+                      detail: {
+                        message: 'Could not derive address from output script',
+                        context,
+                        walletId,
+                        timestamp: nowSeconds()
+                      }
+                    }
+                  }
+
+                  return {
+                    index,
+                    amount: msatsToSats(formatMsatString(amount_msat)),
+                    address
+                  }
+                }),
+                channel,
+                fee: fees.length
+                  ? msatsToSats(
+                      fees.reduce((total, msat) => {
+                        return Big(total).plus(msat).toString()
+                      }, '0')
+                    )
+                  : undefined
+              }
+            }
+
+            return payment
           }
         )
 
@@ -617,7 +626,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             }
           }
 
-          return {
+          const utxo: Utxo = {
             id: `${txid}:${output}`,
             txid: txid,
             output,
@@ -629,7 +638,9 @@ onmessage = async (message: MessageEvent<Message>) => {
             blockHeight: blockheight,
             walletId,
             timestamp
-          } as Utxo
+          }
+
+          return utxo
         }
       )
 

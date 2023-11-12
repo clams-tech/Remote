@@ -9,8 +9,8 @@
   import trendingUp from '$lib/icons/trending-up'
   import trendingDown from '$lib/icons/trending-down'
   import { db } from '$lib/db/index.js'
-  import { liveQuery } from 'dexie'
-  import { filter, from, map, mergeMap, of, switchMap, timer } from 'rxjs'
+  import { liveQuery, type PromiseExtended } from 'dexie'
+  import { Observable, filter, from, map, mergeMap, of, switchMap, timer } from 'rxjs'
   import { nowSeconds, truncateValue } from '$lib/utils.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Modal from '$lib/components/Modal.svelte'
@@ -24,6 +24,7 @@
   import PaymentsList from './PaymentsList.svelte'
   import { formatDateRelativeToNow } from '$lib/dates.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { InvoicePayment } from '$lib/@types/payments.js'
 
   export let data: PageData
 
@@ -38,27 +39,29 @@
     )
   )
 
-  const offerPayments$ = offer$.pipe(
+  const offerPayments$: Observable<InvoicePayment[]> = offer$.pipe(
     filter(x => !!x),
     switchMap(offer =>
       from(
-        liveQuery(() =>
-          db.invoices
-            .where(
-              offer?.type === 'withdraw'
-                ? {
-                    direction: 'send',
-                    amount: offer?.amount
-                  }
-                : { 'offer.id': offer?.id }
-            )
-            .filter(
-              invoice =>
-                invoice.offer?.description === offer?.description &&
-                invoice.offer?.issuer === offer?.issuer
-            )
-            .reverse()
-            .sortBy('completedAt')
+        liveQuery(
+          () =>
+            db.payments
+              .where(
+                offer?.type === 'withdraw'
+                  ? {
+                      direction: 'send',
+                      'data.amount': offer?.amount
+                    }
+                  : { 'data.offer.id': offer?.id }
+              )
+              .filter(invoice => {
+                const {
+                  data: { offer }
+                } = invoice as InvoicePayment
+                return offer?.description === offer?.description && offer?.issuer === offer?.issuer
+              })
+              .reverse()
+              .sortBy('completedAt') as PromiseExtended<InvoicePayment[]>
         )
       )
     )

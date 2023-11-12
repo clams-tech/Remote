@@ -17,16 +17,15 @@
   import Calculator from '$lib/components/Calculator.svelte'
   import Button from '$lib/components/Button.svelte'
   import { slide } from 'svelte/transition'
-  import type { Invoice } from '$lib/@types/invoices.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
-  import type { Offer } from '$lib/@types/offers.js'
   import { createRandomHex } from '$lib/crypto.js'
   import { db } from '$lib/db/index.js'
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
   import { decodeBolt12 } from '$lib/invoices.js'
+  import type { InvoicePayment } from '$lib/@types/payments.js'
 
   export let data: PageData
 
@@ -62,7 +61,7 @@
     requestingError = null
     requesting = true
 
-    let invoice: Invoice
+    let invoice: InvoicePayment
 
     try {
       const connection = connections$.value.find(
@@ -138,8 +137,8 @@
         })
       }
 
-      await db.invoices.add(invoice)
-      await goto(`/payments/${invoice.id}`)
+      await db.payments.add(invoice)
+      await goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
     } catch (error) {
       requestingError = error as AppError
     } finally {

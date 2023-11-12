@@ -1,25 +1,15 @@
-import { BehaviorSubject, filter, firstValueFrom, fromEvent, map } from 'rxjs'
+import { filter, firstValueFrom, fromEvent, map } from 'rxjs'
 import { createRandomHex } from '$lib/crypto.js'
 import type { Channel } from '$lib/@types/channels.js'
-import type { Transaction } from '$lib/@types/transactions.js'
-import type { Invoice } from '$lib/@types/invoices.js'
-import type { Payment } from '$lib/@types/common.js'
-import type { PaymentSummary } from '$lib/summary.js'
+import type { GetSortedFilteredItemsOptions } from '$lib/@types/common.js'
+import type { Tag } from '$lib/@types/metadata.js'
+import type { InvoicePayment, TransactionPayment } from '$lib/@types/payments.js'
 
 const worker = new Worker(new URL('./db.worker.ts', import.meta.url), {
   type: 'module'
 })
 
 const messages$ = fromEvent<MessageEvent>(worker, 'message')
-
-export const payments$ = new BehaviorSubject<Payment[]>([])
-
-messages$
-  .pipe(
-    filter(({ data }) => data.id === 'payments$'),
-    map(({ data }) => data.result)
-  )
-  .subscribe(payments$)
 
 export const updateChannels = async (channels: Channel[]): Promise<void> => {
   const id = createRandomHex()
@@ -40,7 +30,7 @@ export const updateChannels = async (channels: Channel[]): Promise<void> => {
   return complete
 }
 
-export const updateTransactions = async (transactions: Transaction[]): Promise<void> => {
+export const updateTransactions = async (transactions: TransactionPayment[]): Promise<void> => {
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -55,6 +45,63 @@ export const updateTransactions = async (transactions: Transaction[]): Promise<v
   )
 
   worker.postMessage({ id, type: 'update_transactions', transactions })
+
+  return complete
+}
+
+export const updateAddresses = async (): Promise<void> => {
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'update_addresses' })
+
+  return complete
+}
+
+export const updateInvoices = async (): Promise<void> => {
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'update_invoices' })
+
+  return complete
+}
+
+export const updateTableItems = async (table: string, data: unknown[]): Promise<void> => {
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+      })
+    )
+  )
+
+  worker.postMessage({ id, type: 'update_table_items', table, data })
 
   return complete
 }
@@ -78,7 +125,7 @@ export const bulkPut = async (table: string, data: unknown[]): Promise<void> => 
   return complete
 }
 
-export const getLastPaidInvoice = async (walletId: string): Promise<Invoice> => {
+export const getLastPaidInvoice = async (walletId: string): Promise<InvoicePayment> => {
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -96,13 +143,10 @@ export const getLastPaidInvoice = async (walletId: string): Promise<Invoice> => 
 
   worker.postMessage({ id, type: 'get_lastpay_index', walletId })
 
-  return complete as Promise<Invoice>
+  return complete as Promise<InvoicePayment>
 }
 
-export const getPaymentSummary = async (payment: {
-  data: Payment['data']
-  type: Payment['type']
-}): Promise<PaymentSummary> => {
+export const getAllTags = (): Promise<Tag[]> => {
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -118,7 +162,41 @@ export const getPaymentSummary = async (payment: {
     )
   )
 
-  worker.postMessage({ id, type: 'get_payment_summary', payment })
+  worker.postMessage({ id, type: 'get_all_tags' })
 
-  return complete as Promise<PaymentSummary>
+  return complete as Promise<Tag[]>
+}
+
+export const getSortedFilteredItems = async (
+  options: GetSortedFilteredItemsOptions
+): Promise<unknown[]> => {
+  const { offset, limit, sort, filters, tags, lastItem, table } = options
+  const id = createRandomHex()
+
+  const complete = firstValueFrom(
+    messages$.pipe(
+      filter(message => message.data.id === id),
+      map(message => {
+        if (message.data.error) {
+          throw new Error(message.data.error)
+        }
+
+        return message.data.result
+      })
+    )
+  )
+
+  worker.postMessage({
+    id,
+    type: 'get_filtered_sorted_items',
+    offset,
+    limit,
+    sort,
+    filters,
+    tags,
+    table,
+    lastItem
+  })
+
+  return complete as Promise<unknown[]>
 }

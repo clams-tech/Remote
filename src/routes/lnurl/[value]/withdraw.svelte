@@ -8,15 +8,14 @@
   import type { Wallet } from '$lib/@types/wallets.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import { slide } from 'svelte/transition'
-  import Msg from '$lib/components/Msg.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import { createRandomHex } from '$lib/crypto.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
-  import type { Invoice } from '$lib/@types/invoices.js'
   import { db } from '$lib/db/index.js'
   import type { AppError } from '$lib/@types/errors.js'
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { InvoicePayment } from '$lib/@types/payments.js'
 
   export let url: URL
   export let k1: string
@@ -73,7 +72,7 @@
 
       const id = createRandomHex()
 
-      let invoice: Invoice
+      let invoice: InvoicePayment
 
       invoice = await connection.invoices!.create!({
         id,
@@ -81,7 +80,7 @@
         description: defaultDescription || `${serviceName} LNURL Withdraw`
       })
 
-      await db.invoices.add(invoice)
+      await db.payments.add(invoice)
 
       const url = new URL(callback)
       const kind = url.searchParams.get('kind')
@@ -91,7 +90,7 @@
       }
 
       url.searchParams.set('k1', k1)
-      url.searchParams.set('pr', invoice.request as string)
+      url.searchParams.set('pr', invoice.data.request as string)
 
       const result = await fetch(`${API_URL}/http-proxy`, {
         headers: {
@@ -110,7 +109,7 @@
         }
       }
 
-      await goto(`/payments/${invoice.id}`)
+      await goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
     } catch (error) {
       requestError = error as AppError
     } finally {

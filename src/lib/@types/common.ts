@@ -1,9 +1,3 @@
-import type { Address } from './addresses.js'
-import type { Invoice } from './invoices.js'
-import type { Transaction } from './transactions.js'
-
-export type PaymentStatus = 'waiting' | 'pending' | 'complete' | 'expired' | 'failed'
-
 export type ParsedInput = {
   type:
     | 'onchain'
@@ -22,44 +16,50 @@ export type ParsedInput = {
   message?: string | null
 }
 
-export type Network = 'testnet' | 'regtest' | 'signet' | 'bitcoin'
-
-export type Payment = {
-  id: string
-  type: 'invoice' | 'address' | 'transaction'
-  status: PaymentStatus
-  timestamp: number
-  network: Network
-  walletId: string
-  data: Invoice | Transaction | Address
-  fee?: number
-  amount?: number
-  offer?: boolean
-  channel?: boolean
-}
-
 export type ParsedNodeAddress = {
   publicKey: string
   ip: string
   port: number
 }
 
-export type Filter = {
-  label: string
-  values: {
-    label: string
-    checked: boolean
-    predicate: FilterPredicate
-  }[]
+type FilterBase = { key: string; label: string }
+export type ExistsFilter = FilterBase & { type: 'exists'; applied: boolean }
+export type OneOfFilter = FilterBase & {
+  type: 'one-of'
+  values: { label: string; value: string; applied: boolean }[]
+}
+export type DateRangeFilter = FilterBase & {
+  type: 'date-range'
+  values: { gt: Date | null; lt: Date | null }
+}
+export type AmountRangeFilter = FilterBase & {
+  type: 'amount-range'
+  values: { gt: number | null; lt: number | null }
+}
+export type Filter = ExistsFilter | OneOfFilter | DateRangeFilter | AmountRangeFilter
+
+export type SortDirection = 'asc' | 'desc'
+export type Sorter = { label: string; key: string; direction: SortDirection }
+
+export type Sorters = {
+  applied: { key: Sorter['key']; direction: SortDirection }
+  options: Sorter[]
 }
 
-export type FilterPredicate = {
-  key: string
-  values: unknown[]
-  compare?: 'eq' | 'gt' | 'lt' | 'exists'
+export type TagFilterOption = { id: string; label: string; applied: boolean }
+
+export type GetSortedFilteredItemsOptions = {
+  offset: number
+  limit: number
+  sort: Sorters['applied']
+  filters: Filter[]
+  tags: string[]
+  /** the table to lookup items */
+  table: string
+  /** this is used for efficient paging and is required if using offset > 0 */
+  lastItem?: unknown
 }
 
-export type TagFilter = { tag: string; checked: boolean }
-export type Sorter = { label: string; key: string; direction: 'asc' | 'desc' }
+export type ValueOf<Obj> = Obj[keyof Obj]
 
 export type Notification = { id: string; heading: string; message: string; onclick?: () => void }

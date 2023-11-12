@@ -1,3 +1,5 @@
+import type { Metadata } from './metadata.js'
+
 export type ChannelStatus = 'active' | 'opening' | 'closing' | 'closed' | 'force_closed'
 
 export type Channel = {
@@ -41,6 +43,7 @@ export type Channel = {
   finalToUs?: number
   ourToSelfDelay?: number
   theirToSelfDelay?: number
+  metadata?: Metadata
 }
 
 type HTLC = {

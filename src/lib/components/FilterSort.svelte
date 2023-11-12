@@ -1,75 +1,103 @@
 <script lang="ts">
-  import { createRandomHex } from '$lib/crypto.js'
-  import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
-  import { filter, firstValueFrom, map } from 'rxjs'
-  import debounce from 'lodash.debounce'
   import { translate } from '$lib/i18n/translations.js'
   import filterIcon from '$lib/icons/filter.js'
   import Modal from './Modal.svelte'
-  import type { Filter, Sorter, TagFilter } from '$lib/@types/common.js'
+  import type { Filter, SortDirection, Sorters, TagFilterOption } from '$lib/@types/common.js'
+  import { createEventDispatcher } from 'svelte'
+  import Filters from './Filters.svelte'
+  import Button from './Button.svelte'
+  import { simpleDeepClone } from '$lib/utils.js'
+  import { getAllTags } from '$lib/db/helpers.js'
+  import TagFilters from './TagFilters.svelte'
+  import { slide } from 'svelte/transition'
+  import type { Tag } from '$lib/@types/metadata.js'
+  import { routeFilters, routeSorters } from '$lib/filters.js'
 
-  export let items: unknown[]
   export let filters: Filter[]
-  export let tagFilters: TagFilter[]
-  export let sorters: Sorter[]
-  export let processed: unknown[]
+  export let sorters: Sorters
+  export let tags: Tag['id'][]
+  export let route: string
+
+  const dispatch = createEventDispatcher()
+
+  let editedFilters: Filter[] = simpleDeepClone(filters)
+  let selectedSorterKey: string = simpleDeepClone(sorters.applied.key)
+  let selectedSorterDirection: SortDirection = simpleDeepClone(sorters.applied.direction)
+  let tagFiltersOptions: TagFilterOption[] = []
+  let filtersModified = false
+  let sorterModified = false
+  let tagsModified = false
+
+  // get all tags and set them as options
+  getAllTags().then(allTags => {
+    tagFiltersOptions = allTags.map(({ id, label }) => ({
+      id,
+      label,
+      applied: tags.includes(id)
+    }))
+  })
+
+  $: if (JSON.stringify(filters) !== JSON.stringify(editedFilters)) {
+    filtersModified = true
+  } else {
+    filtersModified = false
+  }
+
+  $: if (
+    JSON.stringify(sorters.applied) !==
+    JSON.stringify({ key: selectedSorterKey, direction: selectedSorterDirection })
+  ) {
+    sorterModified = true
+  } else {
+    sorterModified = false
+  }
+
+  $: if (tagFiltersOptions.filter(({ applied }) => !!applied).length !== tags.length) {
+    tagsModified = true
+  } else {
+    tagsModified = false
+  }
+
+  const applyChanges = () => {
+    filters = simpleDeepClone(editedFilters)
+
+    sorters.applied = simpleDeepClone({
+      key: selectedSorterKey,
+      direction: selectedSorterDirection
+    })
+
+    tags = tagFiltersOptions.filter(({ applied }) => !!applied).map(({ id }) => id)
+
+    dispatch('updated')
+    showModal = false
+  }
+
+  const reset = () => {
+    filters = routeFilters(route)
+    editedFilters = simpleDeepClone(filters)
+
+    sorters = routeSorters(route)
+    selectedSorterKey = simpleDeepClone(sorters.applied.key)
+    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+
+    tags = []
+
+    tagFiltersOptions = tagFiltersOptions.map(({ id, label }) => ({
+      id,
+      label,
+      applied: false
+    }))
+
+    dispatch('updated')
+  }
 
   let showModal = false
-  let selectedSorterKey: Sorter['key'] = sorters[0].key
-  let selectedSorter = sorters[0]
 
-  processed = items
-
-  $: if (selectedSorterKey !== selectedSorter.key) {
-    updateSorter()
-  }
-
-  $: if (items || filters.length || tagFilters.length || selectedSorter) {
-    processItems()
-  }
-
-  const processItems = debounce(async () => {
-    const filtered = await filterItems(items)
-    const sorted = await sortItems(filtered)
-
-    processed = sorted
-  }, 50)
-
-  const updateSorter = () =>
-    (selectedSorter = sorters.find(({ key }) => key === selectedSorterKey) || sorters[0])
-
-  const filterItems = async (items: unknown[]) => {
-    if ((!filters.length && !tagFilters.length) || !items.length) return items
-
-    const id = createRandomHex()
-
-    appWorker.postMessage({ id, type: 'filter-items', filters, tagFilters, items })
-
-    const result = (await firstValueFrom(
-      appWorkerMessages$.pipe(
-        filter(({ data }) => data.id === id),
-        map(({ data }) => data.result)
-      )
-    )) as unknown[]
-
-    return result
-  }
-
-  const sortItems = async (items: unknown[]) => {
-    if (!items.length) return items
-
-    const id = createRandomHex()
-
-    appWorker.postMessage({ id, type: 'sort-items', items, sorter: selectedSorter })
-
-    const result = (await firstValueFrom(
-      appWorkerMessages$.pipe(
-        filter(({ data }) => data.id === id),
-        map(({ data }) => data.result)
-      )
-    )) as unknown[]
-
-    return result
+  // reset edited filters and sorter when modal is closed
+  $: if (showModal === false) {
+    editedFilters = simpleDeepClone(filters)
+    selectedSorterKey = simpleDeepClone(sorters.applied.key)
+    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
   }
 </script>
 
@@ -82,36 +110,23 @@
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
-    <div class="h-full overflow-auto w-full">
+    <div class="h-full overflow-auto w-full flex-grow">
       <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
-        {#each filters as { label, values }}
-          <div class="w-full">
-            <div class="font-semibold text-sm text-neutral-300 mb-2">{label}</div>
-            <div
-              class="flex items-center flex-wrap gap-x-4 gap-y-2 bg-neutral-900 px-4 py-3 border border-neutral-600 rounded w-full"
-            >
-              {#each values as value}
-                <div class="flex items-center">
-                  <input
-                    id={value.label}
-                    type="checkbox"
-                    bind:checked={value.checked}
-                    class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
-                  />
-                  <label class="ml-1 cursor-pointer" for={value.label}>{value.label}</label>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/each}
+        <Filters bind:filters={editedFilters} />
       </div>
+
+      {#if tagFiltersOptions.length}
+        <div class="w-full" in:slide={{ axis: 'y' }}>
+          <TagFilters bind:tags={tagFiltersOptions} />
+        </div>
+      {/if}
 
       <div class="font-semibold mb-2 mt-4 text-2xl">{$translate('app.labels.sort')}</div>
 
-      <div class="w-full flex flex-col gap-y-4">
-        {#each sorters as sorter}
+      <div class="w-full flex flex-col gap-y-4 ml-1">
+        {#each sorters.options as sorter}
           <div class="w-full">
             <div class="flex items-center">
               <input
@@ -124,23 +139,38 @@
             </div>
 
             <div class="flex items-center gap-x-2 text-sm ml-4">
-              {#each ['desc', 'asc'] as d}
+              {#each ['desc', 'asc'] as direction}
                 <div class="flex items-center">
                   <input
                     type="radio"
                     class="w-3 h-3"
-                    bind:group={selectedSorter.direction}
-                    value={d}
-                    id={`${d}:${sorter.label}`}
+                    bind:group={selectedSorterDirection}
+                    value={direction}
+                    id={`${direction}:${sorter.label}`}
                   />
-                  <label class="ml-1" for={`${d}:${sorter.label}`}
-                    >{$translate(`app.labels.${d}`)}</label
+                  <label class="ml-1" for={`${direction}:${sorter.label}`}
+                    >{$translate(`app.labels.${direction}`)}</label
                   >
                 </div>
               {/each}
             </div>
           </div>
         {/each}
+      </div>
+    </div>
+
+    <div class="w-full flex justify-end gap-x-2 pt-4">
+      <div class="w-min">
+        <Button on:click={reset} text={$translate('app.labels.reset')} />
+      </div>
+
+      <div class="w-min">
+        <Button
+          primary
+          on:click={applyChanges}
+          text={$translate('app.labels.apply')}
+          disabled={!filtersModified && !sorterModified && !tagsModified}
+        />
       </div>
     </div>
   </Modal>

@@ -1,13 +1,9 @@
 import Dexie, { type Table } from 'dexie'
 import type { Wallet } from '../@types/wallets.js'
 import type { Offer } from '../@types/offers.js'
-import type { Invoice } from '../@types/invoices.js'
 import type { Channel } from '../@types/channels.js'
 import type { Utxo } from '../@types/utxos.js'
-import type { Transaction } from '../@types/transactions.js'
 import type { Forward } from '../@types/forwards.js'
-import type { Metadata } from '../@types/metadata.js'
-import type { Address } from '../@types/addresses.js'
 import type { Contact } from '../@types/contacts.js'
 import type { Label } from '../@types/labels.js'
 import type { Trade } from '../@types/trades.js'
@@ -15,21 +11,21 @@ import type { Withdrawal } from '../@types/withdrawals.js'
 import type { Deposit } from '../@types/deposits.js'
 import type { ExchangeRate } from '../@types/exchange-rates.js'
 import type { Node } from '../@types/nodes.js'
+import type { Payment } from '$lib/@types/payments.js'
+import type { Tag } from '$lib/@types/metadata.js'
 
 class DB extends Dexie {
-  addresses!: Table<Address>
   channels!: Table<Channel>
   contacts!: Table<Contact>
   deposits!: Table<Deposit>
   exchangeRates!: Table<ExchangeRate>
   forwards!: Table<Forward>
-  invoices!: Table<Invoice>
   labels!: Table<Label>
-  metadata!: Table<Metadata>
   nodes!: Table<Node>
   offers!: Table<Offer>
+  payments!: Table<Payment>
+  tags!: Table<Tag>
   trades!: Table<Trade>
-  transactions!: Table<Transaction>
   utxos!: Table<Utxo>
   wallets!: Table<Wallet>
   withdrawals!: Table<Withdrawal>
@@ -38,26 +34,26 @@ class DB extends Dexie {
     super('Clams')
 
     this.version(1).stores({
-      addresses: '&id, walletId, value, txid',
       channels:
-        '&[id+walletId], id, walletId, shortId, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput], [fundingTransactionId+fundingOutput+walletId], closeTo',
+        '&[id+walletId], id, walletId, shortId, balanceLocal, balanceRemote, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput], [fundingTransactionId+fundingOutput+walletId], closeTo, *metadata.tags, metadata.contact',
       contacts: '&id, name, npub',
-      deposits: '&id, walletId, destination, timestamp, amount',
+      deposits: '&id, walletId, destination, timestamp, amount, *metadata.tags, metadata.contact',
       exchangeRates: '&[timestamp+currency], price, currency',
-      forwards: '&id, walletId, shortIdIn, shortIdOut, fee, status, createdAt, completedAt',
-      invoices:
-        '&[id+walletId], id, walletId, hash, offerId, value, fee, payIndex, createdAt, completedAt, direction, preimage, amount, offer.id, [walletId+direction], [direction+amount]',
+      forwards:
+        '&id, walletId, timestamp, shortIdIn, shortIdOut, fee, status, createdAt, completedAt, *metadata.tags, metadata.contact',
       labels: '&ref, type, label, spendable, origin',
-      metadata: '&id, type, tags, contact',
       nodes: '&id, alias',
       offers:
-        '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer]',
-      trades: '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination',
-      transactions:
-        '&[id+walletId], id, walletId, timestamp, direction, channel.type, [channel.id+walletId]',
-      utxos: '&id, walletId, txid, timestamp, spendingTxid',
-      wallets: '&id, type, label, nodeId',
-      withdrawals: '&id, walletId, destination, timestamp, amount, fee'
+        '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer], *metadata.tags, metadata.contact',
+      payments:
+        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, *data.outputs, [type+status]',
+      tags: '&id, label',
+      trades:
+        '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination, *metadata.tags, metadata.contact',
+      utxos: '&id, walletId, txid, timestamp, spendingTxid, *metadata.tags, metadata.contact',
+      wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
+      withdrawals:
+        '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
     })
   }
 }

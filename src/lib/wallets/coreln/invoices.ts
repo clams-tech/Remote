@@ -7,12 +7,12 @@ import { filter, firstValueFrom, map, take, takeUntil } from 'rxjs'
 import { decodeBolt11, isBolt12Invoice } from '$lib/invoices.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 import { formatPayments } from './worker.js'
+import type { InvoicePayment } from '$lib/@types/payments.js'
 
 import type {
   CreateInvoiceOptions,
   PayInvoiceOptions,
-  PayKeysendOptions,
-  Invoice
+  PayKeysendOptions
 } from '$lib/@types/invoices.js'
 
 import type {
@@ -40,7 +40,7 @@ class Invoices implements InvoicesInterface {
     })
   }
 
-  async get(): Promise<Invoice[]> {
+  async get(): Promise<InvoicePayment[]> {
     try {
       const [invoicesResponse, paysResponse] = await Promise.all([
         this.connection.rpc({ method: 'listinvoices' }),
@@ -50,7 +50,12 @@ class Invoices implements InvoicesInterface {
       const { invoices } = invoicesResponse as ListinvoicesResponse
       const { pays } = paysResponse as ListpaysResponse
 
-      const formatted = await formatPayments(invoices, pays, this.connection.walletId)
+      const formatted = await formatPayments(
+        invoices,
+        pays,
+        this.connection.walletId,
+        this.connection.info.network
+      )
       return formatted
     } catch (error) {
       const context = 'get (payments)'
@@ -62,7 +67,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async create(options: CreateInvoiceOptions): Promise<Invoice> {
+  async create(options: CreateInvoiceOptions): Promise<InvoicePayment> {
     try {
       const { id, amount, description, expiry } = options
       const createdAt = nowSeconds()
@@ -79,21 +84,25 @@ class Invoices implements InvoicesInterface {
 
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
 
-      const payment: Invoice = {
-        id,
+      const payment: InvoicePayment = {
+        id: payment_hash,
         status: 'waiting',
-        direction: 'receive',
-        amount,
-        fee: undefined,
-        type: 'bolt11',
-        createdAt,
-        completedAt: undefined,
-        expiresAt: expires_at,
-        request: bolt11,
-        description,
-        hash: payment_hash,
-        preimage: payment_secret,
-        walletId: this.connection.walletId
+        timestamp: createdAt,
+        walletId: this.connection.walletId,
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          direction: 'receive',
+          amount,
+          fee: undefined,
+          type: 'bolt11',
+          createdAt,
+          completedAt: undefined,
+          expiresAt: expires_at,
+          request: bolt11,
+          description,
+          preimage: payment_secret
+        }
       }
 
       return payment
@@ -107,7 +116,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async pay(options: PayInvoiceOptions): Promise<Invoice> {
+  async pay(options: PayInvoiceOptions): Promise<InvoicePayment> {
     try {
       const { request, id, amount, description } = options
 
@@ -131,26 +140,31 @@ class Invoices implements InvoicesInterface {
         destination
       } = result as PayResponse
 
+      const completedAt = nowSeconds()
       const decoded = decodeBolt11(request)
 
       return {
-        id,
-        hash: payment_hash,
-        preimage: payment_preimage,
-        nodeId: destination,
-        type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
-        direction: 'send',
-        amount: msatsToSats(formatMsatString(amount_msat)),
-        completedAt: nowSeconds(),
-        expiresAt: undefined,
-        createdAt: created_at,
-        fee: msatsToSats(
-          Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
-        ),
+        id: payment_hash,
+        timestamp: completedAt,
         status,
-        request,
         walletId: this.connection.walletId,
-        description: decoded?.description || undefined
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          direction: 'send',
+          preimage: payment_preimage,
+          counterpartyNode: destination,
+          type: isBolt12Invoice(request) ? 'bolt12' : 'bolt11',
+          amount: msatsToSats(formatMsatString(amount_msat)),
+          completedAt,
+          expiresAt: undefined,
+          createdAt: created_at,
+          fee: msatsToSats(
+            Big(formatMsatString(amount_sent_msat)).minus(formatMsatString(amount_msat)).toString()
+          ),
+          request,
+          description: decoded?.description || undefined
+        }
       }
     } catch (error) {
       const context = 'payInvoice (payments)'
@@ -162,7 +176,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async keysend(options: PayKeysendOptions): Promise<Invoice> {
+  async keysend(options: PayKeysendOptions): Promise<InvoicePayment> {
     try {
       const { destination, id, amount, tlvs } = options
       const amountMsat = satsToMsats(amount)
@@ -180,21 +194,26 @@ class Invoices implements InvoicesInterface {
       const { payment_hash, payment_preimage, created_at, amount_sent_msat, status } =
         result as KeysendResponse
 
+      const completedAt = nowSeconds()
+
       return {
-        id,
-        hash: payment_hash,
-        preimage: payment_preimage,
-        nodeId: destination,
-        type: 'bolt11',
-        direction: 'send',
-        amount,
-        completedAt: nowSeconds(),
-        expiresAt: undefined,
-        createdAt: created_at,
-        fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amountMsat).toString()),
+        id: payment_hash,
+        timestamp: completedAt,
         status,
         walletId: this.connection.walletId,
-        request: ''
+        network: this.connection.info.network,
+        type: 'invoice',
+        data: {
+          direction: 'send',
+          preimage: payment_preimage,
+          counterpartyNode: destination,
+          type: 'bolt11',
+          amount,
+          completedAt,
+          expiresAt: undefined,
+          createdAt: created_at,
+          fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amountMsat).toString())
+        }
       }
     } catch (error) {
       const context = 'payKeysend (payments)'
@@ -206,7 +225,7 @@ class Invoices implements InvoicesInterface {
     }
   }
 
-  async listenForInvoicePayment(payment: Invoice): Promise<Invoice> {
+  async listenForInvoicePayment(payment: InvoicePayment): Promise<InvoicePayment> {
     try {
       const { id } = payment
 
@@ -223,9 +242,12 @@ class Invoices implements InvoicesInterface {
       return {
         ...payment,
         status: status === 'paid' ? 'complete' : 'expired',
-        amount: msatsToSats(formatMsatString(amount_received_msat || payment.amount)),
-        completedAt: paid_at as number,
-        preimage: payment_preimage
+        data: {
+          ...payment.data,
+          amount: msatsToSats(formatMsatString(amount_received_msat || payment.data.amount)),
+          completedAt: paid_at as number,
+          preimage: payment_preimage
+        }
       }
     } catch (error) {
       const context = 'listenForInvoicePayment (payments)'
@@ -238,8 +260,8 @@ class Invoices implements InvoicesInterface {
   }
 
   async listenForAnyInvoicePayment(
-    onPayment: (invoice: Invoice) => Promise<void>,
-    payIndex?: Invoice['payIndex']
+    onPayment: (payment: InvoicePayment) => Promise<void>,
+    payIndex?: number
   ): Promise<void> {
     const disconnectProm = firstValueFrom(
       this.connection.connectionStatus$.pipe(
@@ -248,7 +270,7 @@ class Invoices implements InvoicesInterface {
       )
     )
 
-    let invoice: Invoice | null = null
+    let invoice: InvoicePayment | null = null
 
     // make a listen request for this pay index
     try {
@@ -263,7 +285,11 @@ class Invoices implements InvoicesInterface {
       ])
 
       invoice = rawInvoice
-        ? await formatInvoice(rawInvoice as RawInvoice, this.connection.walletId)
+        ? await formatInvoice(
+            rawInvoice as RawInvoice,
+            this.connection.walletId,
+            this.connection.info.network
+          )
         : null
     } catch (error) {
       const context = 'listenForAnyInvoicePayment (payments)'
@@ -291,7 +317,7 @@ class Invoices implements InvoicesInterface {
     } else {
       console.log(`Invoice update received with status: ${invoice.status}`)
       onPayment(invoice)
-      const newLastPayIndex = invoice.payIndex ? invoice.payIndex : payIndex
+      const newLastPayIndex = invoice.data.payIndex ? invoice.data.payIndex : payIndex
       this.listenForAnyInvoicePayment(onPayment, newLastPayIndex)
     }
   }

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import type { Address } from '$lib/@types/addresses.js'
   import type { Wallet } from '$lib/@types/wallets.js'
   import type { AppError } from '$lib/@types/errors.js'
   import Calculator from '$lib/components/Calculator.svelte'
@@ -20,11 +19,11 @@
   import { nowSeconds } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
-  import Msg from '$lib/components/Msg.svelte'
   import { combineLatest, map } from 'rxjs'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
-  import Spinner from '$lib/components/Spinner.svelte'
+  import type { AddressPayment, InvoicePayment } from '$lib/@types/payments.js'
+  import Msg from '$lib/components/Msg.svelte'
 
   let selectedWalletId: Wallet['id']
   let amount: number
@@ -76,31 +75,49 @@
       amount = 0
     }
 
+    let invoice: InvoicePayment | null = null
+    let address: AddressPayment | null = null
+
     try {
       if (createInvoice && connection.invoices?.create) {
-        const invoice = await connection.invoices.create({
+        invoice = await connection.invoices.create({
           id,
           amount,
           description,
           expiry
         })
 
-        await db.invoices.add(invoice)
+        await db.payments.add(invoice)
       }
 
       if (createAddress && connection.transactions?.receive) {
         const receiveAddress = await connection.transactions.receive()
 
-        const address: Address = {
-          id,
-          value: receiveAddress,
+        const createdAt = nowSeconds()
+
+        address = {
+          id: receiveAddress,
           walletId: selectedWalletId,
-          createdAt: nowSeconds(),
-          amount,
-          message: description
+          timestamp: createdAt,
+          status: 'waiting',
+          network: connection.info.network,
+          type: 'address',
+          data: {
+            createdAt,
+            amount,
+            message: description,
+            direction: 'receive'
+          }
         }
 
-        await db.addresses.add(address)
+        if (invoice) {
+          /** if also creating an invoice, then just add as a fallback address*/
+          invoice.data.fallbackAddress = receiveAddress
+          await db.payments.put(invoice)
+        } else {
+          /** otherwise create a separate onchain receive address payment*/
+          await db.payments.add(address)
+        }
       }
     } catch (error) {
       createPaymentError = error as AppError
@@ -108,8 +125,8 @@
       creatingPayment = false
     }
 
-    if (!createPaymentError) {
-      await goto(`/payments/${id}`)
+    if (!createPaymentError && (address || invoice)) {
+      await goto(`/payments/${invoice ? invoice.id : address?.id}?wallet=${connection.walletId}`)
     }
   }
 

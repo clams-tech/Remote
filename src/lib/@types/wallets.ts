@@ -1,4 +1,5 @@
 import type { walletTypes } from '$lib/wallets/index.js'
+import type { Metadata } from './metadata.js'
 
 export type WalletType = (typeof walletTypes)[number]
 
@@ -17,6 +18,7 @@ export type Wallet = {
   /** data is encrypted with session secret */
   configuration: WalletConfiguration | null
   nodeId?: string
+  metadata?: Metadata
 }
 
 export type WalletConfiguration = CoreLnConfiguration | XPubConfiguration | MultiSigConfiguration

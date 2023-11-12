@@ -2,10 +2,8 @@ import { fromEvent, type BehaviorSubject, firstValueFrom, filter, map } from 'rx
 import type { ConnectionStatus } from '../interfaces.js'
 import { createRandomHex } from '$lib/crypto.js'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
-import type { Invoice } from '$lib/@types/invoices.js'
 import type { Forward } from '$lib/@types/forwards.js'
-import type { Network } from '$lib/@types/common.js'
-import type { Transaction } from '$lib/@types/transactions.js'
+import type { InvoicePayment, Network, TransactionPayment } from '$lib/@types/payments.js'
 import type { Channel } from '$lib/@types/channels.js'
 import type { Utxo } from '$lib/@types/utxos.js'
 
@@ -96,16 +94,17 @@ export const createSocket = async (
 export const formatPayments = async (
   invoices: RawInvoice[],
   pays: Pay[],
-  walletId: string
-): Promise<Invoice[]> => {
+  walletId: string,
+  network: Network
+): Promise<InvoicePayment[]> => {
   const id = createRandomHex()
 
-  coreLnWorker.postMessage({ id, type: 'format_payments', invoices, pays, walletId })
+  coreLnWorker.postMessage({ id, type: 'format_payments', invoices, pays, walletId, network })
 
   return firstValueFrom(
     messages$.pipe(
       filter(message => message.data.id === id),
-      map(message => message.data.result as Invoice[])
+      map(message => message.data.result as InvoicePayment[])
     )
   )
 }
@@ -131,7 +130,7 @@ export const formatTransactions = async (
   accountEvents: ListAccountEventsResponse | null,
   network: Network,
   walletId: string
-): Promise<Transaction[]> => {
+): Promise<TransactionPayment[]> => {
   const id = createRandomHex()
 
   coreLnWorker.postMessage({
@@ -151,7 +150,7 @@ export const formatTransactions = async (
           throw message.data.error
         }
 
-        return message.data.result as Transaction[]
+        return message.data.result as TransactionPayment[]
       })
     )
   )

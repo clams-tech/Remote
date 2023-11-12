@@ -16,6 +16,7 @@
   import { from, take } from 'rxjs'
   import keys from '$lib/icons/keys.js'
   import caret from '$lib/icons/caret.js'
+  import type { AddressPayment } from '$lib/@types/payments.js'
 
   export let data: PageData
 
@@ -24,10 +25,16 @@
 
   const utxo$ = from(liveQuery(() => db.utxos.get(id)))
   let utxoNotFound = false
+  let addressPayment: AddressPayment
 
   utxo$.pipe(take(1)).subscribe(utxo => {
     if (!utxo) {
       utxoNotFound = true
+    } else {
+      db.payments
+        .where({ id: utxo.address })
+        .first()
+        .then(payment => (addressPayment = payment as AddressPayment))
     }
   })
 </script>
@@ -60,7 +67,7 @@
     </div>
 
     <div class="w-full flex justify-center mt-2">
-      <div class="w-full max-w-lg">
+      <div class="w-full">
         <!-- WALLET -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
@@ -124,32 +131,33 @@
         <!-- TXID -->
         <SummaryRow>
           <div slot="label">{$translate('app.labels.receive_transaction')}</div>
-          <a class="no-underline flex items-center" href={`/payments/${txid}`} slot="value"
+          <a
+            class="no-underline flex items-center"
+            href={`/payments/${txid}?wallet=${walletId}`}
+            slot="value"
             >{truncateValue(txid)}
             <div class="-rotate-90 w-6 ml-1">{@html caret}</div>
           </a>
         </SummaryRow>
 
         <!-- RECEIVE INFO -->
-        {#await db.addresses.where('value').equals(address).first() then addressInfo}
-          {#if addressInfo}
-            {@const { message, label } = addressInfo}
+        {#if addressPayment}
+          {@const { message, label } = addressPayment.data}
 
-            {#if label}
-              <SummaryRow>
-                <div slot="label">{$translate('app.labels.label')}</div>
-                <div slot="value">{label}</div>
-              </SummaryRow>
-            {/if}
-
-            {#if message}
-              <SummaryRow>
-                <div slot="label">{$translate('app.labels.description')}</div>
-                <div slot="value">{message}</div>
-              </SummaryRow>
-            {/if}
+          {#if label}
+            <SummaryRow>
+              <div slot="label">{$translate('app.labels.label')}</div>
+              <div slot="value">{label}</div>
+            </SummaryRow>
           {/if}
-        {/await}
+
+          {#if message}
+            <SummaryRow>
+              <div slot="label">{$translate('app.labels.description')}</div>
+              <div slot="value">{message}</div>
+            </SummaryRow>
+          {/if}
+        {/if}
 
         {#if spendingTxid}
           <SummaryRow>

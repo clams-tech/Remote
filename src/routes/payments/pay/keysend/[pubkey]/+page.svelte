@@ -72,8 +72,8 @@
         tlvs: message ? { [TLV_RECORDS.message]: stringToHex(message) } : undefined
       })
 
-      await db.invoices.add(paid)
-      await goto(`/payments/${paid.id}`)
+      await db.payments.add(paid)
+      await goto(`/payments/${paid.id}?wallet=${paid.walletId}`)
     } catch (error) {
       payingError = error as AppError
     } finally {

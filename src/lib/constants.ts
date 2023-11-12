@@ -8,7 +8,7 @@ import list from '$lib/icons/list.js'
 import settingsOutline from '$lib/icons/settings-outline.js'
 import wallet from '$lib/icons/wallet.js'
 import forward from '$lib/icons/forward.js'
-import type { Network } from './@types/common.js'
+import type { Network } from './@types/payments.js'
 
 export const DEV = import.meta.env.DEV
 export const MODE = import.meta.env.MODE
@@ -120,12 +120,40 @@ export const CURRENCY_SYMBOLS = {
 
 const STORAGE_VERSION = 1
 
-export const STORAGE_KEYS = {
+export const STORAGE_KEYS: Record<string, string> = {
   session: `clams:session:${STORAGE_VERSION}`,
   settings: `clams:settings:${STORAGE_VERSION}`,
   lastReceiveWallet: `clams:last_receive_wallet:${STORAGE_VERSION}`,
   lastSendWallet: `clams:last_send_wallet:${STORAGE_VERSION}`,
+  // whether has dismissed the get started hint
   getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
+}
+
+export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {
+  // saved filters
+  filters: {
+    payments: `clams:filters:payments:${STORAGE_VERSION}`,
+    forwards: `clams:filters:forwards:${STORAGE_VERSION}`,
+    channels: `clams:filters:channels:${STORAGE_VERSION}`,
+    offers: `clams:filters:offers:${STORAGE_VERSION}`,
+    utxos: `clams:filters:utxos:${STORAGE_VERSION}`
+  },
+  // saved sorter
+  sorter: {
+    payments: `clams:sorter:payments:${STORAGE_VERSION}`,
+    forwards: `clams:sorter:forwards:${STORAGE_VERSION}`,
+    channels: `clams:sorter:channels:${STORAGE_VERSION}`,
+    offers: `clams:sorter:offers:${STORAGE_VERSION}`,
+    utxos: `clams:sorter:utxos:${STORAGE_VERSION}`
+  },
+  // saved tag filters
+  tags: {
+    payments: `clams:tags:payments:${STORAGE_VERSION}`,
+    forwards: `clams:tags:forwards:${STORAGE_VERSION}`,
+    channels: `clams:tags:channels:${STORAGE_VERSION}`,
+    offers: `clams:tags:offers:${STORAGE_VERSION}`,
+    utxos: `clams:tags:utxos:${STORAGE_VERSION}`
+  }
 }
 
 export const TLV_RECORDS = {

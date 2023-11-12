@@ -22,13 +22,16 @@ const locales: Record<string, () => Promise<Locale>> = {
   ko: () => import('date-fns/esm/locale/ko/index.js').then(mod => mod.default) // Korean
 }
 
+export const getDateLocale = () => {
+  const { language } = settings$.value
+  return (locales[language] || locales['en-US'])()
+}
+
 export async function formatDateRelativeToNow(
   /** unix seconds */
   date: number
 ): Promise<string> {
-  const { language } = settings$.value
-  const locale = await (locales[language] || locales['en-GB'])()
-
+  const locale = await getDateLocale()
   return formatRelative(new Date(date * 1000), new Date(), { locale })
 }
 
@@ -37,16 +40,11 @@ export async function formatDate(
   date: number,
   formatter = 'EEEE, do MMMM yy'
 ): Promise<string> {
-  const { language } = settings$.value
-  const locale = await (locales[language] || locales['en-GB'])()
-
+  const locale = await getDateLocale()
   return format(new Date(date * 1000), formatter, { locale })
 }
 
-export async function formatCountdown(options: { date: Date; language: string }): Promise<string> {
-  const { date, language } = options
-
-  const locale = await (locales[language] || locales['en-GB'])()
-
+export async function formatCountdown(date: Date): Promise<string> {
+  const locale = await getDateLocale()
   return formatDistanceToNowStrict(date, { locale, addSuffix: true })
 }

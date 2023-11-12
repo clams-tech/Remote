@@ -1,5 +1,4 @@
 import Big from 'big.js'
-import type { Invoice } from '$lib/@types/invoices.js'
 import type { InvoiceStatus, Pay, RawInvoice } from './types'
 import { State } from './types'
 import type { ChannelStatus } from '$lib/@types/channels.js'
@@ -7,6 +6,7 @@ import { decodeBolt11, decodeBolt12 } from '$lib/invoices.js'
 import { log } from '$lib/services.js'
 import { msatsToSats } from '$lib/conversion.js'
 import { nowSeconds } from '$lib/utils.js'
+import type { InvoicePayment, Network, Payment } from '$lib/@types/payments.js'
 
 /**Will strip the msat suffix from msat values if there and also convert 'any' to 0 */
 export function formatMsatString(val: string | number | undefined): string {
@@ -26,7 +26,7 @@ export function formatMsatString(val: string | number | undefined): string {
 export function invoiceStatusToPaymentStatus(
   status: InvoiceStatus,
   expiresAt: number
-): Invoice['status'] {
+): Payment['status'] {
   const expired = nowSeconds() >= expiresAt
 
   switch (status) {
@@ -39,12 +39,15 @@ export function invoiceStatusToPaymentStatus(
   }
 }
 
-export async function formatInvoice(invoice: RawInvoice, walletId: string): Promise<Invoice> {
+export async function formatInvoice(
+  invoice: RawInvoice,
+  walletId: string,
+  network: Network
+): Promise<InvoicePayment> {
   const {
     bolt11,
     bolt12,
     payment_hash,
-    label,
     amount_received_msat,
     amount_msat,
     status,
@@ -59,7 +62,7 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
   let createdAt: number = new Date().getTime() / 1000
   let nodeId: string | undefined
 
-  let offer: Invoice['offer']
+  let offer: InvoicePayment['data']['offer']
 
   if (bolt11) {
     const decoded = decodeBolt11(bolt11)
@@ -95,32 +98,39 @@ export async function formatInvoice(invoice: RawInvoice, walletId: string): Prom
   }
 
   return {
-    id: label || payment_hash,
-    request: (bolt12 || bolt11) as string,
-    hash: payment_hash,
-    direction: 'receive',
-    type: bolt12 ? 'bolt12' : 'bolt11',
-    preimage: payment_preimage,
-    amount: msatsToSats(formatMsatString(amount_received_msat || amount_msat || 'any')),
+    id: payment_hash,
     status: invoiceStatusToPaymentStatus(status, expires_at),
-    completedAt: paid_at ? paid_at : undefined,
-    expiresAt: expires_at,
-    description: description.replace('keysend: ', ''),
-    nodeId,
-    fee: undefined,
-    createdAt,
-    payIndex: pay_index,
-    offer,
-    walletId
+    timestamp: paid_at || createdAt,
+    network,
+    walletId,
+    type: 'invoice',
+    data: {
+      direction: 'receive',
+      type: bolt12 ? 'bolt12' : 'bolt11',
+      request: (bolt12 || bolt11) as string,
+      preimage: payment_preimage,
+      amount: msatsToSats(formatMsatString(amount_received_msat || amount_msat || 'any')),
+      completedAt: paid_at ? paid_at : undefined,
+      expiresAt: expires_at,
+      description: description.replace('keysend: ', ''),
+      counterpartyNode: nodeId,
+      fee: undefined,
+      createdAt,
+      payIndex: pay_index,
+      offer
+    }
   }
 }
 
-export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice> {
+export async function payToInvoice(
+  pay: Pay,
+  walletId: string,
+  network: Network
+): Promise<InvoicePayment> {
   const {
     bolt11,
     bolt12,
     destination,
-    label,
     payment_hash,
     status,
     created_at,
@@ -132,7 +142,7 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
   const timestamp = created_at || Date.now() / 1000
 
   let description: string | undefined
-  let offer: Invoice['offer']
+  let offer: InvoicePayment['data']['offer']
   let nodeId = destination
 
   if (bolt11) {
@@ -161,22 +171,26 @@ export async function payToInvoice(pay: Pay, walletId: string): Promise<Invoice>
   const amount = formatMsatString(amount_msat)
 
   return {
-    id: label || payment_hash,
-    nodeId,
-    request: (bolt12 || bolt11) as string,
+    id: payment_hash,
     status,
-    createdAt: timestamp,
-    hash: payment_hash,
-    preimage,
-    amount: msatsToSats(amount),
-    fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amount).toString()),
-    direction: 'send',
-    type: bolt11 ? 'bolt11' : bolt12 ? 'bolt12' : 'keysend',
-    expiresAt: undefined,
-    completedAt: timestamp,
-    description,
-    offer,
-    walletId
+    timestamp,
+    walletId,
+    network,
+    type: 'invoice',
+    data: {
+      direction: 'send',
+      counterpartyNode: nodeId,
+      request: (bolt12 || bolt11) as string,
+      createdAt: timestamp,
+      preimage,
+      amount: msatsToSats(amount),
+      fee: msatsToSats(Big(formatMsatString(amount_sent_msat)).minus(amount).toString()),
+      type: bolt11 ? 'bolt11' : bolt12 ? 'bolt12' : 'keysend',
+      expiresAt: undefined,
+      completedAt: timestamp,
+      description,
+      offer
+    }
   }
 }
 

@@ -1,6 +1,8 @@
 import type { PageLoad } from './$types'
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params, url }) => {
   const { id } = params
-  return { id }
+  const { searchParams } = url
+  const walletId = searchParams.get('wallet')
+  return { id, walletId }
 }

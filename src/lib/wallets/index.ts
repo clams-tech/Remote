@@ -13,7 +13,14 @@ import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
 import { createRandomHex, decryptWithAES } from '$lib/crypto.js'
-import { bulkPut, getLastPaidInvoice, updateChannels, updateTransactions } from '$lib/db/helpers.js'
+import {
+  updateTableItems,
+  getLastPaidInvoice,
+  updateChannels,
+  updateTransactions,
+  updateInvoices,
+  updateAddresses
+} from '$lib/db/helpers.js'
 import { goto } from '$app/navigation'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
@@ -120,21 +127,21 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   return connection
 }
 
-export const fetchInvoices = async (connection: Connection) =>
-  connection.invoices &&
-  connection.invoices
-    .get()
-    .then(invoices => {
-      bulkPut('invoices', invoices)
-    })
-    .catch(error => log.error(error.detail.message))
-
 export const fetchUtxos = async (connection: Connection) =>
   connection.utxos &&
   connection.utxos
     .get()
     .then(utxos => {
-      bulkPut('utxos', utxos)
+      return updateTableItems('utxos', utxos)
+    })
+    .catch(error => log.error(error.detail.message))
+
+export const fetchInvoices = async (connection: Connection) =>
+  connection.invoices &&
+  connection.invoices
+    .get()
+    .then(invoices => {
+      return updateTableItems('payments', invoices)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -143,7 +150,7 @@ export const fetchChannels = async (connection: Connection) =>
   connection.channels
     .get()
     .then(channels => {
-      updateChannels(channels)
+      return updateChannels(channels)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -152,7 +159,7 @@ export const fetchTransactions = async (connection: Connection) =>
   connection.transactions
     .get()
     .then(transactions => {
-      updateTransactions(transactions)
+      return updateTransactions(transactions)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -161,7 +168,7 @@ export const fetchForwards = async (connection: Connection) =>
   connection.forwards
     .get()
     .then(forwards => {
-      bulkPut('forwards', forwards)
+      return updateTableItems('forwards', forwards)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -170,7 +177,7 @@ export const fetchOffers = async (connection: Connection) =>
   connection.offers
     .get()
     .then(offers => {
-      bulkPut('offers', offers)
+      return updateTableItems('offers', offers)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -179,7 +186,7 @@ export const fetchTrades = async (connection: Connection) =>
   connection.trades
     .get()
     .then(async trades => {
-      bulkPut('trades', trades)
+      return updateTableItems('trades', trades)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -188,7 +195,7 @@ export const fetchWithdrawals = async (connection: Connection) =>
   connection.withdrawals
     .get()
     .then(async withdrawals => {
-      bulkPut('withdrawals', withdrawals)
+      return updateTableItems('withdrawals', withdrawals)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -197,7 +204,7 @@ export const fetchDeposits = async (connection: Connection) =>
   connection.deposits
     .get()
     .then(async deposits => {
-      bulkPut('deposits', deposits)
+      return updateTableItems('deposits', deposits)
     })
     .catch(error => log.error(error.detail.message))
 
@@ -218,17 +225,19 @@ export const syncConnectionData = (
   // progress percent
   const progress$ = new Subject<number>()
 
-  const invoicesRequest = () => fetchInvoices(connection)
-  requestQueue.push(invoicesRequest)
-
   const utxosRequest = () => fetchUtxos(connection)
   requestQueue.push(utxosRequest)
 
-  const channelsRequest = () => fetchChannels(connection)
-  requestQueue.push(channelsRequest)
-
   const transactionsRequest = () => fetchTransactions(connection)
   requestQueue.push(transactionsRequest)
+
+  if (!lastSync) {
+    const invoicesRequest = () => fetchInvoices(connection)
+    requestQueue.push(invoicesRequest)
+  }
+
+  const channelsRequest = () => fetchChannels(connection)
+  requestQueue.push(channelsRequest)
 
   const forwardsRequest = () => fetchForwards(connection)
   requestQueue.push(forwardsRequest)
@@ -248,13 +257,20 @@ export const syncConnectionData = (
   /** process request queue
    * then listen for invoice updates
    */
-  processQueue(requestQueue, progress$).then(() => {
+  processQueue(requestQueue, progress$).then(async () => {
+    // update all invoices with fallback and all addresses if associated tx
+    await Promise.all([updateInvoices(), updateAddresses()])
+
+    // start listening for invoice updates
     if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
       getLastPaidInvoice(connection.walletId).then(lastPaidInvoice => {
         if (connection.invoices && connection.invoices.listenForAnyInvoicePayment) {
           connection.invoices
             .listenForAnyInvoicePayment(async invoice => {
-              const { amount, request, walletId, payIndex } = invoice
+              const {
+                data: { amount, request, payIndex },
+                walletId
+              } = invoice
               const wallet = (await db.wallets.get(walletId)) as Wallet
 
               if (payIndex && payIndex !== lastPaidInvoiceIndexNotification) {
@@ -266,14 +282,14 @@ export const syncConnectionData = (
                     request: request ? truncateValue(request) : 'keysend',
                     wallet: wallet.label
                   }),
-                  onclick: () => goto(`/payments/${invoice.id}`)
+                  onclick: () => goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
                 })
 
                 lastPaidInvoiceIndexNotification = payIndex
               }
 
-              await db.invoices.put(invoice)
-            }, lastPaidInvoice?.payIndex)
+              await db.payments.put(invoice)
+            }, lastPaidInvoice?.data.payIndex)
             .catch(error => log.error(error.detail.message))
         }
       })
@@ -324,14 +340,17 @@ const processQueue = async (queue: Request[], progress$: Subject<number>) => {
 
         /** if rate limited, wait some time and increase next wait time */
         if (key === 'connection_rate_limited') {
+          console.log('RATE LIMITED, WAITING:', { nextWait })
           readyForNextRequest = wait(nextWait)
           nextWait = nextWait * 2
           queue.unshift(req)
         }
       } finally {
         const processed = requestsTotalLength - queue.length
+
         const progressPercent =
           processed > 0 ? Math.round((processed / requestsTotalLength) * 100) : 0
+
         progress$.next(progressPercent)
       }
     }

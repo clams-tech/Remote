@@ -19,6 +19,7 @@
   import { goto } from '$app/navigation'
   import type { AppError } from '$lib/@types/errors.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
 
   export let data: PageData
 
@@ -74,12 +75,12 @@
 
       // update transactions
       if (connection.transactions?.get) {
-        connection.transactions.get().then(txs => db.transactions.bulkPut(txs))
+        fetchTransactions(connection)
       }
 
       // update utxos
       if (connection.utxos?.get) {
-        connection.utxos.get().then(utxos => db.utxos.bulkPut(utxos))
+        fetchUtxos(connection)
       }
 
       await goto(`/channels/${channel.id}`)

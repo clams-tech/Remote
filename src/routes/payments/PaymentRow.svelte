@@ -1,27 +1,32 @@
 <script lang="ts">
-  import type { Payment } from '$lib/@types/common.js'
   import bitcoin from '$lib/icons/bitcoin.js'
   import lightning from '$lib/icons/lightning.js'
   import { translate } from '$lib/i18n/translations.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import caret from '$lib/icons/caret.js'
   import Summary from './Summary.svelte'
-  import type { PaymentSummary } from '$lib/summary.js'
   import { updateCounterPartyNodeInfo } from './utils.js'
+  import SummaryPlaceholder from './SummaryPlaceholder.svelte'
+  import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
+  import { getPaymentSummary, type PaymentSummary } from '$lib/summary.js'
 
   export let payment: Payment
-  export let summary: PaymentSummary
-  export let formattedTimestamp: string
 
-  const { type, network, amount, id, walletId, status } = payment
+  let summary: PaymentSummary | null
+
+  getPaymentSummary(payment).then(sum => (summary = sum))
+
+  const { type, network, id, walletId, status } = payment
+  const { amount } = payment.data as InvoicePayment['data']
   const icon = type === 'invoice' ? lightning : bitcoin
-  let { primary, secondary, type: summaryType } = summary
 
-  updateCounterPartyNodeInfo(summary.secondary).then(node => {
-    if (node) {
-      summary.secondary = { type: 'node', value: node }
-    }
-  })
+  $: if (summary?.secondary) {
+    updateCounterPartyNodeInfo(summary.secondary).then(node => {
+      if (node) {
+        summary!.secondary = { type: 'node', value: node }
+      }
+    })
+  }
 </script>
 
 <a
@@ -37,22 +42,19 @@
       {@html icon}
     </div>
 
-    <Summary
-      {primary}
-      {secondary}
-      {status}
-      type={summaryType}
-      timestamp={formattedTimestamp}
-      {network}
-      displayNetwork
-    />
+    {#if summary}
+      {@const { primary, secondary, type, timestamp } = summary}
+      <Summary {primary} {secondary} {status} {type} {timestamp} {network} displayNetwork />
+    {:else}
+      <SummaryPlaceholder />
+    {/if}
   </div>
 
   <div class="flex items-center ml-2">
     <div>
-      {#if amount && status !== 'expired'}
+      {#if summary && amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
-          {$translate(`app.labels.summary_amount_${summaryType}`, { status })}:
+          {$translate(`app.labels.summary_amount_${summary.type}`, { status })}:
         </div>
         <BitcoinAmount sats={amount} />
       {/if}

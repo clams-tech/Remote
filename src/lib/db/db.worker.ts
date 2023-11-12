@@ -1,18 +1,14 @@
 import type { Channel } from '$lib/@types/channels.js'
-import type { Transaction } from '$lib/@types/transactions.js'
-import { debounceTime, from } from 'rxjs'
 import { db } from './index.js'
-import { liveQuery } from 'dexie'
-import type { Invoice } from '$lib/@types/invoices.js'
-import { getNetwork } from '$lib/utils.js'
-import type { Payment, PaymentStatus } from '$lib/@types/common.js'
-import {
-  deriveAddressSummary,
-  deriveInvoiceSummary,
-  deriveTransactionSummary,
-  type PaymentSummary
-} from '$lib/summary.js'
-import type { Address } from '$lib/@types/addresses.js'
+import type { Filter, GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
+import type { Collection } from 'dexie'
+import type {
+  AddressPayment,
+  InvoicePayment,
+  Payment,
+  TransactionPayment
+} from '$lib/@types/payments.js'
+import type TagFilters from '$lib/components/TagFilters.svelte'
 
 type MessageBase = {
   id: string
@@ -25,7 +21,21 @@ type UpdateChannelsMessage = MessageBase & {
 
 type UpdateTransactionsMessage = MessageBase & {
   type: 'update_transactions'
-  transactions: Transaction[]
+  transactions: TransactionPayment[]
+}
+
+type UpdateAddressesMessage = MessageBase & {
+  type: 'update_addresses'
+}
+
+type UpdateInvoicesMessage = MessageBase & {
+  type: 'update_invoices'
+}
+
+type UpdateTableItemsMessage = MessageBase & {
+  type: 'update_table_items'
+  table: string
+  data: unknown[]
 }
 
 type BulkPutMessage = MessageBase & {
@@ -39,17 +49,24 @@ type GetLastPayMessage = MessageBase & {
   walletId: string
 }
 
-type GetPaymentSummaryMessage = MessageBase & {
-  type: 'get_payment_summary'
-  payment: Payment
+type GetSortedFilteredItemsMessage = MessageBase & {
+  type: 'get_filtered_sorted_items'
+} & GetSortedFilteredItemsOptions
+
+type GetAllTagsMessage = MessageBase & {
+  type: 'get_all_tags'
 }
 
 type Message =
   | UpdateChannelsMessage
   | UpdateTransactionsMessage
-  | BulkPutMessage
+  | UpdateTableItemsMessage
   | GetLastPayMessage
-  | GetPaymentSummaryMessage
+  | GetAllTagsMessage
+  | GetSortedFilteredItemsMessage
+  | BulkPutMessage
+  | UpdateAddressesMessage
+  | UpdateInvoicesMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -82,27 +99,117 @@ onmessage = async (message: MessageEvent<Message>) => {
       try {
         const { transactions } = message.data
 
-        const addressesWithoutTxid = await db.addresses
-          .where({ walletId: transactions[0].walletId })
-          .filter(({ txid }) => !txid)
-          .toArray()
+        if (transactions.length) {
+          const addressesWithoutTxid = await db.payments
+            .where({ walletId: transactions[0].walletId, type: 'address' })
+            .filter(payment => !(payment as AddressPayment).data.txid)
+            .toArray()
 
-        // update all addresses that have a corresponding tx
-        await Promise.all(
-          addressesWithoutTxid.map(address => {
-            const tx = transactions.find(({ outputs }) =>
-              outputs.find(output => output.address === address.value)
+          // update all addresses that have a corresponding tx
+          await Promise.all(
+            addressesWithoutTxid.map(address => {
+              const tx = transactions.find(transaction =>
+                (transaction as TransactionPayment).data.outputs.find(
+                  output => output.address === address.id
+                )
+              )
+
+              if (tx) {
+                return db.payments.update(address.id, {
+                  data: { txid: tx.id, completedAt: tx.timestamp }
+                })
+              }
+
+              return Promise.resolve()
+            })
+          )
+          await Promise.all(
+            transactions.map(transaction =>
+              db.payments.update(transaction.id, transaction).then(updated => {
+                !updated && db.payments.put(transaction)
+              })
             )
+          )
+        }
 
-            if (tx) {
-              return db.addresses.update(address.id, { txid: tx.id, completedAt: tx.timestamp })
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
+    case 'update_addresses': {
+      try {
+        const unconfirmedAddresses = (await db.payments
+          .where({ type: 'address' })
+          .filter(({ data }) => !(data as AddressPayment['data']).txid)
+          .toArray()) as AddressPayment[]
+
+        for (const address of unconfirmedAddresses) {
+          try {
+            const transaction = await db.payments
+              .where({ type: 'transaction' })
+              .filter(
+                transaction =>
+                  !!(transaction.data as TransactionPayment['data']).outputs.find(
+                    output => output.address === address.id
+                  )
+              )
+              .first()
+
+            if (transaction) {
+              const updated: AddressPayment = {
+                ...address,
+                data: { ...address.data, txid: transaction.id }
+              }
+              await db.payments.put(updated)
             }
+          } catch (error) {
+            //
+          }
+        }
 
-            return Promise.resolve()
-          })
-        )
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
 
-        await db.transactions.bulkPut(transactions)
+      return
+    }
+    case 'update_invoices': {
+      try {
+        const invoicesWaitingWithFallback = (await db.payments
+          .where({ type: 'invoice', status: 'waiting' })
+          .filter(({ data }) => !(data as InvoicePayment['data']).fallbackAddress)
+          .toArray()) as InvoicePayment[]
+
+        for (const invoice of invoicesWaitingWithFallback) {
+          try {
+            const transaction = (await db.payments
+              .where({ type: 'transaction' })
+              .filter(
+                transaction =>
+                  !!(transaction.data as TransactionPayment['data']).outputs.find(
+                    ({ address }) => address === invoice.data.fallbackAddress
+                  )
+              )
+              .first()) as TransactionPayment
+
+            if (transaction) {
+              const updated: InvoicePayment = {
+                ...invoice,
+                status: transaction.data.blockHeight ? 'complete' : 'pending'
+              }
+
+              await db.payments.put(updated)
+            }
+          } catch (error) {
+            //
+          }
+        }
 
         self.postMessage({ id: message.data.id })
       } catch (error) {
@@ -125,9 +232,41 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
+    case 'update_table_items': {
+      try {
+        const table = message.data.table
+        const { data } = message.data
+
+        /**
+         * Try to update item in db so as to not overwrite
+         * any metadata that may be there. if item is new and
+         * cannot be updated, then put in the db.
+         */
+        await Promise.all(
+          data.map(val =>
+            // eslint-disable-next-line
+            // @ts-ignore
+            db[table].update(val.id, val).then(updated => {
+              if (!updated) {
+                // eslint-disable-next-line
+                // @ts-ignore
+                return db[table].put(val)
+              }
+            })
+          )
+        )
+
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
     case 'get_lastpay_index': {
       try {
-        const lastPaidInvoice = await db.invoices.orderBy('payIndex').reverse().first()
+        const lastPaidInvoice = await db.payments.orderBy('data.payIndex').reverse().first()
         self.postMessage({ id: message.data.id, result: lastPaidInvoice })
       } catch (error) {
         const { message: errMsg } = error as Error
@@ -136,174 +275,156 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
-    case 'get_payment_summary': {
-      const { payment } = message.data
+    case 'get_all_tags': {
+      const tags = await db.tags.toArray()
+      self.postMessage({ id: message.data.id, result: tags })
 
-      let summary: PaymentSummary
+      return
+    }
+    case 'get_filtered_sorted_items': {
+      const { offset, limit, sort, filters, tags, lastItem, table } = message.data
 
-      try {
-        if (payment.type === 'transaction') {
-          summary = await deriveTransactionSummary(payment.data as Transaction)
-        } else if (payment.type === 'invoice') {
-          summary = await deriveInvoiceSummary(payment.data as Invoice)
+      let collection: Collection<Payment>
+
+      if (offset > 0 && lastItem) {
+        const keys = sort.key.split('.')
+
+        // eslint-disable-next-line
+        // @ts-ignore
+        const lastItemVal = keys.reduce((final, key) => final[key], lastItem)
+
+        if (sort.direction === 'asc') {
+          // eslint-disable-next-line
+          // @ts-ignore
+          collection = db[table]
+            .where(sort.key)
+            // eslint-disable-next-line
+            // @ts-ignore
+            .aboveOrEqual(lastItemVal)
+            // eslint-disable-next-line
+            // @ts-ignore
+            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
         } else {
-          summary = await deriveAddressSummary(payment.data as Address)
+          // eslint-disable-next-line
+          // @ts-ignore
+          collection = db[table]
+            .where(sort.key)
+            // eslint-disable-next-line
+            // @ts-ignore
+            .belowOrEqual(lastItemVal)
+            // eslint-disable-next-line
+            // @ts-ignore
+            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
         }
-
-        self.postMessage({ id: message.data.id, result: summary })
-      } catch (error) {
-        const { message: errMsg } = error as Error
-        self.postMessage({ id: message.data.id, error: errMsg })
+      } else {
+        // eslint-disable-next-line
+        // @ts-ignore
+        collection = db[table].orderBy(sort.key).filter(filter(filters, tags))
       }
 
+      if (sort.direction === 'desc') {
+        collection.reverse()
+      }
+
+      const items = await collection.offset(offset).limit(limit).toArray()
+
+      self.postMessage({ id: message.data.id, result: items })
       return
     }
   }
 }
 
-const payments$ = from(
-  liveQuery(() => {
-    return db.transaction(
-      'r',
-      db.invoices,
-      db.transactions,
-      db.addresses,
-      db.utxos,
-      db.channels,
-      async () => {
-        const invoices = db.invoices
-          .toArray()
-          .then(invs =>
-            Array.from(
-              invs
-                .reduce((acc, inv) => {
-                  const current = acc.get(inv.hash)
+// A helper function we will use below.
+// It will prevent the same results to be returned again for next page.
+const fastForward = <T>(lastRow: T, idProp: keyof T, otherCriterion: (item: T) => boolean) => {
+  let fastForwardComplete = false
+  return (item: T) => {
+    if (fastForwardComplete) return otherCriterion(item)
 
-                  // if duplicates (we are both parties to invoice), keep the sender copy
-                  if (!current || current.direction === 'receive') {
-                    acc.set(inv.hash, inv)
-                  }
+    if (typeof idProp === 'string') {
+      const keys = idProp.split('.')
 
-                  return acc
-                }, new Map<string, Invoice>())
-                .values()
-            )
-          )
-          .then(invs =>
-            invs.map(data => {
-              const { id, status, completedAt, createdAt, amount, request, fee, walletId, offer } =
-                data
-              return {
-                id,
-                type: 'invoice' as const,
-                status,
-                timestamp: completedAt || createdAt,
-                walletId,
-                amount,
-                network: request ? getNetwork(request) : 'bitcoin',
-                fee,
-                offer: !!offer,
-                data
-              }
-            })
-          )
+      // eslint-disable-next-line
+      // @ts-ignore
+      const itemVal = keys.reduce((endVal, val) => endVal[val], item)
 
-        const transactions = db.transactions
-          .toArray()
-          .then(async txs => {
-            const deduped: Map<string, Transaction> = new Map()
+      // eslint-disable-next-line
+      // @ts-ignore
+      const lastRowVal = keys.reduce((endVal, val) => endVal[val], lastRow)
 
-            for (const tx of txs) {
-              const current = deduped.get(tx.id)
-
-              // dedupes txs and prefers the tx where if a channel close, the closer or the wallet that is the sender (spender of an input utxo)
-              if (current) {
-                const spentInputUtxo = await db.utxos
-                  .where('id')
-                  .anyOf(tx.inputs.map(({ txid, index }) => `${txid}:${index}`))
-                  .first()
-
-                let channel: Channel | undefined
-
-                if (tx.channel) {
-                  const channels = await db.channels.where({ id: tx.channel.id }).toArray()
-                  channel = channels.find(
-                    ({ opener, closer }) =>
-                      ((tx.channel?.type === 'close' || tx.channel?.type === 'force_close') &&
-                        closer === 'local') ||
-                      opener === 'local'
-                  )
-                }
-
-                // favour channel closer or opener
-                if (channel?.walletId === tx.walletId) {
-                  deduped.set(tx.id, tx)
-                } else if (spentInputUtxo?.walletId === tx.walletId) {
-                  // favour spender
-                  deduped.set(tx.id, tx)
-                }
-              } else {
-                deduped.set(tx.id, tx)
-              }
-            }
-
-            return Array.from(deduped.values())
-          })
-          .then(txs =>
-            txs.map(data => {
-              const { id, timestamp, blockheight, outputs, fee, walletId, channel } = data
-              return {
-                id,
-                type: 'transaction' as const,
-                status: (blockheight ? 'complete' : 'pending') as PaymentStatus,
-                timestamp,
-                walletId,
-                network: getNetwork(outputs[0].address),
-                fee,
-                channel: !!channel,
-                data
-              }
-            })
-          )
-
-        const addresses = db.addresses
-          .filter(({ txid }) => !txid)
-          .toArray()
-          .then(addrs =>
-            addrs.reduce(async (acc, data) => {
-              const { id, createdAt, walletId, amount, value } = data
-              // super inefficient, will be fixed as part of the db refactor
-              // this prevents duplicate ids in the payments list if an invoice and
-              // address have been created at the same time for the same payment
-              const invoiceWithSameId = db.invoices.where({ id }).first()
-
-              if (!invoiceWithSameId) {
-                acc.then(addrs =>
-                  addrs.push({
-                    id,
-                    type: 'address' as const,
-                    status: 'waiting' as PaymentStatus,
-                    timestamp: createdAt,
-                    walletId,
-                    amount,
-                    network: getNetwork(value),
-                    data
-                  })
-                )
-              }
-
-              return acc
-            }, Promise.resolve([]) as Promise<Payment[]>)
-          )
-
-        return Promise.all([invoices, transactions, addresses]).then(results => results.flat())
+      if (itemVal === lastRowVal) {
+        fastForwardComplete = true
       }
-    )
-  })
-)
+    } else {
+      if (item[idProp] === lastRow[idProp]) {
+        fastForwardComplete = true
+      }
+    }
 
-payments$
-  .pipe(debounceTime(250))
-  .subscribe(payments => self.postMessage({ id: 'payments$', result: payments }))
+    return false
+  }
+}
+
+const filter = (filters: Filter[], tags: TagFilters) => (item: unknown) => {
+  if (tags.length) {
+    // eslint-disable-next-line
+    // @ts-ignore
+    if (!item.metadata || !item.metadata.tags.length) return false
+    // eslint-disable-next-line
+    // @ts-ignore
+    const validTag = item.metadata.tags.some(tag => tags.includes(tag))
+    if (!validTag) return false
+  }
+
+  return filters.every(filter => {
+    const { type, key } = filter
+    const keys = key.split('.')
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    let valueToTest: ValueOf<typeof item> = item[keys[0]]
+
+    if (keys.length > 1) {
+      // eslint-disable-next-line
+      // @ts-ignore
+      valueToTest = keys.slice(1).reduce((acc, key) => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const res = acc ? acc[key] : acc
+        return res
+      }, valueToTest)
+    }
+
+    if (type === 'exists' && filter.applied && !valueToTest) return false
+
+    if (type === 'one-of') {
+      const applied = filter.values.filter(({ applied }) => applied)
+
+      if (applied.length && !applied.some(({ value }) => value === valueToTest)) {
+        return false
+      }
+    }
+
+    if (type === 'amount-range') {
+      const {
+        values: { gt, lt }
+      } = filter
+
+      if (gt && (valueToTest as number) <= gt) return false
+      if (lt && (valueToTest as number) >= lt) return false
+    }
+
+    if (type === 'date-range') {
+      const {
+        values: { gt, lt }
+      } = filter
+
+      if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
+      if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
+    }
+
+    return true
+  })
+}
 
 export {}

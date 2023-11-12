@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import type { Invoice } from '$lib/@types/invoices.js'
+  import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { formatDate } from '$lib/dates.js'
   import { translate } from '$lib/i18n/translations'
   import caret from '$lib/icons/caret'
   import { fade, slide } from 'svelte/transition'
 
-  export let payments: Invoice[]
+  export let payments: InvoicePayment[]
 
   let open = false
 </script>
@@ -27,9 +26,9 @@
   {#if open}
     <div transition:slide|local class="transition-all overflow-hidden">
       <div class="mt-2 flex flex-col items-end gap-y-1">
-        {#each payments as { completedAt, amount, status, direction, id }}
+        {#each payments as { data: { completedAt, amount, direction }, status, id, walletId }}
           <a
-            href={`/payments/${id}`}
+            href={`/payments/${id}?wallet=${walletId}`}
             class="text-sm flex items-center max-w-full no-underline border border-transparent transition-all rounded bg-neutral-900"
           >
             <div

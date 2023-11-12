@@ -1,3 +1,5 @@
+import type { Metadata } from './metadata.js'
+
 export type Forward = {
   /** hash of the whole forward */
   id: string
@@ -17,7 +19,10 @@ export type Forward = {
   style: 'tlv' | 'legacy'
   /** unix timestamp seconds start */
   createdAt: number
+  /** the most recent timestamp for sorting (createdAt or completedAt) */
+  timestamp: number
   /** unix timestamp seconds complete */
   completedAt?: number
   walletId: string
+  metadata?: Metadata
 }

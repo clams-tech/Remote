@@ -1,3 +1,5 @@
+import type { Metadata } from './metadata.js'
+
 export type OutputStatus = 'unconfirmed' | 'confirmed' | 'spent' | 'spent_unconfirmed' | 'immature'
 
 export type Utxo = {
@@ -11,5 +13,6 @@ export type Utxo = {
   walletId: string
   timestamp: number | null
   spendingTxid?: string
-  blockheight?: number
+  blockHeight?: number
+  metadata?: Metadata
 }

@@ -12,11 +12,8 @@
   import { slide } from 'svelte/transition'
   import Msg from '$lib/components/Msg.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
-  import { sha256 } from '@noble/hashes/sha256'
-  import { bytesToHex } from '@noble/hashes/utils'
   import { createRandomHex } from '$lib/crypto.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
-  import type { Invoice } from '$lib/@types/invoices.js'
   import { db } from '$lib/db/index.js'
   import AES from 'crypto-js/aes'
   import encBase64 from 'crypto-js/enc-base64'
@@ -27,6 +24,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import caret from '$lib/icons/caret.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { InvoicePayment } from '$lib/@types/payments.js'
 
   export let url: URL
   export let callback: string // The URL from LN SERVICE which will accept the pay request parameters
@@ -134,7 +132,7 @@
   type SuccessAES = { tag: 'aes'; description: string; ciphertext: string; iv: string }
   type SuccessAction = SuccessMessage | SuccessUrl | SuccessAES
 
-  let paidInvoice: Invoice
+  let paidInvoice: InvoicePayment
   let success: SuccessAction
   let decryptedAes: string
 
@@ -215,12 +213,16 @@
         description: metadata
       })
 
-      await db.invoices.add(paidInvoice)
+      await db.payments.add(paidInvoice)
 
       if (successAction?.tag === 'aes') {
-        decryptedAes = AES.decrypt(successAction.ciphertext, encHex.parse(paidInvoice.preimage!), {
-          iv: encBase64.parse(successAction.iv)
-        }).toString(encUtf8)
+        decryptedAes = AES.decrypt(
+          successAction.ciphertext,
+          encHex.parse(paidInvoice.data.preimage!),
+          {
+            iv: encBase64.parse(successAction.iv)
+          }
+        ).toString(encUtf8)
       }
     } catch (error) {
       requestError = error as AppError
@@ -296,7 +298,9 @@
         <Msg type="info" message={$translate('app.labels.lnurl_pay_success')} />
       </div>
 
-      <a href={`/payments/${paidInvoice.id}`} class="flex items-center"
+      <a
+        href={`/payments/${paidInvoice.id}?wallet=${paidInvoice.walletId}`}
+        class="flex items-center"
         >{$translate('app.labels.goto_payment')}
         <div class="w-4 -rotate-90">{@html caret}</div>
       </a>

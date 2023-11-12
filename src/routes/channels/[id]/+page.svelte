@@ -25,6 +25,7 @@
   import { truncateValue } from '$lib/utils.js'
   import channels from '$lib/icons/channels.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import type { TransactionPayment } from '$lib/@types/payments.js'
 
   export let data: PageData // channel id
 
@@ -57,9 +58,14 @@
   const closingTransaction$ = channel$.pipe(
     filter(x => !!x),
     mergeMap(channel =>
-      db.transactions
-        .where({ 'channel.id': channel!.id, walletId: channel?.walletId })
-        .filter(({ channel }) => channel?.type === 'force_close' || channel?.type === 'close')
+      db.payments
+        .where({ 'data.channel.id': channel!.id, walletId: channel?.walletId })
+        .filter(transactionPayment => {
+          const {
+            data: { channel }
+          } = transactionPayment as TransactionPayment
+          return channel?.type === 'force_close' || channel?.type === 'close'
+        })
         .first()
     )
   )
@@ -218,7 +224,7 @@
       </div>
 
       <div class="flex flex-col w-full overflow-hidden justify-center items-center mt-2">
-        <div class="flex flex-col w-full flex-grow overflow-auto max-w-lg">
+        <div class="flex flex-col w-full flex-grow overflow-auto">
           <SummaryRow>
             <div slot="label">
               {$translate('app.labels.wallet')}:
@@ -313,7 +319,10 @@
 
           <SummaryRow>
             <div slot="label">{$translate('app.labels.funding_transaction')}</div>
-            <a slot="value" class="flex items-center" href={`/payments/${fundingTransactionId}`}
+            <a
+              slot="value"
+              class="flex items-center"
+              href={`/payments/${fundingTransactionId}?wallet=${walletId}`}
               >{truncateValue(fundingTransactionId)}
               <div class="w-4 -rotate-90">{@html caret}</div>
             </a>
@@ -343,7 +352,9 @@
                 {$translate('app.labels.closing_transaction')}:
               </div>
               <div slot="value">
-                <a href={`/payments/${$closingTransaction$.id}`} class="flex items-center"
+                <a
+                  href={`/payments/${$closingTransaction$.id}?wallet=${walletId}`}
+                  class="flex items-center"
                   >{truncateValue($closingTransaction$.id)}
                   <div class="w-4 -rotate-90">{@html caret}</div>
                 </a>
@@ -463,7 +474,7 @@
       </div>
 
       {#if status !== 'closed' && connection && connection.channels?.update}
-        <div class="flex w-full justify-end mt-4 mb-1 max-w-lg">
+        <div class="flex w-full justify-end mt-4 mb-1">
           <div class="w-min">
             <Button
               on:click={() => (showFeeUpdateModal = true)}

@@ -1,32 +1,3 @@
-export type Transaction = {
-  /** the wallet this onchain tx is associated with */
-  walletId: string
-  id: string
-  rawtx: string
-  blockheight: number | null
-  txindex: number | null
-  locktime: number
-  version: number
-  rbfEnabled: boolean
-  inputs: Array<{
-    txid: string
-    index: number
-    sequence: number
-  }>
-  outputs: Array<{
-    index: number
-    amount: number
-    address: string
-  }>
-  timestamp: number
-  channel?: {
-    type: 'open' | 'close' | 'force_close'
-    amount: number
-    id: string
-  }
-  fee?: number
-}
-
 export type SendTransactionOptions = {
   /** amount to send */
   amount: number

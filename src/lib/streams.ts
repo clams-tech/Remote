@@ -7,9 +7,10 @@ import type { AppError } from './@types/errors.js'
 import type { AutoConnectWalletOptions, Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
-import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
+import { mergeDefaultsWithStoredSettings } from './utils.js'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
+import { browser } from '$app/environment'
 
 import {
   BehaviorSubject,
@@ -23,9 +24,7 @@ import {
   Subject,
   take,
   timer,
-  distinctUntilKeyChanged,
-  merge,
-  switchMap
+  distinctUntilKeyChanged
 } from 'rxjs'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
@@ -33,7 +32,11 @@ export const autoConnectWallet$ = new BehaviorSubject<AutoConnectWalletOptions |
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
 export const connections$ = new BehaviorSubject<Connection[]>([])
-export const wallets$ = from(liveQuery(() => db.wallets.toArray()))
+export const wallets$ = new BehaviorSubject<Wallet[]>([])
+
+if (browser) {
+  from(liveQuery(() => db.wallets.toArray())).subscribe(wallets => wallets$.next(wallets))
+}
 
 type ConnectionErrors = Record<Wallet['id'], AppError[]>
 
@@ -101,9 +104,9 @@ const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
 const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDenomination'), skip(1))
 
 // get and update bitcoin exchange rate by poll or if fiat denomination changes
-merge(exchangeRatePoll$, fiatDenominationChange$)
-  .pipe(
-    switchMap(() => from(getBitcoinExchangeRate(settings$.value.fiatDenomination))),
-    filter(x => !!x)
-  )
-  .subscribe(bitcoinExchangeRates$)
+// merge(exchangeRatePoll$, fiatDenominationChange$)
+//   .pipe(
+//     switchMap(() => from(getBitcoinExchangeRate(settings$.value.fiatDenomination))),
+//     filter(x => !!x)
+//   )
+//   .subscribe(bitcoinExchangeRates$)

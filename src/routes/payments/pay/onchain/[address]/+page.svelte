@@ -23,6 +23,7 @@
   import { combineLatest, map } from 'rxjs'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
+  import { fetchUtxos } from '$lib/wallets/index.js'
 
   export let data: PageData
 
@@ -74,8 +75,7 @@
 
       if (connection.utxos?.get) {
         try {
-          const updatedUtxos = await connection.utxos.get()
-          await db.utxos.bulkPut(updatedUtxos)
+          await fetchUtxos(connection)
         } catch (error) {
           const { detail } = error as AppError
           const { message } = error as Error
@@ -83,8 +83,8 @@
         }
       }
 
-      await db.transactions.add(paid)
-      await goto(`/payments/${paid.id}`)
+      await db.payments.add(paid)
+      await goto(`/payments/${paid.id}?wallet=${paid.walletId}`)
     } catch (error) {
       payingError = error as AppError
     } finally {
