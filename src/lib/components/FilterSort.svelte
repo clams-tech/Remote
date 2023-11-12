@@ -110,7 +110,7 @@
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>
-    <div class="h-full overflow-auto w-full">
+    <div class="h-full overflow-auto w-full flex-grow">
       <div class="font-semibold mb-2 text-2xl">{$translate('app.labels.filters')}</div>
 
       <div class="w-full flex flex-col gap-y-4">
@@ -157,20 +157,20 @@
           </div>
         {/each}
       </div>
+    </div>
 
-      <div class="w-full flex justify-end mt-2 gap-x-2">
-        <div class="w-min">
-          <Button on:click={reset} text={$translate('app.labels.reset')} />
-        </div>
+    <div class="w-full flex justify-end gap-x-2 pt-4">
+      <div class="w-min">
+        <Button on:click={reset} text={$translate('app.labels.reset')} />
+      </div>
 
-        <div class="w-min">
-          <Button
-            primary
-            on:click={applyChanges}
-            text={$translate('app.labels.apply')}
-            disabled={!filtersModified && !sorterModified && !tagsModified}
-          />
-        </div>
+      <div class="w-min">
+        <Button
+          primary
+          on:click={applyChanges}
+          text={$translate('app.labels.apply')}
+          disabled={!filtersModified && !sorterModified && !tagsModified}
+        />
       </div>
     </div>
   </Modal>
