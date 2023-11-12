@@ -26,7 +26,7 @@
   export let tags: string[]
   export let route: string
   export let rowSize: number
-  export let limit = 25
+  export let limit = 40
   export let sync: (connection: Connection) => Promise<void>
   export let button: { text: string; icon: string; href: string } | null = null
   export let dedupe: ((items: Item[]) => Promise<Item[]>) | null = null
@@ -43,7 +43,6 @@
       tags,
       sort: sorters.applied,
       limit,
-      offset: 0,
       table: route
     })) as Item[]
 
@@ -66,7 +65,6 @@
       tags,
       sort: sorters.applied,
       limit,
-      offset: items.length,
       lastItem: items[items.length - 1],
       table: route
     })) as Item[]
@@ -173,7 +171,7 @@
 
   <slot name="summary" />
 
-  <div class="w-full flex">
+  <div class="w-full flex overflow-hidden">
     {#if processing}
       <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
         <Spinner />

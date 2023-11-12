@@ -282,11 +282,11 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'get_filtered_sorted_items': {
-      const { offset, limit, sort, filters, tags, lastItem, table } = message.data
+      const { limit, sort, filters, tags, lastItem, table } = message.data
 
       let collection: Collection<Payment>
 
-      if (offset > 0 && lastItem) {
+      if (lastItem) {
         const keys = sort.key.split('.')
 
         // eslint-disable-next-line
@@ -326,9 +326,9 @@ onmessage = async (message: MessageEvent<Message>) => {
         collection.reverse()
       }
 
-      const items = await collection.offset(offset).limit(limit).toArray()
+      const items = await collection.limit(limit).toArray()
 
-      self.postMessage({ id: message.data.id, result: items })
+      self.postMessage({ id: message.data.id, result: items.length === 1 ? [] : items })
       return
     }
   }

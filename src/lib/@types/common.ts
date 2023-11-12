@@ -49,7 +49,6 @@ export type Sorters = {
 export type TagFilterOption = { id: string; label: string; applied: boolean }
 
 export type GetSortedFilteredItemsOptions = {
-  offset: number
   limit: number
   sort: Sorters['applied']
   filters: Filter[]

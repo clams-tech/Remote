@@ -14,6 +14,7 @@
       <div class="flex items-center">
         <input
           name={tag.id}
+          id={tag.id}
           type="checkbox"
           bind:checked={tag.applied}
           class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"

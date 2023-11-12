@@ -21,8 +21,7 @@
   const dispatch = createEventDispatcher()
 
   let editedFilters: Filter[] = simpleDeepClone(filters)
-  let selectedSorterKey: string = simpleDeepClone(sorters.applied.key)
-  let selectedSorterDirection: SortDirection = simpleDeepClone(sorters.applied.direction)
+  let editedSorters: Sorters = simpleDeepClone(sorters)
   let tagFiltersOptions: TagFilterOption[] = []
   let filtersModified = false
   let sorterModified = false
@@ -45,7 +44,7 @@
 
   $: if (
     JSON.stringify(sorters.applied) !==
-    JSON.stringify({ key: selectedSorterKey, direction: selectedSorterDirection })
+    JSON.stringify({ key: editedSorters.applied.key, direction: editedSorters.applied.direction })
   ) {
     sorterModified = true
   } else {
@@ -62,8 +61,8 @@
     filters = simpleDeepClone(editedFilters)
 
     sorters.applied = simpleDeepClone({
-      key: selectedSorterKey,
-      direction: selectedSorterDirection
+      key: editedSorters.applied.key,
+      direction: editedSorters.applied.direction
     })
 
     tags = tagFiltersOptions.filter(({ applied }) => !!applied).map(({ id }) => id)
@@ -77,8 +76,7 @@
     editedFilters = simpleDeepClone(filters)
 
     sorters = routeSorters(route)
-    selectedSorterKey = simpleDeepClone(sorters.applied.key)
-    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+    editedSorters = simpleDeepClone(sorters)
 
     tags = []
 
@@ -96,8 +94,7 @@
   // reset edited filters and sorter when modal is closed
   $: if (showModal === false) {
     editedFilters = simpleDeepClone(filters)
-    selectedSorterKey = simpleDeepClone(sorters.applied.key)
-    selectedSorterDirection = simpleDeepClone(sorters.applied.direction)
+    editedFilters = simpleDeepClone(filters)
   }
 </script>
 
@@ -131,22 +128,24 @@
             <div class="flex items-center">
               <input
                 name={sorter.label}
+                id={sorter.label}
                 type="radio"
-                bind:group={selectedSorterKey}
+                bind:group={editedSorters.applied.key}
                 value={sorter.key}
               />
               <label class="ml-1" for={sorter.label}>{sorter.label}</label>
             </div>
 
             <div class="flex items-center gap-x-2 text-sm ml-4">
-              {#each ['desc', 'asc'] as direction}
+              {#each ['asc', 'desc'] as direction}
                 <div class="flex items-center">
                   <input
                     type="radio"
                     class="w-3 h-3"
-                    bind:group={selectedSorterDirection}
+                    bind:group={sorter.direction}
                     value={direction}
                     name={`${direction}:${sorter.label}`}
+                    id={`${direction}:${sorter.label}`}
                   />
                   <label class="ml-1" for={`${direction}:${sorter.label}`}
                     >{$translate(`app.labels.${direction}`)}</label

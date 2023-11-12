@@ -32,6 +32,7 @@
             <div class="flex items-center text-sm">
               <input
                 name={value.label}
+                id={value.label}
                 type="checkbox"
                 bind:checked={value.applied}
                 class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"

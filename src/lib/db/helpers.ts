@@ -170,7 +170,7 @@ export const getAllTags = (): Promise<Tag[]> => {
 export const getSortedFilteredItems = async (
   options: GetSortedFilteredItemsOptions
 ): Promise<unknown[]> => {
-  const { offset, limit, sort, filters, tags, lastItem, table } = options
+  const { limit, sort, filters, tags, lastItem, table } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -189,7 +189,6 @@ export const getSortedFilteredItems = async (
   worker.postMessage({
     id,
     type: 'get_filtered_sorted_items',
-    offset,
     limit,
     sort,
     filters,
