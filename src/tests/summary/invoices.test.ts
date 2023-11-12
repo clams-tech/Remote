@@ -42,7 +42,6 @@ const erinWallet: Wallet = {
 const erinReceiveInvoice: InvoicePayment = {
   id: 'd5cb00e7192e45d933e7db87497ab5c2b7307bd029caf350efa6ac66d68b21f4',
   walletId: 'abeab0d8cd9d606babaa3f7a7d14844f00af70c23a646487cd6ee76e24582acf',
-  direction: 'receive',
   status: 'complete',
   type: 'invoice',
   network: 'regtest',
@@ -51,6 +50,7 @@ const erinReceiveInvoice: InvoicePayment = {
     request:
       'lnbcrt1pjs7l57sp5apx735tv3tw02r5czgmayxfl9klcelvurp4hnwz0n4xam2etk85qpp56h9spece9ezajvl8mwr5j744c2mnq77s9890x58056kxd45ty86qdqqxqyz5vqcqp29qxpqysgq5mynr9vxpycalr3zzyv9z8hhnxkcyfljnfk7lwzqgjcyypt5srgxs5n2zcpfkmgf86kvs5mmzcmn94fppnknat3wjuh0nz92qsfvypcqz6yc85',
     type: 'bolt11',
+    direction: 'receive',
     preimage: '2aa6d4a88d279b5006445c02a8dc264d34efadb2124a00b4a80a420fa4583e20',
     amount: 21,
     completedAt: 1695514294,
@@ -65,7 +65,6 @@ const daveTransferredToErinInvoice: InvoicePayment = {
   walletId: '65d27be876a0b28d635fc43d2e809ab71b6fa91bfe18d19524fcfd6b35b17fc8',
   id: 'd5cb00e7192e45d933e7db87497ab5c2b7307bd029caf350efa6ac66d68b21f4',
   status: 'complete',
-  direction: 'send',
   timestamp: 1695514293,
   network: 'regtest',
   type: 'invoice',
@@ -74,6 +73,7 @@ const daveTransferredToErinInvoice: InvoicePayment = {
     request:
       'lnbcrt1pjs7l57sp5apx735tv3tw02r5czgmayxfl9klcelvurp4hnwz0n4xam2etk85qpp56h9spece9ezajvl8mwr5j744c2mnq77s9890x58056kxd45ty86qdqqxqyz5vqcqp29qxpqysgq5mynr9vxpycalr3zzyv9z8hhnxkcyfljnfk7lwzqgjcyypt5srgxs5n2zcpfkmgf86kvs5mmzcmn94fppnknat3wjuh0nz92qsfvypcqz6yc85',
     createdAt: 1695514293,
+    direction: 'send',
     preimage: '2aa6d4a88d279b5006445c02a8dc264d34efadb2124a00b4a80a420fa4583e20',
     amount: 21,
     fee: 0,

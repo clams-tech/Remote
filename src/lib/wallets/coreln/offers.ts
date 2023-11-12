@@ -278,7 +278,6 @@ class Offers implements OffersInterface {
 
       return {
         id: payment_hash,
-        direction: 'receive',
         timestamp: paid_at || createdAt,
         status: invoiceStatusToPaymentStatus(status as InvoiceStatus, expires_at),
         walletId: this.connection.walletId,
@@ -291,6 +290,7 @@ class Offers implements OffersInterface {
           completedAt: paid_at ? paid_at : nowSeconds(),
           expiresAt: expires_at,
           createdAt: createdAt,
+          direction: 'receive',
           fee: undefined,
           request: bolt12 as string,
           payIndex: pay_index
@@ -323,7 +323,6 @@ class Offers implements OffersInterface {
 
       return {
         id: payment_hash,
-        direction: 'send',
         timestamp: completedAt,
         status,
         walletId: this.connection.walletId,
@@ -333,6 +332,7 @@ class Offers implements OffersInterface {
           preimage: payment_preimage,
           counterpartyNode: destination,
           type: 'bolt12',
+          direction: 'send',
           amount: msatsToSats(formatMsatString(amount_msat)),
           completedAt,
           expiresAt: undefined,

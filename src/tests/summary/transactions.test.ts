@@ -49,7 +49,6 @@ const onchainReceiveTransaction: TransactionPayment = {
   network: 'regtest',
   type: 'transaction',
   status: 'complete',
-  direction: 'receive',
   data: {
     rawTx:
       '02000000000101c04c8b5d88bb321a1f57b492111fa4e975bb601c45b5cd34310e92bed7629cbc0000000000fdffffff02fccb4e2901000000160014cad08d3d421219d17922685fb51dc120a69ed77b001bb7000000000016001471506e129f819e519e58040afa24dc122646e2ec0247304402200cded4978e629b9c03dbd8f51ac3d2bad7eeac41dc6d01c60b02d0a6a01d4ab702206e83a54259a6ff1f0f1b05b0a9a8c13928da78e81b5b0fb3f0eaf12e7fc954280121021873a1fc799fe48a45fa334f1535eb7f4deabb6e037dd82a48dab82364c785ec65000000',
@@ -91,7 +90,6 @@ const onchainSendTransaction: TransactionPayment = {
   walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
   timestamp: 1694924419,
   status: 'complete',
-  direction: 'send',
   network: 'regtest',
   type: 'transaction',
   data: {
@@ -280,7 +278,6 @@ const aliceOpenChannelTransaction: TransactionPayment = {
   walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
   timestamp: 1694926410,
   status: 'complete',
-  direction: 'send',
   network: 'regtest',
   type: 'transaction',
   data: {
@@ -459,7 +456,6 @@ const forceCloseAliceBobChannelTransaction: TransactionPayment = {
   status: 'complete',
   network: 'regtest',
   type: 'transaction',
-  direction: 'send',
   data: {
     rawTx:
       '02000000000101380ed20b62a936c918bd5bb3b96a972b244940091549e7ae7451026aae283a870100000000f925a7800109c62d0000000000220020f356abfdce0ce316a632e4eaa4ab629b5ffd4b19832d1504be2b9bedf653415d0400463043021f7aa04ae3c175a07356ff5711224a5b14c281b3c5ec0038459ef1e8fa57132302206835245775b920aacb3b620fbb6f8aec5c25bd9452e3f789135dfd5ebf1e8e6801473044022062c7710a3e20fca5b579864590176aac42678d1d786516b3259324558eaa72d7022029c3ff7080e0656f484b805d7aecdfc42312533520ec0dae47f1100edb3e8d85014752210289385a7595dfb6892290ffae66d450db3b207d90498454459395564ac0148e512102ffee367745223fb0a42dbf413e42121903fe648eaf74bdddf4f340815d28fbe952aeb1bb4e20',
@@ -521,7 +517,6 @@ const sweepFromForceCloseTransaction: TransactionPayment = {
   walletId: '08b5a6168b5cce5d3819339ad98dcb80ee7041b6f43cfa246103a1264855db54',
   timestamp: 1695002003,
   type: 'transaction',
-  direction: 'receive',
   network: 'regtest',
   status: 'complete',
   data: {
