@@ -33,6 +33,7 @@ export default ({ mode }) =>
       target: 'esnext'
     },
     worker: {
+      plugins: [sveltekit()],
       format: 'es'
     },
     optimizeDeps: {
