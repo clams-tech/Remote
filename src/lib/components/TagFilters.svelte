@@ -13,7 +13,7 @@
     {#each tags as tag}
       <div class="flex items-center">
         <input
-          id={tag.id}
+          name={tag.id}
           type="checkbox"
           bind:checked={tag.applied}
           class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"

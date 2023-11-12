@@ -130,7 +130,7 @@
           <div class="w-full">
             <div class="flex items-center">
               <input
-                id={sorter.label}
+                name={sorter.label}
                 type="radio"
                 bind:group={selectedSorterKey}
                 value={sorter.key}
@@ -146,7 +146,7 @@
                     class="w-3 h-3"
                     bind:group={selectedSorterDirection}
                     value={direction}
-                    id={`${direction}:${sorter.label}`}
+                    name={`${direction}:${sorter.label}`}
                   />
                   <label class="ml-1" for={`${direction}:${sorter.label}`}
                     >{$translate(`app.labels.${direction}`)}</label

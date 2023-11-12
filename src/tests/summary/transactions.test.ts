@@ -162,7 +162,8 @@ test('Summarise a onchain receive transaction with unknown input', async () => {
     inputs: [
       {
         type: 'unknown',
-        outpoint: inputOutpoint
+        outpoint: inputOutpoint,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -170,14 +171,16 @@ test('Summarise a onchain receive transaction with unknown input', async () => {
         type: 'unknown',
         outpoint: `${onchainReceiveTransaction.id}:${onchainReceiveTransaction.data.outputs[0].index}`,
         amount: onchainReceiveTransaction.data.outputs[0].amount,
-        address: onchainReceiveTransaction.data.outputs[0].address
+        address: onchainReceiveTransaction.data.outputs[0].address,
+        metadata: undefined
       },
       {
         type: 'receive',
         utxo: utxoForOnchainReceiveTransaction,
         outpoint: `${onchainReceiveTransaction.id}:${onchainReceiveTransaction.data.outputs[1].index}`,
         amount: onchainReceiveTransaction.data.outputs[1].amount,
-        address: onchainReceiveTransaction.data.outputs[1].address
+        address: onchainReceiveTransaction.data.outputs[1].address,
+        metadata: undefined
       }
     ]
   })
@@ -204,7 +207,8 @@ test('Summarise a onchain send transaction to unknown recipient', async () => {
       {
         type: 'spend',
         outpoint: inputOutpoint,
-        utxo: utxoForOnchainReceiveTransaction
+        utxo: utxoForOnchainReceiveTransaction,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -213,13 +217,15 @@ test('Summarise a onchain send transaction to unknown recipient', async () => {
         utxo: utxoChangeFromOnchainSendTransaction,
         amount: onchainSendTransaction.data.outputs[0].amount,
         address: onchainSendTransaction.data.outputs[0].address,
-        outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[0].index}`
+        outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[0].index}`,
+        metadata: undefined
       },
       {
         type: 'send',
         outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[1].index}`,
         amount: onchainSendTransaction.data.outputs[1].amount,
-        address: onchainSendTransaction.data.outputs[1].address
+        address: onchainSendTransaction.data.outputs[1].address,
+        metadata: undefined
       }
     ]
   })
@@ -251,7 +257,8 @@ test('Summarise a onchain send transaction transfer to another owned wallet', as
       {
         type: 'spend',
         outpoint: `${onchainSendTransaction.data.inputs[0].txid}:${onchainSendTransaction.data.inputs[0].index}`,
-        utxo: utxoForOnchainReceiveTransaction
+        utxo: utxoForOnchainReceiveTransaction,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -260,14 +267,16 @@ test('Summarise a onchain send transaction transfer to another owned wallet', as
         outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[0].index}`,
         utxo: utxoChangeFromOnchainSendTransaction,
         amount: onchainSendTransaction.data.outputs[0].amount,
-        address: onchainSendTransaction.data.outputs[0].address
+        address: onchainSendTransaction.data.outputs[0].address,
+        metadata: undefined
       },
       {
         type: 'transfer',
         amount: onchainSendTransaction.data.outputs[1].amount,
         address: onchainSendTransaction.data.outputs[1].address,
         utxo: utxoBobReceivedOnchainSendTransaction,
-        outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[1].index}`
+        outpoint: `${onchainSendTransaction.id}:${onchainSendTransaction.data.outputs[1].index}`,
+        metadata: undefined
       }
     ]
   })
@@ -370,7 +379,8 @@ test('Summarise a onchain transaction that opens a channel to a node we dont own
       {
         type: 'spend',
         outpoint: `${aliceOpenChannelTransaction.data.inputs[0].txid}:${aliceOpenChannelTransaction.data.inputs[0].index}`,
-        utxo: utxoChangeFromOnchainSendTransaction
+        utxo: utxoChangeFromOnchainSendTransaction,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -379,14 +389,16 @@ test('Summarise a onchain transaction that opens a channel to a node we dont own
         outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.data.outputs[0].index}`,
         utxo: changeUtxoFromChannelOpen,
         amount: aliceOpenChannelTransaction.data.outputs[0].amount,
-        address: aliceOpenChannelTransaction.data.outputs[0].address
+        address: aliceOpenChannelTransaction.data.outputs[0].address,
+        metadata: undefined
       },
       {
         type: 'channel_open',
         outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.data.outputs[1].index}`,
         amount: aliceOpenChannelTransaction.data.outputs[1].amount,
         address: aliceOpenChannelTransaction.data.outputs[1].address,
-        channel: aliceBobChannel
+        channel: aliceBobChannel,
+        metadata: undefined
       }
     ]
   })
@@ -427,7 +439,8 @@ test('Summarise a onchain transaction that opens a channel to a node we own', as
       {
         type: 'spend',
         outpoint: `${aliceOpenChannelTransaction.data.inputs[0].txid}:${aliceOpenChannelTransaction.data.inputs[0].index}`,
-        utxo: utxoChangeFromOnchainSendTransaction
+        utxo: utxoChangeFromOnchainSendTransaction,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -436,14 +449,16 @@ test('Summarise a onchain transaction that opens a channel to a node we own', as
         outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.data.outputs[0].index}`,
         utxo: changeUtxoFromChannelOpen,
         amount: aliceOpenChannelTransaction.data.outputs[0].amount,
-        address: aliceOpenChannelTransaction.data.outputs[0].address
+        address: aliceOpenChannelTransaction.data.outputs[0].address,
+        metadata: undefined
       },
       {
         type: 'channel_open',
         outpoint: `${aliceOpenChannelTransaction.id}:${aliceOpenChannelTransaction.data.outputs[1].index}`,
         amount: aliceOpenChannelTransaction.data.outputs[1].amount,
         address: aliceOpenChannelTransaction.data.outputs[1].address,
-        channel: aliceBobChannel
+        channel: aliceBobChannel,
+        metadata: undefined
       }
     ]
   })
@@ -578,7 +593,8 @@ test('Summarise a onchain transaction that force closes a channel to a node we o
       {
         type: 'channel_close',
         outpoint: `${forceCloseAliceBobChannelTransaction.data.inputs[0].txid}:${forceCloseAliceBobChannelTransaction.data.inputs[0].index}`,
-        channel: aliceBobChannelClosed
+        channel: aliceBobChannelClosed,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -587,7 +603,8 @@ test('Summarise a onchain transaction that force closes a channel to a node we o
         outpoint: `${forceCloseAliceBobChannelTransaction.id}:${forceCloseAliceBobChannelTransaction.data.outputs[0].index}`,
         amount: forceCloseAliceBobChannelTransaction.data.outputs[0].amount,
         address: forceCloseAliceBobChannelTransaction.data.outputs[0].address,
-        channel: aliceBobChannelClosed
+        channel: aliceBobChannelClosed,
+        metadata: undefined
       }
     ]
   }
@@ -630,7 +647,8 @@ test('Summarise a onchain transaction that sweeps funds from a timelocked utxo d
       {
         type: 'timelocked',
         outpoint: `${sweepFromForceCloseTransaction.data.inputs[0].txid}:${sweepFromForceCloseTransaction.data.inputs[0].index}`,
-        channel: aliceBobChannelClosed
+        channel: aliceBobChannelClosed,
+        metadata: undefined
       }
     ],
     outputs: [
@@ -640,7 +658,8 @@ test('Summarise a onchain transaction that sweeps funds from a timelocked utxo d
         amount: sweepFromForceCloseTransaction.data.outputs[0].amount,
         address: sweepFromForceCloseTransaction.data.outputs[0].address,
         channel: aliceBobChannelClosed,
-        utxo: aliceUtxoFromSweep
+        utxo: aliceUtxoFromSweep,
+        metadata: undefined
       }
     ]
   }
