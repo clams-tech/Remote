@@ -328,7 +328,7 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       const items = await collection.limit(limit).toArray()
 
-      self.postMessage({ id: message.data.id, result: items.length === 1 ? [] : items })
+      self.postMessage({ id: message.data.id, result: items.length === 1 && lastItem ? [] : items })
       return
     }
   }
