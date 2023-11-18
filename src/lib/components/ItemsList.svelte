@@ -213,7 +213,7 @@
   </div>
 
   {#if button}
-    <div class="bottom-6 right-8 w-full flex justify-end mt-2" class:absolute={containerScrollable}>
+    <div class="bottom-6 right-8 flex justify-end mt-2" class:absolute={containerScrollable}>
       <a
         href={button.href}
         class:px-2={containerScrollable}

@@ -158,7 +158,7 @@
       </div>
     </div>
 
-    <div class="w-full flex justify-end gap-x-2 pt-4">
+    <div class="w-full flex justify-end gap-x-2 pt-4 absolute bottom-6 right-6">
       <div class="w-min">
         <Button on:click={reset} text={$translate('app.labels.reset')} />
       </div>

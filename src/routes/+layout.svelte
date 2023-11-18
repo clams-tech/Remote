@@ -133,7 +133,10 @@
     if (to && to.url.pathname === '/') {
       routeHistory = []
     } else if (from?.url) {
-      routeHistory = [from.url.pathname, ...routeHistory]
+      routeHistory = [
+        `${from.url.pathname}${from.url.search ? from.url.search : ''}`,
+        ...routeHistory
+      ]
     }
   })
 

@@ -15,7 +15,7 @@
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { getNetwork, truncateValue } from '$lib/utils.js'
+  import { truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
@@ -25,30 +25,18 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { from, type Observable } from 'rxjs'
   import channelIcon from '$lib/icons/channels.js'
-  import type { Channel } from '$lib/@types/channels.js'
   import keys from '$lib/icons/keys.js'
   import walletIcon from '$lib/icons/wallet.js'
-  import { updateCounterPartyNodeInfo } from '../utils.js'
+  import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
 
   import {
-    deriveInvoiceSummary,
-    deriveTransactionSummary,
     type EnhancedInput,
     type PaymentSummary,
     type EnhancedOutput,
-    deriveAddressSummary,
     type RegularTransactionSummary,
     type ChannelTransactionSummary,
     getPaymentSummary
   } from '$lib/summary.js'
-  import type {
-    AddressPayment,
-    InvoicePayment,
-    Network,
-    Payment,
-    PaymentStatus,
-    TransactionPayment
-  } from '$lib/@types/payments.js'
 
   export let data: PageData
 

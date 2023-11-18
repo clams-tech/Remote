@@ -20,7 +20,6 @@
 
   $: if (showModal) {
     exchange = ($bitcoinExchangeRates$ && $bitcoinExchangeRates$[$settings$.fiatDenomination]) || 0
-
     sats = fiat ? (1 / (exchange || 1)) * fiat * 1e8 : 0
   }
 
@@ -42,9 +41,11 @@
   }
 </script>
 
-<button on:click={() => (showModal = true)} class="w-full flex items-center"
-  >{@html calculator}</button
->
+{#if $bitcoinExchangeRates$}
+  <button on:click={() => (showModal = true)} class="w-full flex items-center"
+    >{@html calculator}</button
+  >
+{/if}
 
 {#if showModal}
   <Modal on:close={() => (showModal = false)}>

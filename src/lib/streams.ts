@@ -7,7 +7,7 @@ import type { AppError } from './@types/errors.js'
 import type { AutoConnectWalletOptions, Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
-import { mergeDefaultsWithStoredSettings } from './utils.js'
+import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
 import { browser } from '$app/environment'
@@ -24,7 +24,9 @@ import {
   Subject,
   take,
   timer,
-  distinctUntilKeyChanged
+  distinctUntilKeyChanged,
+  merge,
+  switchMap
 } from 'rxjs'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
@@ -104,9 +106,9 @@ const exchangeRatePoll$ = timer(0, 5 * MIN_IN_MS)
 const fiatDenominationChange$ = settings$.pipe(distinctUntilKeyChanged('fiatDenomination'), skip(1))
 
 // get and update bitcoin exchange rate by poll or if fiat denomination changes
-// merge(exchangeRatePoll$, fiatDenominationChange$)
-//   .pipe(
-//     switchMap(() => from(getBitcoinExchangeRate(settings$.value.fiatDenomination))),
-//     filter(x => !!x)
-//   )
-//   .subscribe(bitcoinExchangeRates$)
+merge(exchangeRatePoll$, fiatDenominationChange$)
+  .pipe(
+    switchMap(() => from(getBitcoinExchangeRate(settings$.value.fiatDenomination))),
+    filter(x => !!x)
+  )
+  .subscribe(bitcoinExchangeRates$)
