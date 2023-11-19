@@ -44,12 +44,12 @@
 
 <a
   href={`/forwards/${forward.id}`}
-  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
+  class="w-full flex items-center no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
     <div class="flex flex-col items-center w-full mr-4">
-      <div class="flex items-center text-sm gap-x-2 overflow-hidden w-full">
-        <div class="flex items-center w-full">
+      <div class="flex items-center text-sm gap-x-2 overflow-hidden w-full justify-around">
+        <div class="flex items-center max-w-[45%] w-full justify-start">
           <div class="w-6 text-utility-success rotate-180 flex-shrink-0">{@html arrow}</div>
           <div class="truncate uppercase">
             {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
@@ -58,7 +58,7 @@
 
         <div class="w-6 flex-shrink-0">{@html channels}</div>
 
-        <div class="flex items-center">
+        <div class="flex items-center max-w-[45%] w-full justify-end">
           <div class="truncate uppercase">
             {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
           </div>
@@ -81,7 +81,7 @@
         <BitcoinAmount sats={forward.fee} short />
         <div class="w-full flex justify-end text-xs">
           <div
-            class="font-semibold"
+            class="font-semibold whitespace-nowrap"
             class:text-utility-success={forward.status === 'settled'}
             class:utility-pending={forward.status === 'offered'}
             class:text-utility-error={forward.status === 'failed' ||
