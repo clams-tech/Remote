@@ -1055,11 +1055,35 @@ export type ChannelCloseEvent = {
   blockheight: number
 }
 
+export type HTLCEvent = {
+  account: string
+  blockheight: number
+  credit_msat: string
+  currency: string
+  debit_msat: string
+  outpoint: string
+  tag: 'htlc_tx' | 'htlc_timeout'
+  timestamp: number
+  type: 'chain'
+}
+
 export type ToThemEvent = {
   account: string
   origin: string
   type: 'chain'
   tag: 'to_them'
+  timestamp: number
+  outpoint: string
+  txid: string
+  credit_msat: string
+  debit_msat: string
+  blockheight: number
+}
+
+export type ToWalletEvent = {
+  account: string
+  type: 'chain'
+  tag: 'to_wallet'
   timestamp: number
   outpoint: string
   txid: string
@@ -1121,7 +1145,9 @@ export type ListAccountEventsResponse = {
     | OnchainFeeEvent
     | ChannelInvoiceEvent
     | ToThemEvent
+    | ToWalletEvent
     | DelayedToUsEvent
+    | HTLCEvent
   )[]
 }
 

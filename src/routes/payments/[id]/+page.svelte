@@ -23,11 +23,12 @@
   import { goto } from '$app/navigation'
   import Summary from '../Summary.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import { from, type Observable } from 'rxjs'
+  import { from, takeUntil, Subject } from 'rxjs'
   import channelIcon from '$lib/icons/channels.js'
   import keys from '$lib/icons/keys.js'
   import walletIcon from '$lib/icons/wallet.js'
   import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
+  import { onDestroy } from 'svelte'
 
   import {
     type EnhancedInput,
@@ -40,7 +41,8 @@
 
   export let data: PageData
 
-  const { id, walletId } = data
+  $: id = data.id
+  $: walletId = data.walletId
 
   type QRValue = { label: string; value: string }
 
@@ -51,101 +53,113 @@
     qrValues: QRValue[]
   } | null
 
-  const paymentDetails$: Observable<PaymentDetails> = from(
-    liveQuery(async () => {
-      return db.transaction(
-        'r',
-        db.payments,
-        db.wallets,
-        db.channels,
-        db.withdrawals,
-        db.deposits,
-        db.contacts,
-        // @ts-ignore
-        db.utxos,
-        db.offers,
-        db.nodes,
-        async (): Promise<PaymentDetails> => {
-          const payment = await db.payments.where({ id, walletId }).first()
-          if (!payment || !walletId) return null
+  let paymentDetails: PaymentDetails
 
-          const wallet = (await db.wallets.get(walletId)) as Wallet
-          const summary = await getPaymentSummary(payment)
-          const qrValues: QRValue[] = []
+  const destroy$ = new Subject<void>()
 
-          if (payment.status === 'waiting') {
-            if (payment.type === 'invoice') {
-              const {
-                data: { request, fallbackAddress, amount, description, offer }
-              } = payment
+  $: if (id && walletId) {
+    const query$ = from(
+      liveQuery(async () => {
+        return db.transaction(
+          'r',
+          db.payments,
+          db.wallets,
+          db.channels,
+          db.withdrawals,
+          db.deposits,
+          db.contacts,
+          // @ts-ignore
+          db.utxos,
+          db.offers,
+          db.nodes,
+          async (): Promise<PaymentDetails> => {
+            const payment = await db.payments.where({ id, walletId }).first()
+            if (!payment || !walletId) return null
 
-              if (request) {
-                qrValues.push({
-                  label: $translate('app.labels.invoice'),
-                  value: `lightning:${request.toUpperCase()}`
-                })
+            const wallet = (await db.wallets.get(walletId)) as Wallet
+            const summary = await getPaymentSummary(payment)
+            const qrValues: QRValue[] = []
+
+            if (payment.status === 'waiting') {
+              if (payment.type === 'invoice') {
+                const {
+                  data: { request, fallbackAddress, amount, description, offer }
+                } = payment
+
+                if (request) {
+                  qrValues.push({
+                    label: $translate('app.labels.invoice'),
+                    value: `lightning:${request.toUpperCase()}`
+                  })
+                }
+
+                if (fallbackAddress) {
+                  const searchParams = new URLSearchParams()
+
+                  if (amount && amount !== 0) {
+                    searchParams.append('amount', satsToBtcString(amount))
+                  }
+
+                  if (description) {
+                    searchParams.append('message', description)
+                  }
+
+                  qrValues.push({
+                    label: $translate('app.labels.address'),
+                    value: `bitcoin:${fallbackAddress.toUpperCase()}${
+                      Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
+                    }`
+                  })
+                }
+
+                const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
+
+                const formattedOffer =
+                  offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
+
+                payment.data.offer = formattedOffer
               }
 
-              if (fallbackAddress) {
+              if (payment.type === 'address') {
+                const {
+                  data: { amount, message, label }
+                } = payment
+
                 const searchParams = new URLSearchParams()
 
                 if (amount && amount !== 0) {
                   searchParams.append('amount', satsToBtcString(amount))
                 }
 
-                if (description) {
-                  searchParams.append('message', description)
+                if (label) {
+                  searchParams.append('label', label)
+                }
+
+                if (message) {
+                  searchParams.append('message', message)
                 }
 
                 qrValues.push({
                   label: $translate('app.labels.address'),
-                  value: `bitcoin:${fallbackAddress.toUpperCase()}${
+                  value: `bitcoin:${id.toUpperCase()}${
                     Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
                   }`
                 })
               }
-
-              const withdrawalOfferId = offer ? await tryFindWithdrawalOfferId(offer) : undefined
-
-              const formattedOffer =
-                offer && withdrawalOfferId ? { id: withdrawalOfferId, ...offer } : offer
-
-              payment.data.offer = formattedOffer
             }
 
-            if (payment.type === 'address') {
-              const {
-                data: { amount, message, label }
-              } = payment
-
-              const searchParams = new URLSearchParams()
-
-              if (amount && amount !== 0) {
-                searchParams.append('amount', satsToBtcString(amount))
-              }
-
-              if (label) {
-                searchParams.append('label', label)
-              }
-
-              if (message) {
-                searchParams.append('message', message)
-              }
-
-              qrValues.push({
-                label: $translate('app.labels.address'),
-                value: `bitcoin:${id.toUpperCase()}${
-                  Array.from(searchParams.keys()).length ? `?${searchParams.toString()}` : ''
-                }`
-              })
-            }
+            return { wallet, summary, payment, qrValues }
           }
+        ) as Promise<PaymentDetails>
+      })
+    )
 
-          return { wallet, summary, payment, qrValues }
-        }
-      ) as Promise<PaymentDetails>
-    })
-  )
+    query$.pipe(takeUntil(destroy$)).subscribe(result => (paymentDetails = result))
+  }
+
+  onDestroy(() => {
+    destroy$.next()
+  })
 
   const handlePaymentExpire = async () => {
     await db.payments.where({ id }).modify({ status: 'expired' })
@@ -176,9 +190,9 @@
         return `/utxos/${inputOutput.utxo.id}`
       }
       case 'settle':
-        return inputOutput.utxo
-          ? `/utxos/${inputOutput.utxo.id}`
-          : `/channels/${inputOutput.channel.id}`
+        return `/utxos/${inputOutput.utxo.id}`
+      // case 'htlc':
+      //   return `/payments/${inputOutput.txid}?wallet=${walletId}`
       case 'withdrawal':
         return `/wallets/${inputOutput.withdrawal.walletId}`
       case 'deposit':
@@ -186,9 +200,9 @@
     }
   }
 
-  $: enhancedInputs = ($paymentDetails$?.summary as RegularTransactionSummary).inputs
-  $: enhancedOutputs = ($paymentDetails$?.summary as RegularTransactionSummary).outputs
-  $: transactionChannels = ($paymentDetails$?.summary as ChannelTransactionSummary).channels
+  $: enhancedInputs = (paymentDetails?.summary as RegularTransactionSummary).inputs
+  $: enhancedOutputs = (paymentDetails?.summary as RegularTransactionSummary).outputs
+  $: transactionChannels = (paymentDetails?.summary as ChannelTransactionSummary).channels
 </script>
 
 <svelte:head>
@@ -196,17 +210,17 @@
 </svelte:head>
 
 <Section>
-  {#if $paymentDetails$ === undefined}
+  {#if paymentDetails === undefined}
     <div class="mt-4">
       <Spinner />
     </div>
-  {:else if $paymentDetails$ === null}
+  {:else if paymentDetails === null}
     <SectionHeading text={$translate('app.labels.payment')} />
     <div class="mt-4">
       <Msg type="error" closable={false} message={$translate('app.errors.payment_not_found')} />
     </div>
   {:else}
-    {@const { payment, summary, wallet, qrValues } = $paymentDetails$}
+    {@const { payment, summary, wallet, qrValues } = paymentDetails}
 
     {@const { status, network, data, type } = payment}
 
@@ -325,6 +339,7 @@
                 >
                   <button
                     on:click={() => {
+                      destroy$.next()
                       route && goto(route)
                     }}
                   >
@@ -332,7 +347,9 @@
                       <div class="mr-1 flex items-center">
                         {#if type !== 'unknown'}
                           <div class="w-4 mr-0.5 -ml-0.5">
-                            {@html type === 'channel_close' || type === 'timelocked'
+                            {@html type === 'channel_close' ||
+                            type === 'timelocked' ||
+                            type === 'htlc_timeout'
                               ? channelIcon
                               : type === 'spend'
                               ? keys
@@ -398,6 +415,7 @@
                 >
                   <button
                     on:click={async () => {
+                      destroy$.next()
                       route && goto(route)
                     }}
                   >
@@ -407,6 +425,8 @@
                           <div class="w-4 mr-0.5 -ml-0.5">
                             {@html type === 'channel_open' ||
                             type === 'timelocked' ||
+                            type === 'htlc_timeout' ||
+                            type === 'htlc_resolve' ||
                             (type === 'settle' && !output.utxo)
                               ? channelIcon
                               : type === 'receive' ||
@@ -487,20 +507,20 @@
           </SummaryRow>
         {/if}
 
-        {#if type === 'invoice' && data.fee}
+        {#if summary?.fee}
           <SummaryRow>
             <span slot="label"
               >{$translate(
                 `app.labels.${
                   (summary?.type === 'channel_close' || summary?.type === 'channel_force_close') &&
-                  data.fee < 1
+                  summary?.fee < 1
                     ? 'lost_to_rounding'
                     : 'fee'
                 }`
               )}:</span
             >
             <div class="flex items-center" slot="value">
-              <BitcoinAmount sats={data.fee} />
+              <BitcoinAmount sats={summary.fee} />
             </div>
           </SummaryRow>
         {/if}

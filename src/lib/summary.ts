@@ -30,14 +30,20 @@ export type SummaryCommon = {
 }
 
 export type ChannelTransactionSummary = SummaryCommon & {
-  type: 'channel_open' | 'channel_close' | 'channel_force_close' | 'channel_mutiple_open'
+  type:
+    | 'channel_open'
+    | 'channel_close'
+    | 'channel_force_close'
+    | 'channel_mutiple_open'
+    | 'channel_htlc_timeout'
+    | 'channel_htlc_tx'
   channels: Channel[]
   inputs: EnhancedInput[]
   outputs: EnhancedOutput[]
 }
 
 export type RegularTransactionSummary = SummaryCommon & {
-  type: 'send' | 'receive' | 'transfer' | 'withdrawal' | 'deposit' | 'sweep'
+  type: 'send' | 'receive' | 'transfer' | 'withdrawal' | 'deposit' | 'sweep' | 'htlc'
   inputs: EnhancedInput[]
   outputs: EnhancedOutput[]
   amount: number
@@ -82,6 +88,10 @@ export type TimelockedInput = InputBase & {
   channel: Channel
 }
 
+export type HTLCInput = InputBase & {
+  type: 'htlc_timeout'
+}
+
 export type UnknownInput = InputBase & { type: 'unknown' }
 
 export type EnhancedInput =
@@ -89,6 +99,7 @@ export type EnhancedInput =
   | WithdrawalInput
   | SpendInput
   | TimelockedInput
+  | HTLCInput
   | UnknownInput
 
 export type OutputCommon = {
@@ -117,7 +128,12 @@ export type TimelockedForcCloseOutput = OutputCommon & {
 export type SettledChannelOutput = OutputCommon & {
   type: 'settle'
   channel: Channel
-  utxo?: Utxo
+  utxo: Utxo
+}
+
+export type HTLCOutput = OutputCommon & {
+  type: 'htlc_timeout' | 'htlc_resolve'
+  channel: Channel
 }
 
 export type ChannelOpenOutput = OutputCommon & {
@@ -141,6 +157,7 @@ export type EnhancedOutput =
   | TimelockedForcCloseOutput
   | DepositOutput
   | SweepOutput
+  | HTLCOutput
   | UnknownOutput
 
 const isChangeOutput = (inputs: EnhancedInput[], utxo: Utxo): boolean =>
@@ -214,8 +231,16 @@ export const deriveTransactionSummary = ({
            * the input was owned by a custodian and we withdrew to self custody (requires looking at outputs address to match with withdrawal destination)(withdrawal)
            * we don't know about this input (return outpoint))(unknown)
            */
-          const { txid, index, metadata } = input
+          const { txid, index, metadata, htlcTimeout } = input
           const outpoint = `${txid}:${index}`
+
+          if (htlcTimeout) {
+            return {
+              outpoint,
+              metadata,
+              type: 'htlc_timeout'
+            }
+          }
 
           const closedChannel = await db.channels
             .where({ fundingTransactionId: txid, fundingOutput: index, walletId })
@@ -250,6 +275,23 @@ export const deriveTransactionSummary = ({
             }
           }
 
+          const inputTransaction = (await db.payments
+            .where({ walletId, id: txid })
+            .first()) as TransactionPayment
+
+          if (inputTransaction && inputTransaction.data.channel?.id) {
+            const channel = (await db.channels
+              .where({ walletId, id: inputTransaction.data.channel.id })
+              .first()) as Channel
+
+            return {
+              type: 'timelocked',
+              channel,
+              outpoint,
+              metadata
+            }
+          }
+
           return { type: 'unknown', outpoint, metadata }
         })
       )
@@ -265,7 +307,7 @@ export const deriveTransactionSummary = ({
            * the output address matches with a deposit to a custodian (deposit)
            * we don't know about this output (return address)(unknown)
            */
-          const { address, index, amount, metadata } = output
+          const { address, index, amount, metadata, htlcTimeout, htlcResolve } = output
           const outpoint = `${id}:${index}`
           const ownedOutputUtxo = await db.utxos.get(outpoint)
 
@@ -274,6 +316,30 @@ export const deriveTransactionSummary = ({
           )?.channel
 
           const ownedInputUtxo = enhancedInputs.find(input => input.type === 'spend')
+
+          if (htlcTimeout) {
+            return {
+              type: 'htlc_timeout',
+              channel: closedChannel,
+              amount,
+              utxo: ownedOutputUtxo,
+              address,
+              outpoint,
+              metadata
+            }
+          }
+
+          if (htlcResolve) {
+            return {
+              type: 'htlc_resolve',
+              channel: closedChannel,
+              amount,
+              utxo: ownedOutputUtxo,
+              address,
+              outpoint,
+              metadata
+            }
+          }
 
           if (closedChannel) {
             if (ownedOutputUtxo) {
@@ -286,10 +352,7 @@ export const deriveTransactionSummary = ({
                 outpoint,
                 metadata
               }
-            } else if (
-              (closedChannel.finalToUs && Math.floor(closedChannel.finalToUs) === amount) ||
-              closedChannel.balanceLocal - (fee || 0) === amount
-            ) {
+            } else {
               return {
                 type: 'timelocked',
                 channel: closedChannel,
@@ -298,8 +361,6 @@ export const deriveTransactionSummary = ({
                 outpoint,
                 metadata
               }
-            } else {
-              return { type: 'settle', channel: closedChannel, address, outpoint, amount, metadata }
             }
           }
 
@@ -381,6 +442,32 @@ export const deriveTransactionSummary = ({
       const channelOpens = enhancedOutputs.filter(
         ({ type }) => type === 'channel_open'
       ) as ChannelOpenOutput[]
+
+      const htlcResolve = enhancedInputs.find(({ type }) => type === 'htlc_timeout')
+
+      if (htlcResolve) {
+        const ownerWallet = (await db.wallets.get(walletId)) as Wallet
+        const closedChannel = (await db.channels
+          .where({ walletId, id: transactionChannel?.id })
+          .first()) as Channel
+
+        const htlcResolveSummary: RegularTransactionSummary = {
+          primary: { type: 'wallet', value: ownerWallet },
+          secondary: {
+            type: 'channel_peer',
+            value: closedChannel.peerAlias || closedChannel.peerId
+          },
+          category: 'expense',
+          timestamp,
+          fee: fee || 0,
+          type: 'htlc',
+          inputs: enhancedInputs,
+          outputs: enhancedOutputs,
+          amount: enhancedOutputs[0].amount
+        }
+
+        return htlcResolveSummary
+      }
 
       if (channelClose) {
         const { channel } = channelClose
@@ -465,8 +552,9 @@ export const deriveTransactionSummary = ({
 
       // must be an unknown channel open or close. Could be because we don't have access to list closed channels
       if (transactionChannel) {
-        const { type } = transactionChannel
+        const { type, id } = transactionChannel
         const transactionWallet = (await db.wallets.get(walletId)) as Wallet
+        const channel = (await db.channels.where({ id, walletId }).first()) as Channel
 
         const unknownChannelSummary: ChannelTransactionSummary = {
           timestamp,
@@ -478,9 +566,9 @@ export const deriveTransactionSummary = ({
               : type === 'close'
               ? 'channel_close'
               : 'channel_open',
-          channels: [],
+          channels: channel ? [channel] : [],
           primary: { type: 'wallet', value: transactionWallet },
-          secondary: { type: 'channel_peer', value: undefined },
+          secondary: { type: 'channel_peer', value: channel?.peerAlias || channel?.peerId },
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }
@@ -641,6 +729,29 @@ export const deriveTransactionSummary = ({
           sourceContact = await db.contacts.get(inputContacts[0])
         }
 
+        const timelockedInput = enhancedInputs.find(
+          ({ type }) => type === 'timelocked'
+        ) as TimelockedInput
+
+        if (timelockedInput) {
+          const resolvedSummary: RegularTransactionSummary = {
+            timestamp,
+            fee: fee || 0,
+            category: 'expense',
+            type: 'htlc',
+            amount: receiveOutput.amount,
+            primary: { type: 'wallet', value: receiveWallet },
+            secondary: {
+              type: 'channel_peer',
+              value: timelockedInput.channel.peerAlias || timelockedInput.channel.peerId
+            },
+            inputs: enhancedInputs,
+            outputs: enhancedOutputs
+          }
+
+          return resolvedSummary
+        }
+
         const receiveSummary: RegularTransactionSummary = {
           timestamp,
           fee: 0,
@@ -650,7 +761,7 @@ export const deriveTransactionSummary = ({
           primary: { type: 'wallet', value: receiveWallet },
           secondary: sourceContact
             ? { type: 'contact', value: sourceContact }
-            : { type: 'unknown', value: enhancedInputs[0].outpoint },
+            : { type: 'unknown', value: receiveOutput.address },
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }
