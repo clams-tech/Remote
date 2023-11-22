@@ -24,18 +24,26 @@ export type TransactionPayment = PaymentBase & {
       txid: string
       index: number
       sequence: number
+      htlcTimeout?: boolean
       metadata?: Metadata
     }>
     outputs: Array<{
       index: number
       amount: number
       address: string
+      htlcTimeout?: boolean
+      htlcResolve?: boolean
+      timelocked?: boolean
       metadata?: Metadata
     }>
+    /** the channel this tx is associated with */
     channel?: {
-      type: 'open' | 'close' | 'force_close'
-      amount: number
+      /** channel id */
       id: string
+      /** how this tx is related to the channel */
+      type: 'open' | 'close' | 'force_close' | 'htlc'
+      /** the amount associated with this tx */
+      amount: number
     }
     fee?: number
   }
