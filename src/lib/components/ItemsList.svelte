@@ -66,6 +66,7 @@
       sort: sorters.applied,
       limit,
       lastItem: items[items.length - 1],
+      lastItemKey: 'id',
       table: route
     })) as Item[]
 
@@ -104,7 +105,9 @@
   let direction: 'up' | 'down'
   let processingScroll = false
 
-  const handleScroll = (offset: number, diff: number) => {
+  const handleScroll = (offset: number) => {
+    const diff = fullHeight - listHeight
+
     // scrolled to bottom
     if (offset === diff) {
       getMoreItems()
@@ -137,13 +140,11 @@
     previousOffset = offset
   }
 
-  let innerHeight: number
+  let container: HTMLDivElement
   let virtualList: VirtualList
 
-  $: maxHeight = innerHeight ? innerHeight - 80 - 56 - 80 : 0
   $: fullHeight = items ? items.length * rowSize : 0
-  $: listHeight = Math.min(maxHeight, fullHeight)
-
+  $: listHeight = container ? Math.min(container.clientHeight, fullHeight) : fullHeight
   $: containerScrollable = processing ? false : items.length ? fullHeight > listHeight : false
 
   $: if (items.length) {
@@ -157,8 +158,6 @@
 
   loadItems()
 </script>
-
-<svelte:window bind:innerHeight />
 
 <Section>
   <div class="w-full flex items-center justify-between">
@@ -187,10 +186,13 @@
         />
       </div>
     {:else}
-      <div class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2">
+      <div
+        bind:this={container}
+        class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2 flex-grow"
+      >
         <VirtualList
           bind:this={virtualList}
-          on:afterScroll={e => handleScroll(e.detail.offset, fullHeight - listHeight)}
+          on:afterScroll={e => handleScroll(e.detail.offset)}
           width="100%"
           height={listHeight}
           itemCount={items.length}

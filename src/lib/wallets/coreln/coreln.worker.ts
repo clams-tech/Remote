@@ -13,6 +13,8 @@ import Big from 'big.js'
 import type { Channel } from '$lib/@types/channels.js'
 import { inPlaceSort } from 'fast-sort'
 import type { Utxo } from '$lib/@types/utxos.js'
+import { distinctUntilChanged } from 'rxjs'
+import type { Forward } from '$lib/@types/forwards.js'
 
 import type {
   ListForwardsResponse,
@@ -26,11 +28,8 @@ import type {
   NodeFullResponse,
   ListPeersResponse,
   ListPeerChannelsResponse,
-  ListfundsResponse,
-  HTLCEvent
+  ListfundsResponse
 } from './types.js'
-import { distinctUntilChanged } from 'rxjs'
-import type { Forward } from '$lib/@types/forwards.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -208,10 +207,6 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'format_transactions': {
       const { id, transactions, accountEvents, network, walletId } = message.data
 
-      const chainAccountEvents = accountEvents?.events.filter(
-        ({ type }) => type === 'onchain_fee' || type === 'chain'
-      )
-
       try {
         const result = transactions.map(
           ({ hash, rawtx, blockheight, txindex, locktime, version, inputs, outputs }) => {
@@ -258,85 +253,90 @@ onmessage = async (message: MessageEvent<Message>) => {
             let channel: TransactionPayment['data']['channel']
             let timestamp = nowSeconds()
 
-            const { transactionEvents, outputEvents } = chainAccountEvents?.reduce(
-              (acc, event) => {
-                const { outpoint, txid } = event as ChainEvent
+            if (accountEvents) {
+              accountEvents.events.forEach(ev => {
+                const {
+                  type,
+                  tag,
+                  timestamp: eventTimestamp,
+                  account,
+                  debit_msat,
+                  credit_msat
+                } = ev as ListAccountEventsResponse['events'][number]
 
-                if (txid && txid === hash) {
-                  acc.transactionEvents.push(event)
-                } else if (outpoint && outpoint.includes(hash)) {
-                  acc.outputEvents.push(event)
+                const { txid, outpoint } = ev as ChainEvent
+                const [outpointHash, outpointIndex] = outpoint?.split(':') || []
+
+                if (type === 'chain') {
+                  if (tag === 'deposit' && outpointHash === hash) {
+                    timestamp = eventTimestamp
+                    return
+                  }
+
+                  if (tag === 'withdrawal' && txid === hash) {
+                    timestamp = eventTimestamp
+                    return
+                  }
+
+                  if (tag === 'channel_open' && outpointHash === hash) {
+                    timestamp = eventTimestamp
+
+                    channel = {
+                      type: 'open',
+                      amount: msatsToSats(formatMsatString(credit_msat)),
+                      id: account
+                    }
+                    return
+                  }
+
+                  if (tag === 'channel_close' && txid === hash) {
+                    timestamp = eventTimestamp
+
+                    channel = {
+                      type: 'close',
+                      amount: msatsToSats(formatMsatString(debit_msat)),
+                      id: account
+                    }
+                    return
+                  }
+
+                  if (tag === 'delayed_to_us' && outpointHash === hash) {
+                    if (channel) {
+                      channel.type = 'force_close'
+                    }
+
+                    formattedOutputs[Number(outpointIndex)].timelocked = true
+                  }
+
+                  if (tag === 'htlc_timeout' && outpointHash === hash) {
+                    timestamp = eventTimestamp
+                    formattedOutputs[Number(outpointIndex)].htlcTimeout = true
+                    channel = {
+                      type: 'htlc',
+                      id: account,
+                      amount: formattedOutputs[Number(outpointIndex)].amount
+                    }
+                  }
+
+                  if (tag === 'htlc_tx' && outpointHash === hash) {
+                    timestamp = eventTimestamp
+                    formattedOutputs[Number(outpointIndex)].htlcResolve = true
+                    formattedInputs[0].htlcTimeout = true
+                    channel = {
+                      type: 'htlc',
+                      id: account,
+                      amount: formattedOutputs[Number(outpointIndex)].amount
+                    }
+                  }
+                } else if (type === 'onchain_fee' && txid === hash) {
+                  fees.push(
+                    credit_msat ? formatMsatString(credit_msat) : `-${formatMsatString(debit_msat)}`
+                  )
+
+                  return
                 }
-
-                return acc
-              },
-              { transactionEvents: [], outputEvents: [] } as {
-                transactionEvents: ListAccountEventsResponse['events'][number][]
-                outputEvents: ListAccountEventsResponse['events'][number][]
-              }
-            ) || { transactionEvents: [], outputEvents: [] }
-
-            // events related directly to this transaction
-            transactionEvents.forEach(event => {
-              const { tag, credit_msat, debit_msat, timestamp: eventTimestamp, account } = event
-              timestamp = eventTimestamp
-
-              if (tag === 'onchain_fee') {
-                fees.push(
-                  credit_msat ? formatMsatString(credit_msat) : `-${formatMsatString(debit_msat)}`
-                )
-              }
-
-              if (tag === 'channel_close') {
-                channel = {
-                  type: 'close',
-                  amount: msatsToSats(formatMsatString(debit_msat)),
-                  id: account
-                }
-              }
-
-              if (tag === 'channel_open') {
-                channel = {
-                  type: 'open',
-                  amount: msatsToSats(formatMsatString(credit_msat)),
-                  id: account
-                }
-              }
-            })
-
-            outputEvents.forEach(event => {
-              const { tag, timestamp: eventTimestamp, account } = event
-              const { outpoint } = event as HTLCEvent
-              const [outpointTx, outpointIndex] = outpoint?.split(':') || []
-              timestamp = eventTimestamp
-
-              if (tag === 'htlc_timeout') {
-                formattedOutputs[Number(outpointIndex)].htlcTimeout = true
-                channel = {
-                  type: 'htlc',
-                  id: account,
-                  amount: formattedOutputs[Number(outpointIndex)].amount
-                }
-              }
-
-              if (tag === 'htlc_tx' && outpointTx === hash) {
-                formattedOutputs[Number(outpointIndex)].htlcResolve = true
-                formattedInputs[0].htlcTimeout = true
-                channel = {
-                  type: 'htlc',
-                  id: account,
-                  amount: formattedOutputs[Number(outpointIndex)].amount
-                }
-              }
-
-              if (tag === 'delayed_to_us') {
-                if (channel) {
-                  channel.type = 'force_close'
-                }
-
-                formattedOutputs[Number(outpointIndex)].timelocked = true
-              }
-            })
+              })
+            }
 
             const payment: TransactionPayment = {
               id: hash,

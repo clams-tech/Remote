@@ -2,13 +2,14 @@ import type { Channel } from '$lib/@types/channels.js'
 import { db } from './index.js'
 import type { Filter, GetSortedFilteredItemsOptions, ValueOf } from '$lib/@types/common.js'
 import type { Collection } from 'dexie'
+import type TagFilters from '$lib/components/TagFilters.svelte'
+
 import type {
   AddressPayment,
   InvoicePayment,
   Payment,
   TransactionPayment
 } from '$lib/@types/payments.js'
-import type TagFilters from '$lib/components/TagFilters.svelte'
 
 type MessageBase = {
   id: string
@@ -282,7 +283,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'get_filtered_sorted_items': {
-      const { limit, sort, filters, tags, lastItem, table } = message.data
+      const { limit, sort, filters, tags, lastItem, table, lastItemKey } = message.data
 
       let collection: Collection<Payment>
 
@@ -303,7 +304,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             .aboveOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
-            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
+            .filter(fastForward(lastItem, lastItemKey || sort.key, filter(filters, tags)))
         } else {
           // eslint-disable-next-line
           // @ts-ignore
@@ -314,7 +315,7 @@ onmessage = async (message: MessageEvent<Message>) => {
             .belowOrEqual(lastItemVal)
             // eslint-disable-next-line
             // @ts-ignore
-            .filter(fastForward(lastItem, sort.key, filter(filters, tags)))
+            .filter(fastForward(lastItem, lastItemKey || sort.key, filter(filters, tags)))
         }
       } else {
         // eslint-disable-next-line

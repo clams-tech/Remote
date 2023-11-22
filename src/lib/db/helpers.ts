@@ -170,7 +170,7 @@ export const getAllTags = (): Promise<Tag[]> => {
 export const getSortedFilteredItems = async (
   options: GetSortedFilteredItemsOptions
 ): Promise<unknown[]> => {
-  const { limit, sort, filters, tags, lastItem, table } = options
+  const { limit, sort, filters, tags, lastItem, table, lastItemKey } = options
   const id = createRandomHex()
 
   const complete = firstValueFrom(
@@ -194,7 +194,8 @@ export const getSortedFilteredItems = async (
     filters,
     tags,
     table,
-    lastItem
+    lastItem,
+    lastItemKey
   })
 
   return complete as Promise<unknown[]>

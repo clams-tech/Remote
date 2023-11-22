@@ -12,7 +12,7 @@
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
 
   const route = 'channels'
-  const rowSize = 102.25
+  const rowSize = 101
   const filters: Filter[] = getFilters(route)
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)

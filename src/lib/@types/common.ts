@@ -57,6 +57,8 @@ export type GetSortedFilteredItemsOptions = {
   table: string
   /** this is used for efficient paging and is required if using offset > 0 */
   lastItem?: unknown
+  /** to check for duplicates */
+  lastItemKey?: string
 }
 
 export type ValueOf<Obj> = Obj[keyof Obj]
