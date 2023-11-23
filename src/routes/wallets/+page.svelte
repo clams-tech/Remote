@@ -14,7 +14,7 @@
   import { getWalletBalance } from '$lib/utils.js'
 
   const route = 'wallets'
-  const rowSize = 82.44
+  const rowSize = 82
   const filters: Filter[] = getFilters(route)
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
