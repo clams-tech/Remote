@@ -6,7 +6,7 @@ export type PaymentBase = {
   id: string
   walletId: string
   status: PaymentStatus
-  timestamp: number
+  timestamp: number | null
   network: Network
   metadata?: Metadata
 }

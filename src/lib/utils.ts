@@ -258,3 +258,21 @@ export const anyFiltersApplied = (filters: Filter[]): boolean =>
       return false
     }
   })
+
+export const getBlockTimestamp = async (height: number): Promise<number | null> => {
+  try {
+    const blockHash = await fetch(`https://mempool.space/api/block-height/${height}`).then(res =>
+      res.text()
+    )
+
+    const block = await fetch(`https://mempool.space/api/block/${blockHash}`).then(res =>
+      res.json()
+    )
+
+    return block.timestamp
+  } catch (error) {
+    const { message } = error as Error
+    console.error(message)
+    return null
+  }
+}

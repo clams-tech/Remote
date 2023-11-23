@@ -9,46 +9,58 @@
   export let type: PaymentSummary['type']
   export let secondary: PaymentSummary['secondary']
   export let status: PaymentStatus
-  export let timestamp: number
+  export let timestamp: number | null
   export let network: Network
   export let centered = false
   export let displayNetwork = false
 </script>
 
 <div>
-  <div>
-    <span class="font-semibold text-purple-100 uppercase">
-      {#if primary.type === 'wallet'}
-        {primary.value.label}
-      {:else if primary.type === 'contact'}
-        {primary.value.name}
-      {:else if primary.type === 'channel_peer' && primary.value}
-        {truncateValue(primary.value, 6)}
-      {:else}
+  {#if primary.type === 'unknown' && secondary.type === 'unknown'}
+    <div>
+      <span class="font-semibold text-purple-100 uppercase">
         {$translate('app.labels.unknown')}
-      {/if}
-    </span>
+      </span>
 
-    <span class="italic">
-      {$translate(`app.labels.summary_${type}_${status}`, { counterpartType: secondary.type })}
-    </span>
+      <span class="italic lowercase">
+        {$translate('app.labels.transaction')}
+      </span>
+    </div>
+  {:else}
+    <div>
+      <span class="font-semibold text-purple-100 uppercase">
+        {#if primary.type === 'wallet'}
+          {primary.value.label}
+        {:else if primary.type === 'contact'}
+          {primary.value.name}
+        {:else if primary.type === 'channel_peer' && primary.value}
+          {truncateValue(primary.value, 6)}
+        {:else}
+          {$translate('app.labels.unknown')}
+        {/if}
+      </span>
 
-    <span class="font-semibold text-purple-100 uppercase">
-      {#if secondary.type === 'wallet'}
-        {secondary.value.label}
-      {:else if secondary.type === 'contact'}
-        {secondary.value.name}
-      {:else if secondary.type === 'node'}
-        {secondary.value.alias || truncateValue(secondary.value.id)}
-      {:else if secondary.type === 'channel_peer'}
-        {secondary.value
-          ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
-          : $translate('app.labels.unknown')}
-      {:else if secondary.type === 'unknown'}
-        {secondary.value ? truncateValue(secondary.value, 6) : $translate('app.labels.unknown')}
-      {/if}
-    </span>
-  </div>
+      <span class="italic">
+        {$translate(`app.labels.summary_${type}_${status}`, { counterpartType: secondary.type })}
+      </span>
+
+      <span class="font-semibold text-purple-100 uppercase">
+        {#if secondary.type === 'wallet'}
+          {secondary.value.label}
+        {:else if secondary.type === 'contact'}
+          {secondary.value.name}
+        {:else if secondary.type === 'node'}
+          {secondary.value.alias || truncateValue(secondary.value.id)}
+        {:else if secondary.type === 'channel_peer'}
+          {secondary.value
+            ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
+            : $translate('app.labels.unknown')}
+        {:else if secondary.type === 'unknown'}
+          {secondary.value ? truncateValue(secondary.value, 6) : $translate('app.labels.unknown')}
+        {/if}
+      </span>
+    </div>
+  {/if}
 
   <div class="flex items-center gap-x-1 truncate" class:justify-center={centered}>
     {#if timestamp}

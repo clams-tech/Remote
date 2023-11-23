@@ -172,7 +172,7 @@
     return withdrawalOffer?.id
   }
 
-  const getRoute = (inputOutput: EnhancedOutput | EnhancedInput) => {
+  const getRoute = (inputOutput: EnhancedOutput | EnhancedInput): string | undefined => {
     switch (inputOutput.type) {
       case 'timelocked':
       case 'channel_close':
@@ -190,7 +190,7 @@
         return `/utxos/${inputOutput.utxo.id}`
       }
       case 'settle':
-        return `/utxos/${inputOutput.utxo.id}`
+        return inputOutput.utxo && `/utxos/${inputOutput.utxo.id}`
       // case 'htlc':
       //   return `/payments/${inputOutput.txid}?wallet=${walletId}`
       case 'withdrawal':
@@ -470,7 +470,9 @@
                           {/if}
                         {:else if type === 'timelocked' || type === 'channel_open'}
                           {@const { channel } = output}
-                          {#if channel.peerId}
+                          {#if type === 'timelocked' && channel.closer === 'local'}
+                            {wallet.label}
+                          {:else if channel.peerId}
                             {#await db.wallets
                               .where({ nodeId: channel.peerId })
                               .first() then peerWallet}

@@ -22,7 +22,7 @@ export type CounterPart =
   | { type: 'unknown'; value: string }
 
 export type SummaryCommon = {
-  timestamp: number
+  timestamp: number | null
   primary: CounterPart
   secondary: CounterPart
   category: 'expense' | 'income' | 'neutral'
@@ -128,7 +128,7 @@ export type TimelockedForcCloseOutput = OutputCommon & {
 export type SettledChannelOutput = OutputCommon & {
   type: 'settle'
   channel: Channel
-  utxo: Utxo
+  utxo?: Utxo
 }
 
 export type HTLCOutput = OutputCommon & {
@@ -284,11 +284,18 @@ export const deriveTransactionSummary = ({
               .where({ walletId, id: inputTransaction.data.channel.id })
               .first()) as Channel
 
-            return {
-              type: 'timelocked',
-              channel,
-              outpoint,
-              metadata
+            const sweptUtxo = await db.utxos
+              .where('id')
+              .anyOf(outputs.map(({ index }) => `${id}:${index}`))
+              .first()
+
+            if (sweptUtxo) {
+              return {
+                type: 'timelocked',
+                channel,
+                outpoint,
+                metadata
+              }
             }
           }
 
@@ -307,7 +314,7 @@ export const deriveTransactionSummary = ({
            * the output address matches with a deposit to a custodian (deposit)
            * we don't know about this output (return address)(unknown)
            */
-          const { address, index, amount, metadata, htlcTimeout, htlcResolve } = output
+          const { address, index, amount, metadata, htlcTimeout, htlcResolve, timelocked } = output
           const outpoint = `${id}:${index}`
           const ownedOutputUtxo = await db.utxos.get(outpoint)
 
@@ -352,9 +359,18 @@ export const deriveTransactionSummary = ({
                 outpoint,
                 metadata
               }
-            } else {
+            } else if (timelocked) {
               return {
                 type: 'timelocked',
+                channel: closedChannel,
+                amount,
+                address,
+                outpoint,
+                metadata
+              }
+            } else {
+              return {
+                type: 'settle',
                 channel: closedChannel,
                 amount,
                 address,
