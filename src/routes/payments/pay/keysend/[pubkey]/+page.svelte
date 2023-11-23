@@ -20,10 +20,9 @@
   import { goto } from '$app/navigation'
   import { slide } from 'svelte/transition'
   import { TLV_RECORDS } from '$lib/constants.js'
-  import { nowSeconds, stringToHex } from '$lib/utils.js'
+  import { nowSeconds, stringToHex, getNodeInfo } from '$lib/utils.js'
   import { combineLatest, map } from 'rxjs'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
-  import { getNodeInfo } from '../../../utils.js'
   import Spinner from '$lib/components/Spinner.svelte'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
 
@@ -106,7 +105,7 @@
     <SummaryRow>
       <div slot="label">{$translate('app.labels.destination')}:</div>
       <div slot="value">
-        {#await getNodeInfo(data.pubkey)}
+        {#await getNodeInfo({ nodePubkey: data.pubkey })}
           <Spinner size="1rem" />
         {:then node}
           {#if node?.alias}

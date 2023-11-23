@@ -15,7 +15,7 @@
   import { fade } from 'svelte/transition'
   import type { PageData } from './$types.js'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { truncateValue } from '$lib/utils.js'
+  import { getNodeInfo, truncateValue } from '$lib/utils.js'
   import link from '$lib/icons/link.js'
   import { liveQuery } from 'dexie'
   import caret from '$lib/icons/caret.js'
@@ -648,9 +648,17 @@
 
         {#if type === 'invoice' && data.counterpartyNode}
           <SummaryRow>
-            <span slot="label">{$translate('app.labels.destination')}:</span>
+            <span slot="label">{$translate('app.labels.counterparty')}:</span>
             <div slot="value">
-              <CopyValue value={data.counterpartyNode} truncateLength={9} />
+              {#await getNodeInfo({ nodePubkey: data.counterpartyNode })}
+                <CopyValue value={data.counterpartyNode} truncateLength={9} />
+              {:then node}
+                {#if node?.alias}
+                  {node.alias}
+                {:else}
+                  <CopyValue value={data.counterpartyNode} truncateLength={9} />
+                {/if}
+              {/await}
             </div>
           </SummaryRow>
         {/if}

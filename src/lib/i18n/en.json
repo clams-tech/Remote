@@ -484,7 +484,8 @@
     "balance_remote": "Remote balance",
     "disable_offer": "Disable Offer",
     "disable_offer_description": "Are you sure you want to permanently disable this offer?",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "counterparty": "Counterparty"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

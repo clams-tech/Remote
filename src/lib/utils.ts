@@ -8,6 +8,11 @@ import { combineLatest, from, map, type Observable } from 'rxjs'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
 import type { Filter } from './@types/common.js'
+import type { Node } from '$lib/@types/nodes.js'
+import { nodePublicKeyRegex } from '$lib/address.js'
+import { DAY_IN_SECS } from '$lib/constants.js'
+import { connections$ } from '$lib/streams.js'
+import type { CounterPart } from '$lib/summary.js'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -275,4 +280,42 @@ export const getBlockTimestamp = async (height: number): Promise<number | null> 
     console.error(message)
     return null
   }
+}
+
+export const getNodeInfo = async (options: {
+  nodePubkey: string
+  getUpdated?: boolean
+}): Promise<Node | null> => {
+  const { nodePubkey, getUpdated } = options
+  const connection = connections$.value.find(conn => conn.network?.getNode)
+  let node: Node | null = (await db.nodes.get(nodePubkey)) || null
+
+  if ((getUpdated || !node) && connection) {
+    const update = await connection.network?.getNode(nodePubkey)
+
+    if (update) {
+      node = update
+      db.nodes.put(update)
+    }
+  }
+
+  return node
+}
+
+export const updateCounterPartyNodeInfo = async (
+  counterParty: CounterPart
+): Promise<Node | null> => {
+  // if is node type and is more than a day old info, then get update
+  if (counterParty.type === 'node' && counterParty.value.lastUpdated + DAY_IN_SECS < nowSeconds()) {
+    return getNodeInfo({ nodePubkey: counterParty.value.id, getUpdated: true })
+  }
+
+  if (
+    counterParty.type === 'unknown' &&
+    nodePublicKeyRegex.test((counterParty.value as string) || '')
+  ) {
+    return getNodeInfo({ nodePubkey: counterParty.value as string })
+  }
+
+  return null
 }
