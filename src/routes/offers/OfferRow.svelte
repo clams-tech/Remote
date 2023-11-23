@@ -18,7 +18,7 @@
     offer.type === 'withdraw'
       ? {
           direction: 'send',
-          amount: offer.amount
+          'data.amount': offer.amount
         }
       : { 'data.offer.id': offer?.id }
 
