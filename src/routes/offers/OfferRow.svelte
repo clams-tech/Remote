@@ -18,9 +18,9 @@
     offer.type === 'withdraw'
       ? {
           direction: 'send',
-          amount: offer.amount
+          'data.amount': offer.amount
         }
-      : { 'offer.id': offer?.id }
+      : { 'data.offer.id': offer?.id }
 
   const offerPayments$ = liveQuery(() =>
     db.payments

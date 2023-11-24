@@ -207,8 +207,6 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'format_transactions': {
       const { id, transactions, accountEvents, network, walletId } = message.data
 
-      console.log({ transactions, accountEvents })
-
       try {
         const result = await Promise.all(
           transactions.map(

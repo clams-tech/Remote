@@ -25,6 +25,7 @@
   import { formatDateRelativeToNow } from '$lib/dates.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { InvoicePayment } from '$lib/@types/payments.js'
+  import trashOutline from '$lib/icons/trash-outline.js'
 
   export let data: PageData
 
@@ -143,7 +144,8 @@
       <Spinner />
     </div>
   {:else}
-    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12, id } = $offer$}
+    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12, id, active } =
+      $offer$}
     <div class="w-full">
       <div class="text-3xl font-semibold flex items-center justify-center w-full">
         <div class="flex items-center">
@@ -250,6 +252,16 @@
           </div>
         </SummaryRow>
       {/if}
+
+      {#if active}
+        <div class="w-full flex justify-end mt-4">
+          <div class="w-min">
+            <Button text={$translate('app.labels.disable')} on:click={toggleDisableModal}>
+              <div class="w-6 mr-1 -ml-2" slot="iconLeft">{@html trashOutline}</div>
+            </Button>
+          </div>
+        </div>
+      {/if}
     </div>
   {/if}
 </Section>
@@ -258,13 +270,13 @@
   <Modal on:close={toggleDisableModal}>
     <div in:fade|local={{ duration: 250 }} class="w-[25rem] max-w-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">
-        {$translate('app.modals.disable_offer.heading')}
+        {$translate('app.labels.disable_offer')}
       </h4>
-      <p>{$translate('app.modals.disable_offer.description')}</p>
+      <p>{$translate('app.labels.disable_offer_description')}</p>
 
       <div class="w-full flex items-center gap-x-4 mt-6">
         <div class="w-1/2">
-          <Button on:click={toggleDisableModal} text={$translate('app.buttons.cancel')} />
+          <Button on:click={toggleDisableModal} text={$translate('app.labels.cancel')} />
         </div>
 
         <div class="w-1/2">
@@ -272,7 +284,7 @@
             on:click={disableOffer}
             warning
             requesting={disablingOffer}
-            text={$translate('app.buttons.disable')}
+            text={$translate('app.labels.disable')}
           >
             <div class="w-6 mr-2 text-utility-error" slot="iconLeft">
               {@html warning}

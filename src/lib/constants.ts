@@ -94,6 +94,8 @@ export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
 export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
 
+export const LARP_MODE_PASSPHRASE = 'larp'
+
 export const CURRENCY_SYMBOLS = {
   usd: '$',
   eur: '€',
@@ -126,7 +128,8 @@ export const STORAGE_KEYS: Record<string, string> = {
   lastReceiveWallet: `clams:last_receive_wallet:${STORAGE_VERSION}`,
   lastSendWallet: `clams:last_send_wallet:${STORAGE_VERSION}`,
   // whether has dismissed the get started hint
-  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`
+  getStartedHint: `clams:get_started_hint:${STORAGE_VERSION}`,
+  larpMode: `clams:larp_mode:${STORAGE_VERSION}`
 }
 
 export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {

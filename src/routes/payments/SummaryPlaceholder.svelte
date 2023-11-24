@@ -1,5 +1,5 @@
 <div class="w-96 opacity-40">
-  <div class="flex w-full gap-x-2">
+  <div class="flex w-full gap-x-2 flex-wrap gap-y-2">
     <span class="bg-purple-100 h-4 animate-pulse rounded-full w-1/3" />
     <span class="bg-neutral-50 h-4 animate-pulse rounded-full w-1/3" />
     <span class="bg-purple-100 h-4 animate-pulse rounded-full w-1/3" />

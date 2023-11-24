@@ -309,6 +309,7 @@
     "offer_description": "Offer description",
     "active": "Active",
     "disabled": "Disabled",
+    "disable": "Disable",
     "single_use": "Single use",
     "reusable": "Reusable",
     "used": "Used",
@@ -480,7 +481,11 @@
     "reset": "Reset",
     "coreln": "Core Lightning",
     "balance_local": "Local balance",
-    "balance_remote": "Remote balance"
+    "balance_remote": "Remote balance",
+    "disable_offer": "Disable Offer",
+    "disable_offer_description": "Are you sure you want to permanently disable this offer?",
+    "cancel": "Cancel",
+    "counterparty": "Counterparty"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

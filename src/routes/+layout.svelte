@@ -7,7 +7,7 @@
   import { autoConnectWallet$, errors$, session$, settings$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
-  import { nowSeconds, routeRequiresSession } from '$lib/utils.js'
+  import { routeRequiresSession } from '$lib/utils.js'
   import Button from '$lib/components/Button.svelte'
   import key from '$lib/icons/key.js'
   import Modal from '$lib/components/Modal.svelte'
@@ -18,14 +18,15 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, filter, take, takeUntil } from 'rxjs'
+  import { combineLatest, filter, take, takeUntil, tap } from 'rxjs'
   import lock from '$lib/icons/lock.js'
   import { db } from '$lib/db/index.js'
-  import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
-  import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
+  import type { WalletConfiguration } from '$lib/@types/wallets.js'
   import { notification } from '$lib/services.js'
   import { browser } from '$app/environment'
   import Notifications from '$lib/components/Notifications.svelte'
+  import { autoConnectWallet } from './auto-connect.js'
+  import { createRandomHex } from '$lib/crypto.js'
 
   const clearSession = () => session$.next(null)
 
@@ -36,61 +37,38 @@
 
   $: if ($autoConnectWallet$ && $session$) {
     const { configuration, label, type } = $autoConnectWallet$
-    const { token } = configuration as CoreLnConfiguration
-    const id = createRandomHex()
-
-    const walletAlreadyExists = $wallets$.find(
-      wallet =>
-        (wallet.configuration as CoreLnConfiguration)?.address ===
-        (configuration as CoreLnConfiguration).address
-    )
-
-    if (walletAlreadyExists) {
-      try {
-        notification.create({
-          id: createRandomHex(8),
-          heading: $translate('app.labels.wallet_connected'),
-          message: $translate('app.labels.wallet_already_connected_description', { label })
-        })
-      } catch (error) {
-        //
-      }
-    } else {
-      const wallet = {
-        id,
-        label,
-        type,
-        createdAt: nowSeconds(),
-        modifiedAt: nowSeconds(),
-        configuration:
-          token && configuration
-            ? { ...configuration, token: encryptWithAES(token, $session$.secret) }
-            : configuration,
-        lastSync: null,
-        syncing: false
-      }
-
-      db.wallets.add(wallet).then(() => {
-        return connect(wallet).then(connection => syncConnectionData(connection, null))
-      })
-
-      try {
-        notification.create({
-          id: createRandomHex(8),
-          heading: $translate('app.labels.wallet_connected'),
-          message: $translate('app.labels.wallet_connected_success_description', { label }),
-          onclick: () => goto(`/wallets/${wallet.id}`)
-        })
-      } catch (error) {
-        //
-      }
-    }
 
     autoConnectWallet$.next(null)
 
-    if (path !== '/') {
-      goto('/')
-    }
+    autoConnectWallet({
+      configuration: configuration as WalletConfiguration,
+      label,
+      type,
+      secret: $session$.secret
+    }).then(({ wallet, existed }) => {
+      if (path !== '/') {
+        goto('/')
+      }
+
+      try {
+        if (existed) {
+          notification.create({
+            id: createRandomHex(8),
+            heading: $translate('app.labels.wallet_connected'),
+            message: $translate('app.labels.wallet_already_connected_description', { label })
+          })
+        } else {
+          notification.create({
+            id: createRandomHex(8),
+            heading: $translate('app.labels.wallet_connected'),
+            message: $translate('app.labels.wallet_connected_success_description', { label }),
+            onclick: () => goto(`/wallets/${wallet.id}`)
+          })
+        }
+      } catch (error) {
+        //
+      }
+    })
   }
 
   if (browser) {
@@ -113,6 +91,7 @@
         return { detail: wallet, connection }
       })
     )
+
     connections.forEach(({ detail, connection }) => {
       if (connection) {
         syncConnectionData(connection, detail.lastSync)
@@ -124,7 +103,7 @@
   // initialize all connections once after the session is decrypted
   combineLatest([session$, wallets$])
     .pipe(
-      filter(([session, wallets]) => !!session && !!wallets),
+      filter(([session, wallets]) => !!session && !!wallets.length),
       take(1)
     )
     .subscribe(initializeConnections)
@@ -215,7 +194,7 @@
 
   <div
     in:fade
-    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-2 sm:pb-4 md:pb-8 lg:pb-12"
+    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4"
   >
     {#if $session$ || path === '/welcome'}
       <slot />

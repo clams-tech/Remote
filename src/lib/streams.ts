@@ -7,7 +7,7 @@ import type { AppError } from './@types/errors.js'
 import type { AutoConnectWalletOptions, Wallet } from './@types/wallets.js'
 import { SvelteSubject } from './svelte.js'
 import { log, storage } from './services.js'
-import { getBitcoinExchangeRate, mergeDefaultsWithStoredSettings } from './utils.js'
+import { getBitcoinExchangeRate } from './utils.js'
 import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
 import { browser } from '$app/environment'
@@ -28,9 +28,11 @@ import {
   merge,
   switchMap
 } from 'rxjs'
+import { mergeDefaultsWithStoredSettings } from './settings.js'
 
 export const session$ = new BehaviorSubject<Session | null>(null)
 export const autoConnectWallet$ = new BehaviorSubject<AutoConnectWalletOptions | null>(null)
+export const larpMode$ = new BehaviorSubject<boolean>(false)
 export const checkedSession$ = new BehaviorSubject<boolean>(false)
 export const errors$ = new Subject<AppError>()
 export const connections$ = new BehaviorSubject<Connection[]>([])

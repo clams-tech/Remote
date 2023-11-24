@@ -140,11 +140,13 @@
     previousOffset = offset
   }
 
-  let container: HTMLDivElement
+  let outerContainerHeight: number
+  let headerContainerHeight: number
   let virtualList: VirtualList
 
   $: fullHeight = items ? items.length * rowSize : 0
-  $: listHeight = container ? Math.min(container.clientHeight, fullHeight) : fullHeight
+  $: containerHeight = outerContainerHeight - headerContainerHeight - 80
+  $: listHeight = containerHeight ? Math.min(containerHeight, fullHeight) : 0
   $: containerScrollable = processing ? false : items.length ? fullHeight > listHeight : false
 
   $: if (items.length) {
@@ -159,85 +161,97 @@
   loadItems()
 </script>
 
-<Section>
-  <div class="w-full flex items-center justify-between">
-    <SectionHeading icon={list} />
-    <div class="flex items-center gap-x-2">
-      <SyncRouteData sync={syncItems} />
-      <FilterSort bind:filters bind:sorters bind:tags {route} on:updated={handleFilterSortUpdate} />
+<div
+  bind:clientHeight={outerContainerHeight}
+  class="w-full h-full flex items-center justify-center"
+>
+  <Section>
+    <div bind:clientHeight={headerContainerHeight}>
+      <div class="w-full flex items-center justify-between mb-2">
+        <SectionHeading icon={list} />
+        <div class="flex items-center gap-x-2">
+          <SyncRouteData sync={syncItems} />
+          <FilterSort
+            bind:filters
+            bind:sorters
+            bind:tags
+            {route}
+            on:updated={handleFilterSortUpdate}
+          />
+        </div>
+      </div>
+
+      <slot name="summary" />
     </div>
-  </div>
 
-  <slot name="summary" />
-
-  <div class="w-full flex overflow-hidden">
-    {#if processing}
-      <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
-        <Spinner />
-      </div>
-    {:else if !items.length}
-      <div class="mt-4 mb-2 w-full">
-        <Msg
-          type="info"
-          closable={false}
-          message={$translate(
-            `app.labels.${filtersApplied ? `no_${route}_filtered` : `no_${route}`}`
-          )}
-        />
-      </div>
-    {:else}
-      <div
-        bind:this={container}
-        class="w-full flex flex-col justify-center items-center gap-y-2 rounded mt-2 flex-grow"
-      >
-        <VirtualList
-          bind:this={virtualList}
-          on:afterScroll={e => handleScroll(e.detail.offset)}
-          width="100%"
-          height={listHeight}
-          itemCount={items.length}
-          itemSize={rowSize}
-          getKey={index => items[index].id}
+    <div class="w-full flex overflow-hidden">
+      {#if processing}
+        <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
+          <Spinner />
+        </div>
+      {:else if !items.length}
+        <div class="mt-4 mb-2 w-full">
+          <Msg
+            type="info"
+            closable={false}
+            message={$translate(
+              `app.labels.${filtersApplied ? `no_${route}_filtered` : `no_${route}`}`
+            )}
+          />
+        </div>
+      {:else}
+        <div
+          class="w-full flex flex-col justify-center items-center gap-y-2 rounded h-full overflow-hidden pt-2"
         >
-          <div slot="item" let:index let:style {style}>
-            {@const item = items[index]}
-            <slot name="row" {item} />
-          </div>
-        </VirtualList>
+          <VirtualList
+            bind:this={virtualList}
+            on:afterScroll={e => handleScroll(e.detail.offset)}
+            width="100%"
+            height={listHeight}
+            itemCount={items.length}
+            itemSize={rowSize}
+            getKey={index => items[index].id}
+          >
+            <div slot="item" let:index let:style {style}>
+              {@const item = items[index]}
+              <slot name="row" {item} />
+            </div>
+          </VirtualList>
 
-        {#if gettingMoreItems}
-          <div class="absolute bottom-1 text-neutral-500">
-            <Spinner size="1.5rem" />
+          {#if gettingMoreItems}
+            <div class="absolute bottom-1 text-neutral-500">
+              <Spinner size="1.5rem" />
+            </div>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
+    {#if button}
+      <div class="bottom-6 right-6 flex justify-end mt-2" class:absolute={containerScrollable}>
+        <a
+          href={button.href}
+          class:px-2={containerScrollable}
+          class:px-4={!containerScrollable || showFullButton}
+          class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
+          on:mouseenter={() => containerScrollable && (showFullButton = true)}
+          on:mouseleave={() => containerScrollable && (showFullButton = false)}
+        >
+          <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
+            <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
           </div>
-        {/if}
+
+          <div class="w-6 relative" class:-ml-1={!containerScrollable || showFullButton}>
+            {@html button.icon}
+          </div>
+
+          {#if !containerScrollable || showFullButton}
+            <div class="ml-1 font-semibold relative" in:slide|local={{ axis: 'x' }}>
+              {button.text}
+            </div>
+          {/if}
+        </a>
       </div>
     {/if}
-  </div>
-
-  {#if button}
-    <div class="bottom-6 right-8 flex justify-end mt-2" class:absolute={containerScrollable}>
-      <a
-        href={button.href}
-        class:px-2={containerScrollable}
-        class:px-4={!containerScrollable || showFullButton}
-        class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
-        on:mouseenter={() => containerScrollable && (showFullButton = true)}
-        on:mouseleave={() => containerScrollable && (showFullButton = false)}
-      >
-        <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
-          <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
-        </div>
-
-        <div class="w-6 relative" class:-ml-1={!containerScrollable || showFullButton}>
-          {@html button.icon}
-        </div>
-
-        {#if !containerScrollable || showFullButton}
-          <div class="ml-1 font-semibold relative" in:slide|local={{ axis: 'x' }}>
-            {button.text}
-          </div>
-        {/if}
-      </a>
-    </div>
-  {/if}
-</Section>
+  </Section>
+</div>

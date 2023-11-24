@@ -5,7 +5,7 @@
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import caret from '$lib/icons/caret.js'
   import Summary from './Summary.svelte'
-  import { updateCounterPartyNodeInfo } from './utils.js'
+  import { updateCounterPartyNodeInfo } from '$lib/utils.js'
   import SummaryPlaceholder from './SummaryPlaceholder.svelte'
   import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
   import { getPaymentSummary, type PaymentSummary } from '$lib/summary.js'

@@ -24,8 +24,7 @@
   import { slide } from 'svelte/transition'
   import { combineLatest, map } from 'rxjs'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
-  import { nowSeconds } from '$lib/utils.js'
-  import { getNodeInfo } from '../../../utils.js'
+  import { nowSeconds, getNodeInfo } from '$lib/utils.js'
   import Spinner from '$lib/components/Spinner.svelte'
 
   export let data: PageData
@@ -121,7 +120,7 @@
       <SummaryRow>
         <div slot="label">{$translate('app.labels.destination')}:</div>
         <div slot="value">
-          {#await getNodeInfo(nodeId)}
+          {#await getNodeInfo({ nodePubkey: nodeId })}
             <Spinner size="1rem" />
           {:then node}
             {#if node?.alias}
