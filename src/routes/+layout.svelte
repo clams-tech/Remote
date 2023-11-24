@@ -4,7 +4,6 @@
   import { translate } from '$lib/i18n/translations.js'
   import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
-  import { autoConnectWallet$, errors$, session$, settings$, wallets$ } from '$lib/streams.js'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
   import { routeRequiresSession } from '$lib/utils.js'
@@ -18,15 +17,26 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, filter, take, takeUntil, tap } from 'rxjs'
+  import { combineLatest, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
   import { db } from '$lib/db/index.js'
-  import type { WalletConfiguration } from '$lib/@types/wallets.js'
+  import type { Wallet, WalletConfiguration } from '$lib/@types/wallets.js'
   import { notification } from '$lib/services.js'
   import { browser } from '$app/environment'
   import Notifications from '$lib/components/Notifications.svelte'
   import { autoConnectWallet } from './auto-connect.js'
   import { createRandomHex } from '$lib/crypto.js'
+  import info from '$lib/icons/info.js'
+  import InfoModal from '$lib/components/InfoModal.svelte'
+
+  import {
+    autoConnectWallet$,
+    errors$,
+    larpMode$,
+    session$,
+    settings$,
+    wallets$
+  } from '$lib/streams.js'
 
   const clearSession = () => session$.next(null)
 
@@ -75,8 +85,10 @@
     settings$.next({ ...$settings$, notifications: notification.permission() })
   }
 
+  let connections: { wallet: Wallet; connection: Connection | null }[] = []
+
   const initializeConnections = async () => {
-    const connections = await Promise.all(
+    connections = await Promise.all(
       $wallets$.map(async wallet => {
         let connection: Connection | null
         await db.wallets.update(wallet.id, { syncing: false })
@@ -88,17 +100,20 @@
           errors$.next(error as AppError)
         }
 
-        return { detail: wallet, connection }
+        return { wallet, connection }
       })
     )
 
-    connections.forEach(({ detail, connection }) => {
+    connections.forEach(({ wallet, connection }) => {
       if (connection) {
-        syncConnectionData(connection, detail.lastSync)
+        syncConnectionData(connection, wallet.lastSync)
         connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
       }
     })
   }
+
+  let infoModal = false
+  const toggleInfoModal = () => (infoModal = !infoModal)
 
   // initialize all connections once after the session is decrypted
   combineLatest([session$, wallets$])
@@ -174,19 +189,26 @@
 
     <div class="grid grid-cols-3 gap-x-2 mr-2">
       {#if routeRequiresSession(path) && $session$}
-        <button on:click={clearSession} class="flex flex-col items-center justify-center">
-          <div class="w-8">{@html lock}</div>
-          <span class="text-xs font-semibold">Lock</span>
-        </button>
+        {#if $larpMode$}
+          <button on:click={toggleInfoModal} class="flex flex-col items-center justify-center">
+            <div class="w-8">{@html info}</div>
+            <span class="text-xs font-semibold">{$translate('app.labels.info')}</span>
+          </button>
+        {:else}
+          <button on:click={clearSession} class="flex flex-col items-center justify-center">
+            <div class="w-8">{@html lock}</div>
+            <span class="text-xs font-semibold">{$translate('app.labels.lock')}</span>
+          </button>
+        {/if}
 
         <a href="/input" class="flex flex-col items-center justify-center no-underline">
           <div class="w-8">{@html scan}</div>
-          <span class="text-xs font-semibold">Input</span>
+          <span class="text-xs font-semibold">{$translate('app.labels.input')}</span>
         </a>
 
         <a href="/payments/receive" class="flex flex-col items-center justify-center no-underline">
           <div class="w-8">{@html plus}</div>
-          <span class="text-xs font-semibold">Receive</span>
+          <span class="text-xs font-semibold">{$translate('app.labels.receive')}</span>
         </a>
       {/if}
     </div>
@@ -214,4 +236,12 @@
   </div>
 
   <Notifications />
+
+  {#if infoModal}
+    {@const firstConnection = connections.find(({ connection }) => !!connection)}
+
+    {#if firstConnection?.connection}
+      <InfoModal connection={firstConnection.connection} on:close={toggleInfoModal} />
+    {/if}
+  {/if}
 </main>

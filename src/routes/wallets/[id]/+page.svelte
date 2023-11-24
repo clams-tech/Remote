@@ -22,7 +22,6 @@
   import warning from '$lib/icons/warning.js'
   import { decryptWithAES, encryptWithAES } from '$lib/crypto.js'
   import qr from '$lib/icons/qr.js'
-  import Qr from '$lib/components/Qr.svelte'
   import { formatDateRelativeToNow } from '$lib/dates.js'
   import { liveQuery } from 'dexie'
   import type { AppError } from '$lib/@types/errors.js'
@@ -30,6 +29,8 @@
   import type { WalletConfiguration, Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import wallet from '$lib/icons/wallet.js'
+  import InfoModal from '$lib/components/InfoModal.svelte'
 
   import {
     connect,
@@ -37,7 +38,6 @@
     connectionOptions,
     syncConnectionData
   } from '$lib/wallets/index.js'
-  import wallet from '$lib/icons/wallet.js'
 
   export let data: PageData
 
@@ -380,29 +380,7 @@
 </Section>
 
 {#if showInfoModal && connection}
-  {@const { id, alias, version, host, port } = connection.info}
-  <Modal on:close={() => (showInfoModal = false)}>
-    {#if alias}
-      <div class="w-full flex items-baseline mb-4">
-        <h4 class="font-semibold text-3xl">
-          {alias}
-        </h4>
-
-        {#if version}
-          <div class="ml-2">{version}</div>
-        {/if}
-      </div>
-    {/if}
-
-    <Qr
-      values={[
-        ...(host
-          ? [{ label: $translate('app.labels.connect'), value: `${id}@${host}:${port}` }]
-          : []),
-        { label: $translate('app.labels.pubkey'), value: id }
-      ]}
-    />
-  </Modal>
+  <InfoModal {connection} on:close={() => (showInfoModal = false)} />
 {/if}
 
 {#if showDeleteModal}

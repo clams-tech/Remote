@@ -13,11 +13,14 @@
   {#if filter.type !== 'one-of' || filter.values.length}
     <div class="w-full">
       <div class="flex items-center mb-2">
-        <div class="font-semibold text-sm text-neutral-300">{filter.label}</div>
+        <label for={filter.key} class="font-semibold text-sm text-neutral-300">{filter.label}</label
+        >
 
         {#if filter.type === 'exists'}
           <input
             type="checkbox"
+            id={filter.key}
+            name={filter.key}
             bind:checked={filter.applied}
             class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md ml-2"
           />

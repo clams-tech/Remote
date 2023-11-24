@@ -485,7 +485,9 @@
     "disable_offer": "Disable Offer",
     "disable_offer_description": "Are you sure you want to permanently disable this offer?",
     "cancel": "Cancel",
-    "counterparty": "Counterparty"
+    "counterparty": "Counterparty",
+    "lock": "Lock",
+    "input": "Input"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
