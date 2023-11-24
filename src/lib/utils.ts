@@ -1,5 +1,5 @@
 import decode from 'bolt12-decoder'
-import type { BitcoinExchangeRates, FiatDenomination, Settings, Tile } from './@types/settings.js'
+import type { BitcoinExchangeRates, FiatDenomination } from './@types/settings.js'
 import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
 import { Buffer } from 'buffer'
@@ -125,31 +125,6 @@ export const getNetwork = (str: string): Network => {
   }
 
   return 'bitcoin'
-}
-
-export const mergeDefaultsWithStoredSettings = (
-  defaults: Settings,
-  stored: string | null
-): Settings => {
-  const { tiles } = defaults
-  const storedSettings: Settings = stored ? JSON.parse(stored) : {}
-
-  const mergedTiles = Object.keys(tiles).reduce((merged, key) => {
-    const val = (
-      storedSettings.tiles && typeof storedSettings.tiles[key as Tile] === 'boolean'
-        ? storedSettings.tiles[key as Tile]
-        : tiles[key as Tile]
-    ) as boolean
-    merged[key as Tile] = val
-
-    return merged
-  }, {} as Record<Tile, boolean>)
-
-  return {
-    ...defaults,
-    ...storedSettings,
-    tiles: mergedTiles
-  }
 }
 
 export const getWalletBalance = (walletId: string): Observable<number | null> => {

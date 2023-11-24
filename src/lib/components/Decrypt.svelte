@@ -56,7 +56,7 @@
         throw invalidPassphraseError
       }
 
-      session$.next({ secret: decrypted, id: bytesToHex(secp256k1.getPublicKey(decrypted, true)) })
+      session$.next({ secret: decrypted, id: session.id })
       dispatch('close')
     } catch (error) {
       appError = error as AppError

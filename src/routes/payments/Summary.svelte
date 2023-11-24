@@ -62,7 +62,7 @@
     </div>
   {/if}
 
-  <div class="flex items-center gap-x-1 truncate" class:justify-center={centered}>
+  <div class="flex items-center gap-x-1 truncate leading-tight" class:justify-center={centered}>
     {#if timestamp}
       {#await formatDate(timestamp, 'do MMM hh:mma') then formatted}
         <div class="text-[0.75em] font-semibold mt-1">{formatted}</div>

@@ -7,7 +7,6 @@
   import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
   import { session$, settings$ } from '$lib/streams.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
-  import { createSecret, encryptWithAES, getPublicKey } from '$lib/crypto.js'
   import { notification, storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
   import Toggle from '$lib/components/Toggle.svelte'
@@ -15,6 +14,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { AppError } from '$lib/@types/errors.js'
   import { nowSeconds } from '$lib/utils.js'
+  import { createNewSession } from '$lib/session.js'
 
   const translationBase = 'app.routes./welcome'
 
@@ -54,12 +54,10 @@
   }
 
   async function encryptAndStoreSecret() {
-    const secret = createSecret()
-    const publicKey = getPublicKey(secret)
-    const encrypted = encryptWithAES(secret, passphrase)
+    const { encrypted, decrypted } = await createNewSession(passphrase)
 
     try {
-      storage.write(STORAGE_KEYS.session, JSON.stringify({ secret: encrypted, id: publicKey }))
+      storage.write(STORAGE_KEYS.session, JSON.stringify(encrypted))
     } catch (e) {
       error = {
         key: 'storage_access',
@@ -73,8 +71,7 @@
       return
     }
 
-    const session = { secret, id: publicKey }
-    session$.next(session)
+    session$.next(decrypted)
 
     await goto('/')
   }

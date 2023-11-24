@@ -12,6 +12,8 @@
 
   $: if (!getStartedDismissed && $wallets$ && !$wallets$.length) {
     showGetStartedHint = true
+  } else {
+    showGetStartedHint = false
   }
 
   function handleCloseHint() {
