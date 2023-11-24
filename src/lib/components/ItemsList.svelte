@@ -145,7 +145,7 @@
   let virtualList: VirtualList
 
   $: fullHeight = items ? items.length * rowSize : 0
-  $: containerHeight = outerContainerHeight - headerContainerHeight - 36
+  $: containerHeight = outerContainerHeight - headerContainerHeight - 80
   $: listHeight = containerHeight ? Math.min(containerHeight, fullHeight) : 0
   $: containerScrollable = processing ? false : items.length ? fullHeight > listHeight : false
 
@@ -201,7 +201,7 @@
         </div>
       {:else}
         <div
-          class="w-full flex flex-col justify-center items-center gap-y-2 rounded h-full overflow-hidden"
+          class="w-full flex flex-col justify-center items-center gap-y-2 rounded h-full overflow-hidden pt-2"
         >
           <VirtualList
             bind:this={virtualList}
@@ -228,7 +228,7 @@
     </div>
 
     {#if button}
-      <div class="bottom-6 right-8 flex justify-end mt-2" class:absolute={containerScrollable}>
+      <div class="bottom-6 right-6 flex justify-end mt-2" class:absolute={containerScrollable}>
         <a
           href={button.href}
           class:px-2={containerScrollable}

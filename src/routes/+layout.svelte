@@ -192,7 +192,10 @@
     </div>
   </header>
 
-  <div in:fade class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full">
+  <div
+    in:fade
+    class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4"
+  >
     {#if $session$ || path === '/welcome'}
       <slot />
     {:else}
