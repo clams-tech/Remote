@@ -266,12 +266,18 @@ onmessage = async (message: MessageEvent<Message>) => {
       return
     }
     case 'get_lastpay_index': {
+      const { id, walletId } = message.data
       try {
-        const lastPaidInvoice = await db.payments.orderBy('data.payIndex').reverse().first()
-        self.postMessage({ id: message.data.id, result: lastPaidInvoice })
+        const lastPaidInvoice = await db.payments
+          .orderBy('data.payIndex')
+          .filter(payment => payment.walletId === walletId)
+          .reverse()
+          .first()
+
+        self.postMessage({ id, result: lastPaidInvoice })
       } catch (error) {
         const { message: errMsg } = error as Error
-        self.postMessage({ id: message.data.id, error: errMsg })
+        self.postMessage({ id, error: errMsg })
       }
 
       return

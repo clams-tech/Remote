@@ -15,7 +15,10 @@
   import github from '$lib/icons/github.js'
   import twitter from '$lib/icons/twitter.js'
   import { createRandomHex } from '$lib/crypto.js'
-  import type { Notification } from '$lib/@types/common.js'
+  import Button from '$lib/components/Button.svelte'
+  import close from '$lib/icons/close.js'
+  import trashOutline from '$lib/icons/trash-outline.js'
+  import { deleteAll } from '$lib/db/index.js'
 
   import {
     FiatDenomination,
@@ -50,7 +53,6 @@
   }
 
   let notificationsError: string
-  let showingTestNotification: Notification | null = null
 
   const toggleNotifications = async () => {
     notificationsError = ''
@@ -103,6 +105,19 @@
 
   let showHomescreenModal = false
   const toggleHomescreenModal = () => (showHomescreenModal = !showHomescreenModal)
+
+  let showResetModal = false
+  let resetting = false
+  const toggleResetModal = () => (showResetModal = !showResetModal)
+
+  const resetApp = async () => {
+    resetting = true
+    await deleteAll()
+    localStorage.clear()
+    resetting = false
+    toggleResetModal()
+    window.location.reload()
+  }
 
   const toggleTile = (tile: string) => {
     $settings$.tiles[tile as Tile] = !$settings$.tiles[tile as Tile]
@@ -221,6 +236,19 @@
           {$translate('app.labels.lava_lamp_description')}
         </div>
       </button>
+
+      <button
+        on:click={toggleResetModal}
+        class="p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+      >
+        <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
+          <div class="uppercase font-semibold">{$translate('app.labels.reset')}</div>
+        </div>
+
+        <div class="text-sm">
+          {$translate('app.labels.reset_description')}
+        </div>
+      </button>
     </div>
   </div>
 
@@ -315,6 +343,23 @@
           </SummaryRow>
         </button>
       {/each}
+    </div>
+  </Modal>
+{/if}
+
+{#if showResetModal}
+  <Modal on:close={toggleResetModal}>
+    <div class="w-full h-full overflow-y-auto overflow-x-hidden mt-2">
+      <p>{$translate('app.labels.reset_confirmation')}</p>
+
+      <div class="flex items-start mt-4 gap-x-1">
+        <Button on:click={toggleResetModal} text={$translate('app.labels.cancel')}>
+          <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html close}</div>
+        </Button>
+        <Button on:click={resetApp} warning text={$translate('app.labels.delete')}>
+          <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html trashOutline}</div>
+        </Button>
+      </div>
     </div>
   </Modal>
 {/if}

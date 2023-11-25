@@ -17,7 +17,7 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, filter, take, takeUntil } from 'rxjs'
+  import { combineLatest, filter, take, takeUntil, tap } from 'rxjs'
   import lock from '$lib/icons/lock.js'
   import { db } from '$lib/db/index.js'
   import type { Wallet, WalletConfiguration } from '$lib/@types/wallets.js'
@@ -28,6 +28,7 @@
   import { createRandomHex } from '$lib/crypto.js'
   import info from '$lib/icons/info.js'
   import InfoModal from '$lib/components/InfoModal.svelte'
+  import type { Session } from '$lib/@types/session.js'
 
   import {
     autoConnectWallet$,
@@ -45,51 +46,11 @@
 
   $: path = $page.url.pathname
 
-  $: if ($autoConnectWallet$ && $session$) {
-    const { configuration, label, type } = $autoConnectWallet$
-
-    autoConnectWallet$.next(null)
-
-    autoConnectWallet({
-      configuration: configuration as WalletConfiguration,
-      label,
-      type,
-      secret: $session$.secret
-    }).then(({ wallet, existed }) => {
-      if (path !== '/') {
-        goto('/')
-      }
-
-      try {
-        if (existed) {
-          notification.create({
-            id: createRandomHex(8),
-            heading: $translate('app.labels.wallet_connected'),
-            message: $translate('app.labels.wallet_already_connected_description', { label })
-          })
-        } else {
-          notification.create({
-            id: createRandomHex(8),
-            heading: $translate('app.labels.wallet_connected'),
-            message: $translate('app.labels.wallet_connected_success_description', { label }),
-            onclick: () => goto(`/wallets/${wallet.id}`)
-          })
-        }
-      } catch (error) {
-        //
-      }
-    })
-  }
-
-  if (browser) {
-    settings$.next({ ...$settings$, notifications: notification.permission() })
-  }
-
   let connections: { wallet: Wallet; connection: Connection | null }[] = []
 
-  const initializeConnections = async () => {
+  const initializeConnections = async (wallets: Wallet[]) => {
     connections = await Promise.all(
-      $wallets$.map(async wallet => {
+      wallets.map(async wallet => {
         let connection: Connection | null
         await db.wallets.update(wallet.id, { syncing: false })
 
@@ -112,16 +73,69 @@
     })
   }
 
+  if (!!autoConnectWallet$.value) {
+    const { configuration, label, type } = autoConnectWallet$.value
+
+    session$
+      .pipe(
+        filter(x => !!x),
+        take(1)
+      )
+      .subscribe(async session => {
+        const { secret } = session as Session
+
+        const { wallet, existed } = await autoConnectWallet({
+          configuration: configuration as WalletConfiguration,
+          label,
+          type,
+          secret
+        })
+
+        if (path !== '/') {
+          await goto('/')
+        }
+
+        try {
+          if (existed) {
+            notification.create({
+              id: createRandomHex(8),
+              heading: $translate('app.labels.wallet_connected'),
+              message: $translate('app.labels.wallet_already_connected_description', { label })
+            })
+          } else {
+            notification.create({
+              id: createRandomHex(8),
+              heading: $translate('app.labels.wallet_connected'),
+              message: $translate('app.labels.wallet_connected_success_description', { label }),
+              onclick: () => goto(`/wallets/${wallet.id}`)
+            })
+          }
+        } catch (error) {
+          //
+        }
+
+        autoConnectWallet$.next(null)
+
+        wallets$
+          .pipe(
+            // wait until we have wallets in memory
+            filter(wallets => !!wallets.length),
+            take(1)
+          )
+          .subscribe(wallets => initializeConnections(wallets))
+      })
+  } else {
+    // initialize all connections once after the session is decrypted
+    combineLatest([wallets$, session$])
+      .pipe(
+        filter(([wallets, session]) => !!session && !!wallets.length),
+        take(1)
+      )
+      .subscribe(([wallets]) => initializeConnections(wallets))
+  }
+
   let infoModal = false
   const toggleInfoModal = () => (infoModal = !infoModal)
-
-  // initialize all connections once after the session is decrypted
-  combineLatest([session$, wallets$])
-    .pipe(
-      filter(([session, wallets]) => !!session && !!wallets.length),
-      take(1)
-    )
-    .subscribe(initializeConnections)
 
   afterNavigate(({ from, to }) => {
     if (to && to.url.pathname === '/') {
@@ -133,6 +147,10 @@
       ]
     }
   })
+
+  if (browser) {
+    settings$.next({ ...$settings$, notifications: notification.permission() })
+  }
 
   const back = async () => {
     const [backPath, ...previousRoutes] = routeHistory

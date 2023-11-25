@@ -333,6 +333,7 @@
     "testing": "Testing testing 123...",
     "notifications_description": "Allow notifications for transaction events.",
     "language_description": "Set your preferred language for the app.",
+    "reset_description": "Completely wipe the app and start fresh.",
     "fiat": "Fiat",
     "fiat_description": "Set your default fiat currency for all amount comparisons.",
     "homescreen": "Homescreen",
@@ -487,7 +488,8 @@
     "cancel": "Cancel",
     "counterparty": "Counterparty",
     "lock": "Lock",
-    "input": "Input"
+    "input": "Input",
+    "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

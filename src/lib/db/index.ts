@@ -59,3 +59,5 @@ class DB extends Dexie {
 }
 
 export const db = new DB()
+
+export const deleteAll = () => db.delete()

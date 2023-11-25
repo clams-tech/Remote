@@ -43,7 +43,15 @@ export const load: LayoutLoad = async ({ url }) => {
         }
       }
 
-      if (larpMode === true) {
+      let currentStoredSession: string | null = null
+
+      try {
+        currentStoredSession = storage.get(STORAGE_KEYS.session)
+      } catch (error) {
+        //
+      }
+
+      if (larpMode === true && !currentStoredSession) {
         const { decrypted, encrypted } = await createNewSession(LARP_MODE_PASSPHRASE)
 
         try {
