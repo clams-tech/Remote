@@ -19,7 +19,7 @@
 
 <a
   href={`/utxos/${id}`}
-  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded"
+  class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all px-2 py-4 rounded"
 >
   <div>
     {#if wallet}

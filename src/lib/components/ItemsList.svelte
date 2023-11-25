@@ -145,7 +145,7 @@
   let virtualList: VirtualList
 
   $: fullHeight = items ? items.length * rowSize : 0
-  $: containerHeight = outerContainerHeight - headerContainerHeight - 80
+  $: containerHeight = outerContainerHeight - headerContainerHeight - 32
   $: listHeight = containerHeight ? Math.min(containerHeight, fullHeight) : 0
   $: containerScrollable = processing ? false : items.length ? fullHeight > listHeight : false
 

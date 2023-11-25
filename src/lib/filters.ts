@@ -148,7 +148,7 @@ const offerTypeFilter = (): Filter => ({
 })
 
 const walletFilter = (): Filter => ({
-  key: 'wallet',
+  key: 'walletId',
   type: 'one-of',
   label: get(translate)('app.labels.wallet'),
   values: wallets$.value.reduce((acc, wallet) => {
