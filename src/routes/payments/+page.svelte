@@ -10,6 +10,7 @@
   import type { Payment } from '$lib/@types/payments.js'
   import { db } from '$lib/db/index.js'
   import type { Channel } from '$lib/@types/channels.js'
+  import { updateAddresses, updateInvoices } from '$lib/db/helpers.js'
 
   const route = 'payments'
   const rowSize = 88
@@ -23,6 +24,8 @@
       fetchTransactions(connection),
       fetchUtxos(connection)
     ])
+
+    await Promise.all([updateAddresses(), updateInvoices()])
   }
 
   const button = {

@@ -96,6 +96,10 @@ class Transactions implements TransactionsInterface {
       const transactions = await this.get()
       const transaction = transactions.find(({ id }) => id === txid)
 
+      if (transaction) {
+        transaction.status = 'pending'
+      }
+
       return transaction as TransactionPayment
     } catch (error) {
       const context = 'send (transactions)'

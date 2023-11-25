@@ -101,29 +101,6 @@ onmessage = async (message: MessageEvent<Message>) => {
         const { transactions } = message.data
 
         if (transactions.length) {
-          const addressesWithoutTxid = await db.payments
-            .where({ walletId: transactions[0].walletId, type: 'address' })
-            .filter(payment => !(payment as AddressPayment).data.txid)
-            .toArray()
-
-          // update all addresses that have a corresponding tx
-          await Promise.all(
-            addressesWithoutTxid.map(address => {
-              const tx = transactions.find(transaction =>
-                (transaction as TransactionPayment).data.outputs.find(
-                  output => output.address === address.id
-                )
-              )
-
-              if (tx) {
-                return db.payments.update(address.id, {
-                  data: { txid: tx.id, completedAt: tx.timestamp }
-                })
-              }
-
-              return Promise.resolve()
-            })
-          )
           await Promise.all(
             transactions.map(transaction =>
               db.payments.update(transaction.id, transaction).then(updated => {

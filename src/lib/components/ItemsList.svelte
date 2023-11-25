@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeUntil, timer } from 'rxjs'
   import { translate } from '$lib/i18n/translations.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import Msg from '$lib/components/Msg.svelte'
@@ -8,7 +9,7 @@
   import list from '$lib/icons/list.js'
   import { fade, slide } from 'svelte/transition'
   import VirtualList from 'svelte-tiny-virtual-list'
-  import { connections$ } from '$lib/streams.js'
+  import { connections$, larpMode$, onDestroy$ } from '$lib/streams.js'
   import FilterSort from '$lib/components/FilterSort.svelte'
   import SyncRouteData from '$lib/components/SyncRouteData.svelte'
   import type { Filter, Sorters } from '$lib/@types/common.js'
@@ -154,11 +155,31 @@
   }
 
   const syncItems = async () => {
-    await Promise.all(connections$.value.map(connection => sync(connection)))
+    try {
+      await Promise.all(connections$.value.map(connection => sync(connection)))
+    } catch (error) {
+      const { message } = error as Error
+      console.error(`Error syncing items: ${message}`)
+    }
+
     loadItems()
   }
 
   loadItems()
+
+  // larp mode polling
+  if (larpMode$.value) {
+    timer(1000, 3000)
+      .pipe(takeUntil(onDestroy$))
+      .subscribe(async () => {
+        try {
+          await syncItems()
+        } catch (error) {
+          const { message } = error as Error
+          console.error(`Error syncing items: ${message}`)
+        }
+      })
+  }
 </script>
 
 <div
@@ -185,7 +206,7 @@
     </div>
 
     <div class="w-full flex overflow-hidden">
-      {#if processing}
+      {#if processing && !items.length}
         <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
           <Spinner />
         </div>
@@ -201,18 +222,18 @@
         </div>
       {:else}
         <div
-          class="w-full flex flex-col justify-center items-center gap-y-2 rounded h-full overflow-hidden pt-2"
+          class="w-full flex flex-col justify-center items-center rounded h-full overflow-hidden pt-2"
         >
           <VirtualList
             bind:this={virtualList}
             on:afterScroll={e => handleScroll(e.detail.offset)}
-            width="100%"
             height={listHeight}
             itemCount={items.length}
+            width="100%"
             itemSize={rowSize}
             getKey={index => items[index].id}
           >
-            <div slot="item" let:index let:style {style}>
+            <div class="overflow-hidden" slot="item" let:index let:style {style}>
               {@const item = items[index]}
               <slot name="row" {item} />
             </div>

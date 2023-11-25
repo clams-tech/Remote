@@ -293,7 +293,6 @@ class Invoices implements InvoicesInterface {
         : null
     } catch (error) {
       const context = 'listenForAnyInvoicePayment (payments)'
-
       const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
 
       this.connection.errors$.next(connectionError)
