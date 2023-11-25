@@ -324,13 +324,7 @@ export const routeFilters = (route: string): Filter[] => {
         offerActiveFilter()
       ]
     case 'forwards':
-      return [
-        forwardStatusFilter(),
-        walletFilter(),
-        feeFilter(),
-        networkFilter(),
-        timestampFilter()
-      ]
+      return [forwardStatusFilter(), walletFilter(), feeFilter(), timestampFilter()]
     case 'wallets':
       return [walletFilter(), walletTypeFilter(), timestampFilter('createdAt', 'created_at')]
     default:

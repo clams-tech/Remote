@@ -22,8 +22,8 @@
       db.transaction('r', db.channels, db.wallets, async () => {
         const [wallet, channelIn, channelOut] = await Promise.all([
           db.wallets.get(forward.walletId),
-          db.channels.where({ shortId: forward.shortIdIn }).first(),
-          db.channels.where({ shortId: forward.shortIdOut }).first()
+          db.channels.where({ shortId: forward.shortIdIn || 'unknown' }).first(),
+          db.channels.where({ shortId: forward.shortIdOut || 'unknown' }).first()
         ])
 
         return {

@@ -17,7 +17,7 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import type { AppError } from '$lib/@types/errors.js'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, filter, take, takeUntil, tap } from 'rxjs'
+  import { combineLatest, delay, filter, take, takeUntil } from 'rxjs'
   import lock from '$lib/icons/lock.js'
   import { db } from '$lib/db/index.js'
   import type { Wallet, WalletConfiguration } from '$lib/@types/wallets.js'
@@ -76,9 +76,15 @@
   if (!!autoConnectWallet$.value) {
     const { configuration, label, type } = autoConnectWallet$.value
 
+    if (path !== '/') {
+      goto('/')
+    }
+
     session$
       .pipe(
         filter(x => !!x),
+        // allow time for wallets$ to be populated
+        delay(250),
         take(1)
       )
       .subscribe(async session => {
@@ -90,10 +96,6 @@
           type,
           secret
         })
-
-        if (path !== '/') {
-          await goto('/')
-        }
 
         try {
           if (existed) {
