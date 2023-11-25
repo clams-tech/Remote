@@ -1,7 +1,6 @@
 <script lang="ts">
   import plus from '$lib/icons/plus.js'
   import { translate } from '$lib/i18n/translations.js'
-  import { fetchChannels } from '$lib/wallets/index.js'
   import type { Filter, Sorters } from '$lib/@types/common.js'
   import { getFilters, getSorters, getTags } from '$lib/filters.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
@@ -9,9 +8,8 @@
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import WalletRow from './WalletRow.svelte'
-  import { onDestroy$, wallets$ } from '$lib/streams.js'
-  import { combineLatest, map, takeUntil } from 'rxjs'
   import { getWalletBalance } from '$lib/utils.js'
+  import { slide } from 'svelte/transition'
 
   const route = 'wallets'
   const rowSize = 82
@@ -19,8 +17,13 @@
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
 
+  let balances: Record<Connection['walletId'], number> = {}
+
   const sync = async (connection: Connection) => {
-    await fetchChannels(connection)
+    const { walletId } = connection
+    const balance = await getWalletBalance(walletId)
+
+    balances = { ...balances, [walletId]: balance }
   }
 
   const button = {
@@ -29,28 +32,13 @@
     icon: plus
   }
 
-  let totalBalance: number
-
-  $: if ($wallets$) {
-    combineLatest($wallets$.map(wallet => getWalletBalance(wallet.id)))
-      .pipe(
-        takeUntil(onDestroy$),
-        map(
-          balances =>
-            balances.reduce(
-              (total, balance) => (balance ? (total || 0) + balance : total),
-              0
-            ) as number
-        )
-      )
-      .subscribe(balance => (totalBalance = balance))
-  }
+  $: totalBalance = Object.values(balances).reduce((total, balance) => total + balance, 0)
 </script>
 
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize}>
   <div slot="summary">
     {#if totalBalance}
-      <div class=":mb-2">
+      <div in:slide>
         <SummaryRow>
           <div slot="label">{$translate('app.labels.total_balance')}:</div>
           <div slot="value">
@@ -64,6 +52,6 @@
   </div>
 
   <div slot="row" let:item>
-    <WalletRow wallet={item} />
+    <WalletRow wallet={item} balance={balances[item.id]} />
   </div>
 </ItemsList>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Wallet } from '$lib/@types/wallets.js'
   import caret from '$lib/icons/caret.js'
-  import { getWalletBalance } from '$lib/utils.js'
   import { connectionOptions } from '$lib/wallets/index.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { connections$ } from '$lib/streams.js'
@@ -9,8 +8,7 @@
   import { translate } from '$lib/i18n/translations.js'
 
   export let wallet: Wallet
-
-  const walletBalance$ = getWalletBalance(wallet.id)
+  export let balance: number
 
   const walletTypeIcon = Object.values(connectionOptions)
     .flat()
@@ -33,8 +31,8 @@
 
   <div class="flex items-center ml-2">
     <div>
-      {#if $walletBalance$}
-        <BitcoinAmount sats={$walletBalance$} />
+      {#if typeof balance === 'number'}
+        <BitcoinAmount sats={balance} />
       {/if}
 
       <div class="flex items-center justify-end">

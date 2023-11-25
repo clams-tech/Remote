@@ -4,8 +4,6 @@ import { API_URL, GENESIS_HASHES } from './constants.js'
 import { log } from './services.js'
 import { Buffer } from 'buffer'
 import type { Network } from './@types/payments.js'
-import { combineLatest, from, map, type Observable } from 'rxjs'
-import { liveQuery } from 'dexie'
 import { db } from './db/index.js'
 import type { Filter } from './@types/common.js'
 import type { Node } from '$lib/@types/nodes.js'
@@ -127,40 +125,30 @@ export const getNetwork = (str: string): Network => {
   return 'bitcoin'
 }
 
-export const getWalletBalance = (walletId: string): Observable<number | null> => {
-  const channelsBalance$ = from(liveQuery(() => db.channels.where({ walletId }).toArray())).pipe(
-    map(channels =>
-      channels.reduce((total, channel) => {
-        const { balanceLocal, status } = channel
+export const getWalletBalance = async (walletId: string): Promise<number> => {
+  const channels = await db.channels.where({ walletId }).toArray()
+  const channelsBalance = channels.reduce((total, channel) => {
+    const { balanceLocal, status } = channel
 
-        if (status === 'active' || status === 'opening') {
-          total += balanceLocal
-        }
+    if (status === 'active' || status === 'opening') {
+      total += balanceLocal
+    }
 
-        return total
-      }, 0)
-    )
-  )
+    return total
+  }, 0)
 
-  const utxosBalance = from(
-    liveQuery(() => db.utxos.where('walletId').equals(walletId).toArray())
-  ).pipe(
-    map(utxos =>
-      utxos.reduce((total, utxo) => {
-        const { status, amount } = utxo
+  const utxos = await db.utxos.where('walletId').equals(walletId).toArray()
+  const utxosBalance = utxos.reduce((total, utxo) => {
+    const { status, amount } = utxo
 
-        if (status !== 'spent' && status !== 'spent_unconfirmed') {
-          total += amount
-        }
+    if (status !== 'spent' && status !== 'spent_unconfirmed') {
+      total += amount
+    }
 
-        return total
-      }, 0)
-    )
-  )
+    return total
+  }, 0)
 
-  return combineLatest([channelsBalance$, utxosBalance]).pipe(
-    map(([channelsBalance, utxosBalance]) => channelsBalance + utxosBalance)
-  )
+  return channelsBalance + utxosBalance
 }
 
 export const mergeDefaultWithSavedFilters = (defaults: Filter[], saved: Filter[] | null) => {
