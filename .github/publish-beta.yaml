@@ -2,7 +2,8 @@ name: 'publish-beta'
 on:
   workflow_dispatch:
   push:
-    branches: [v2]
+    branches:
+      - v2
 
 jobs:
   publish-tauri:
