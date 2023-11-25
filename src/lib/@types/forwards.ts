@@ -6,9 +6,9 @@ export type Forward = {
   /** the short channel id in */
   shortIdIn: string
   /** the short channel id in */
-  shortIdOut: string
+  shortIdOut?: string
   htlcInId: number
-  htlcOutId: number
+  htlcOutId?: number
   /** amount in */
   in: number
   /** amount out */

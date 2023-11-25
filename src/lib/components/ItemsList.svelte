@@ -158,7 +158,7 @@
     try {
       await Promise.all(connections$.value.map(connection => sync(connection)))
     } catch (error) {
-      const { message } = error as Error
+      const { message } = (error as Error) || { message: 'Unknown error' }
       console.error(`Error syncing items: ${message}`)
     }
 
