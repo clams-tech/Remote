@@ -101,7 +101,7 @@
     {#if !$availableWallets$}
       <Spinner />
     {:else if !$availableWallets$.length}
-      <Msg message={$translate('app.labels.create_offer_unavailable')} type="info" />
+      <Msg message={$translate('app.errors.wallet_create_offer_unavailable')} type="info" />
     {:else}
       <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
 
@@ -157,17 +157,19 @@
     {/if}
   </div>
 
-  <div class="w-full flex justify-end mt-2">
-    <div class="w-min">
-      <Button
-        requesting={creatingOffer}
-        disabled={type === 'withdraw' && !amount}
-        on:click={createOffer}
-        primary
-        text={$translate('app.labels.create')}
-      />
+  {#if $availableWallets$.length}
+    <div class="w-full flex justify-end mt-2">
+      <div class="w-min">
+        <Button
+          requesting={creatingOffer}
+          disabled={type === 'withdraw' && !amount}
+          on:click={createOffer}
+          primary
+          text={$translate('app.labels.create')}
+        />
+      </div>
     </div>
-  </div>
+  {/if}
 
   {#if createOfferError}
     <div class="mt-2 w-full" in:slide={{ axis: 'y' }}>

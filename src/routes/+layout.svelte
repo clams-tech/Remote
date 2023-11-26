@@ -209,13 +209,19 @@
       </div>
     {/if}
 
-    <div class="grid grid-cols-3 gap-x-2 mr-2">
+    <div class="flex items-center gap-x-2 mr-2">
       {#if routeRequiresSession(path) && $session$}
         {#if $larpMode$}
-          <button on:click={toggleInfoModal} class="flex flex-col items-center justify-center">
-            <div class="w-8">{@html info}</div>
-            <span class="text-xs font-semibold">{$translate('app.labels.info')}</span>
-          </button>
+          {#if $wallets$.length}
+            <button
+              in:slide={{ axis: 'x' }}
+              on:click={toggleInfoModal}
+              class="flex flex-col items-center justify-center"
+            >
+              <div class="w-8">{@html info}</div>
+              <span class="text-xs font-semibold">{$translate('app.labels.info')}</span>
+            </button>
+          {/if}
         {:else}
           <button on:click={clearSession} class="flex flex-col items-center justify-center">
             <div class="w-8">{@html lock}</div>
