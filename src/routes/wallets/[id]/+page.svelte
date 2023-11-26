@@ -61,7 +61,9 @@
     })
   )
 
-  const walletBalance$ = getWalletBalance(id)
+  let walletBalance: number | null = null
+
+  getWalletBalance(id).then(balance => (walletBalance = balance))
 
   $: connection = $connections$.find(conn => conn.walletId === id)
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
@@ -306,9 +308,9 @@
               </div>
 
               <div class="w-full flex flex-col items-start mt-1.5 ml-2">
-                {#if typeof $walletBalance$ === 'number'}
+                {#if typeof walletBalance === 'number'}
                   <div>
-                    <BitcoinAmount sats={$walletBalance$} />
+                    <BitcoinAmount sats={walletBalance} />
                     <div class="text-xs font-semibold -mt-1">
                       {$translate('app.labels.balance')}
                     </div>
