@@ -118,13 +118,15 @@
 
         autoConnectWallet$.next(null)
 
+        // wait until wallet is loaded in to memory and then init connections
         wallets$
           .pipe(
-            // wait until we have wallets in memory
-            filter(wallets => !!wallets.length),
+            filter(wallets => !!wallets.find(({ id }) => id === wallet.id)),
             take(1)
           )
-          .subscribe(wallets => initializeConnections(wallets))
+          .subscribe(wallets => {
+            initializeConnections(wallets)
+          })
       })
   } else {
     // initialize all connections once after the session is decrypted
