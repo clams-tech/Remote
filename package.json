@@ -73,7 +73,7 @@
     "fast-sort": "^3.4.0",
     "js-lnurl": "^0.6.0",
     "jsqr": "^1.4.0",
-    "lnmessage": "^0.2.6",
+    "lnmessage": "^0.2.7",
     "lodash.debounce": "^4.0.8",
     "lodash.uniqby": "^4.7.0",
     "nouislider": "^15.7.1",

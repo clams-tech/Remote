@@ -35,6 +35,7 @@
   let processing = false
   let gettingMoreItems = false
   let noMoreItems = false
+  let initialLoad = true
 
   const loadItems = async () => {
     processing = true
@@ -54,6 +55,7 @@
     }
 
     processing = false
+    initialLoad = false
   }
 
   const getMoreItems = async () => {
@@ -206,7 +208,7 @@
     </div>
 
     <div class="w-full flex overflow-hidden">
-      {#if processing && !items.length}
+      {#if processing && initialLoad}
         <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
           <Spinner />
         </div>

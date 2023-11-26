@@ -729,12 +729,17 @@ export const deriveTransactionSummary = ({
         return sweepSummary
       }
 
-      const receiveOutput = enhancedOutputs.find(({ type }) => type === 'receive') as
-        | UtxoOutput
-        | undefined
+      const receiveOutputs = enhancedOutputs.filter(
+        ({ type }) => type === 'receive'
+      ) as UtxoOutput[]
 
-      if (receiveOutput) {
-        const receiveWallet = (await db.wallets.get(receiveOutput.utxo.walletId)) as Wallet
+      if (receiveOutputs.length) {
+        // get the receive output for this wallet
+        const walletReceiveOutput = receiveOutputs.find(
+          ({ utxo }) => utxo.walletId === walletId
+        ) as UtxoOutput
+        const receiveWallet = (await db.wallets.get(walletReceiveOutput.utxo.walletId)) as Wallet
+
         const inputContacts = enhancedInputs
           .map(({ metadata }) => metadata?.contact)
           .filter(x => !!x) as string[]
@@ -755,7 +760,7 @@ export const deriveTransactionSummary = ({
             fee: fee || 0,
             category: 'expense',
             type: 'htlc',
-            amount: receiveOutput.amount,
+            amount: walletReceiveOutput.amount,
             primary: { type: 'wallet', value: receiveWallet },
             secondary: {
               type: 'channel_peer',
@@ -773,11 +778,11 @@ export const deriveTransactionSummary = ({
           fee: 0,
           category: 'income',
           type: 'receive',
-          amount: receiveOutput.amount,
+          amount: walletReceiveOutput.amount,
           primary: { type: 'wallet', value: receiveWallet },
           secondary: sourceContact
             ? { type: 'contact', value: sourceContact }
-            : { type: 'unknown', value: receiveOutput.address },
+            : { type: 'unknown', value: walletReceiveOutput.address },
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }

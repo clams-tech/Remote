@@ -16,6 +16,7 @@ import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
 import Network from './network.js'
+import { createSocket } from './worker.js'
 
 import type {
   CoreLnError,
@@ -38,7 +39,6 @@ import type {
   NetworkInterface,
   ConnectionStatus
 } from '../interfaces.js'
-import { createSocket } from './worker.js'
 
 class CoreLightning implements CorelnConnectionInterface {
   socket: SocketWrapper | null
