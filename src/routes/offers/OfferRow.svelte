@@ -17,7 +17,7 @@
   const query =
     offer.type === 'withdraw'
       ? {
-          direction: 'send',
+          'data.direction': 'send',
           'data.amount': offer.amount
         }
       : { 'data.offer.id': offer?.id }
@@ -27,6 +27,7 @@
       .where(query)
       .filter(payment => {
         const { data } = payment as InvoicePayment
+
         return (
           data.offer?.description === offer.description &&
           data.offer?.issuer === offer.issuer &&
@@ -43,7 +44,7 @@
       ? 'expired'
       : offer.active
       ? 'active'
-      : offer.singleUse && $offerPayments$?.length
+      : offer.singleUse && ($offerPayments$?.length || offer.used)
       ? 'complete'
       : 'disabled'
 

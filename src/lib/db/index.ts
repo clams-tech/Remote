@@ -55,6 +55,11 @@ class DB extends Dexie {
       withdrawals:
         '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
     })
+
+    this.version(2).stores({
+      payments:
+        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, [type+status], [direction+data.amount], [data.direction+data.amount]'
+    })
   }
 }
 
