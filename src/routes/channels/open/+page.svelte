@@ -92,6 +92,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./channels/open.title`)}</title>
+</svelte:head>
+
 <Section>
   <SectionHeading icon={channels} />
 

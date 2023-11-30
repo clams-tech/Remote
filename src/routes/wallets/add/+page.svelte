@@ -34,6 +34,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./wallets/add.title`)}</title>
+</svelte:head>
+
 <Section>
   <SectionHeading icon={keys} />
 

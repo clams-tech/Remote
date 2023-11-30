@@ -10,6 +10,9 @@
     "/offers": {
       "title": "Offers"
     },
+    "/offers/create": {
+      "title": "Create Offer"
+    },
     "/payments": {
       "title": "Payments"
     },

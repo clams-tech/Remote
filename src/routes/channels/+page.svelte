@@ -66,6 +66,10 @@
     : null
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./channels.title`)}</title>
+</svelte:head>
+
 <ItemsList
   {filters}
   {sorters}

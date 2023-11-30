@@ -149,6 +149,10 @@
 
 <svelte:window on:keyup|stopPropagation={handleKeyUp} />
 
+<svelte:head>
+  <title>{$translate(`app.routes./offer.title`)}</title>
+</svelte:head>
+
 <Section>
   {#if decodeError}
     <Msg type="error" message={decodeError} closable={false} />

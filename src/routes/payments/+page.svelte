@@ -97,6 +97,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./payments.title`)}</title>
+</svelte:head>
+
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize} {dedupe}>
   <div slot="row" let:item>
     <PaymentRow payment={item} />

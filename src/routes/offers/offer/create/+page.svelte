@@ -94,6 +94,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./offers/create.title`)}</title>
+</svelte:head>
+
 <Section>
   <SectionHeading icon={lightningOutline} text={$translate('app.labels.create_offer')} />
 
