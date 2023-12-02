@@ -44,6 +44,10 @@
     : null
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./utxos.title`)}</title>
+</svelte:head>
+
 <ItemsList
   {filters}
   {sorters}

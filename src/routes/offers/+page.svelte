@@ -25,6 +25,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./offers.title`)}</title>
+</svelte:head>
+
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize}>
   <div slot="row" let:item>
     <OfferRow offer={item} />

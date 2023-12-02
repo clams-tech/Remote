@@ -5,6 +5,7 @@
   import type { Connection } from '$lib/wallets/interfaces.js'
   import ItemsList from '$lib/components/ItemsList.svelte'
   import ForwardRow from './ForwardRow.svelte'
+  import { translate } from '$lib/i18n/translations.js'
 
   const route = 'forwards'
   const rowSize = 96
@@ -16,6 +17,10 @@
     await fetchForwards(connection)
   }
 </script>
+
+<svelte:head>
+  <title>{$translate(`app.routes./forwards.title`)}</title>
+</svelte:head>
 
 <ItemsList {filters} {sorters} {tags} {sync} {route} {rowSize}>
   <div slot="row" let:item>

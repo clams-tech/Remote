@@ -24,6 +24,10 @@
   const getIcon = (tile: string) => TILE_ICONS[tile as Tile]
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./.title`)}</title>
+</svelte:head>
+
 <div
   in:fade={{ duration: 250 }}
   class="flex flex-col justify-center items-center overflow-hidden p-4 w-full relative"

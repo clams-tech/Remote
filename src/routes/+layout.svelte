@@ -167,11 +167,9 @@
 </script>
 
 <svelte:head>
-  <title
-    >{$session$ || path === '/welcome'
-      ? $translate(`app.routes.${$page.url.pathname}.title`)
-      : $translate('app.labels.locked')}</title
-  >
+  {#if !$session$ && path !== 'welcome'}
+    <title>{$translate('app.labels.locked')}</title>
+  {/if}
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen text-neutral-50">

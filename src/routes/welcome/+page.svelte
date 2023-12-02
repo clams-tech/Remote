@@ -118,6 +118,10 @@
 
 <svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
+<svelte:head>
+  <title>{$translate(`app.routes./welcome.title`)}</title>
+</svelte:head>
+
 <Section>
   <div class="flex w-full justify-center">
     <div class="w-full flex flex-col items-center justify-center max-w-lg">

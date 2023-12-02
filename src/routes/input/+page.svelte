@@ -77,6 +77,10 @@
 
 <svelte:window on:keyup|stopPropagation={handleKeyPress} />
 
+<svelte:head>
+  <title>{$translate(`app.routes./input.title`)}</title>
+</svelte:head>
+
 <Section>
   <SectionHeading icon={scan} />
 

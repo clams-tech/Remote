@@ -42,30 +42,34 @@
 
   const offerPayments$: Observable<InvoicePayment[]> = offer$.pipe(
     filter(x => !!x),
-    switchMap(offer =>
-      from(
+    switchMap(offer => {
+      const query =
+        offer?.type === 'withdraw'
+          ? {
+              'data.direction': 'send',
+              'data.amount': offer.amount
+            }
+          : { 'data.offer.id': offer?.id }
+
+      return from(
         liveQuery(
           () =>
             db.payments
-              .where(
-                offer?.type === 'withdraw'
-                  ? {
-                      direction: 'send',
-                      'data.amount': offer?.amount
-                    }
-                  : { 'data.offer.id': offer?.id }
-              )
-              .filter(invoice => {
-                const {
-                  data: { offer }
-                } = invoice as InvoicePayment
-                return offer?.description === offer?.description && offer?.issuer === offer?.issuer
+              .where(query)
+              .filter(payment => {
+                const { data } = payment as InvoicePayment
+
+                return (
+                  data.offer?.description === offer?.description &&
+                  data.offer?.issuer === offer?.issuer &&
+                  (offer?.type === 'withdraw' ? !data.offer?.id : !!data.offer?.id)
+                )
               })
               .reverse()
               .sortBy('completedAt') as PromiseExtended<InvoicePayment[]>
         )
       )
-    )
+    })
   )
 
   const offerWallet$ = from(offer$).pipe(

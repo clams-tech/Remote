@@ -35,6 +35,10 @@
   $: totalBalance = Object.values(balances).reduce((total, balance) => total + balance, 0)
 </script>
 
+<svelte:head>
+  <title>{$translate(`app.routes./wallets.title`)}</title>
+</svelte:head>
+
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize}>
   <div slot="summary">
     {#if totalBalance}
