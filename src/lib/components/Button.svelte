@@ -18,7 +18,7 @@
   <button
     bind:this={button}
     on:click
-    class="no-underline text-center border-2 border-neutral-50 text-current transition-all text-[1em] hover:shadow-md w-full flex items-center justify-center px-[1em] sm:px-[2em] relative rounded-full font-bold whitespace-nowrap"
+    class="no-underline text-center border-2 border-neutral-50 text-current transition-all text-[1em] hover:shadow-md w-full flex items-center justify-center px-[1em] relative rounded-full font-bold whitespace-nowrap"
     class:opacity-70={disabled}
     class:border-utility-error={warning}
     class:bg-purple-700={primary}
@@ -43,7 +43,7 @@
         </div>
       {/if}
 
-      <span class:text-transparent={requesting} class="py-[0.25em] sm:py-[0.5em]">
+      <span class:text-transparent={requesting} class="py-[0.25em]">
         {text}
       </span>
 

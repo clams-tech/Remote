@@ -261,9 +261,8 @@
       <div class="bottom-2 right-2 flex justify-end pt-2" class:absolute={containerScrollable}>
         <a
           href={button.href}
-          class:px-2={containerScrollable}
           class:px-4={!containerScrollable || showFullButton}
-          class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 w-min hover:bg-neutral-800 relative"
+          class="no-underline flex items-center rounded-full bg-neutral-900 border-2 px-1 border-neutral-50 py-1 hover:shadow-lg hover:shadow-neutral-50 w-min hover:bg-neutral-800 relative"
           on:mouseenter={() => containerScrollable && (showFullButton = true)}
           on:mouseleave={() => containerScrollable && (showFullButton = false)}
         >
@@ -271,7 +270,7 @@
             <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
           </div>
 
-          <div class="w-6 relative" class:-ml-1={!containerScrollable || showFullButton}>
+          <div class="w-6 relative" class:-ml-2={!containerScrollable || showFullButton}>
             {@html button.icon}
           </div>
 
