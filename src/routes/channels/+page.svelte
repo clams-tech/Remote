@@ -84,7 +84,7 @@
 >
   <div slot="summary">
     {#if totals}
-      <div class="w-full mb-2">
+      <div class="w-full">
         <SummaryRow>
           <div slot="label">{$translate('app.labels.active')}:</div>
           <div slot="value">{totals.channels} channels</div>
