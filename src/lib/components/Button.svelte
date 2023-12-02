@@ -28,9 +28,10 @@
     class:hover:shadow-utility-error={warning && !disabled}
     disabled={disabled || requesting}
   >
-    <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
-      <img src="/images/shell1.png" class="h-auto w-full" alt="texture" />
-    </div>
+    <div
+      class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70 bg-cover"
+      style="background-image: url(/images/shell1.png);"
+    />
 
     <div class="relative flex items-center justify-center">
       <div class:text-transparent={requesting}>
@@ -43,7 +44,7 @@
         </div>
       {/if}
 
-      <span class:text-transparent={requesting} class="py-[0.25em]">
+      <span class:text-transparent={requesting} class="py-[0.375em]">
         {text}
       </span>
 
