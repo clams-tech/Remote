@@ -38,7 +38,9 @@
   let initialLoad = true
 
   const loadItems = async () => {
-    processing = true
+    if (initialLoad) {
+      processing = true
+    }
 
     const rawItems = (await getSortedFilteredItems({
       filters,
@@ -54,8 +56,10 @@
       items = rawItems
     }
 
-    processing = false
-    initialLoad = false
+    if (initialLoad) {
+      processing = false
+      initialLoad = false
+    }
   }
 
   const getMoreItems = async () => {
@@ -148,9 +152,14 @@
   let virtualList: VirtualList
 
   $: fullHeight = items ? items.length * rowSize : 0
-  $: containerHeight = outerContainerHeight - headerContainerHeight - 32
+  $: containerHeight = outerContainerHeight - headerContainerHeight
   $: listHeight = containerHeight ? Math.min(containerHeight, fullHeight) : 0
-  $: containerScrollable = processing ? false : items.length ? fullHeight > listHeight : false
+
+  $: containerScrollable = processing
+    ? false
+    : items.length
+    ? containerHeight - listHeight <= 76
+    : false
 
   $: if (items.length) {
     setTimeout(() => virtualList && virtualList.recomputeSizes(0), 25)
@@ -207,7 +216,7 @@
       <slot name="summary" />
     </div>
 
-    <div class="w-full flex overflow-hidden">
+    <div class="w-full overflow-hidden">
       {#if processing && initialLoad}
         <div in:fade={{ duration: 250 }} class="my-4 w-full flex justify-center">
           <Spinner />
@@ -223,9 +232,7 @@
           />
         </div>
       {:else}
-        <div
-          class="w-full flex flex-col justify-center items-center rounded h-full overflow-hidden pt-2"
-        >
+        <div class="w-full flex flex-col justify-center items-center rounded h-full">
           <VirtualList
             bind:this={virtualList}
             on:afterScroll={e => handleScroll(e.detail.offset)}
@@ -251,12 +258,11 @@
     </div>
 
     {#if button}
-      <div class="bottom-6 right-6 flex justify-end mt-2" class:absolute={containerScrollable}>
+      <div class="bottom-2 right-2 flex justify-end pt-2" class:absolute={containerScrollable}>
         <a
           href={button.href}
-          class:px-2={containerScrollable}
           class:px-4={!containerScrollable || showFullButton}
-          class="no-underline flex items-center rounded-full bg-neutral-900 border-2 border-neutral-50 py-2 hover:shadow-lg hover:shadow-neutral-50 mt-4 w-min hover:bg-neutral-800 relative"
+          class="no-underline flex items-center rounded-full bg-neutral-900 border-2 px-1.5 border-neutral-50 py-[0.375em] hover:shadow-lg hover:shadow-neutral-50 w-min hover:bg-neutral-800 relative"
           on:mouseenter={() => containerScrollable && (showFullButton = true)}
           on:mouseleave={() => containerScrollable && (showFullButton = false)}
         >
@@ -264,7 +270,7 @@
             <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
           </div>
 
-          <div class="w-6 relative" class:-ml-1={!containerScrollable || showFullButton}>
+          <div class="w-6 relative" class:-ml-2={!containerScrollable || showFullButton}>
             {@html button.icon}
           </div>
 

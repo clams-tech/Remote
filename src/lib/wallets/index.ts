@@ -134,7 +134,7 @@ export const fetchUtxos = async (connection: Connection) =>
     .then(utxos => {
       return updateTableItems('utxos', utxos)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchInvoices = async (connection: Connection) =>
   connection.invoices &&
@@ -143,7 +143,7 @@ export const fetchInvoices = async (connection: Connection) =>
     .then(invoices => {
       return updateTableItems('payments', invoices)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchChannels = async (connection: Connection) =>
   connection.channels &&
@@ -152,7 +152,7 @@ export const fetchChannels = async (connection: Connection) =>
     .then(channels => {
       return updateChannels(channels)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchTransactions = async (connection: Connection) =>
   connection.transactions &&
@@ -161,7 +161,7 @@ export const fetchTransactions = async (connection: Connection) =>
     .then(transactions => {
       return updateTransactions(transactions)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchForwards = async (connection: Connection) =>
   connection.forwards &&
@@ -170,7 +170,7 @@ export const fetchForwards = async (connection: Connection) =>
     .then(forwards => {
       return updateTableItems('forwards', forwards)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchOffers = async (connection: Connection) =>
   connection.offers &&
@@ -179,7 +179,7 @@ export const fetchOffers = async (connection: Connection) =>
     .then(offers => {
       return updateTableItems('offers', offers)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchTrades = async (connection: Connection) =>
   connection.trades &&
@@ -188,7 +188,7 @@ export const fetchTrades = async (connection: Connection) =>
     .then(async trades => {
       return updateTableItems('trades', trades)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchWithdrawals = async (connection: Connection) =>
   connection.withdrawals &&
@@ -197,7 +197,7 @@ export const fetchWithdrawals = async (connection: Connection) =>
     .then(async withdrawals => {
       return updateTableItems('withdrawals', withdrawals)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 export const fetchDeposits = async (connection: Connection) =>
   connection.deposits &&
@@ -206,7 +206,7 @@ export const fetchDeposits = async (connection: Connection) =>
     .then(async deposits => {
       return updateTableItems('deposits', deposits)
     })
-    .catch(error => log.error(error.detail.message))
+    .catch(error => log.error(error?.detail?.message || error))
 
 let lastPaidInvoiceIndexNotification: number
 
@@ -290,7 +290,7 @@ export const syncConnectionData = (
 
               await db.payments.put(invoice)
             }, lastPaidInvoice?.data.payIndex)
-            .catch(error => log.error(error.detail.message))
+            .catch(error => log.error(error?.detail?.message || error))
         }
       })
     }
