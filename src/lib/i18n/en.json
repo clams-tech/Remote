@@ -496,7 +496,10 @@
     "counterparty": "Counterparty",
     "lock": "Lock",
     "input": "Input",
-    "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?"
+    "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?",
+    "start_scanner": "Start scanner",
+    "import_image": "Import image",
+    "read_nfc": "Read NFC"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

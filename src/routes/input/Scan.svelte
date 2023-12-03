@@ -12,6 +12,7 @@
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { filter, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
+  import { translate } from '$lib/i18n/translations.js'
 
   const dispatch = createEventDispatcher()
 
@@ -216,9 +217,13 @@
     {/if}
 
     {#if !scanRegion && !loading}
-      <button on:click={startCamera} class="w-10 shadow shadow-current rounded-full p-1 absolute"
-        >{@html scan}</button
-      >
+      <button on:click={startCamera} class="flex flex-col justify-center items-center absolute">
+        <div class="w-10 shadow shadow-current rounded-full p-1">
+          {@html scan}
+        </div>
+
+        <div class="mt-2 font-semibold text-sm">{$translate('app.labels.start_scanner')}</div>
+      </button>
     {/if}
   </div>
 

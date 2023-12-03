@@ -9,6 +9,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import { nowSeconds } from '$lib/utils.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { translate } from '$lib/i18n/translations.js'
 
   const dispatch = createEventDispatcher()
 
@@ -40,13 +41,15 @@
 </script>
 
 <div class="flex flex-col justify-center items-center w-full h-[304px] p-4 relative">
-  {#if reading}
-    <button class="absolute w-10 p-1 animate-ping">{@html nfcIcon}</button>
-  {/if}
+  <button on:click={read} class="flex flex-col justify-center items-center absolute">
+    <div class="shadow shadow-current rounded-full">
+      <div class="w-10 p-1" class:animate-ping={reading}>
+        {@html nfcIcon}
+      </div>
+    </div>
 
-  <button on:click={read} class="w-10 shadow shadow-current rounded-full p-1"
-    >{@html nfcIcon}</button
-  >
+    <div class="mt-2 font-semibold text-sm">{$translate('app.labels.read_nfc')}</div>
+  </button>
 
   {#if err}
     <div transition:slide={{ axis: 'y' }} class="absolute bottom-2">
