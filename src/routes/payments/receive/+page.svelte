@@ -121,13 +121,13 @@
       }
     } catch (error) {
       createPaymentError = error as AppError
-    } finally {
-      creatingPayment = false
     }
 
     if (!createPaymentError && (address || invoice)) {
       await goto(`/payments/${invoice ? invoice.id : address?.id}?wallet=${connection.walletId}`)
     }
+
+    creatingPayment = false
   }
 
   let modalShowing: boolean

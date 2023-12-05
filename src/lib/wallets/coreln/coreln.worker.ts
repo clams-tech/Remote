@@ -356,7 +356,7 @@ onmessage = async (message: MessageEvent<Message>) => {
                 walletId: walletId,
                 timestamp,
                 network,
-                status: blockheight ? 'complete' : 'waiting',
+                status: typeof blockheight === 'number' ? 'complete' : 'pending',
                 type: 'transaction',
                 data: {
                   rawTx: rawtx,

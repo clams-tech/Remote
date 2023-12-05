@@ -388,7 +388,7 @@
     "input_channel_close": "Channel",
     "input_timelocked": "Timelocked",
     "input_htlc_timeout": "htlc timeout",
-    "input_unknown": "Unknown",
+    "input_unknown": "Input",
     "output_receive": "Receive",
     "output_settle": "Settle",
     "output_transfer": "Transfer",
@@ -400,7 +400,7 @@
     "output_timelocked": "Timelocked",
     "output_htlc_timeout": "htlc",
     "output_htlc_resolve": "htlc",
-    "output_unknown": "Unknown",
+    "output_unknown": "Output",
     "summary_amount_channel_open": "Channel capacity",
     "summary_amount_channel_mutiple_open": "Total channels capacity",
     "summary_amount_send": "{{status; pending:Sending; waiting:Sending; complete:Sent; failed:Attempted;}}",
@@ -496,7 +496,10 @@
     "counterparty": "Counterparty",
     "lock": "Lock",
     "input": "Input",
-    "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?"
+    "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?",
+    "start_scanner": "Start scanner",
+    "import_image": "Import image",
+    "read_nfc": "Read NFC"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

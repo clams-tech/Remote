@@ -9,6 +9,7 @@
   import { appWorker, appWorkerMessages$ } from '$lib/worker.js'
   import { filter, takeUntil } from 'rxjs'
   import { onDestroy$ } from '$lib/streams.js'
+  import { translate } from '$lib/i18n/translations.js'
 
   const dispatch = createEventDispatcher()
 
@@ -108,15 +109,23 @@
     />
 
     {#if !loading}
-      <button class="w-10 shadow shadow-current rounded-full p-1" on:click={open}>
-        {@html photo}
-      </button>
+      {#if !parsed}
+        <button on:click={open} class="flex flex-col justify-center items-center absolute">
+          <div class="w-10 shadow shadow-current rounded-full p-1">
+            {@html photo}
+          </div>
+
+          <div class="mt-2 font-semibold text-sm">{$translate('app.labels.import_image')}</div>
+        </button>
+      {/if}
     {:else}
       <Spinner />
     {/if}
 
     {#if parsed}
-      <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+      <div class="absolute bottom-2.5 right-2">
+        <ParsedInputButton {parsed} on:click={() => dispatch('input', parsed)} />
+      </div>
     {/if}
   </div>
 </div>

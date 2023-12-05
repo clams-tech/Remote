@@ -207,7 +207,7 @@
       </div>
     {/if}
 
-    <div class="flex items-center gap-x-2 mr-2">
+    <div class="items-center grid grid-cols-3 gap-x-2 mr-2">
       {#if routeRequiresSession(path) && $session$}
         {#if $larpMode$}
           {#if $wallets$.length}
@@ -219,6 +219,8 @@
               <div class="w-8">{@html info}</div>
               <span class="text-xs font-semibold">{$translate('app.labels.info')}</span>
             </button>
+          {:else}
+            <div />
           {/if}
         {:else}
           <button on:click={clearSession} class="flex flex-col items-center justify-center">
