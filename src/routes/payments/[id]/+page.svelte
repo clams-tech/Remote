@@ -29,6 +29,8 @@
   import walletIcon from '$lib/icons/wallet.js'
   import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
   import { onDestroy } from 'svelte'
+  import send from '$lib/icons/send.js'
+  import question from '$lib/icons/question.js'
 
   import {
     type EnhancedInput,
@@ -203,6 +205,47 @@
   $: enhancedInputs = (paymentDetails?.summary as RegularTransactionSummary).inputs
   $: enhancedOutputs = (paymentDetails?.summary as RegularTransactionSummary).outputs
   $: transactionChannels = (paymentDetails?.summary as ChannelTransactionSummary).channels
+
+  const getInputIcon = (type: EnhancedInput['type']): string => {
+    switch (type) {
+      case 'channel_close':
+      case 'timelocked':
+      case 'htlc_timeout':
+        return channelIcon
+      case 'spend':
+        return keys
+      case 'withdrawal':
+        return walletIcon
+      case 'unknown':
+        return question
+      default:
+        return ''
+    }
+  }
+
+  const getOutputIcon = (type: EnhancedOutput['type']): string => {
+    switch (type) {
+      case 'channel_open':
+      case 'timelocked':
+      case 'htlc_timeout':
+      case 'htlc_resolve':
+        return channelIcon
+      case 'receive':
+      case 'change':
+      case 'transfer':
+      case 'sweep':
+      case 'settle':
+        return keys
+      case 'deposit':
+        return walletIcon
+      case 'send':
+        return send
+      case 'unknown':
+        return question
+      default:
+        return ''
+    }
+  }
 </script>
 
 <svelte:head>
@@ -345,19 +388,9 @@
                   >
                     <div class="text-xs flex items-center">
                       <div class="mr-1 flex items-center">
-                        {#if type !== 'unknown'}
-                          <div class="w-4 mr-0.5 -ml-0.5">
-                            {@html type === 'channel_close' ||
-                            type === 'timelocked' ||
-                            type === 'htlc_timeout'
-                              ? channelIcon
-                              : type === 'spend'
-                              ? keys
-                              : type === 'withdrawal'
-                              ? walletIcon
-                              : ''}
-                          </div>
-                        {/if}
+                        <div class="w-4 mr-0.5 -ml-0.5">
+                          {@html getInputIcon(type)}
+                        </div>
                         {$translate(`app.labels.input_${type}`).toLowerCase()}:
                       </div>
                       <div class="font-semibold text-purple-100 uppercase flex items-center">
@@ -369,7 +402,9 @@
                               .first() then peerWallet}
                               {peerWallet?.label ||
                                 channel.peerAlias ||
-                                truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                                truncateValue(
+                                  channel.peerId || $translate('app.labels.input_unknown')
+                                )}
                             {/await}
                           {/if}
                         {:else if type === 'withdrawal'}
@@ -421,25 +456,9 @@
                   >
                     <div class="text-xs flex items-center">
                       <div class="mr-1 flex items-center">
-                        {#if type !== 'unknown' && type !== 'send'}
-                          <div class="w-4 mr-0.5 -ml-0.5">
-                            {@html type === 'channel_open' ||
-                            type === 'timelocked' ||
-                            type === 'htlc_timeout' ||
-                            type === 'htlc_resolve' ||
-                            (type === 'settle' && !output.utxo)
-                              ? channelIcon
-                              : type === 'receive' ||
-                                type === 'change' ||
-                                type === 'transfer' ||
-                                type === 'sweep' ||
-                                (type === 'settle' && output.utxo)
-                              ? keys
-                              : type === 'deposit'
-                              ? walletIcon
-                              : ''}
-                          </div>
-                        {/if}
+                        <div class="w-4 mr-0.5 -ml-0.5">
+                          {@html getOutputIcon(type)}
+                        </div>
 
                         {$translate(`app.labels.output_${type}`).toLowerCase()}:
                       </div>
@@ -464,7 +483,9 @@
                                 {wallet.label}
                               {:else}
                                 {channel.peerAlias ||
-                                  truncateValue(channel.peerId || $translate('app.labels.unknown'))}
+                                  truncateValue(
+                                    channel.peerId || $translate('app.labels.output_unknown')
+                                  )}
                               {/if}
                             {/await}
                           {/if}
@@ -481,7 +502,7 @@
                               {:else}
                                 {channel.peerAlias ||
                                   truncateValue(
-                                    channel.peerId || $translate('app.labels.unknown'),
+                                    channel.peerId || $translate('app.labels.output_unknown'),
                                     6
                                   )}
                               {/if}
