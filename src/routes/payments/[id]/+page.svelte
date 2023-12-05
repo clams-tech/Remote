@@ -387,11 +387,11 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1 flex items-center">
+                      <div class="mr-1 flex items-center lowercase">
                         <div class="w-4 mr-0.5 -ml-0.5">
                           {@html getInputIcon(type)}
                         </div>
-                        {$translate(`app.labels.input_${type}`).toLowerCase()}:
+                        {$translate(`app.labels.input_${type}`)}:
                       </div>
                       <div class="font-semibold text-purple-100 uppercase flex items-center">
                         {#if type === 'timelocked' || type === 'channel_close'}
@@ -402,9 +402,7 @@
                               .first() then peerWallet}
                               {peerWallet?.label ||
                                 channel.peerAlias ||
-                                truncateValue(
-                                  channel.peerId || $translate('app.labels.input_unknown')
-                                )}
+                                truncateValue(channel.peerId || '')}
                             {/await}
                           {/if}
                         {:else if type === 'withdrawal'}
@@ -455,12 +453,12 @@
                     }}
                   >
                     <div class="text-xs flex items-center">
-                      <div class="mr-1 flex items-center">
+                      <div class="mr-1 flex items-center lowercase">
                         <div class="w-4 mr-0.5 -ml-0.5">
                           {@html getOutputIcon(type)}
                         </div>
 
-                        {$translate(`app.labels.output_${type}`).toLowerCase()}:
+                        {$translate(`app.labels.output_${type}`)}:
                       </div>
                       <div class="font-semibold text-purple-100 uppercase flex items-center">
                         {#if type === 'receive' || type === 'change' || type === 'transfer' || type === 'sweep'}
@@ -482,10 +480,7 @@
                               {#if wallet}
                                 {wallet.label}
                               {:else}
-                                {channel.peerAlias ||
-                                  truncateValue(
-                                    channel.peerId || $translate('app.labels.output_unknown')
-                                  )}
+                                {channel.peerAlias || truncateValue(channel.peerId || '')}
                               {/if}
                             {/await}
                           {/if}
@@ -500,11 +495,7 @@
                               {#if peerWallet}
                                 {peerWallet.label}
                               {:else}
-                                {channel.peerAlias ||
-                                  truncateValue(
-                                    channel.peerId || $translate('app.labels.output_unknown'),
-                                    6
-                                  )}
+                                {channel.peerAlias || truncateValue(channel.peerId || '', 6)}
                               {/if}
                             {/await}
                           {/if}
