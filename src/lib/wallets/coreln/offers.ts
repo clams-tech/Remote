@@ -6,6 +6,7 @@ import handleError from './error.js'
 import { msatsToSats, satsToMsats } from '$lib/conversion.js'
 import Big from 'big.js'
 import { decodeBolt12 } from '$lib/invoices.js'
+import type { InvoicePayment } from '$lib/@types/payments.js'
 
 import type {
   CreatePayOfferOptions,
@@ -27,7 +28,6 @@ import type {
   PayResponse,
   SendInvoiceResponse
 } from './types.js'
-import type { InvoicePayment } from '$lib/@types/payments.js'
 
 class Offers implements OffersInterface {
   connection: CorelnConnectionInterface
@@ -49,7 +49,7 @@ class Offers implements OffersInterface {
       const formattedOffers = await Promise.all(
         offers.map(async offer => {
           const { offer_id, bolt12, active, single_use, used, label } = offer
-          const { description, denomination, amount, issuer } = await decodeBolt12(bolt12)
+          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(bolt12)
 
           const formatted: Offer = {
             id: offer_id,
@@ -63,7 +63,8 @@ class Offers implements OffersInterface {
             type: 'pay',
             denomination,
             amount,
-            issuer
+            issuer,
+            expiry
           }
 
           return formatted
@@ -73,7 +74,7 @@ class Offers implements OffersInterface {
       const formattedInvoiceRequests = await Promise.all(
         invoicerequests.map(async offer => {
           const { invreq_id, bolt12, active, single_use, used, label } = offer
-          const { description, denomination, amount, issuer } = await decodeBolt12(bolt12)
+          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(bolt12)
 
           const formatted: Offer = {
             id: invreq_id,
@@ -87,7 +88,8 @@ class Offers implements OffersInterface {
             type: 'withdraw',
             denomination,
             amount,
-            issuer
+            issuer,
+            expiry
           }
 
           return formatted
@@ -108,7 +110,6 @@ class Offers implements OffersInterface {
   async createPay(options: CreatePayOfferOptions): Promise<Offer> {
     try {
       const { amount, description, issuer, label, quantityMax, expiry, singleUse } = options
-
       const absoluteExpiry = expiry && nowSeconds() + expiry
 
       const result = await this.connection.rpc({
@@ -196,7 +197,7 @@ class Offers implements OffersInterface {
         singleUse: single_use,
         active,
         label,
-        expiry,
+        expiry: absoluteExpiry,
         issuer
       }
     } catch (error) {

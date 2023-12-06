@@ -105,18 +105,25 @@ export const getConnection = (wallet: Wallet): Connection => {
 export const connect = async (wallet: Wallet): Promise<Connection> => {
   const currentConnections = connections$.value
 
+  let connection: Connection
+
   // lookup if connection exists
-  let connection: Connection = currentConnections.find(
+  const currentConnection: Connection = currentConnections.find(
     conn => conn.walletId === wallet.id
   ) as Connection
 
   // if not create one
-  if (!connection) {
+  if (!currentConnection) {
     connection = getConnection(wallet)
-    connections$.next([...currentConnections, connection])
+  } else {
+    connection = currentConnection
   }
 
   connection.connect && (await connection.connect())
+
+  if (!currentConnection) {
+    connections$.next([...currentConnections, connection])
+  }
 
   if (connection.info.id) {
     await db.wallets.update(wallet.id, { nodeId: connection.info.id })
@@ -231,10 +238,8 @@ export const syncConnectionData = (
   const transactionsRequest = () => fetchTransactions(connection)
   requestQueue.push(transactionsRequest)
 
-  if (!lastSync) {
-    const invoicesRequest = () => fetchInvoices(connection)
-    requestQueue.push(invoicesRequest)
-  }
+  const invoicesRequest = () => fetchInvoices(connection)
+  requestQueue.push(invoicesRequest)
 
   const channelsRequest = () => fetchChannels(connection)
   requestQueue.push(channelsRequest)

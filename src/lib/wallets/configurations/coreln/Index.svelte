@@ -156,9 +156,9 @@
 <div class="w-full py-2">
   <div class="flex items-center w-full justify-between mb-3">
     <h4 class="text-lg font-bold">{$translate('app.labels.configuration')}</h4>
-    <!-- @TODO - Ensure docs links are up for connections help -->
+
     <a
-      href={`${DOCS_LINK}/wallets/coreln`}
+      href={`${DOCS_LINK}/connection`}
       target="_blank"
       rel="noopener noreferrer"
       class="flex items-center ml-2 text-sm text-purple-100"

@@ -56,6 +56,7 @@ class Invoices implements InvoicesInterface {
         this.connection.walletId,
         this.connection.info.network
       )
+
       return formatted
     } catch (error) {
       const context = 'get (payments)'
