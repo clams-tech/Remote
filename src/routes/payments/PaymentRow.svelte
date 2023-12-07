@@ -20,12 +20,23 @@
   const { amount } = payment.data as InvoicePayment['data']
   const icon = type === 'invoice' ? lightning : bitcoin
 
-  $: if (summary?.secondary) {
-    updateCounterPartyNodeInfo(summary.secondary).then(node => {
+  let fetchedNodeInfo = false
+
+  const getNodeInfo = async () => {
+    try {
+      fetchedNodeInfo = true
+      const node = await updateCounterPartyNodeInfo(summary!.secondary)
+
       if (node) {
         summary!.secondary = { type: 'node', value: node }
       }
-    })
+    } catch (err) {
+      console.log(`Error getting node info for node: ${summary?.secondary}`, err)
+    }
+  }
+
+  $: if (summary?.secondary && !fetchedNodeInfo) {
+    getNodeInfo()
   }
 </script>
 

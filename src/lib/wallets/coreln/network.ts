@@ -1,4 +1,5 @@
 import type { Node } from '$lib/@types/nodes.js'
+import { nowSeconds } from '$lib/utils.js'
 import type { NetworkInterface } from '../interfaces.js'
 import handleError from './error.js'
 
@@ -29,8 +30,8 @@ class Network implements NetworkInterface {
 
       if (!node) return null
 
-      const { last_timestamp, alias, color } = node as NodeFullResponse
-      return last_timestamp ? { id, alias, color, lastUpdated: last_timestamp } : null
+      const { alias, color } = node as NodeFullResponse
+      return { id, alias, color, lastUpdated: nowSeconds() }
     } catch (error) {
       const context = 'getNode (node)'
 
