@@ -94,7 +94,7 @@
   // reset edited filters and sorter when modal is closed
   $: if (showModal === false) {
     editedFilters = simpleDeepClone(filters)
-    editedFilters = simpleDeepClone(filters)
+    editedSorters = simpleDeepClone(sorters)
   }
 </script>
 
@@ -142,7 +142,7 @@
                   <input
                     type="radio"
                     class="w-3 h-3"
-                    bind:group={sorter.direction}
+                    bind:group={editedSorters.applied.direction}
                     value={direction}
                     name={`${direction}:${sorter.label}`}
                     id={`${direction}:${sorter.label}`}
