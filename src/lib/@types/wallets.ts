@@ -21,7 +21,7 @@ export type Wallet = {
   metadata?: Metadata
 }
 
-export type WalletConfiguration = CoreLnConfiguration | XPubConfiguration | MultiSigConfiguration
+export type WalletConfiguration = CoreLnConfiguration
 
 export type CoreLnConfiguration = {
   /** <publicKey>@<ip>:<port> */
@@ -35,17 +35,6 @@ export type CoreLnConfiguration = {
      */
     value: string
   }
-}
-
-export type XPubConfiguration = {
-  token: string
-  /** the derivation path to use to derive public keys */
-  derivationPath: string
-}
-
-export type MultiSigConfiguration = {
-  quorum: `${number}of${number}`
-  xpubs: Array<XPubConfiguration>
 }
 
 export type AutoConnectWalletOptions = {
