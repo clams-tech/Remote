@@ -403,8 +403,8 @@ const filter = (filters: Filter[], tags: TagFilters) => (item: unknown) => {
         values: { gt, lt }
       } = filter
 
-      if (gt && (valueToTest as number) <= gt.getTime() / 1000) return false
-      if (lt && (valueToTest as number) >= lt.getTime() / 1000) return false
+      if (gt && (valueToTest as number) <= new Date(gt).getTime() / 1000) return false
+      if (lt && (valueToTest as number) >= new Date(lt).getTime() / 1000) return false
     }
 
     return true
