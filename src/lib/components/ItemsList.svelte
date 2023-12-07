@@ -38,27 +38,31 @@
   let initialLoad = true
 
   const loadItems = async () => {
-    if (initialLoad) {
-      processing = true
-    }
+    try {
+      if (initialLoad) {
+        processing = true
+      }
 
-    const rawItems = (await getSortedFilteredItems({
-      filters,
-      tags,
-      sort: sorters.applied,
-      limit,
-      table: route
-    })) as Item[]
+      const rawItems = (await getSortedFilteredItems({
+        filters,
+        tags,
+        sort: sorters.applied,
+        limit,
+        table: route
+      })) as Item[]
 
-    if (dedupe) {
-      items = await dedupe(rawItems)
-    } else {
-      items = rawItems
-    }
+      if (dedupe) {
+        items = await dedupe(rawItems)
+      } else {
+        items = rawItems
+      }
 
-    if (initialLoad) {
-      processing = false
-      initialLoad = false
+      if (initialLoad) {
+        processing = false
+        initialLoad = false
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -152,7 +156,7 @@
   let virtualList: VirtualList
 
   $: fullHeight = items ? items.length * rowSize : 0
-  $: containerHeight = outerContainerHeight - headerContainerHeight
+  $: containerHeight = outerContainerHeight - headerContainerHeight - 32
   $: listHeight = containerHeight ? Math.min(containerHeight, fullHeight) : 0
 
   $: containerScrollable = processing
@@ -232,7 +236,9 @@
           />
         </div>
       {:else}
-        <div class="w-full flex flex-col justify-center items-center rounded h-full">
+        <div
+          class="w-full flex flex-col items-center justify-center max-h-full overflow-hidden relative rounded"
+        >
           <VirtualList
             bind:this={virtualList}
             on:afterScroll={e => handleScroll(e.detail.offset)}
@@ -242,14 +248,14 @@
             itemSize={rowSize}
             getKey={index => items[index].id}
           >
-            <div class="overflow-hidden" slot="item" let:index let:style {style}>
+            <div slot="item" let:index let:style {style}>
               {@const item = items[index]}
               <slot name="row" {item} />
             </div>
           </VirtualList>
 
           {#if gettingMoreItems}
-            <div class="absolute bottom-1 text-neutral-500">
+            <div class="absolute bottom-2 text-neutral-200 opacity-30">
               <Spinner size="1.5rem" />
             </div>
           {/if}
