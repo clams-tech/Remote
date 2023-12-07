@@ -13,6 +13,8 @@ import { log, notification } from '$lib/services.js'
 import { get } from 'svelte/store'
 import { translate } from '$lib/i18n/translations.js'
 import { createRandomHex, decryptWithAES } from '$lib/crypto.js'
+import { goto } from '$app/navigation'
+
 import {
   updateTableItems,
   getLastPaidInvoice,
@@ -21,13 +23,11 @@ import {
   updateInvoices,
   updateAddresses
 } from '$lib/db/helpers.js'
-import { goto } from '$app/navigation'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
 export const walletTypes = [
   'coreln'
-  // 'lnd',
   // 'xpub',
   // 'multisig',
   // 'webln',

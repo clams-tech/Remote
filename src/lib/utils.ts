@@ -254,11 +254,13 @@ export const getNodeInfo = async (options: {
   let node: Node | null = (await db.nodes.get(nodePubkey)) || null
 
   if ((getUpdated || !node) && connection) {
-    const update = await connection.network?.getNode(nodePubkey)
+    const updatedNode = await connection.network?.getNode(nodePubkey)
 
-    if (update) {
-      node = update
-      db.nodes.put(update)
+    if (updatedNode) {
+      node = updatedNode
+      await db.nodes.put(updatedNode)
+    } else {
+      await db.nodes.put({ id: nodePubkey, lastUpdated: nowSeconds() })
     }
   }
 
@@ -269,7 +271,10 @@ export const updateCounterPartyNodeInfo = async (
   counterParty: CounterPart
 ): Promise<Node | null> => {
   // if is node type and is more than a day old info, then get update
-  if (counterParty.type === 'node' && counterParty.value.lastUpdated + DAY_IN_SECS < nowSeconds()) {
+  if (
+    counterParty.type === 'node' &&
+    counterParty.value.lastUpdated + 10 * DAY_IN_SECS < nowSeconds()
+  ) {
     return getNodeInfo({ nodePubkey: counterParty.value.id, getUpdated: true })
   }
 

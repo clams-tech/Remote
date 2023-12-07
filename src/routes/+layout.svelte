@@ -29,6 +29,7 @@
   import info from '$lib/icons/info.js'
   import InfoModal from '$lib/components/InfoModal.svelte'
   import type { Session } from '$lib/@types/session.js'
+  import { validateWalletConfiguration } from '$lib/wallets/validation.js'
 
   import {
     autoConnectWallet$,
@@ -51,6 +52,12 @@
   const initializeConnections = async (wallets: Wallet[]) => {
     connections = await Promise.all(
       wallets.map(async wallet => {
+        try {
+          validateWalletConfiguration(wallet)
+        } catch (error) {
+          return { wallet, connection: null }
+        }
+
         let connection: Connection | null
         await db.wallets.update(wallet.id, { syncing: false })
 

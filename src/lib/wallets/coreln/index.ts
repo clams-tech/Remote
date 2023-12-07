@@ -11,7 +11,7 @@ import type { Session } from '$lib/@types/session.js'
 import { BehaviorSubject } from 'rxjs'
 import { Subject } from 'rxjs'
 import Forwards from './forwards.js'
-import { validateConfiguration } from './validation.js'
+import { validateCoreLnConfiguration } from './validation.js'
 import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
@@ -70,7 +70,7 @@ class CoreLightning implements CorelnConnectionInterface {
     session: Session,
     logger?: Logger
   ) {
-    validateConfiguration(configuration, walletId)
+    validateCoreLnConfiguration(configuration, walletId)
 
     const { address, connection, token } = configuration
     const { publicKey, port, ip } = parseNodeAddress(address)

@@ -7,6 +7,19 @@
   import { DateInput, localeFromDateFnsLocale } from 'date-picker-svelte'
 
   export let filters: Filter[]
+
+  // ensure date filters are Date type for the DateInput
+  filters.forEach(filter => {
+    if (filter.type === 'date-range') {
+      if (typeof filter.values.gt === 'string') {
+        filter.values.gt = new Date(filter.values.gt)
+      }
+
+      if (typeof filter.values.lt === 'string') {
+        filter.values.lt = new Date(filter.values.lt)
+      }
+    }
+  })
 </script>
 
 {#each filters as filter}

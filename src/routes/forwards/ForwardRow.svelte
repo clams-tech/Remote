@@ -15,7 +15,7 @@
 
   let formattedTimestamp: string
 
-  formatDate(forward.timestamp, 'do MMM hh:mma').then(result => (formattedTimestamp = result))
+  formatDate(forward.timestamp, 'do MMM yy hh:mma').then(result => (formattedTimestamp = result))
 
   const data$ = from(
     liveQuery(() =>
