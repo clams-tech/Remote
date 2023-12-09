@@ -115,20 +115,24 @@ onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
     case 'init': {
       const socket = new LnMessage(message.data.data)
-      sockets[message.data.socketId] = socket
+      const { socketId } = message.data
+      sockets[socketId] = socket
 
       socket.connectionStatus$.pipe(distinctUntilChanged()).subscribe(status => {
-        console.log('CONNECTION STATUS UPDATE:', status)
-        self.postMessage({ id: 'connectionStatus$', result: status })
+        self.postMessage({ id: 'connectionStatus$', result: status, socketId })
       })
 
       self.postMessage({ id: message.data.id })
       return
     }
     case 'connect': {
-      const socket = sockets[message.data.socketId]
-      const result = await socket.connect()
-      self.postMessage({ id: message.data.id, result })
+      try {
+        const socket = sockets[message.data.socketId]
+        const result = await socket.connect()
+        self.postMessage({ id: message.data.id, result })
+      } catch (error) {
+        console.error('Socket connection error:', error)
+      }
       return
     }
     case 'disconnect': {

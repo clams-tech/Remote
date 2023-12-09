@@ -103,12 +103,10 @@ export const getConnection = (wallet: Wallet): Connection => {
 }
 
 export const connect = async (wallet: Wallet): Promise<Connection> => {
-  const currentConnections = connections$.value
-
   let connection: Connection
 
   // lookup if connection exists
-  const currentConnection: Connection = currentConnections.find(
+  const currentConnection: Connection = connections$.value.find(
     conn => conn.walletId === wallet.id
   ) as Connection
 
@@ -122,7 +120,7 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   connection.connect && (await connection.connect())
 
   if (!currentConnection) {
-    connections$.next([...currentConnections, connection])
+    connections$.next([...connections$.value, connection])
   }
 
   if (connection.info.id) {
