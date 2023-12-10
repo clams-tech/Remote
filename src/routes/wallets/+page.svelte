@@ -10,6 +10,8 @@
   import WalletRow from './WalletRow.svelte'
   import { getWalletBalance } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
+  import { connections$, onDestroy$ } from '$lib/streams.js'
+  import { takeUntil } from 'rxjs'
 
   const route = 'wallets'
   const rowSize = 82
@@ -31,6 +33,8 @@
     text: $translate('app.labels.add'),
     icon: plus
   }
+
+  connections$.pipe(takeUntil(onDestroy$)).subscribe(connections => connections.forEach(sync))
 
   $: totalBalance = Object.values(balances).reduce((total, balance) => total + balance, 0)
 </script>
