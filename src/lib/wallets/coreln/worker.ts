@@ -40,7 +40,9 @@ export const createSocket = async (
 
   messages$
     .pipe(
-      filter(message => message.data.id === 'connectionStatus$'),
+      filter(
+        message => message.data.id === 'connectionStatus$' && message.data.socketId === socketId
+      ),
       map(({ data }) => data.result)
     )
     .subscribe(status => connectionStatusUpdates$.next(status as ConnectionStatus))
