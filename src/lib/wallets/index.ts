@@ -117,11 +117,11 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
     connection = currentConnection
   }
 
-  connection.connect && (await connection.connect())
-
   if (!currentConnection) {
     connections$.next([...connections$.value, connection])
   }
+
+  connection.connect && (await connection.connect())
 
   if (connection.info.id) {
     await db.wallets.update(wallet.id, { nodeId: connection.info.id })

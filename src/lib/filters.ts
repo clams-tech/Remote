@@ -251,8 +251,8 @@ const forwardStatusFilter = (): Filter => ({
 })
 
 const walletTypeFilter = (): Filter => ({
-  label: get(translate)('app.labels.status'),
-  key: 'status',
+  label: get(translate)('app.labels.type'),
+  key: 'type',
   type: 'one-of',
   values: walletTypes.map(type => ({
     label: get(translate)(`app.labels.${type}`),
@@ -326,7 +326,7 @@ export const routeFilters = (route: string): Filter[] => {
     case 'forwards':
       return [forwardStatusFilter(), walletFilter(), feeFilter(), timestampFilter()]
     case 'wallets':
-      return [walletFilter(), walletTypeFilter(), timestampFilter('createdAt', 'created_at')]
+      return [walletTypeFilter()]
     default:
       throw new Error(`Unknown route: ${route}`)
   }

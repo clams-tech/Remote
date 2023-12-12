@@ -36,8 +36,6 @@ export const createSocket = async (
   const initProm = firstValueFrom(messages$.pipe(filter(message => message.data.id === initId)))
   coreLnWorker.postMessage({ id: initId, type: 'init', data: connectionOptions, socketId })
 
-  await initProm
-
   messages$
     .pipe(
       filter(
@@ -46,6 +44,8 @@ export const createSocket = async (
       map(({ data }) => data.result)
     )
     .subscribe(status => connectionStatusUpdates$.next(status as ConnectionStatus))
+
+  await initProm
 
   const socket = {
     id: socketId,

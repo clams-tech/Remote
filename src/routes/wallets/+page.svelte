@@ -11,7 +11,7 @@
   import { getWalletBalance } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import { connections$, onDestroy$ } from '$lib/streams.js'
-  import { takeUntil } from 'rxjs'
+  import { filter, firstValueFrom, map, merge, switchMap, takeUntil } from 'rxjs'
 
   const route = 'wallets'
   const rowSize = 82
@@ -23,7 +23,7 @@
 
   const sync = async (connection: Connection) => {
     const { walletId } = connection
-    const balance = await getWalletBalance(walletId)
+    const balance = await firstValueFrom(getWalletBalance(walletId))
 
     balances = { ...balances, [walletId]: balance }
   }
@@ -34,7 +34,23 @@
     icon: plus
   }
 
-  connections$.pipe(takeUntil(onDestroy$)).subscribe(connections => connections.forEach(sync))
+  connections$
+    .pipe(
+      takeUntil(onDestroy$),
+      filter(connections => !!connections.length),
+      switchMap(connections =>
+        merge(
+          ...connections.map(connection =>
+            getWalletBalance(connection.walletId).pipe(
+              map(balance => ({ [connection.walletId]: balance }))
+            )
+          )
+        )
+      )
+    )
+    .subscribe(balanceUpdate => {
+      balances = { ...balances, ...balanceUpdate }
+    })
 
   $: totalBalance = Object.values(balances).reduce((total, balance) => total + balance, 0)
 </script>

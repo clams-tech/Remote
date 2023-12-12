@@ -409,6 +409,7 @@
     "summary_amount_withdrawal": "{{status; pending:Withdrawing; waiting:Withdrawing; complete:Withdrew; failed:Attempted;}}",
     "summary_amount_deposit": "{{status; pending:Depositing; waiting:Depositing; complete:Deposited; failed:Attempted;}}",
     "summary_amount_sweep": "{{status; pending:Sweeping; waiting:Sweeping; complete:Swept; failed:Attempted;}}",
+    "summary_amount_htlc": "{{status; pending:Resolving; waiting:Resolving; complete:Resolved; failed:Attempted;}}",
     "lost_to_rounding": "Lost to rounding",
     "closed": "Closed",
     "force_closed": "Force closed",

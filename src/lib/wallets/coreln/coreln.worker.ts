@@ -123,6 +123,7 @@ onmessage = async (message: MessageEvent<Message>) => {
       })
 
       self.postMessage({ id: message.data.id })
+
       return
     }
     case 'connect': {

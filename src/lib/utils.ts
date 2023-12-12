@@ -11,6 +11,8 @@ import { nodePublicKeyRegex } from '$lib/address.js'
 import { DAY_IN_SECS } from '$lib/constants.js'
 import { connections$ } from '$lib/streams.js'
 import type { CounterPart } from '$lib/summary.js'
+import { combineLatest, filter, from, map, type Observable } from 'rxjs'
+import { liveQuery } from 'dexie'
 
 /** return unix timestamp in seconds for now  */
 export function nowSeconds() {
@@ -125,30 +127,36 @@ export const getNetwork = (str: string): Network => {
   return 'bitcoin'
 }
 
-export const getWalletBalance = async (walletId: string): Promise<number> => {
-  const channels = await db.channels.where({ walletId }).toArray()
-  const channelsBalance = channels.reduce((total, channel) => {
-    const { balanceLocal, status } = channel
+export const getWalletBalance = (walletId: string): Observable<number> => {
+  const channels$ = from(liveQuery(() => db.channels.where({ walletId }).toArray()))
+  const utxos$ = from(liveQuery(() => db.utxos.where({ walletId }).toArray()))
 
-    if (status === 'active' || status === 'opening') {
-      total += balanceLocal
-    }
+  return combineLatest([channels$, utxos$]).pipe(
+    filter(([channels, utxos]) => !!(channels && utxos)),
+    map(([channels, utxos]) => {
+      const channelsBalance = channels.reduce((total, channel) => {
+        const { balanceLocal, status } = channel
 
-    return total
-  }, 0)
+        if (status === 'active' || status === 'opening') {
+          total += balanceLocal
+        }
 
-  const utxos = await db.utxos.where('walletId').equals(walletId).toArray()
-  const utxosBalance = utxos.reduce((total, utxo) => {
-    const { status, amount } = utxo
+        return total
+      }, 0)
 
-    if (status !== 'spent' && status !== 'spent_unconfirmed') {
-      total += amount
-    }
+      const utxosBalance = utxos.reduce((total, utxo) => {
+        const { status, amount } = utxo
 
-    return total
-  }, 0)
+        if (status !== 'spent' && status !== 'spent_unconfirmed') {
+          total += amount
+        }
 
-  return channelsBalance + utxosBalance
+        return total
+      }, 0)
+
+      return channelsBalance + utxosBalance
+    })
+  )
 }
 
 export const mergeDefaultWithSavedFilters = (defaults: Filter[], saved: Filter[] | null) => {

@@ -63,11 +63,11 @@
 
   let walletBalance: number | null = null
 
-  const updateBalance = async () => {
-    walletBalance = await getWalletBalance(id)
-  }
-
-  updateBalance()
+  getWalletBalance(id)
+    .pipe(takeUntil(onDestroy$))
+    .subscribe(balance => {
+      walletBalance = balance
+    })
 
   $: connection = $connections$.find(conn => conn.walletId === id)
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
@@ -87,7 +87,7 @@
       .pipe(take(1))
       .subscribe(details => {
         if (!details) {
-          goto('/wallets')
+          goto('/')
         }
       })
   })
@@ -172,7 +172,6 @@
       .subscribe({
         complete: () => {
           setTimeout(() => (syncProgress$ = null), 250)
-          updateBalance()
         }
       })
   }

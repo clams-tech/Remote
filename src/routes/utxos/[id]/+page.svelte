@@ -164,7 +164,7 @@
             <div slot="label">{$translate('app.labels.spend_transaction')}</div>
             <a
               class="no-underline flex items-center"
-              href={`/payments/${spendingTxid}`}
+              href={`/payments/${spendingTxid}?wallet=${walletId}`}
               slot="value"
               >{truncateValue(spendingTxid)}
               <div class="-rotate-90 w-6 ml-1">{@html caret}</div>

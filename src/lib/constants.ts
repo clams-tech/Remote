@@ -1,7 +1,5 @@
 import { FiatDenomination, type Language, type Settings, type Tile } from './@types/settings.js'
 import channels from '$lib/icons/channels.js'
-// import graph from '$lib/icons/graph.js'
-// import trade from '$lib/icons/trade.js'
 import keys from '$lib/icons/keys.js'
 import lightningOutline from '$lib/icons/lightning-outline.js'
 import list from '$lib/icons/list.js'
@@ -139,7 +137,8 @@ export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {
     forwards: `clams:filters:forwards:${STORAGE_VERSION}`,
     channels: `clams:filters:channels:${STORAGE_VERSION}`,
     offers: `clams:filters:offers:${STORAGE_VERSION}`,
-    utxos: `clams:filters:utxos:${STORAGE_VERSION}`
+    utxos: `clams:filters:utxos:${STORAGE_VERSION}`,
+    wallets: `clams:filters:wallets:${STORAGE_VERSION}`
   },
   // saved sorter
   sorter: {
@@ -147,7 +146,8 @@ export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {
     forwards: `clams:sorter:forwards:${STORAGE_VERSION}`,
     channels: `clams:sorter:channels:${STORAGE_VERSION}`,
     offers: `clams:sorter:offers:${STORAGE_VERSION}`,
-    utxos: `clams:sorter:utxos:${STORAGE_VERSION}`
+    utxos: `clams:sorter:utxos:${STORAGE_VERSION}`,
+    wallets: `clams:sorter:wallets:${STORAGE_VERSION}`
   },
   // saved tag filters
   tags: {
@@ -155,7 +155,8 @@ export const FILTER_STORAGE_KEYS: Record<string, Record<string, string>> = {
     forwards: `clams:tags:forwards:${STORAGE_VERSION}`,
     channels: `clams:tags:channels:${STORAGE_VERSION}`,
     offers: `clams:tags:offers:${STORAGE_VERSION}`,
-    utxos: `clams:tags:utxos:${STORAGE_VERSION}`
+    utxos: `clams:tags:utxos:${STORAGE_VERSION}`,
+    wallets: `clams:tags:wallets:${STORAGE_VERSION}`
   }
 }
 

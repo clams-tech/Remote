@@ -81,12 +81,9 @@
       table: route
     })) as Item[]
 
-    if (dedupe) {
-      moreItems = await dedupe(moreItems)
-    }
-
     if (moreItems.length) {
-      items = [...items, ...moreItems]
+      const newItems = [...items, ...moreItems]
+      items = dedupe ? await dedupe(newItems) : newItems
     } else {
       noMoreItems = true
     }

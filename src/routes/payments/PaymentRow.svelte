@@ -17,7 +17,6 @@
   getPaymentSummary(payment).then(sum => (summary = sum))
 
   const { type, network, id, walletId, status } = payment
-  const { amount } = payment.data as InvoicePayment['data']
   const icon = type === 'invoice' ? lightning : bitcoin
 
   let fetchedNodeInfo = false
@@ -63,11 +62,11 @@
 
   <div class="flex items-center ml-2">
     <div>
-      {#if summary && amount && status !== 'expired'}
+      {#if summary && summary.amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
           {$translate(`app.labels.summary_amount_${summary.type}`, { status })}:
         </div>
-        <BitcoinAmount sats={amount} />
+        <BitcoinAmount sats={summary.amount} />
       {/if}
 
       <div

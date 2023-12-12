@@ -6,13 +6,14 @@ import type { Wallet } from './@types/wallets.js'
 import type { Withdrawal } from './@types/withdrawals.js'
 import type { Contact } from './@types/contacts.js'
 import type { Node } from './@types/nodes.js'
+import type { Metadata } from './@types/metadata.js'
+
 import type {
   AddressPayment,
   InvoicePayment,
   Payment,
   TransactionPayment
 } from './@types/payments.js'
-import type { Metadata } from './@types/metadata.js'
 
 export type CounterPart =
   | { type: 'wallet'; value: Wallet }
@@ -27,6 +28,7 @@ export type SummaryCommon = {
   secondary: CounterPart
   category: 'expense' | 'income' | 'neutral'
   fee: number
+  amount?: number
 }
 
 export type ChannelTransactionSummary = SummaryCommon & {
@@ -46,19 +48,16 @@ export type RegularTransactionSummary = SummaryCommon & {
   type: 'send' | 'receive' | 'transfer' | 'withdrawal' | 'deposit' | 'sweep' | 'htlc'
   inputs: EnhancedInput[]
   outputs: EnhancedOutput[]
-  amount: number
 }
 
 export type TransactionSummary = ChannelTransactionSummary | RegularTransactionSummary
 
 export type InvoiceSummary = SummaryCommon & {
   type: 'receive' | 'send' | 'transfer'
-  amount: number
 }
 
 export type AddressSummary = SummaryCommon & {
   type: 'receive'
-  amount: number
 }
 
 export type PaymentSummary = TransactionSummary | InvoiceSummary | AddressSummary
@@ -463,16 +462,22 @@ export const deriveTransactionSummary = ({
 
       if (htlcResolve) {
         const ownerWallet = (await db.wallets.get(walletId)) as Wallet
+
         const closedChannel = (await db.channels
           .where({ walletId, id: transactionChannel?.id })
           .first()) as Channel
 
+        const channelPartnerWallet =
+          closedChannel.peerId && (await db.wallets.where({ nodeId: closedChannel.peerId }).first())
+
         const htlcResolveSummary: RegularTransactionSummary = {
           primary: { type: 'wallet', value: ownerWallet },
-          secondary: {
-            type: 'channel_peer',
-            value: closedChannel.peerAlias || closedChannel.peerId
-          },
+          secondary: channelPartnerWallet
+            ? { type: 'wallet', value: channelPartnerWallet }
+            : {
+                type: 'channel_peer',
+                value: closedChannel.peerAlias || closedChannel.peerId
+              },
           category: 'expense',
           timestamp,
           fee: fee || 0,
@@ -497,6 +502,8 @@ export const deriveTransactionSummary = ({
           primary:
             channel.closer === 'local'
               ? { type: 'wallet', value: channelWallet }
+              : channelPartnerWallet
+              ? { type: 'wallet', value: channelPartnerWallet }
               : { type: 'channel_peer', value: channel.peerAlias || channel.peerId },
           secondary:
             channel.closer === 'local'
@@ -572,6 +579,9 @@ export const deriveTransactionSummary = ({
         const transactionWallet = (await db.wallets.get(walletId)) as Wallet
         const channel = (await db.channels.where({ id, walletId }).first()) as Channel
 
+        const channelPartnerWallet =
+          channel.peerId && (await db.wallets.where({ nodeId: channel.peerId }).first())
+
         const unknownChannelSummary: ChannelTransactionSummary = {
           timestamp,
           fee: fee || 0,
@@ -584,7 +594,9 @@ export const deriveTransactionSummary = ({
               : 'channel_open',
           channels: channel ? [channel] : [],
           primary: { type: 'wallet', value: transactionWallet },
-          secondary: { type: 'channel_peer', value: channel?.peerAlias || channel?.peerId },
+          secondary: channelPartnerWallet
+            ? { type: 'wallet', value: channelPartnerWallet }
+            : { type: 'channel_peer', value: channel?.peerAlias || channel?.peerId },
           inputs: enhancedInputs,
           outputs: enhancedOutputs
         }
@@ -673,13 +685,14 @@ export const deriveTransactionSummary = ({
         return transferSummary
       }
 
-      const sendOutput = enhancedOutputs.find(({ type }) => type === 'send')
+      const sendOutputs = enhancedOutputs.filter(({ type }) => type === 'send')
 
-      if (sendOutput) {
+      if (sendOutputs.length) {
         const sourceInput = enhancedInputs.find(({ type }) => type === 'spend') as SpendInput
         const sourceWallet = (await db.wallets.get(sourceInput.utxo.walletId)) as Wallet
-        const destinationAddress = sendOutput.address
-        const destinationMetadata = sendOutput.metadata
+        const destinationAddress = sendOutputs[0].address
+        const destinationMetadata = sendOutputs[0].metadata
+        const sendTotal = sendOutputs.reduce((total, { amount }) => total + amount, 0)
 
         const destinationContact = destinationMetadata?.contact
           ? await db.contacts.get(destinationMetadata.contact)
@@ -688,9 +701,9 @@ export const deriveTransactionSummary = ({
         const sendSummary: RegularTransactionSummary = {
           timestamp,
           fee: fee || 0,
-          category: fee ? 'expense' : 'neutral',
+          category: 'expense',
           type: 'send',
-          amount: sendOutput.amount,
+          amount: sendTotal,
           primary: { type: 'wallet', value: sourceWallet },
           secondary: destinationContact
             ? { type: 'contact', value: destinationContact }
@@ -702,13 +715,14 @@ export const deriveTransactionSummary = ({
         return sendSummary
       }
 
-      const sweepOutput = enhancedOutputs.find(({ type }) => type === 'sweep') as
-        | SweepOutput
-        | undefined
+      const sweepOutputs = enhancedOutputs.filter(({ type }) => type === 'sweep') as SweepOutput[]
 
-      if (sweepOutput) {
+      if (sweepOutputs.length) {
+        const [sweepOutput] = sweepOutputs
         const { channel } = sweepOutput
         const wallet = (await db.wallets.get(sweepOutput.utxo.walletId)) as Wallet
+        const sweepsTotal = sweepOutputs.reduce((total, { amount }) => total + amount, 0)
+
         const peerWallet =
           channel.peerId && (await db.wallets.where({ nodeId: channel.peerId }).first())
 
@@ -717,7 +731,7 @@ export const deriveTransactionSummary = ({
           fee: fee || 0,
           category: fee ? 'expense' : 'neutral',
           type: 'sweep',
-          amount: sweepOutput.amount,
+          amount: sweepsTotal,
           primary: { type: 'wallet', value: wallet },
           secondary: peerWallet
             ? { type: 'wallet', value: peerWallet }
@@ -738,7 +752,10 @@ export const deriveTransactionSummary = ({
         const walletReceiveOutput = receiveOutputs.find(
           ({ utxo }) => utxo.walletId === walletId
         ) as UtxoOutput
+
         const receiveWallet = (await db.wallets.get(walletReceiveOutput.utxo.walletId)) as Wallet
+
+        const receivedTotal = receiveOutputs.reduce((total, { amount }) => total + amount, 0)
 
         const inputContacts = enhancedInputs
           .map(({ metadata }) => metadata?.contact)
@@ -750,22 +767,30 @@ export const deriveTransactionSummary = ({
           sourceContact = await db.contacts.get(inputContacts[0])
         }
 
-        const timelockedInput = enhancedInputs.find(
+        const timelockedInputs = enhancedInputs.filter(
           ({ type }) => type === 'timelocked'
-        ) as TimelockedInput
+        ) as TimelockedInput[]
 
-        if (timelockedInput) {
+        if (timelockedInputs.length) {
+          const [timelockedInput] = timelockedInputs
+
+          const peerWallet =
+            timelockedInput.channel.peerId &&
+            (await db.wallets.where({ nodeId: timelockedInput.channel.peerId }).first())
+
           const resolvedSummary: RegularTransactionSummary = {
             timestamp,
             fee: fee || 0,
             category: 'expense',
             type: 'htlc',
-            amount: walletReceiveOutput.amount,
+            amount: receivedTotal,
             primary: { type: 'wallet', value: receiveWallet },
-            secondary: {
-              type: 'channel_peer',
-              value: timelockedInput.channel.peerAlias || timelockedInput.channel.peerId
-            },
+            secondary: peerWallet
+              ? { type: 'wallet', value: peerWallet }
+              : {
+                  type: 'channel_peer',
+                  value: timelockedInput.channel.peerAlias || timelockedInput.channel.peerId
+                },
             inputs: enhancedInputs,
             outputs: enhancedOutputs
           }
@@ -778,7 +803,7 @@ export const deriveTransactionSummary = ({
           fee: 0,
           category: 'income',
           type: 'receive',
-          amount: walletReceiveOutput.amount,
+          amount: receivedTotal,
           primary: { type: 'wallet', value: receiveWallet },
           secondary: sourceContact
             ? { type: 'contact', value: sourceContact }
