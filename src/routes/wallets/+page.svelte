@@ -11,7 +11,8 @@
   import { getWalletBalance } from '$lib/utils.js'
   import { slide } from 'svelte/transition'
   import { connections$, onDestroy$ } from '$lib/streams.js'
-  import { filter, firstValueFrom, map, merge, switchMap, takeUntil } from 'rxjs'
+  import { filter, map, merge, switchMap, takeUntil } from 'rxjs'
+  import { fetchChannels, fetchUtxos } from '$lib/wallets/index.js'
 
   const route = 'wallets'
   const rowSize = 82
@@ -22,10 +23,7 @@
   let balances: Record<Connection['walletId'], number> = {}
 
   const sync = async (connection: Connection) => {
-    const { walletId } = connection
-    const balance = await firstValueFrom(getWalletBalance(walletId))
-
-    balances = { ...balances, [walletId]: balance }
+    await Promise.all([fetchUtxos(connection), fetchChannels(connection)])
   }
 
   const button = {

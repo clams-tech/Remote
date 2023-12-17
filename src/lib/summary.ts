@@ -36,7 +36,7 @@ export type ChannelTransactionSummary = SummaryCommon & {
     | 'channel_open'
     | 'channel_close'
     | 'channel_force_close'
-    | 'channel_mutiple_open'
+    | 'channel_multiple_open'
     | 'channel_htlc_timeout'
     | 'channel_htlc_tx'
   channels: Channel[]
@@ -562,7 +562,7 @@ export const deriveTransactionSummary = ({
           timestamp,
           fee: fee || 0,
           category: weOpened && fee ? 'expense' : 'neutral',
-          type: channelOpens.length > 1 ? 'channel_mutiple_open' : 'channel_open',
+          type: channelOpens.length > 1 ? 'channel_multiple_open' : 'channel_open',
           channels,
           primary,
           secondary,

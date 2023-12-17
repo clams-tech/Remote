@@ -53,7 +53,7 @@
           {secondary.value.alias || truncateValue(secondary.value.id)}
         {:else if secondary.type === 'channel_peer'}
           {secondary.value
-            ? truncateValue(secondary.value, 6, type === 'channel_mutiple_open' ? 'end' : 'center')
+            ? truncateValue(secondary.value, 6, type === 'channel_multiple_open' ? 'end' : 'center')
             : $translate('app.labels.unknown')}
         {:else if secondary.type === 'unknown'}
           {secondary.value ? truncateValue(secondary.value, 6) : $translate('app.labels.unknown')}

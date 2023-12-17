@@ -113,10 +113,11 @@ class CoreLightning implements CorelnConnectionInterface {
 
       if (connected) {
         try {
-          const { id, alias, color, version, address, network } = (await this.rpc({
+          const result = (await this.rpc({
             method: 'getinfo'
           })) as GetinfoResponse
 
+          const { id, alias, color, version, address, network } = result
           const { address: host, port: connectionPort } = address[0] || { address: ip, port }
 
           this.info = { id, host, port: connectionPort, alias, color, version, network }

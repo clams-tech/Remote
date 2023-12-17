@@ -29,7 +29,7 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'qr-process': {
       const { qr } = data
       const qrData = jsQR(qr.data, qr.width, qr.height)
-      requestAnimationFrame(() => self.postMessage({ id, result: qrData?.data }))
+      self.postMessage({ id, result: qrData?.data })
       return
     }
   }
