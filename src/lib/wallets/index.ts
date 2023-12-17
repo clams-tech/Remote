@@ -112,7 +112,6 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
 
   // if not create one
   if (!currentConnection) {
-    console.log('getting connection:', wallet.label)
     connection = getConnection(wallet)
   } else {
     connection = currentConnection
@@ -123,7 +122,6 @@ export const connect = async (wallet: Wallet): Promise<Connection> => {
   }
 
   connection.connect && (await connection.connect())
-  console.log('successfully connected:', wallet.label)
 
   if (connection.info.id) {
     await db.wallets.update(wallet.id, { nodeId: connection.info.id })
