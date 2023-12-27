@@ -86,11 +86,11 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 export const SUPPORTED_LANGUAGES = ['en', 'en-AU', 'en-GB', 'en-US']
-export const DOCS_LINK = 'https://docs.clams.tech'
+export const DOCS_LINK = 'https://docs.clams.tech/remote'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
 export const DISCORD_LINK = 'https://discord.gg/eWfHuJZVaB'
-export const TRANSLATE_LINK = 'https://github.com/clams-tech/browser-app#contributing'
+export const TRANSLATE_LINK = 'https://github.com/clams-tech/remote#contributing'
 
 export const LARP_MODE_PASSPHRASE = 'larp'
 

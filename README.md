@@ -1,18 +1,16 @@
-# Clams
+# Remote
 
-Clams is a FOSS Progressive Web App (PWA) and native desktop app for unifying your Bitcoin data. Connect multiple wallets, automatically sync your data all in the one app.
+Remote control your Core Lightning node(s) via the lightning network from any web enabled device.
 
-- [App](https://app.clams.tech)
-- [Documentation](https://docs.clams.tech)
+- [App](https://remote.clams.tech)
+- [Documentation](https://docs.clams.tech/remote)
 - [Discord](https://discord.gg/eWfHuJZVaB)
 - [Contributing](#contributing)
 - [Running Locally](#running-locally)
 
-![screenshots](./assets/screenshots.png)
-
 ## Contributing
 
-This project is open source and contributions are welcome and encouraged! We are working towards having an open roadmap with a list of features we plan on implementing so that anyone who wants to help can pick a feature from the list. In the meantime if you find any bugs or want to implement a feature, try jumping in to our [Discord](https://discord.gg/eWfHuJZVaB) to discuss or create an [issue](https://github.com/clams-tech/app/issues) on the repo.
+This project is open source and contributions are welcome and encouraged! If you find any bugs, creating an issue for it is super helpful. If you would like to contribute some code and or implement a feature, try jumping in to our [Discord](https://discord.gg/eWfHuJZVaB) to discuss or create an [issue](https://github.com/clams-tech/app/issues) on the repo.
 
 ### i18n
 

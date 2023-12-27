@@ -200,7 +200,7 @@
 >
   <Section>
     <div bind:clientHeight={headerContainerHeight}>
-      <div class="w-full flex items-center justify-between mb-2">
+      <div class="w-full flex items-center justify-between">
         <SectionHeading icon={list} />
         <div class="flex items-center gap-x-2">
           <SyncRouteData sync={syncItems} />

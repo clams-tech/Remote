@@ -129,9 +129,9 @@
 </svelte:head>
 
 <Section>
-  <div class="flex items-center gap-x-4">
+  <div class="flex items-center justify-between gap-x-4">
     <SectionHeading icon={settingsOutline} />
-    <div class="text-sm font-semibold">{$translate('app.labels.clams')} v{version}</div>
+    <div class="text-sm font-semibold">{$translate('app.labels.remote')} v{version}</div>
   </div>
 
   <div class="h-full overflow-auto">

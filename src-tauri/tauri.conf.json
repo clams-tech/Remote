@@ -7,7 +7,7 @@
     "distDir": "../build"
   },
   "package": {
-    "productName": "Clams",
+    "productName": "Clams Remote",
     "version": "2.0.0"
   },
   "tauri": {
@@ -63,7 +63,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "clams.tech",
+      "identifier": "remote.clams.tech",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -92,7 +92,7 @@
         "fullscreen": false,
         "height": 875,
         "resizable": true,
-        "title": "Clams",
+        "title": "Clams Remote",
         "width": 945,
         "minHeight": 875,
         "minWidth": 500

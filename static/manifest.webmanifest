@@ -1,9 +1,9 @@
 {
-	"short_name": "Clams",
-	"name": "Clams",
+	"short_name": "Remote",
+	"name": "Clams Remote",
 	"start_url": "/",
 	"display": "standalone",
-  "description": "Unified Bitcoin management.",
+  "description": "Remote control your Core Lightning node(s)",
   "icons": [
     {
       "src": "/icons/android-chrome-192x192.png",
@@ -27,17 +27,17 @@
   "background_color": "#171717",
   "protocol_handlers": [
     {
-      "name": "Clams",
+      "name": "Remote",
       "protocol": "bitcoin",
       "url": "/input?value=%s"
     },
     {
-      "name": "Clams",
+      "name": "Remote",
       "protocol": "web+lightning",
       "url": "/input?value=%s"
     },
     {
-      "name": "Clams",
+      "name": "Remote",
       "protocol": "web+lnurl",
       "url": "/input?value=%s"
     }

@@ -46,7 +46,7 @@ class DB extends Dexie {
       offers:
         '&id, walletId, bolt12, amount, nodeId, description, type, issuer, [description+type+issuer], *metadata.tags, metadata.contact',
       payments:
-        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, [type+status], [direction+data.amount]',
+        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, [type+status], [direction+data.amount], [data.direction+data.amount]',
       tags: '&id, label',
       trades:
         '&id, walletId, side, fee, amount, price, timestamp, fiatDenomination, *metadata.tags, metadata.contact',
@@ -54,11 +54,6 @@ class DB extends Dexie {
       wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
       withdrawals:
         '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
-    })
-
-    this.version(2).stores({
-      payments:
-        '&[id+walletId], timestamp, status, direction, data.channel.type, [data.channel.id+walletId], data.offer.id, network, [walletId+type], data.payIndex, *metadata.tags, metadata.contact, data.fallbackAddress, data.amount, data.fee, [type+status], [direction+data.amount], [data.direction+data.amount]'
     })
   }
 }
