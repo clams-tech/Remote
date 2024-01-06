@@ -1,4 +1,6 @@
-# Remote
+# Clams Remote
+
+![Remote](./static/icons/clams-remote.svg 'Remote')
 
 Remote control your Core Lightning node(s) via the lightning network from any web enabled device.
 
