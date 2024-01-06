@@ -39,7 +39,7 @@
     },
     "/wallets": {
       "title": "Wallets",
-      "introduction": "Connect a new <b>wallet</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> wallet connection will allow you to <b>control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
+      "introduction": "Connect a new <b>wallet</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> wallet connection will allow you to <b>remote control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
       "add_wallet": "Add Wallet",
       "delete_wallet_modal": {
         "heading": "Delete Wallet",
@@ -100,7 +100,7 @@
     },
     "/welcome": {
       "title": "Welcome",
-      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>, your unified <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> app. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
+      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams Remote</b>. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
       "passphrase": {
         "weak": "weak 😬",
         "medium": "medium 🤞",
@@ -109,7 +109,7 @@
     },
     "/decrypt": {
       "title": "Decrypt",
-      "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b> session, please enter your passphrase."
+      "subheading": "<b>Welcome</b> back! To <b>decrypt</b> your <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b> session, please enter your passphrase."
     }
   },
   "labels": {
@@ -131,7 +131,7 @@
     "pubkey": "Pubkey",
     "delete": "Delete",
     "locked": "Locked",
-    "clams_rune_cli": "Clams rune",
+    "clams_rune_cli": "Remote rune",
     "admin_rune_cli": "Admin rune",
     "readonly_rune_cli": "Read only rune",
     "rune_commands": "Rune CLI commands",

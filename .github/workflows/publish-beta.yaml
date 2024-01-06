@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - v2
+      - main
 
 jobs:
   publish-tauri:
@@ -34,8 +34,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: clams-__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: 'Clams App v__VERSION__'
+          tagName: remote-__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+          releaseName: 'Clams Remote v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false

@@ -31,7 +31,7 @@ class DB extends Dexie {
   withdrawals!: Table<Withdrawal>
 
   constructor() {
-    super('Clams')
+    super('Clams Remote')
 
     this.version(1).stores({
       channels:
