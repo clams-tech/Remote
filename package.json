@@ -39,7 +39,7 @@
     "eslint-plugin-svelte": "^2.30.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "fake-indexeddb": "^4.0.2",
-    "postcss": "^8.4.24",
+    "postcss": "^8.4.31",
     "prettier": "^2.8.0",
     "prettier-plugin-svelte": "^2.10.1",
     "rollup-plugin-polyfill-node": "^0.12.0",
