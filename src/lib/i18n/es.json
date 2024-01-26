@@ -66,10 +66,10 @@
       "title": "Gráficos"
     },
     "/forwards": {
-      "title": "Adelantos"
+      "title": "Reenvios"
     },
     "/forward": {
-      "title": "Adelante"
+      "title": "Reenviar"
     },
     "/trades": {
       "title": "Transacciones"
@@ -129,10 +129,10 @@
     "details": "Detalles",
     "address": "Dirección",
     "pubkey": "Pubkey",
-    "delete": "Eliminado",
+    "delete": "Eliminar",
     "locked": "Bloqueado",
     "clams_rune_cli": "Runa remota",
-    "admin_rune_cli": "Administrar runa",
+    "admin_rune_cli": "Runa Administrativa",
     "readonly_rune_cli": "Runa de sólo lectura",
     "rune_commands": "Comandos CLI de runa",
     "image_copied": "Imagen copiada",
@@ -182,7 +182,7 @@
     "spendable": "Para gastar",
     "receivable": "Por cobrar",
     "receive": "Recibir",
-    "open": "Abrir",
+    "open": "Abierto",
     "clams": "Clams",
     "local": "Local",
     "remote": "Remoto",
@@ -304,7 +304,7 @@
     "sync": "Sincronizar",
     "disconnect": "Desconectar",
     "received": "Recibido",
-    "reserved_to_block": "Reservado para bloquear",
+    "reserved_to_block": "Reservado Hasta Bloque",
     "receive_transaction": "Recibir transacción",
     "spend_transaction": "Gastar transacción",
     "token": "Token",
@@ -377,9 +377,9 @@
     "summary_channel_force_close_pending": "está forzando el cierre de un canal con",
     "summary_channel_force_close_waiting": "está forzando el cierre de un canal con",
     "summary_channel_force_close_complete": "ha forzado el cierre de un canal con",
-    "summary_sweep_pending": "está barriendo sats bloqueados en el tiempo con cierre forzoso",
-    "summary_sweep_waiting": "está barriendo sats bloqueados en el tiempo con cierre forzoso",
-    "summary_sweep_complete": "está barriendo sats bloqueados en el tiempo con cierre forzoso",
+    "summary_sweep_pending": "está barriendo sats bloqueados en el tiempo con cierre forzoso con",
+    "summary_sweep_waiting": "está barriendo sats bloqueados en el tiempo con cierre forzoso con",
+    "summary_sweep_complete": "está barriendo sats bloqueados en el tiempo con cierre forzoso con",
     "summary_htlc_waiting": "está resolviendo un htlc del canal cerrado con",
     "summary_htlc_pending": "está resolviendo un htlc del canal cerrado con",
     "summary_htlc_complete": "ha resuelto un htlc del canal cerrado con",
@@ -497,7 +497,7 @@
     "counterparty": "Contraparte",
     "lock": "Bloquear",
     "input": "Ingreso",
-    "reset_confirmation": "Estas seguro de querereliminar todos tus datos y resetear la aplicación completamente?",
+    "reset_confirmation": "Estas seguro de querer eliminar todos tus datos y resetear la aplicación completamente?",
     "start_scanner": "Iniciar escaneo",
     "import_image": "Importar imagen",
     "read_nfc": "Leer NFC"
@@ -569,7 +569,7 @@
     "wallet_keysend_unavailable": "No tienes ninguna billetera conectada que pueda enviar una transacción keysend a un nodo public key.",
     "wallet_pay_invoice_unavailable": "No tienes ninguna billetera conectada que pueda pagar una factura BOLT11.",
     "wallet_offers_unavailable": "No tienes ninguna billetera conectada que pueda pagar una oferta BOLT12.",
-    "wallet_receive_unavailable": "No tienes ninguna billetera conectada que pueda recibir una factura BOLT11 o una dirección onchain.",
+    "wallet_receive_unavailable": "No tienes ninguna billetera conectada que pueda recibir a una factura BOLT11 o una dirección onchain.",
     "could_not_find_channel": "No se pudo encontrar este canal.",
     "could_not_find_forward": "No se pudo encontrar este adelanto.",
     "could_not_find_offer": "No se pudo encontrar esta oferta.",
