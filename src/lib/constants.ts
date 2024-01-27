@@ -85,7 +85,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lavaLamp: true
 }
 
-export const SUPPORTED_LANGUAGES = ['en', 'en-AU', 'en-GB', 'en-US']
+export const SUPPORTED_LANGUAGES = ['en', 'en-AU', 'en-GB', 'en-US', 'es']
 export const DOCS_LINK = 'https://docs.clams.tech/remote'
 export const TWITTER_LINK = 'https://twitter.com/clamstech'
 export const GITHUB_LINK = 'https://github.com/clams-tech'
