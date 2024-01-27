@@ -184,7 +184,7 @@ onmessage = async (message: MessageEvent<Message>) => {
           received_time,
           resolved_time
         }) => {
-          const forward: Omit<Forward, 'id'> = {
+          const forwardIdPayload = {
             shortIdIn: in_channel,
             shortIdOut: out_channel,
             htlcInId: in_htlc_id,
@@ -192,17 +192,22 @@ onmessage = async (message: MessageEvent<Message>) => {
             in: msatsToSats(formatMsatString(in_msat)),
             out: msatsToSats(formatMsatString(out_msat)),
             fee: msatsToSats(formatMsatString(fee_msat)),
-            status,
-            style,
             createdAt: received_time,
-            completedAt: resolved_time,
-            timestamp: resolved_time | received_time,
             walletId
           }
 
-          const id = hash(JSON.stringify(forward))
+          const id = hash(JSON.stringify(forwardIdPayload))
 
-          return { ...forward, id }
+          const forward: Forward = {
+            id,
+            status,
+            style,
+            completedAt: resolved_time,
+            timestamp: resolved_time || received_time,
+            ...forwardIdPayload
+          }
+
+          return forward
         }
       )
 
