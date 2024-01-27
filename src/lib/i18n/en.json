@@ -43,7 +43,7 @@
       "add_wallet": "Add Wallet",
       "delete_wallet_modal": {
         "heading": "Delete Wallet",
-        "paragraph": "Are you sure that you would like to delete this wallet connection and all of it's associated data?"
+        "paragraph": "Are you sure that you would like to delete this wallet connection and all of its associated data?"
       }
     },
     "/wallets/coreln": {
