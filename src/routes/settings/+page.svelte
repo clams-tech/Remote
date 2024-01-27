@@ -1,7 +1,7 @@
 <script lang="ts">
   import { settings$ } from '$lib/streams'
   import Toggle from '$lib/components/Toggle.svelte'
-  import { translate } from '$lib/i18n/translations'
+  import { locale, translate } from '$lib/i18n/translations'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import settingsOutline from '$lib/icons/settings-outline'
   import Section from '$lib/components/Section.svelte'
@@ -93,6 +93,7 @@
   const toggleLangModal = () => (showLanguageModal = !showLanguageModal)
 
   const setLanguage = (language: Language) => {
+    locale.set(language)
     $settings$.language = language
   }
 
