@@ -102,11 +102,17 @@ onmessage = async (message: MessageEvent<Message>) => {
 
         if (transactions.length) {
           await Promise.all(
-            transactions.map(transaction =>
-              db.payments.update(transaction.id, transaction).then(updated => {
+            transactions.map(async transaction => {
+              // CLN replaced(?) transaction has a block height of 0
+              if (transaction.data.blockHeight === 0) {
+                await db.payments.delete(transaction.id)
+                return
+              }
+
+              return db.payments.update(transaction.id, transaction).then(updated => {
                 !updated && db.payments.put(transaction)
               })
-            )
+            })
           )
         }
 
