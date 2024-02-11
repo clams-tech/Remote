@@ -8,7 +8,7 @@
   export let icon = ''
   export let editable = false
 
-  $: if (!text) {
+  $: if (!text && !editable) {
     text = $translate(`app.routes.${$page.url.pathname}.title`)
   }
 
