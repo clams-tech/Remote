@@ -19,7 +19,9 @@ export const load: LayoutLoad = async ({ url }) => {
   /** LOAD TRANSLATIONS */
   const defaultLocale = 'en'
   const initLocale = settings$.value.language || locale.get() || defaultLocale
-  await loadTranslations(initLocale)
+  const baseLocale = initLocale.split('-')[0]
+
+  await loadTranslations(baseLocale)
 
   if (browser) {
     await db.open()
