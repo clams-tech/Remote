@@ -47,9 +47,9 @@
   class="w-full flex items-center no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
-    <div class="flex flex-col items-center w-full mr-4">
+    <div class="flex flex-col items-center w-full mr-4 flex-1 overflow-hidden">
       <div class="flex items-center text-sm gap-x-2 overflow-hidden w-full justify-around">
-        <div class="flex items-center max-w-[45%] w-full justify-start">
+        <div class="flex items-center max-w-[40%] w-full justify-start">
           <div class="w-6 text-utility-success rotate-180 flex-shrink-0">{@html arrow}</div>
           <div class="truncate uppercase">
             {($data$.channelInAlias || $translate('app.labels.unknown')).toUpperCase()}
@@ -58,7 +58,7 @@
 
         <div class="w-6 flex-shrink-0">{@html channels}</div>
 
-        <div class="flex items-center max-w-[45%] w-full justify-end">
+        <div class="flex items-center max-w-[40%] w-full justify-end">
           <div class="truncate uppercase">
             {($data$.channelOutAlias || $translate('app.labels.unknown')).toUpperCase()}
           </div>
@@ -71,11 +71,11 @@
       </div>
 
       {#if formattedTimestamp}
-        <div class="text-xs font-semibold mt-1 ml-2">{formattedTimestamp}</div>
+        <div class="text-xs font-semibold mt-1 ml-2 text-center">{formattedTimestamp}</div>
       {/if}
     </div>
 
-    <div class="flex items-center h-full">
+    <div class="flex items-center h-full flex-initial">
       <div class="flex flex-col items-end">
         <div class="w-full flex justify-end -mb-1 text-xs">{$translate('app.labels.fee')}:</div>
         <BitcoinAmount sats={forward.fee} short />
