@@ -40,10 +40,10 @@
 </script>
 
 <a
-  class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 text-sm xs:text-base h-[5.5rem]"
+  class="flex items-center justify-between py-3 w-full overflow-hidden hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 text-sm xs:text-base h-[5.5rem]"
   href={`/payments/${id}?wallet=${walletId}`}
 >
-  <div class="flex items-start h-full">
+  <div class="flex items-start h-full flex-1 overflow-hidden">
     <div
       class="w-6 border border-current rounded-full mr-2 flex-shrink-0"
       class:text-bitcoin-orange={type === 'transaction' || type === 'address'}
@@ -60,7 +60,7 @@
     {/if}
   </div>
 
-  <div class="flex items-center ml-2">
+  <div class="flex items-center ml-2 flex-initial">
     <div>
       {#if summary && summary.amount && status !== 'expired'}
         <div class="w-full flex justify-end text-xs">
