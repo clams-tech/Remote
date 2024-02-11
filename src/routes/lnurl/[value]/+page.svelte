@@ -2,7 +2,7 @@
   import { translate } from '$lib/i18n/translations'
   import Spinner from '$lib/components/Spinner.svelte'
   import { API_URL } from '$lib/constants'
-  import type { PageData } from '../$types'
+  import type { PageData } from './$types'
   import { decodeLightningAddress } from '$lib/input-parser.js'
   import Section from '$lib/components/Section.svelte'
   import Msg from '$lib/components/Msg.svelte'
@@ -63,7 +63,7 @@
 
         const result = await fetch(`${API_URL}/http-proxy`, {
           headers: { 'Target-URL': url.toString() }
-        }).then((res) => res.json())
+        }).then(res => res.json())
 
         if (result.status === 'ERROR') {
           throw {

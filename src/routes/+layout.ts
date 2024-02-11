@@ -1,6 +1,6 @@
 import type { LayoutLoad } from './$types'
 import { locale, loadTranslations } from '$lib/i18n/translations'
-import { autoConnectWallet$, larpMode$, session$ } from '$lib/streams.js'
+import { autoConnectWallet$, larpMode$, session$, settings$ } from '$lib/streams.js'
 import { goto } from '$app/navigation'
 import { browser } from '$app/environment'
 import { routeRequiresSession } from '$lib/utils.js'
@@ -18,8 +18,10 @@ export const ssr = false
 export const load: LayoutLoad = async ({ url }) => {
   /** LOAD TRANSLATIONS */
   const defaultLocale = 'en'
-  const initLocale = locale.get() || defaultLocale
-  await loadTranslations(initLocale)
+  const initLocale = settings$.value.language || locale.get() || defaultLocale
+  const baseLocale = initLocale.split('-')[0]
+
+  await loadTranslations(baseLocale)
 
   if (browser) {
     await db.open()

@@ -23,13 +23,19 @@ export interface Payload extends Parser.PayloadDefault {
 
 const config: Config<Payload> = {
   translations: {
-    en: { lang }
+    en: { lang },
+    es: { lang }
   },
   loaders: [
     {
       locale: 'en',
       key: 'app',
       loader: async () => import('./en.json')
+    },
+    {
+      locale: 'es',
+      key: 'app',
+      loader: async () => import('./es.json')
     }
   ],
   parser: parser()

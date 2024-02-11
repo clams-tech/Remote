@@ -4,9 +4,13 @@
   import check from '$lib/icons/check.js'
   import edit from '$lib/icons/edit.js'
   import { createEventDispatcher } from 'svelte'
-  export let text = $translate(`app.routes.${$page.url.pathname}.title`)
+  export let text = ''
   export let icon = ''
   export let editable = false
+
+  $: if (!text && !editable) {
+    text = $translate(`app.routes.${$page.url.pathname}.title`)
+  }
 
   let editing = false
   let input: HTMLInputElement

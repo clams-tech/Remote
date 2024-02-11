@@ -15,7 +15,7 @@
   export let displayNetwork = false
 </script>
 
-<div>
+<div class="w-full overflow-hidden">
   {#if primary.type === 'unknown' && secondary.type === 'unknown'}
     <div>
       <span class="font-semibold text-purple-100 uppercase">
@@ -27,14 +27,14 @@
       </span>
     </div>
   {:else}
-    <div>
-      <span class="font-semibold text-purple-100 uppercase">
+    <div class="flex flex-wrap gap-x-1">
+      <span class="font-semibold text-purple-100 uppercase truncate block">
         {#if primary.type === 'wallet'}
           {primary.value.label}
         {:else if primary.type === 'contact'}
           {primary.value.name}
         {:else if primary.type === 'channel_peer' && primary.value}
-          {truncateValue(primary.value, 6)}
+          {truncateValue(primary.value, 8)}
         {:else}
           {$translate('app.labels.unknown')}
         {/if}
@@ -44,7 +44,7 @@
         {$translate(`app.labels.summary_${type}_${status}`, { counterpartType: secondary.type })}
       </span>
 
-      <span class="font-semibold text-purple-100 uppercase">
+      <span class="font-semibold text-purple-100 uppercase truncate block">
         {#if secondary.type === 'wallet'}
           {secondary.value.label}
         {:else if secondary.type === 'contact'}
@@ -53,10 +53,10 @@
           {secondary.value.alias || truncateValue(secondary.value.id)}
         {:else if secondary.type === 'channel_peer'}
           {secondary.value
-            ? truncateValue(secondary.value, 6, type === 'channel_multiple_open' ? 'end' : 'center')
+            ? truncateValue(secondary.value, 8, type === 'channel_multiple_open' ? 'end' : 'center')
             : $translate('app.labels.unknown')}
         {:else if secondary.type === 'unknown'}
-          {secondary.value ? truncateValue(secondary.value, 6) : $translate('app.labels.unknown')}
+          {secondary.value ? truncateValue(secondary.value, 8) : $translate('app.labels.unknown')}
         {/if}
       </span>
     </div>

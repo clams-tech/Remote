@@ -102,7 +102,7 @@
 </svelte:head>
 
 <ItemsList {filters} {sorters} {tags} {sync} {button} {route} {rowSize} {dedupe}>
-  <div slot="row" let:item>
+  <div class="w-full overflow-hidden" slot="row" let:item>
     <PaymentRow payment={item} />
   </div>
 </ItemsList>

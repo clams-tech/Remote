@@ -23,7 +23,7 @@
 </svelte:head>
 
 <ItemsList {filters} {sorters} {tags} {sync} {route} {rowSize}>
-  <div slot="row" let:item>
+  <div class="w-full overflow-hidden" slot="row" let:item>
     <ForwardRow forward={item} />
   </div>
 </ItemsList>
