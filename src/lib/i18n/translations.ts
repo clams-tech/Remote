@@ -26,6 +26,7 @@ const config: Config<Payload> = {
     en: { lang },
     es: { lang }
   },
+  fallbackLocale: 'en',
   loaders: [
     {
       locale: 'en',
