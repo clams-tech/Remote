@@ -13,7 +13,7 @@
   import { isBolt12Offer, parseInput } from '$lib/input-parser.js'
   import type { PageData } from './$types.js'
 
-  type InputKey = 'scan' | 'text' | 'image' | 'nfc'
+  type InputKey = 'scan' | 'paste' | 'import' | 'nfc'
 
   export let data: PageData
 
@@ -21,8 +21,8 @@
 
   const inputs: InputKey[] = [
     'scan',
-    'text',
-    'image',
+    'paste',
+    'import',
     ...(nfc.available() ? ['nfc' as InputKey] : [])
   ]
 
@@ -107,9 +107,9 @@
         <div class="w-full flex items-center">
           <Scan on:input={e => handleInput(e.detail)} />
         </div>
-      {:else if input === 'text'}
+      {:else if input === 'paste'}
         <Text on:input={e => handleInput(e.detail)} />
-      {:else if input === 'image'}
+      {:else if input === 'import'}
         <Image on:input={e => handleInput(e.detail)} />
       {:else if input === 'nfc'}
         <NFCComponent on:input={e => handleInput(e.detail)} />

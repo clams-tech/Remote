@@ -149,6 +149,7 @@
     "expires": "Expira",
     "text": "Texto",
     "image": "Imagen",
+    "import": "Importar",
     "nfc": "NFC",
     "unknown": "Desconocido",
     "login": "Acceso",
