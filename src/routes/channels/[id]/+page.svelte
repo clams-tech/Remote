@@ -11,7 +11,7 @@
   import TextInput from '$lib/components/TextInput.svelte'
   import edit from '$lib/icons/edit.js'
   import { filter, from, map, mergeMap, switchMap, takeUntil, timer } from 'rxjs'
-  import type { Channel } from '$lib/@types/channels.js'
+  import type { Channel, ChannelStatus } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
@@ -26,6 +26,7 @@
   import channels from '$lib/icons/channels.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { TransactionPayment } from '$lib/@types/payments.js'
+  import trashOutline from '$lib/icons/trash-outline.js'
 
   export let data: PageData // channel id
 
@@ -37,6 +38,7 @@
   let maxForwardUpdate: number
   let loaded = false
   let couldNotFindChannel: boolean
+  let unilateralTimeout: number
 
   const channel$ = from(
     liveQuery(() =>
@@ -70,7 +72,7 @@
     )
   )
 
-  $: if ($channel$ && !loaded) {
+  $: if ($channel$ && $connections$ && !loaded) {
     loadData()
   }
 
@@ -78,7 +80,7 @@
     .pipe(
       filter(() => !!$channel$),
       switchMap(async () => {
-        return connection.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
+        return connection?.channels?.get({ id: $channel$!.id, peerId: $channel$!.peerId! })
       }),
       filter(x => !!x),
       map(update => update && update[0]),
@@ -116,7 +118,9 @@
   }
 
   let showFeeUpdateModal = false
+  let showCloseChannelModal = false
   let updating = false
+  let closingChannel = false
   let requestError: AppError | null = null
 
   async function updateFees() {
@@ -163,6 +167,28 @@
     } catch (error) {
     } finally {
       connecting = false
+    }
+  }
+
+  async function closeChannel() {
+    /**
+     * Set closingTimeout to nowSeconds() + unilateralTimeout
+     * attempt to close channel
+     * if success, update channel by fetching channels
+     * show success message
+     * if fail show error message
+     */
+  }
+
+  /** determines if channel is already closed, or closing*/
+  const isClosingStatus = (status: ChannelStatus): boolean => {
+    switch (status) {
+      case 'closed':
+      case 'closing':
+      case 'force_closed':
+        return true
+      default:
+        return false
     }
   }
 </script>
@@ -473,16 +499,34 @@
         </div>
       </div>
 
-      {#if status !== 'closed' && connection && connection.channels?.update}
-        <div class="flex w-full justify-end mt-4 mb-1">
-          <div class="w-min">
-            <Button
-              on:click={() => (showFeeUpdateModal = true)}
-              text={$translate('app.labels.update')}
-            >
-              <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
-            </Button>
-          </div>
+      {#if !isClosingStatus(status) && connection}
+        <div class="flex items-center gap-x-2">
+          {#if connection.channels?.close}
+            <div class="flex w-full justify-end mt-4 mb-1">
+              <div class="w-min">
+                <Button
+                  warning
+                  on:click={() => (showCloseChannelModal = true)}
+                  text={$translate('app.labels.close_channel')}
+                >
+                  <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html trashOutline}</div>
+                </Button>
+              </div>
+            </div>
+          {/if}
+
+          {#if connection.channels?.update}
+            <div class="flex w-full justify-end mt-4 mb-1">
+              <div class="w-min">
+                <Button
+                  on:click={() => (showFeeUpdateModal = true)}
+                  text={$translate('app.labels.update_fees')}
+                >
+                  <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
+                </Button>
+              </div>
+            </div>
+          {/if}
         </div>
       {/if}
     {/if}
@@ -534,12 +578,52 @@
         />
       </div>
 
-      <div class="mt-2">
-        <Button
-          requesting={updating}
-          on:click={updateFees}
-          text={$translate('app.labels.update')}
+      <div class="mt-2 w-full flex justify-end">
+        <div class="w-min">
+          <Button
+            requesting={updating}
+            on:click={updateFees}
+            text={$translate('app.labels.update')}
+          />
+        </div>
+      </div>
+    </div>
+  </Modal>
+{/if}
+
+{#if showCloseChannelModal}
+  <Modal on:close={() => (showCloseChannelModal = false)}>
+    <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
+      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>
+
+      <!-- 
+        - Is there already a closingTimeout?
+          - If greater than 0 and the timeout has passed, then the request to close has failed for some reason
+          - If equal to 0, then suggest a force close since the original request did not succeed in a mutual close
+          - If no closingTimeout, then no need to show anything here
+
+        - Check if channel partner is connected, if not offer to force close?
+          have an input for timeout before force closing
+      -->
+
+      <div class="flex flex-col flex-grow overflow-auto p-1 gap-y-4">
+        <TextInput
+          type="number"
+          name="base"
+          label={$translate('app.labels.force_close_timeout')}
+          hint={$translate('app.labels.seconds')}
+          bind:value={unilateralTimeout}
         />
+      </div>
+
+      <div class="mt-2 w-full flex justify-end">
+        <div class="w-min">
+          <Button
+            requesting={closingChannel}
+            on:click={closeChannel}
+            text={$translate('app.labels.close_channel')}
+          />
+        </div>
       </div>
     </div>
   </Modal>
