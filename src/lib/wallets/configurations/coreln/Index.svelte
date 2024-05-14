@@ -158,7 +158,7 @@
     <h4 class="text-lg font-bold">{$translate('app.labels.configuration')}</h4>
 
     <a
-      href={`${DOCS_LINK}/connection`}
+      href={`${DOCS_LINK}/#wallets`}
       target="_blank"
       rel="noopener noreferrer"
       class="flex items-center ml-2 text-sm text-purple-100"
