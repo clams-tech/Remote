@@ -44,8 +44,8 @@ export type Channel = {
   ourToSelfDelay?: number
   theirToSelfDelay?: number
   metadata?: Metadata
-  /** the timeout for force close after close attempt */
-  closingTimeout?: number
+  /** indicates if we have already attempted to mutual close the channel */
+  attemptedClose?: boolean
 }
 
 type HTLC = {

@@ -22,11 +22,12 @@
   import type { AppError } from '$lib/@types/errors.js'
   import caret from '$lib/icons/caret.js'
   import type { Wallet } from '$lib/@types/wallets.js'
-  import { truncateValue } from '$lib/utils.js'
+  import { truncateValue, wait } from '$lib/utils.js'
   import channels from '$lib/icons/channels.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { TransactionPayment } from '$lib/@types/payments.js'
-  import trashOutline from '$lib/icons/trash-outline.js'
+  import warning from '$lib/icons/warning.js'
+  import { fetchTransactions } from '$lib/wallets/index.js'
 
   export let data: PageData // channel id
 
@@ -38,7 +39,6 @@
   let maxForwardUpdate: number
   let loaded = false
   let couldNotFindChannel: boolean
-  let unilateralTimeout: number
 
   const channel$ = from(
     liveQuery(() =>
@@ -121,6 +121,8 @@
   let showCloseChannelModal = false
   let updating = false
   let closingChannel = false
+  let closeChannelError: AppError | null = null
+  let closingTxid: string = ''
   let requestError: AppError | null = null
 
   async function updateFees() {
@@ -170,14 +172,39 @@
     }
   }
 
-  async function closeChannel() {
-    /**
-     * Set closingTimeout to nowSeconds() + unilateralTimeout
-     * attempt to close channel
-     * if success, update channel by fetching channels
-     * show success message
-     * if fail show error message
-     */
+  async function closeChannel(id: string, force?: boolean) {
+    closingChannel = true
+    closeChannelError = null
+
+    try {
+      // update that we have attempted to close this channel
+      await db.channels.update(`[${id}+${connection.walletId}]`, { attemptedClose: true })
+
+      // wait for result or timeout of 10 seconds, which ever comes first
+      const result = await Promise.race([
+        connection.channels!.close!({
+          id,
+          // 0 indicates no timeout, just try to mutual close
+          // 1 indicates force close, just wait for one second before forcing
+          unilateralTimeout: force ? 1 : 0
+        }),
+        wait(10000)
+      ])
+
+      if (result?.txid) {
+        try {
+          await fetchTransactions(connection)
+        } catch (error) {
+          // failed to fetch txs...
+        }
+
+        closingTxid = result.txid
+      }
+    } catch (error) {
+      closeChannelError = error as AppError
+    } finally {
+      closingChannel = false
+    }
   }
 
   /** determines if channel is already closed, or closing*/
@@ -224,7 +251,8 @@
         closer,
         finalToUs,
         walletId,
-        fundingTransactionId
+        fundingTransactionId,
+        attemptedClose
       } = $channel$}
 
       <div>
@@ -500,31 +528,27 @@
       </div>
 
       {#if !isClosingStatus(status) && connection}
-        <div class="flex items-center gap-x-2">
+        <div class="flex items-center justify-end w-full mt-2 gap-x-2">
           {#if connection.channels?.close}
-            <div class="flex w-full justify-end mt-4 mb-1">
-              <div class="w-min">
-                <Button
-                  warning
-                  on:click={() => (showCloseChannelModal = true)}
-                  text={$translate('app.labels.close_channel')}
-                >
-                  <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html trashOutline}</div>
-                </Button>
-              </div>
+            <div class="w-min">
+              <Button
+                warning
+                on:click={() => (showCloseChannelModal = true)}
+                text={$translate('app.labels.close')}
+              >
+                <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+              </Button>
             </div>
           {/if}
 
           {#if connection.channels?.update}
-            <div class="flex w-full justify-end mt-4 mb-1">
-              <div class="w-min">
-                <Button
-                  on:click={() => (showFeeUpdateModal = true)}
-                  text={$translate('app.labels.update_fees')}
-                >
-                  <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
-                </Button>
-              </div>
+            <div class="w-min">
+              <Button
+                on:click={() => (showFeeUpdateModal = true)}
+                text={$translate('app.labels.update')}
+              >
+                <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html edit}</div>
+              </Button>
             </div>
           {/if}
         </div>
@@ -592,37 +616,61 @@
 {/if}
 
 {#if showCloseChannelModal}
+  {@const { id, attemptedClose } = $channel$}
+
   <Modal on:close={() => (showCloseChannelModal = false)}>
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
-      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.channel_fees')}</h4>
+      <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.close_channel')}</h4>
 
-      <!-- 
-        - Is there already a closingTimeout?
-          - If greater than 0 and the timeout has passed, then the request to close has failed for some reason
-          - If equal to 0, then suggest a force close since the original request did not succeed in a mutual close
-          - If no closingTimeout, then no need to show anything here
-
-        - Check if channel partner is connected, if not offer to force close?
-          have an input for timeout before force closing
-      -->
-
-      <div class="flex flex-col flex-grow overflow-auto p-1 gap-y-4">
-        <TextInput
-          type="number"
-          name="base"
-          label={$translate('app.labels.force_close_timeout')}
-          hint={$translate('app.labels.seconds')}
-          bind:value={unilateralTimeout}
+      {#if attemptedClose}
+        <Msg
+          type="info"
+          message="A close attempt is in progress, if you need to close immediately then initiate a force close.
+          or force to close immediately."
         />
+      {/if}
+
+      <div>
+        Closing a channel will publish an onchain transaction and settle the current channel
+        balances.
       </div>
 
-      <div class="mt-2 w-full flex justify-end">
+      <div>
+        Initiating a mutual close is preferable due to lower onchain fees, but requires your channel
+        partner to be online.
+      </div>
+
+      <div>
+        Force closing a channel should only be initiated when your channel partner has been
+        unresponsive for some time and will immediately close the channel. Force closing will result
+        in higher onchain fees and your funds will be timelocked (not spendable) for some time.
+      </div>
+
+      {#if closeChannelError}
+        <div in:slide|local={{ duration: 250 }}>
+          <ErrorDetail error={closeChannelError} />
+        </div>
+      {/if}
+      <div class="mt-2 w-full flex justify-end gap-x-2">
+        <div class="w-min">
+          <Button
+            warning
+            requesting={closingChannel}
+            on:click={() => closeChannel(id, true)}
+            text={$translate('app.labels.force_close')}
+          >
+            <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+          </Button>
+        </div>
+
         <div class="w-min">
           <Button
             requesting={closingChannel}
-            on:click={closeChannel}
-            text={$translate('app.labels.close_channel')}
-          />
+            on:click={() => closeChannel(id)}
+            text={$translate('app.labels.close')}
+          >
+            <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+          </Button>
         </div>
       </div>
     </div>

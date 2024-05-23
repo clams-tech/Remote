@@ -169,7 +169,6 @@
     "channel_fees": "Set Fees",
     "update": "Update",
     "update_settings": "Update settings",
-    "update_fees": "Update fees",
     "us": "Us",
     "remote_reserve": "Remote reserve",
     "local_reserve": "Local reserve",
@@ -503,7 +502,11 @@
     "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?",
     "start_scanner": "Start scanner",
     "import_image": "Import image",
-    "read_nfc": "Read NFC"
+    "read_nfc": "Read NFC",
+    "close_channel": "Close Channel",
+    "force_close_timeout": "Wait before force closing",
+    "seconds": "seconds",
+    "force_close": "Force close"
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
