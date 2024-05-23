@@ -177,9 +177,7 @@
     closeChannelError = null
 
     try {
-      // update that we have attempted to close this channel
-      await db.channels.update(`[${id}+${connection.walletId}]`, { attemptedClose: true })
-
+      console.log('closing channel')
       // wait for result or timeout of 10 seconds, which ever comes first
       const result = await Promise.race([
         connection.channels!.close!({
@@ -190,6 +188,8 @@
         }),
         wait(10000)
       ])
+
+      console.log({ result })
 
       if (result?.txid) {
         try {
@@ -207,11 +207,10 @@
     }
   }
 
-  /** determines if channel is already closed, or closing*/
-  const isClosingStatus = (status: ChannelStatus): boolean => {
+  /** determines if channel is already closed */
+  const isClosedStatus = (status: ChannelStatus): boolean => {
     switch (status) {
       case 'closed':
-      case 'closing':
       case 'force_closed':
         return true
       default:
@@ -251,8 +250,7 @@
         closer,
         finalToUs,
         walletId,
-        fundingTransactionId,
-        attemptedClose
+        fundingTransactionId
       } = $channel$}
 
       <div>
@@ -527,14 +525,14 @@
         </div>
       </div>
 
-      {#if !isClosingStatus(status) && connection}
+      {#if !isClosedStatus(status) && connection}
         <div class="flex items-center justify-end w-full mt-2 gap-x-2">
           {#if connection.channels?.close}
             <div class="w-min">
               <Button
                 warning
                 on:click={() => (showCloseChannelModal = true)}
-                text={$translate('app.labels.close')}
+                text={$translate(`app.labels.${status === 'closing' ? 'force_close' : 'close'}`)}
               >
                 <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
               </Button>
@@ -616,58 +614,35 @@
 {/if}
 
 {#if showCloseChannelModal}
-  {@const { id, attemptedClose } = $channel$}
+  {@const { id, status } = $channel$}
 
   <Modal on:close={() => (showCloseChannelModal = false)}>
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.close_channel')}</h4>
 
-      {#if attemptedClose}
-        <Msg
-          type="info"
-          message="A close attempt is in progress, if you need to close immediately then initiate a force close.
-          or force to close immediately."
-        />
+      {#if status === 'closing'}
+        <div>
+          {$translate('app.messages.initiate_force_close')}
+        </div>
+      {:else}
+        <div>
+          {$translate('app.messages.closing_channel')}
+        </div>
       {/if}
-
-      <div>
-        Closing a channel will publish an onchain transaction and settle the current channel
-        balances.
-      </div>
-
-      <div>
-        Initiating a mutual close is preferable due to lower onchain fees, but requires your channel
-        partner to be online.
-      </div>
-
-      <div>
-        Force closing a channel should only be initiated when your channel partner has been
-        unresponsive for some time and will immediately close the channel. Force closing will result
-        in higher onchain fees and your funds will be timelocked (not spendable) for some time.
-      </div>
 
       {#if closeChannelError}
         <div in:slide|local={{ duration: 250 }}>
           <ErrorDetail error={closeChannelError} />
         </div>
       {/if}
-      <div class="mt-2 w-full flex justify-end gap-x-2">
+
+      <div class="mt-2 w-full flex justify-end">
         <div class="w-min">
           <Button
             warning
             requesting={closingChannel}
-            on:click={() => closeChannel(id, true)}
-            text={$translate('app.labels.force_close')}
-          >
-            <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
-          </Button>
-        </div>
-
-        <div class="w-min">
-          <Button
-            requesting={closingChannel}
-            on:click={() => closeChannel(id)}
-            text={$translate('app.labels.close')}
+            on:click={() => closeChannel(id, status === 'closing' ? true : false)}
+            text={$translate(`app.labels.${status === 'closing' ? 'force_close' : 'close'}`)}
           >
             <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
           </Button>

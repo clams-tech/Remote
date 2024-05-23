@@ -504,9 +504,12 @@
     "import_image": "Import image",
     "read_nfc": "Read NFC",
     "close_channel": "Close Channel",
-    "force_close_timeout": "Wait before force closing",
     "seconds": "seconds",
     "force_close": "Force close"
+  },
+  "messages": {
+    "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",
+    "initiate_force_close": "Force closing will immediately close the channel and should only be initiated when your channel partner has been unresponsive for some time. Force closing will result in higher onchain fees and your funds will be timelocked (not spendable) for some time."
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
