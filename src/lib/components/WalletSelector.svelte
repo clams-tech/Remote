@@ -62,14 +62,16 @@
     <div class="mt-4">
       <Msg closable={false} message={$translate('app.labels.add_wallet')} type="info"
         ><button
-          class="mx-1 underline"
+          class="ml-1 font-semibold text-sm leading-tight"
           on:click={async () => {
             const { id } = await createWallet()
             goto(`/wallets/${id}`)
-          }}>{$translate('app.labels.create_new_wallet_connection')}</button
+          }}
+          ><span class="underline mr-1"
+            >{$translate('app.labels.create_new_wallet_connection')}</span
+          >{$translate('app.labels.to_get_started').toLowerCase()}.</button
         >
-        {$translate('app.labels.to_get_started').toLowerCase()}.</Msg
-      >
+      </Msg>
     </div>
   {:else}
     {#if label}

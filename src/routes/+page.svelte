@@ -64,7 +64,7 @@
         type="info"
       >
         <button
-          class="ml-1 underline"
+          class="ml-1 underline font-semibold text-sm leading-tight"
           on:click={async () => {
             const { id } = await createWallet()
             goto(`/wallets/${id}`)
