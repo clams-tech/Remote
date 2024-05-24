@@ -12,7 +12,8 @@
   import { slide } from 'svelte/transition'
   import { connections$, onDestroy$ } from '$lib/streams.js'
   import { filter, map, merge, switchMap, takeUntil } from 'rxjs'
-  import { fetchChannels, fetchUtxos } from '$lib/wallets/index.js'
+  import { createWallet, fetchChannels, fetchUtxos } from '$lib/wallets/index.js'
+  import { goto } from '$app/navigation'
 
   const route = 'wallets'
   const rowSize = 82
@@ -27,7 +28,11 @@
   }
 
   const button = {
-    href: '/wallets/add',
+    onClick: async () => {
+      const { id } = await createWallet()
+      goto(`/wallets/${id}`)
+    },
+    href: '',
     text: $translate('app.labels.add'),
     icon: plus
   }

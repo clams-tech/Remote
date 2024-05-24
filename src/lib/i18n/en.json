@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a href='/wallets/add'>wallet</a>."
+      "get_started_hint": "To get started, add a new"
     },
     "/input": {
       "title": "Input"
@@ -220,7 +220,9 @@
     "lnurl_auth": "Auth",
     "lnurl_login": "Login",
     "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-    "add_wallet": "You do not have a wallet connected. <a href='/wallets/add'>Create a new wallet connection</a> to get started.",
+    "add_wallet": "You do not have a wallet connected.",
+    "create_new_wallet_connection": "Create a new wallet connection",
+    "to_get_started": "To get started",
     "no_channels": "You have no channels, try syncing your wallets or open a new channel.",
     "no_channels_filtered": "No channels match your current filters",
     "no_offers": "You have no offers, try syncing your wallets or create a new offer.",

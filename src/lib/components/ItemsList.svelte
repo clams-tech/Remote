@@ -29,7 +29,12 @@
   export let rowSize: number
   export let limit = 40
   export let sync: (connection: Connection) => Promise<void>
-  export let button: { text: string; icon: string; href: string } | null = null
+  export let button: {
+    text: string
+    icon: string
+    href: string
+    onClick?: () => Promise<void>
+  } | null = null
   export let dedupe: ((items: Item[]) => Promise<Item[]>) | null = null
 
   let processing = false
@@ -261,7 +266,13 @@
     </div>
 
     {#if button}
-      <div class="bottom-2 right-2 flex justify-end pt-2" class:absolute={containerScrollable}>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div
+        on:click={button.onClick}
+        class="bottom-2 right-2 flex justify-end pt-2"
+        class:absolute={containerScrollable}
+      >
         <a
           href={button.href}
           class:px-4={!containerScrollable || showFullButton}
