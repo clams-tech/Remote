@@ -56,15 +56,15 @@
 </div>
 
 {#if showGetStartedHint}
-  <div class="absolute bottom-0 p-4 w-full flex justify-center items-center bg-neutral-900 flex">
-    <div class="flex">
+  <div class="absolute bottom-0 p-4 w-full flex justify-center items-center bg-neutral-900">
+    <div>
       <Msg
         on:close={handleCloseHint}
         message={$translate('app.routes./.get_started_hint')}
         type="info"
       >
         <button
-          class="ml-1 flex underline"
+          class="ml-1 underline"
           on:click={async () => {
             const { id } = await createWallet()
             goto(`/wallets/${id}`)

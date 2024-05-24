@@ -39,9 +39,10 @@ export const autoConnectWallet = async (options: {
 
     // Only one wallet can be connected in larp mode
     if (larpMode$.value && wallets$.value.length) {
-      wallets$.value.forEach(async wallet => await db.wallets.delete(wallet.id))
+      for (const wallet of wallets$.value) {
+        await db.wallets.delete(wallet.id)
+      }
     }
-
     await db.wallets.add(wallet)
 
     return { wallet, existed: false }
