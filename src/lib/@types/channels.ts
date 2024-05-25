@@ -91,6 +91,13 @@ export type UpdateChannelOptions = {
   enforceDelay?: number
 }
 
+export type CloseChannelOptions = {
+  /** node id, channel id, short channel id */
+  id: string
+  /** timeout before force closing. A value of 0 will never force close  */
+  unilateralTimeout: number
+}
+
 export type OpenChannelOptions = {
   /** node public key to open channel to */
   id: string
@@ -120,4 +127,11 @@ export type OpenChannelResult = {
   txout: number
   /** minimum amount of blocks before channel is active */
   mindepth?: number
+}
+
+export type CloseChannelResult = {
+  /** closing transaction id */
+  txid: string
+  /** close type */
+  type: 'unilateral' | 'mutual'
 }
