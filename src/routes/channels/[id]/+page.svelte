@@ -10,7 +10,19 @@
   import Modal from '$lib/components/Modal.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import edit from '$lib/icons/edit.js'
-  import { filter, from, map, mergeMap, switchMap, takeUntil, timer } from 'rxjs'
+  import {
+    Subject,
+    filter,
+    from,
+    map,
+    merge,
+    mergeMap,
+    startWith,
+    switchMap,
+    takeUntil,
+    timer,
+    withLatestFrom
+  } from 'rxjs'
   import type { Channel, ChannelStatus } from '$lib/@types/channels.js'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
@@ -27,7 +39,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { TransactionPayment } from '$lib/@types/payments.js'
   import warning from '$lib/icons/warning.js'
-  import { fetchTransactions } from '$lib/wallets/index.js'
+  import { fetchChannels, fetchTransactions } from '$lib/wallets/index.js'
 
   export let data: PageData // channel id
 
@@ -57,11 +69,16 @@
 
   $: peerWallet = $wallets$?.find(wallet => $channel$?.peerId && $channel$.peerId === wallet.nodeId)
 
-  const closingTransaction$ = channel$.pipe(
+  const updateClosingTransaction$ = new Subject<void>()
+
+  const closingTransaction$ = merge(
+    updateClosingTransaction$.pipe(switchMap(() => channel$)),
+    channel$
+  ).pipe(
     filter(x => !!x),
     mergeMap(channel =>
       db.payments
-        .where({ 'data.channel.id': channel!.id, walletId: channel?.walletId })
+        .where({ 'data.channel.id': channel.id, walletId: channel.walletId })
         .filter(transactionPayment => {
           const {
             data: { channel }
@@ -69,7 +86,8 @@
           return channel?.type === 'force_close' || channel?.type === 'close'
         })
         .first()
-    )
+    ),
+    startWith(undefined)
   )
 
   $: if ($channel$ && $connections$ && !loaded) {
@@ -84,11 +102,21 @@
       }),
       filter(x => !!x),
       map(update => update && update[0]),
+      withLatestFrom(closingTransaction$),
       takeUntil(onDestroy$)
     )
-    .subscribe(channelUpdate => {
-      if ($channel$) {
-        db.channels.where({ id: data.id, walletId: $channel$.walletId }).modify(channelUpdate!)
+    .subscribe(async ([channelUpdate, closingTransaction]) => {
+      if ($channel$ && channelUpdate) {
+        const { closer, closeToAddress, closeCause, status } = channelUpdate
+        db.channels
+          .where({ id: data.id, walletId: $channel$.walletId })
+          .modify({ closer, closeToAddress, closeCause, status })
+
+        // try and update transactions
+        if (status === 'closed' && !closingTransaction) {
+          await fetchTransactions(connection)
+          updateClosingTransaction$.next()
+        }
       }
     })
 
@@ -122,7 +150,6 @@
   let updating = false
   let closingChannel = false
   let closeChannelError: AppError | null = null
-  let closingTxid: string = ''
   let requestError: AppError | null = null
 
   async function updateFees() {
@@ -177,7 +204,6 @@
     closeChannelError = null
 
     try {
-      console.log('closing channel')
       // wait for result or timeout of 10 seconds, which ever comes first
       const result = await Promise.race([
         connection.channels!.close!({
@@ -186,24 +212,22 @@
           // 1 indicates force close, just wait for one second before forcing
           unilateralTimeout: force ? 1 : 0
         }),
-        wait(10000)
+        wait(4000)
       ])
-
-      console.log({ result })
 
       if (result?.txid) {
         try {
+          await fetchChannels(connection)
           await fetchTransactions(connection)
         } catch (error) {
-          // failed to fetch txs...
+          // failed to fetch txs or channels...
         }
-
-        closingTxid = result.txid
       }
     } catch (error) {
       closeChannelError = error as AppError
     } finally {
       closingChannel = false
+      showCloseChannelModal = false
     }
   }
 
@@ -525,7 +549,7 @@
         </div>
       </div>
 
-      {#if !isClosedStatus(status) && connection}
+      {#if !isClosedStatus(status) && connection && !$closingTransaction$}
         <div class="flex items-center justify-end w-full mt-2 gap-x-2">
           {#if connection.channels?.close}
             <div class="w-min">
@@ -539,7 +563,7 @@
             </div>
           {/if}
 
-          {#if connection.channels?.update}
+          {#if status !== 'closing' && connection.channels?.update}
             <div class="w-min">
               <Button
                 on:click={() => (showFeeUpdateModal = true)}
@@ -616,11 +640,22 @@
 {#if showCloseChannelModal}
   {@const { id, status } = $channel$}
 
-  <Modal on:close={() => (showCloseChannelModal = false)}>
+  <Modal
+    on:close={() => {
+      showCloseChannelModal = false
+    }}
+  >
     <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
       <h4 class="font-semibold mb-2 w-full text-2xl">{$translate('app.labels.close_channel')}</h4>
 
-      {#if status === 'closing'}
+      {#if $closingTransaction$}
+        <div>
+          <div>{$translate('app.messages.channel_close_in_progress')}</div>
+          <a href={`/payments/${$closingTransaction$.id}?wallet=${connection.walletId}`}
+            >{$translate('app.labels.go_to_closing_transaction')}</a
+          >
+        </div>
+      {:else if status === 'closing' && !closingChannel}
         <div>
           {$translate('app.messages.initiate_force_close')}
         </div>
@@ -636,18 +671,20 @@
         </div>
       {/if}
 
-      <div class="mt-2 w-full flex justify-end">
-        <div class="w-min">
-          <Button
-            warning
-            requesting={closingChannel}
-            on:click={() => closeChannel(id, status === 'closing' ? true : false)}
-            text={$translate(`app.labels.${status === 'closing' ? 'force_close' : 'close'}`)}
-          >
-            <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
-          </Button>
+      {#if !$closingTransaction$}
+        <div class="mt-2 w-full flex justify-end">
+          <div class="w-min">
+            <Button
+              warning
+              requesting={closingChannel}
+              on:click={() => closeChannel(id, status === 'closing' ? true : false)}
+              text={$translate(`app.labels.${status === 'closing' ? 'force_close' : 'close'}`)}
+            >
+              <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+            </Button>
+          </div>
         </div>
-      </div>
+      {/if}
     </div>
   </Modal>
 {/if}
