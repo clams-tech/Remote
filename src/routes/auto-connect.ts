@@ -1,6 +1,6 @@
 import type { CoreLnConfiguration, Wallet, WalletConfiguration } from '$lib/@types/wallets.js'
 import { createRandomHex, encryptWithAES } from '$lib/crypto.js'
-import { db } from '$lib/db/index.js'
+import { db, deleteAll } from '$lib/db/index.js'
 import { larpMode$, wallets$ } from '$lib/streams.js'
 import { nowSeconds } from '$lib/utils.js'
 
@@ -39,9 +39,8 @@ export const autoConnectWallet = async (options: {
 
     // Only one wallet can be connected in larp mode
     if (larpMode$.value && wallets$.value.length) {
-      for (const wallet of wallets$.value) {
-        await db.wallets.delete(wallet.id)
-      }
+      await deleteAll()
+      await db.open()
     }
     await db.wallets.add(wallet)
 
