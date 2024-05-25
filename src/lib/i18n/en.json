@@ -504,7 +504,17 @@
     "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?",
     "start_scanner": "Start scanner",
     "import_image": "Import image",
-    "read_nfc": "Read NFC"
+    "read_nfc": "Read NFC",
+    "close_channel": "Close Channel",
+    "seconds": "seconds",
+    "force_close": "Force close",
+    "go_to_closing_transaction": "Go to closing transaction"
+  },
+  "messages": {
+    "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",
+    "initiate_force_close": "Force closing will immediately close the channel and should only be initiated when your channel partner is unresponsive. Force closing will result in higher onchain fees and your funds will be timelocked (not spendable) for some time.",
+    "channel_close_in_progress": "This channel is closing and is waiting for the closing transaction to be included in a block.",
+    "waiting_for_channel_response": "This channel is closing and is waiting for a response from the channel partner."
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",

@@ -503,7 +503,17 @@
     "reset_confirmation": "Estas seguro de querer eliminar todos tus datos y resetear la aplicación completamente?",
     "start_scanner": "Iniciar escaneo",
     "import_image": "Importar imagen",
-    "read_nfc": "Leer NFC"
+    "read_nfc": "Leer NFC",
+    "close_channel": "Cerrar canal",
+    "seconds": "segundos",
+    "force_close": "Forzar cierre",
+    "go_to_closing_transaction": "Ir a la transacción de cierre"
+  },
+  "messages": {
+    "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
+    "initiate_force_close": "El cierre forzado cerrará inmediatamente el canal y solo debe iniciarse cuando su contraparte del canal no responda. El cierre forzado resultará en tarifas más altas en la cadena y sus fondos serán bloqueados temporalmente (no gastables) por algún tiempo.",
+    "channel_close_in_progress": "Este canal se está cerrando y está esperando que la transacción de cierre se incluya en un bloque.",
+    "waiting_for_channel_response": "Este canal se está cerrando y está esperando una respuesta de la contraparte del canal."
   },
   "errors": {
     "connection_unknown": "Oh cariño, algo salió mal, por favor vuelve a intentar, o contacta a soporte técnico.",
