@@ -79,6 +79,26 @@ export const walletTypeToInitialConfiguration = (type: Wallet['type']): Wallet['
   }
 }
 
+export const createWallet = async () => {
+  // add new CLN wallet to the db with generic label and random id
+  const id = createRandomHex()
+  const type = 'coreln'
+  const label = type
+
+  await db.wallets.add({
+    id,
+    label,
+    type,
+    createdAt: nowSeconds(),
+    modifiedAt: null,
+    configuration: walletTypeToInitialConfiguration(type),
+    lastSync: null,
+    syncing: false
+  })
+
+  return { id }
+}
+
 export const listenForConnectionErrors = (connection: Connection) => {
   connection.errors$.pipe(takeUntil(connection.destroy$)).subscribe(errors$)
 }

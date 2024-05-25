@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Inicio",
-      "get_started_hint": "Para empezar, agrega una nueva <a href='/wallets/add'>billetera</a>."
+      "get_started_hint": "Para empezar, agrega una nueva"
     },
     "/input": {
       "title": "Entrada"
@@ -219,7 +219,9 @@
     "lnurl_payrequest": "Pagar",
     "lnurl_auth": "Autenticación",
     "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-    "add_wallet": "No tienes conectada una billetera. <a href='/wallets/add'>Crear una nueva conexión a billetera</a> para comenzar.",
+    "add_wallet": "No tienes conectada una billetera.",
+    "create_new_wallet_connection": "Crear una nueva conexión a billetera",
+    "to_get_started": "Para comenzar",
     "no_channels": "No tienes canales, intenta sincronizando tus billeteras o abre un nuevo canal.",
     "no_channels_filtered": "Ningún canal coincide con los filtros actuales",
     "no_offers": "No tienes ofertas, intenta sincronizar tus billeteras o crea una nueva oferta.",
