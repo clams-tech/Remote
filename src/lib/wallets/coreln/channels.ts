@@ -7,6 +7,8 @@ import { getChannels } from './worker.js'
 
 import type {
   Channel,
+  CloseChannelOptions,
+  CloseChannelResult,
   ConnectPeerOptions,
   OpenChannelOptions,
   OpenChannelResult,
@@ -105,6 +107,26 @@ class Channels implements ChannelsInterface {
       return { tx, txid, txout: outnum, id: channel_id }
     } catch (error) {
       const context = 'open (channels)'
+
+      const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
+
+      this.connection.errors$.next(connectionError)
+      throw connectionError
+    }
+  }
+
+  public async close(options: CloseChannelOptions): Promise<CloseChannelResult> {
+    try {
+      const { id, unilateralTimeout } = options
+
+      const result = (await this.connection.rpc({
+        method: 'close',
+        params: { id, unilateraltimeout: unilateralTimeout }
+      })) as CloseChannelResult
+
+      return result
+    } catch (error) {
+      const context = 'close (channels)'
 
       const connectionError = handleError(error as CoreLnError, context, this.connection.walletId)
 
