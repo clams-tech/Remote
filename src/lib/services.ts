@@ -1,4 +1,3 @@
-import type { DialogFilter } from '@tauri-apps/api/dialog'
 import type { Notification } from './@types/common.js'
 import { Subject } from 'rxjs'
 
@@ -15,21 +14,11 @@ export const clipboard = {
     }
   },
   read: async (): Promise<string> => {
-    if (window.__TAURI__) {
-      const { readText } = await import('@tauri-apps/api/clipboard')
-      return readText() as Promise<string>
-    } else {
-      const clipboardText = await navigator.clipboard.readText()
-      return clipboardText
-    }
+    const clipboardText = await navigator.clipboard.readText()
+    return clipboardText
   },
   write: async (text: string): Promise<void> => {
-    if (window.__TAURI__) {
-      const { writeText } = await import('@tauri-apps/api/clipboard')
-      await writeText(text)
-    } else {
-      await navigator.clipboard.writeText(text)
-    }
+    await navigator.clipboard.writeText(text)
   },
   writeImage: async (image: Blob | Promise<Blob>): Promise<void> => {
     await navigator.clipboard.write([
@@ -42,79 +31,28 @@ export const clipboard = {
 
 export const notification = {
   supported: (): boolean => {
-    if (window.__TAURI__) {
-      const isSupported = 'Notification' in window
-      return isSupported
-    } else {
-      return true
-    }
+    return true
   },
   permission: () => {
-    if (window.__TAURI__) {
-      return notification.supported() && Notification.permission === 'granted'
-    }
-
     return true
   },
   requestPermission: () => {
-    if (window.__TAURI__) {
-      return Notification.requestPermission()
-    } else {
-      true
-    }
+    return true
   },
   create: (notification: Notification) => {
-    const { heading, message } = notification
-
-    if (window.__TAURI__) {
-      return new Notification(heading, {
-        body: message,
-        icon: '/icons/icon.png'
-      })
-    } else {
-      notifications$.next(notification)
-    }
+    notifications$.next(notification)
   }
 }
 
 export const file = {
   save: async (blob: Blob, fileName: string) => {
-    if (window.__TAURI__) {
-      const { writeBinaryFile } = await import('@tauri-apps/api/fs')
-      const { save } = await import('@tauri-apps/api/dialog')
-
-      const filePath = await save({
-        filters: [
-          {
-            name: fileName,
-            extensions: ['png']
-          }
-        ]
-      })
-
-      if (!filePath) {
-        throw new Error('No file path provided')
-      }
-
-      const contents = await blob.arrayBuffer()
-
-      await writeBinaryFile(filePath, contents)
-    } else {
-      const fileUrl = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = fileUrl
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-  },
-  open: async (filters?: DialogFilter[]): Promise<Uint8Array | null> => {
-    const { open } = await import('@tauri-apps/api/dialog')
-    const { readBinaryFile } = await import('@tauri-apps/api/fs')
-    const path = await open({ filters, multiple: false })
-    const file = path ? await readBinaryFile(path as string) : null
-    return file
+    const fileUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = fileUrl
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 }
 

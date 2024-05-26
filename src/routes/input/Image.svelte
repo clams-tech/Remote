@@ -50,18 +50,7 @@
 
   const open = async () => {
     loading = true
-    if (window.__TAURI__) {
-      const image = await file.open([
-        {
-          name: 'Image',
-          extensions: ['png', 'jpeg']
-        }
-      ])
-
-      image && handleFile(new Blob([image], { type: 'image/jpeg' }))
-    } else {
-      fileInput.click()
-    }
+    fileInput.click()
 
     loading = false
   }
