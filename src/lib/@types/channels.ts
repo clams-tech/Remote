@@ -102,7 +102,7 @@ export type OpenChannelOptions = {
   /** node public key to open channel to */
   id: string
   /** amount in sats for channel size */
-  amount: number
+  amount: number | 'all'
   /** whether to announce the channel to the network or not */
   announce: boolean
 }

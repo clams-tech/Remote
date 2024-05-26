@@ -64,6 +64,7 @@
         type="info"
       >
         <button
+          slot="inline"
           class="ml-1 underline font-semibold text-sm leading-tight"
           on:click={async () => {
             const { id } = await createWallet()

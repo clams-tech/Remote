@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
-  import { WS_PROXY } from '$lib/constants'
+  import { ALBY_WS_PROXY, WS_PROXY } from '$lib/constants'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
@@ -136,7 +136,19 @@
     </div>
   {:else}
     <div in:fade={{ duration: 250 }} class="mt-2 w-full">
-      <TextInput micro value={WS_PROXY} name={advancedConnectOption} readonly />
+      <div
+        class="flex items-center px-3 py-2 ring-2 ring-purple-500 border border-neutral-600 rounded"
+      >
+        <label class="flex items-center cursor-pointer">
+          <input type="radio" bind:group={connection.value} value={WS_PROXY} />
+          <span class="ml-1">Clams</span>
+        </label>
+
+        <label class="flex items-center ml-4 cursor-pointer">
+          <input type="radio" bind:group={connection.value} value={ALBY_WS_PROXY} />
+          <span class="ml-1">Alby ({$translate('app.labels.tor_support')})</span>
+        </label>
+      </div>
     </div>
   {/if}
 </div>

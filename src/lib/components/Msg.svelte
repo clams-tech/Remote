@@ -59,7 +59,7 @@
     <div
       in:slide={{ duration: 250 }}
       out:slide={{ duration: 250, delay: 150 }}
-      class="pl-6 pr-8 w-full py-4 rounded-lg border flex relative overflow-hidden transition-all {msgValue
+      class="pl-6 pr-8 w-full py-4 rounded-lg border flex flex-col relative overflow-hidden transition-all {msgValue
         .colors.main}"
     >
       {#if closable}
@@ -78,9 +78,11 @@
           </div>
         </div>
 
-        <div class="font-semibold text-sm leading-tight flex items-center flex-wrap gap-x-1">
+        <div class="font-semibold text-sm leading-tight flex items-center flex-wrap gap-x-0.5">
           <!-- text-bitcoin-orange -->
           {@html message}
+
+          <slot name="inline" />
         </div>
       </div>
 
