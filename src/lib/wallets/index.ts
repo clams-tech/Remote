@@ -153,6 +153,8 @@ export const getConnection = (wallet: Wallet): Connection => {
 }
 
 export const connect = async (wallet: Wallet): Promise<Connection> => {
+  console.log('wallet = ', wallet)
+
   let connection: Connection
 
   // lookup if connection exists
