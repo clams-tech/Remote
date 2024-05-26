@@ -509,6 +509,7 @@
     "seconds": "seconds",
     "force_close": "Force close",
     "go_to_closing_transaction": "Go to closing transaction",
+    "tor_support": "Tor support"
     "spend_all": "Spend all"
   },
   "messages": {

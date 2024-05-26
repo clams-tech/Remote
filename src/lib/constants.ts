@@ -14,6 +14,7 @@ export const MODE = import.meta.env.MODE
 export const API_HOST = 'api.clams.tech'
 export const API_URL = `https://${API_HOST}`
 export const WS_PROXY = `wss://${API_HOST}/ws-proxy`
+export const ALBY_WS_PROXY = 'wss://lnproxy.getalby.com'
 
 export const SEC_IN_MS = 1000
 export const MIN_IN_MS = 60 * 1000
