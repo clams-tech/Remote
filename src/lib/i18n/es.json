@@ -509,6 +509,7 @@
     "force_close": "Forzar cierre",
     "go_to_closing_transaction": "Ir a la transacción de cierre",
     "tor_support": "Soporte de Tor"
+    "spend_all": "Gastar todo"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
