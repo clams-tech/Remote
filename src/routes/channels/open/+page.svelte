@@ -11,7 +11,7 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, from, map } from 'rxjs'
+  import { combineLatest, map } from 'rxjs'
   import { connections$, wallets$ } from '$lib/streams.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { Connection } from '$lib/wallets/interfaces.js'
