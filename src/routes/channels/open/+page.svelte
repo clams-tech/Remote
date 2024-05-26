@@ -11,7 +11,7 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import Msg from '$lib/components/Msg.svelte'
   import plus from '$lib/icons/plus.js'
-  import { combineLatest, map } from 'rxjs'
+  import { combineLatest, from, map } from 'rxjs'
   import { connections$, wallets$ } from '$lib/streams.js'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
   import type { Connection } from '$lib/wallets/interfaces.js'
@@ -20,6 +20,8 @@
   import type { AppError } from '$lib/@types/errors.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
+  import Big from 'big.js'
+  import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
 
   export let data: PageData
 
@@ -35,6 +37,7 @@
   let selectedWalletId: string
   let address: string
   let channelSize: number
+  let spendAll: boolean
   let announce = true
 
   let validAddress: boolean
@@ -46,6 +49,24 @@
   }
 
   $: validAddress = validateNodeAddress(address)
+
+  let totalSpendableUtxos: number
+
+  const loadTotalSpendableUtxos = async () => {
+    const utxos = await db.utxos.where({ walletId: selectedWalletId }).toArray()
+
+    totalSpendableUtxos = utxos
+      .reduce(
+        (total, { status, amount }) =>
+          status === 'confirmed' || status === 'unconfirmed' ? total.plus(amount) : total,
+        Big(0)
+      )
+      .toNumber()
+  }
+
+  $: if (selectedWalletId) {
+    loadTotalSpendableUtxos()
+  }
 
   async function openChannel() {
     openError = null
@@ -62,7 +83,7 @@
 
       const openChannelResult = await connection.channels!.open!({
         id: publicKey,
-        amount: channelSize,
+        amount: spendAll ? 'all' : channelSize,
         announce
       })
 
@@ -116,13 +137,37 @@
         bind:value={address}
       />
 
-      <TextInput
-        name="amount"
-        type="number"
-        label={$translate('app.labels.channel_size')}
-        sats={channelSize}
-        bind:value={channelSize}
-      />
+      <div>
+        <div class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold">
+          {$translate('app.labels.spendable')}
+        </div>
+
+        <BitcoinAmount sats={totalSpendableUtxos} />
+      </div>
+
+      {#if spendAll}
+        <TextInput
+          name="amount"
+          type="text"
+          readonly
+          label={$translate('app.labels.channel_size')}
+          value={$translate('app.labels.spend_all')}
+        />
+      {:else}
+        <TextInput
+          name="amount"
+          type="number"
+          label={$translate('app.labels.channel_size')}
+          sats={channelSize}
+          bind:value={channelSize}
+        />
+      {/if}
+
+      <div class="text-sm font-semibold text-neutral-300">
+        <Toggle bind:toggled={spendAll}>
+          <div slot="left" class="mr-2">{$translate('app.labels.spend_all')}</div>
+        </Toggle>
+      </div>
 
       <div class="text-sm font-semibold text-neutral-300">
         <Toggle bind:toggled={announce}>
@@ -133,7 +178,7 @@
       <div class="mt-2 w-full flex justify-end">
         <div class="w-min">
           <Button
-            disabled={!address || !validAddress || !channelSize}
+            disabled={!address || !validAddress || (!channelSize && !spendAll)}
             requesting={opening}
             on:click={openChannel}
             text={$translate('app.labels.open')}
