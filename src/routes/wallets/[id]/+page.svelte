@@ -36,7 +36,8 @@
     connect,
     walletToConnection,
     connectionOptions,
-    syncConnectionData
+    syncConnectionData,
+    deleteWallet
   } from '$lib/wallets/index.js'
 
   export let data: PageData
@@ -183,36 +184,10 @@
 
   let deletingWallet = false
 
-  const deleteWallet = async () => {
+  const deleteWalletAndRedirect = async () => {
     deletingWallet = true
 
-    await db.wallets.delete(id)
-
-    const connections = connections$.value
-    const connectionIndex = connections.findIndex(({ walletId }) => walletId === id)
-
-    if (connectionIndex !== -1) {
-      const connection = connections[connectionIndex]
-
-      // disconnect
-      connection.disconnect && (await connection.disconnect())
-
-      // remove from connections
-      connections.splice(connectionIndex, 1)
-
-      // update connections
-      connections$.next(connections)
-    }
-
-    await Promise.all(
-      db.tables.map(async table => {
-        try {
-          await table.where('walletId').equals(id).delete()
-        } catch (error) {
-          // wallet id is not indexed, all good to swallow error here
-        }
-      })
-    )
+    await deleteWallet(id)
 
     setTimeout(() => goto('/wallets'), 250)
   }
@@ -400,7 +375,7 @@
       <div class="w-min">
         <Button
           requesting={deletingWallet}
-          on:click={deleteWallet}
+          on:click={deleteWalletAndRedirect}
           warning
           text={$translate('app.labels.delete')}
         >
