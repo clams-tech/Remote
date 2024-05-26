@@ -508,7 +508,8 @@
     "close_channel": "Close Channel",
     "seconds": "seconds",
     "force_close": "Force close",
-    "go_to_closing_transaction": "Go to closing transaction"
+    "go_to_closing_transaction": "Go to closing transaction",
+    "tor_support": "Tor support"
   },
   "messages": {
     "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",
