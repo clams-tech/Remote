@@ -203,7 +203,7 @@
 
           <Toggle bind:toggled={exposePrivateChannels}>
             <div slot="left" class="font-semibold mr-2 text-neutral-300">
-              Expose private channels
+              {$translate('app.labels.expose_private_channels')}
             </div>
           </Toggle>
         {/if}

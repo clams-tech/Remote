@@ -84,8 +84,6 @@ class Invoices implements InvoicesInterface {
         }
       })
 
-      console.log(`result = `, result)
-
       const { bolt11, expires_at, payment_hash, payment_secret } = result as InvoiceResponse
 
       const payment: InvoicePayment = {
