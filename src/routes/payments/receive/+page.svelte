@@ -35,6 +35,7 @@
 
   let createAddress = false
   let createInvoice = false
+  let exposePrivateChannels = false
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -84,7 +85,8 @@
           id,
           amount,
           description,
-          expiry
+          expiry,
+          exposePrivateChannels
         })
 
         await db.payments.add(invoice)
@@ -198,6 +200,12 @@
           <div transition:slide>
             <ExpirySelector bind:expiry />
           </div>
+
+          <Toggle bind:toggled={exposePrivateChannels}>
+            <div slot="left" class="font-semibold mr-2 text-neutral-300">
+              {$translate('app.labels.expose_private_channels')}
+            </div>
+          </Toggle>
         {/if}
 
         <TextInput
