@@ -25,6 +25,7 @@ export type CreateInvoiceOptions = {
   id: string
   description: string
   expiry?: number
+  exposePrivateChannels?: boolean
 }
 
 export type PayInvoiceOptions = {
