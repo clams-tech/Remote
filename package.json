@@ -1,6 +1,6 @@
 {
   "name": "remote",
-  "version": "2.1.1-0.3.6",
+  "version": "2.1.1-0.3.7",
   "scripts": {
     "dev": "vite dev",
     "dev-https": "vite dev --mode https",
