@@ -73,7 +73,7 @@ export type Info = {
   host?: string
   port?: number
   bitcoindSynced?: boolean
-  lightningdSynced: boolean
+  lightningdSynced?: boolean
 }
 
 export type RpcCall = (options: {
