@@ -117,10 +117,29 @@ class CoreLightning implements CorelnConnectionInterface {
             method: 'getinfo'
           })) as GetinfoResponse
 
-          const { id, alias, color, version, address, network } = result
+          const {
+            id,
+            alias,
+            color,
+            version,
+            address,
+            network,
+            warning_bitcoind_sync,
+            warning_lightningd_sync
+          } = result
           const { address: host, port: connectionPort } = address[0] || { address: ip, port }
 
-          this.info = { id, host, port: connectionPort, alias, color, version, network }
+          this.info = {
+            id,
+            host,
+            port: connectionPort,
+            alias,
+            color,
+            version,
+            network,
+            bitcoindSynced: warning_bitcoind_sync ? false : true,
+            lightningdSynced: warning_lightningd_sync ? false : true
+          }
 
           return this.info
         } catch (error) {

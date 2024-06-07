@@ -593,7 +593,9 @@
     "wallet_channel_open_unavailable": "No tienes ninguna billetera conectada que pueda abrir un canal.",
     "fetched_invoice_invalid": "Una factura inválida fue devuelta al intentar pagar la oferta.",
     "fetched_invoice_amount_invalid": "La factura devuelta tiene una cantidad diferente a lo requerido por la oferta.",
-    "decode_rune": "Runa inválida."
+    "decode_rune": "Runa inválida.",
+    "bitcoind_not_synced": "Bitcoind no está completamente sincronizado.",
+    "lightningd_not_synced": "Lightningd no está completamente sincronizado."
   },
   "languages": {
     "en": "Inglés",

@@ -72,6 +72,8 @@ export type Info = {
   version?: string
   host?: string
   port?: number
+  bitcoindSynced?: boolean
+  lightningdSynced: boolean
 }
 
 export type RpcCall = (options: {

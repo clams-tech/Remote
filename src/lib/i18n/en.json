@@ -594,7 +594,9 @@
     "wallet_channel_open_unavailable": "You do not have any wallets connected that can open an channel.",
     "fetched_invoice_invalid": "An invalid invoice was returned when trying to pay offer.",
     "fetched_invoice_amount_invalid": "The invoice returned has a different amount than what was requested from the offer.",
-    "decode_rune": "Invalid rune."
+    "decode_rune": "Invalid rune.",
+    "bitcoind_not_synced": "Bitcoind is not fully synced.",
+    "lightningd_not_synced": "Lightningd is not fully synced."
   },
   "languages": {
     "en": "English",
