@@ -71,6 +71,7 @@
     })
 
   $: connection = $connections$.find(conn => conn.walletId === id)
+
   $: status = connection ? connection.connectionStatus$ : new BehaviorSubject(null)
 
   $: if ($wallet$ && !$wallet$.modifiedAt) {
@@ -290,12 +291,34 @@
                 {#if typeof walletBalance === 'number'}
                   <div>
                     <BitcoinAmount sats={walletBalance} />
-                    <div class="text-xs font-semibold -mt-1">
+                    <div class="text-xs font-semibold">
                       {$translate('app.labels.balance')}
                     </div>
                   </div>
                 {/if}
               </div>
+
+              {#if !connection?.info?.bitcoindSynced}
+                <div class="w-full flex items-end mt-1.5 ml-2">
+                  <div class="w-4 text-utility-error mr-1">
+                    {@html warning}
+                  </div>
+                  <div class="text-utility-error text-xs font-semibold">
+                    {$translate('app.errors.bitcoind_not_synced')}
+                  </div>
+                </div>
+              {/if}
+
+              {#if !connection?.info?.lightningdSynced}
+                <div class="w-full flex items-end mt-1.5 ml-2">
+                  <div class="w-4 text-utility-error mr-1">
+                    {@html warning}
+                  </div>
+                  <div class="text-utility-error text-xs font-semibold">
+                    {$translate('app.errors.lightningd_not_synced')}
+                  </div>
+                </div>
+              {/if}
             </div>
           {/if}
         </div>
