@@ -70,7 +70,7 @@ class Invoices implements InvoicesInterface {
 
   async create(options: CreateInvoiceOptions): Promise<InvoicePayment> {
     try {
-      const { id, amount, description, expiry } = options
+      const { id, amount, description, expiry, exposePrivateChannels } = options
       const createdAt = nowSeconds()
 
       const result = await this.connection.rpc({
@@ -79,7 +79,8 @@ class Invoices implements InvoicesInterface {
           label: id,
           amount_msat: amount === 0 ? 'any' : satsToMsats(amount),
           description,
-          expiry
+          expiry,
+          exposeprivatechannels: exposePrivateChannels
         }
       })
 

@@ -88,30 +88,6 @@
 
   const toggleNotifications = async () => {
     notificationsError = ''
-
-    if (!$settings$.notifications) {
-      if (!notification.permission()) {
-        try {
-          const permission = await notification.requestPermission()
-
-          if (permission !== 'granted') {
-            notificationsError = $translate('app.errors.permissions_notifications')
-            return
-          }
-        } catch (e) {
-          const { message } = e as Error
-          error = {
-            key: 'permissions_notifications',
-            detail: {
-              timestamp: nowSeconds(),
-              message,
-              context: 'Getting notifications permission'
-            }
-          }
-        }
-      }
-    }
-
     $settings$.notifications = !$settings$.notifications
   }
 </script>

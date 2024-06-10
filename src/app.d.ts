@@ -16,10 +16,6 @@ declare namespace svelteHTML {
   }
 }
 
-declare interface Window {
-  __TAURI__: boolean
-}
-
 interface Window {
   NDEFMessage: NDEFMessage
 }

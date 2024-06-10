@@ -6,6 +6,8 @@
   import { fade } from 'svelte/transition'
   import { settings$, wallets$ } from '$lib/streams.js'
   import type { Tile } from '$lib/@types/settings.js'
+  import { createWallet } from '$lib/wallets'
+  import { goto } from '$app/navigation'
 
   let showGetStartedHint = false
   const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
@@ -60,7 +62,16 @@
         on:close={handleCloseHint}
         message={$translate('app.routes./.get_started_hint')}
         type="info"
-      />
+      >
+        <button
+          slot="inline"
+          class="ml-1 underline font-semibold text-sm leading-tight"
+          on:click={async () => {
+            const { id } = await createWallet()
+            goto(`/wallets/${id}`)
+          }}>{$translate(`app.labels.wallet`).toLowerCase()}.</button
+        ></Msg
+      >
     </div>
   </div>
 {/if}

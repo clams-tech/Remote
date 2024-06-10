@@ -6,6 +6,8 @@
   import { translate } from '$lib/i18n/translations.js'
   import WalletComponent from './Wallet.svelte'
   import Spinner from './Spinner.svelte'
+  import { createWallet } from '$lib/wallets'
+  import { goto } from '$app/navigation'
 
   export let autoSelectLast: 'sent' | 'received' | '' = ''
   export let label: string = $translate('app.labels.wallet')
@@ -58,7 +60,18 @@
     <Spinner />
   {:else if !wallets.length}
     <div class="mt-4">
-      <Msg closable={false} message={$translate('app.labels.add_wallet')} type="info" />
+      <Msg closable={false} message={$translate('app.labels.add_wallet')} type="info"
+        ><button
+          class="ml-1 font-semibold text-sm leading-tight"
+          on:click={async () => {
+            const { id } = await createWallet()
+            goto(`/wallets/${id}`)
+          }}
+          ><span class="underline mr-1"
+            >{$translate('app.labels.create_new_wallet_connection')}</span
+          >{$translate('app.labels.to_get_started').toLowerCase()}.</button
+        >
+      </Msg>
     </div>
   {:else}
     {#if label}

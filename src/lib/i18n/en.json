@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Home",
-      "get_started_hint": "To get started, add a new <a href='/wallets/add'>wallet</a>."
+      "get_started_hint": "To get started, add a new"
     },
     "/input": {
       "title": "Input"
@@ -149,6 +149,7 @@
     "expires": "Expires",
     "text": "Text",
     "image": "Image",
+    "import": "Import",
     "nfc": "NFC",
     "unknown": "Unknown",
     "login": "Login",
@@ -162,7 +163,7 @@
     "channel": "Channel",
     "closed_by": "Closed by",
     "final_to_us": "Our final balance",
-    "announce_channel": "Announce channel?",
+    "announce_channel": "Announce channel",
     "opened_by": "Opened by",
     "ppm": "PPM",
     "channel_fees": "Set Fees",
@@ -219,7 +220,9 @@
     "lnurl_auth": "Auth",
     "lnurl_login": "Login",
     "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-    "add_wallet": "You do not have a wallet connected. <a href='/wallets/add'>Create a new wallet connection</a> to get started.",
+    "add_wallet": "You do not have a wallet connected.",
+    "create_new_wallet_connection": "Create a new wallet connection",
+    "to_get_started": "To get started",
     "no_channels": "You have no channels, try syncing your wallets or open a new channel.",
     "no_channels_filtered": "No channels match your current filters",
     "no_offers": "You have no offers, try syncing your wallets or create a new offer.",
@@ -501,7 +504,20 @@
     "reset_confirmation": "Are you sure you want to delete all your data and completely reset the app?",
     "start_scanner": "Start scanner",
     "import_image": "Import image",
-    "read_nfc": "Read NFC"
+    "read_nfc": "Read NFC",
+    "close_channel": "Close Channel",
+    "seconds": "seconds",
+    "force_close": "Force close",
+    "go_to_closing_transaction": "Go to closing transaction",
+    "tor_support": "Tor support",
+    "spend_all": "Spend all",
+    "expose_private_channels": "Expose private channels"
+  },
+  "messages": {
+    "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",
+    "initiate_force_close": "Force closing will immediately close the channel and should only be initiated when your channel partner is unresponsive. Force closing will result in higher onchain fees and your funds will be timelocked (not spendable) for some time.",
+    "channel_close_in_progress": "This channel is closing and is waiting for the closing transaction to be included in a block.",
+    "waiting_for_channel_response": "This channel is closing and is waiting for a response from the channel partner."
   },
   "errors": {
     "connection_unknown": "Oh dear, something went wrong, please try again or contact support.",
@@ -578,7 +594,9 @@
     "wallet_channel_open_unavailable": "You do not have any wallets connected that can open an channel.",
     "fetched_invoice_invalid": "An invalid invoice was returned when trying to pay offer.",
     "fetched_invoice_amount_invalid": "The invoice returned has a different amount than what was requested from the offer.",
-    "decode_rune": "Invalid rune."
+    "decode_rune": "Invalid rune.",
+    "bitcoind_not_synced": "Bitcoind is not fully synced.",
+    "lightningd_not_synced": "Lightningd is not fully synced."
   },
   "languages": {
     "en": "English",

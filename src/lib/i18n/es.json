@@ -2,7 +2,7 @@
   "routes": {
     "/": {
       "title": "Inicio",
-      "get_started_hint": "Para empezar, agrega una nueva <a href='/wallets/add'>billetera</a>."
+      "get_started_hint": "Para empezar, agrega una nueva"
     },
     "/input": {
       "title": "Entrada"
@@ -149,6 +149,7 @@
     "expires": "Expira",
     "text": "Texto",
     "image": "Imagen",
+    "import": "Importar",
     "nfc": "NFC",
     "unknown": "Desconocido",
     "login": "Acceso",
@@ -218,7 +219,9 @@
     "lnurl_payrequest": "Pagar",
     "lnurl_auth": "Autenticación",
     "rune_placeholder": "7jN2zKjkWlvncm_La3uZc9vLVGLu7xl9oBoun6pth7E9MA==",
-    "add_wallet": "No tienes conectada una billetera. <a href='/wallets/add'>Crear una nueva conexión a billetera</a> para comenzar.",
+    "add_wallet": "No tienes conectada una billetera.",
+    "create_new_wallet_connection": "Crear una nueva conexión a billetera",
+    "to_get_started": "Para comenzar",
     "no_channels": "No tienes canales, intenta sincronizando tus billeteras o abre un nuevo canal.",
     "no_channels_filtered": "Ningún canal coincide con los filtros actuales",
     "no_offers": "No tienes ofertas, intenta sincronizar tus billeteras o crea una nueva oferta.",
@@ -500,7 +503,20 @@
     "reset_confirmation": "Estas seguro de querer eliminar todos tus datos y resetear la aplicación completamente?",
     "start_scanner": "Iniciar escaneo",
     "import_image": "Importar imagen",
-    "read_nfc": "Leer NFC"
+    "read_nfc": "Leer NFC",
+    "close_channel": "Cerrar canal",
+    "seconds": "segundos",
+    "force_close": "Forzar cierre",
+    "go_to_closing_transaction": "Ir a la transacción de cierre",
+    "tor_support": "Soporte de Tor",
+    "spend_all": "Gastar todo",
+    "expose_private_channels": "Exponer canales privados"
+  },
+  "messages": {
+    "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
+    "initiate_force_close": "El cierre forzado cerrará inmediatamente el canal y solo debe iniciarse cuando su contraparte del canal no responda. El cierre forzado resultará en tarifas más altas en la cadena y sus fondos serán bloqueados temporalmente (no gastables) por algún tiempo.",
+    "channel_close_in_progress": "Este canal se está cerrando y está esperando que la transacción de cierre se incluya en un bloque.",
+    "waiting_for_channel_response": "Este canal se está cerrando y está esperando una respuesta de la contraparte del canal."
   },
   "errors": {
     "connection_unknown": "Oh cariño, algo salió mal, por favor vuelve a intentar, o contacta a soporte técnico.",
@@ -577,7 +593,9 @@
     "wallet_channel_open_unavailable": "No tienes ninguna billetera conectada que pueda abrir un canal.",
     "fetched_invoice_invalid": "Una factura inválida fue devuelta al intentar pagar la oferta.",
     "fetched_invoice_amount_invalid": "La factura devuelta tiene una cantidad diferente a lo requerido por la oferta.",
-    "decode_rune": "Runa inválida."
+    "decode_rune": "Runa inválida.",
+    "bitcoind_not_synced": "Bitcoind no está completamente sincronizado.",
+    "lightningd_not_synced": "Lightningd no está completamente sincronizado."
   },
   "languages": {
     "en": "Inglés",

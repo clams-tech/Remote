@@ -238,7 +238,7 @@
 
         <a href="/input" class="flex flex-col items-center justify-center no-underline">
           <div class="w-8">{@html scan}</div>
-          <span class="text-xs font-semibold">{$translate('app.labels.input')}</span>
+          <span class="text-xs font-semibold">{$translate('app.labels.scan')}</span>
         </a>
 
         <a href="/payments/receive" class="flex flex-col items-center justify-center no-underline">

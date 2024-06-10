@@ -78,9 +78,11 @@
           </div>
         </div>
 
-        <div class="font-semibold text-sm leading-tight flex items-center flex-wrap gap-x-1">
+        <div class="font-semibold text-sm leading-tight flex items-center flex-wrap gap-x-0.5">
           <!-- text-bitcoin-orange -->
           {@html message}
+
+          <slot name="inline" />
         </div>
       </div>
 

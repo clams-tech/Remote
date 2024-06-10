@@ -13,7 +13,7 @@
   import { updateAddresses, updateInvoices } from '$lib/db/helpers.js'
 
   const route = 'payments'
-  const rowSize = 88
+  const rowSize = 112
   const filters: Filter[] = getFilters(route)
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)

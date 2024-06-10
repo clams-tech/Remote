@@ -12,6 +12,8 @@ import type { Node } from '$lib/@types/nodes.js'
 
 import type {
   Channel,
+  CloseChannelOptions,
+  CloseChannelResult,
   ConnectPeerOptions,
   OpenChannelOptions,
   OpenChannelResult,
@@ -70,6 +72,8 @@ export type Info = {
   version?: string
   host?: string
   port?: number
+  bitcoindSynced?: boolean
+  lightningdSynced?: boolean
 }
 
 export type RpcCall = (options: {
@@ -138,6 +142,8 @@ export interface ChannelsInterface {
   get(channel?: { id: string; peerId: string }): Promise<Channel[]>
   /** update a channel fees and htlc settings */
   update?(options: UpdateChannelOptions): Promise<void>
+  /** close a channel */
+  close?(options: CloseChannelOptions): Promise<CloseChannelResult>
   /** open a new channel */
   open?(options: OpenChannelOptions): Promise<OpenChannelResult>
   /** connect to a peer node */
