@@ -34,6 +34,9 @@
     "/accounting": {
       "title": "Accounting"
     },
+    "/plugins": {
+      "title": "Plugins"
+    },
     "/settings": {
       "title": "Settings"
     },
