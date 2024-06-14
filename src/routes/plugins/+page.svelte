@@ -4,6 +4,12 @@
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import { translate } from '$lib/i18n/translations'
   import terminal from '$lib/icons/terminal'
+  import { connections$ } from '$lib/streams.js'
+
+  $: {
+    console.log('connections = ', connections$.value[0].clboss)
+    connections$.value[0].clboss?.get()
+  }
 </script>
 
 <svelte:head>

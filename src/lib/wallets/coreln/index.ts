@@ -16,6 +16,7 @@ import type { AppError } from '$lib/@types/errors.js'
 import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
 import Network from './network.js'
+import Clboss from './clboss.js'
 import { createSocket } from './worker.js'
 
 import type {
@@ -37,7 +38,8 @@ import type {
   UtxosInterface,
   ForwardsInterface,
   NetworkInterface,
-  ConnectionStatus
+  ConnectionStatus,
+  ClbossInterface
 } from '../interfaces.js'
 
 class CoreLightning implements CorelnConnectionInterface {
@@ -63,6 +65,7 @@ class CoreLightning implements CorelnConnectionInterface {
   blocks: BlocksInterface
   forwards: ForwardsInterface
   network: NetworkInterface
+  clboss: ClbossInterface
 
   constructor(
     walletId: string,
@@ -173,6 +176,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.blocks = new Blocks(this)
     this.forwards = new Forwards(this)
     this.network = new Network(this)
+    this.clboss = new Clboss(this)
   }
 
   updateToken(token: string): void {

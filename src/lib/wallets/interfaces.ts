@@ -62,6 +62,7 @@ export interface Connection {
   withdrawals?: WithdrawalsInterface
   deposits?: DepositsInterface
   network?: NetworkInterface
+  clboss?: ClbossInterface
 }
 
 export type Info = {
@@ -191,4 +192,9 @@ export interface DepositsInterface {
 export interface NetworkInterface {
   /** get node details */
   getNode(id: string): Promise<Node | null>
+}
+
+export interface ClbossInterface {
+  connection: Connection
+  get(): Promise<[]>
 }
