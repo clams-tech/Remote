@@ -7,8 +7,8 @@
   import { connections$ } from '$lib/streams.js'
 
   $: {
-    console.log('connections = ', connections$.value[0].clboss)
-    connections$.value[0].clboss?.get()
+    console.log('connections = ', connections$.value[0]?.clboss)
+    connections$.value[0]?.clboss?.get()
   }
 </script>
 

@@ -10,9 +10,10 @@ class Clboss implements ClbossInterface {
 
   async get(): Promise<[]> {
     const result = (await this.connection.rpc({
-      method: 'getinfo'
+      method: 'plugin',
+      params: ['list']
     })) as GetinfoResponse
-    console.log('getinfo response from clboss interface = ', result)
+    console.log('clboss get() response = ', result)
     return []
   }
 }
