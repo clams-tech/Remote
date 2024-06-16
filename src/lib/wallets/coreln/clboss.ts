@@ -1,5 +1,5 @@
 import type { ClbossInterface } from '../interfaces.js'
-import type { CorelnConnectionInterface, GetinfoResponse } from './types.js'
+import type { CorelnConnectionInterface } from './types.js'
 
 class Clboss implements ClbossInterface {
   connection: CorelnConnectionInterface
@@ -9,12 +9,12 @@ class Clboss implements ClbossInterface {
   }
 
   async get(): Promise<[]> {
-    const result = (await this.connection.rpc({
-      method: 'plugin',
-      params: ['list']
-    })) as GetinfoResponse
-    console.log('clboss get() response = ', result)
-    return []
+    console.log('clboss-status called!')
+    const result = await this.connection.rpc({
+      method: 'clboss-status'
+    })
+    console.log(`result = `, result)
+    return result // TODO add GetClbossStatusResponse type
   }
 }
 
