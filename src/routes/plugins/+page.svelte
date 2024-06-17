@@ -12,9 +12,10 @@
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
 
+  let loading = true
   let selectedWalletId: Wallet['id']
   let clbossInstalled = false
-  let loading = true
+  let clbossActive = false
   let clbossStatus = null
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
@@ -31,22 +32,23 @@
   ) as Connection
 
   $: connection?.plugins?.get().then(plugins => {
-    clbossInstalled = plugins.some(plugin => plugin.name.includes('clboss'))
+    const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
+
+    if (clbossPlugin) {
+      clbossInstalled = true
+      clbossActive = clbossPlugin.active
+      // TODO - move this logic to the clboss UI route
+      connection?.clboss?.get().then(response => {
+        clbossStatus = response
+      })
+    } else {
+      clbossInstalled = false
+      clbossActive = false
+    }
     loading = false
   })
 
-  $: {
-    if (clbossInstalled) {
-      console.log(`clboss installed!`)
-      console.log('connection = ', connection)
-      connection?.clboss?.get().then(response => {
-        console.log(`clboss status = `, response)
-      })
-    }
-  }
-
   // TODO
-  // handle case where user had plugin installed but it is not "active"
   // check if we can reset CLN
   // list all of the options they can change for clboss
   // decipher between changes that can be made that require a CLN restart and those that don't
@@ -77,8 +79,12 @@
             installed
           </div>
           <div class="flex items-center">
-            <div class="w-4 mr-1 border border-utility-success rounded-full">
-              {@html check}
+            <div
+              class:border-utility-error={!clbossInstalled}
+              class:border-utility-success={clbossInstalled}
+              class="w-4 mr-1 border rounded-full"
+            >
+              {@html clbossActive ? check : close}
             </div>
             active
           </div>

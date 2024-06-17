@@ -33,7 +33,7 @@ import type {
   PayInvoiceOptions,
   PayKeysendOptions
 } from '$lib/@types/invoices.js'
-import type { Plugin } from './coreln/plugins'
+import type { Plugin, ClbossStatus } from '$lib/@types/plugins'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -198,8 +198,7 @@ export interface NetworkInterface {
 
 export interface ClbossInterface {
   connection: Connection
-  // @TODO add types
-  get(): Promise<[]>
+  get(): Promise<ClbossStatus>
 }
 
 export interface PluginsInterface {

@@ -1202,14 +1202,3 @@ export type LNResponse =
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 
 export type CoreLnError = { code: number; message: string }
-
-export type Plugin = {
-  name: string
-  active: boolean
-  dynamic: boolean
-}
-
-export interface PluginListResponse {
-  command: 'list'
-  plugins: Plugin[]
-}
