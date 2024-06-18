@@ -29,6 +29,7 @@
   import InfoModal from '$lib/components/InfoModal.svelte'
   import type { Session } from '$lib/@types/session.js'
   import { validateWalletConfiguration } from '$lib/wallets/validation.js'
+  import RemoteBoltIcon from '$lib/icons/remote-bolt'
 
   import {
     autoConnectWallet$,
@@ -192,13 +193,17 @@
         default: 'undefined'
       })}
       <div class="flex items-center">
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-12 p-2"
+          >{@html RemoteBoltIcon}</button
+        >
+
         {#if routeHistory[0]}
           <button
             on:click={back}
             transition:slide={{ axis: 'x' }}
             class="flex items-center font-semibold whitespace-nowrap"
           >
-            <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
+            <div class="w-6 -ml-2 rotate-90 flex-shrink-0">{@html caret}</div>
             <div>
               {!lastPathRouteTitle || lastPathRouteTitle === 'undefined'
                 ? $translate('app.labels.back')
