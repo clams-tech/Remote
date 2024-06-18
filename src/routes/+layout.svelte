@@ -2,7 +2,6 @@
   import '../app.css'
   import { page } from '$app/stores'
   import { translate } from '$lib/i18n/translations.js'
-  import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
@@ -193,17 +192,13 @@
         default: 'undefined'
       })}
       <div class="flex items-center">
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 p-1"
-          >{@html clamsIconPlain}</button
-        >
-
         {#if routeHistory[0]}
           <button
             on:click={back}
             transition:slide={{ axis: 'x' }}
             class="flex items-center font-semibold whitespace-nowrap"
           >
-            <div class="w-6 -ml-2 rotate-90 flex-shrink-0">{@html caret}</div>
+            <div class="w-6 rotate-90 flex-shrink-0">{@html caret}</div>
             <div>
               {!lastPathRouteTitle || lastPathRouteTitle === 'undefined'
                 ? $translate('app.labels.back')

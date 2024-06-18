@@ -68,7 +68,7 @@
 
         <div class="flex items-start w-full">
           <div class="w-12 mr-4 flex-shrink-0">
-            <img src="/icons/icon.png" class="w-full" alt="Clams" />
+            <img src="/icons/icon.png" class="w-full" alt="Remote" />
           </div>
 
           <div class="w-4/5">
