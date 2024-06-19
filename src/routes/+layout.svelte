@@ -193,7 +193,7 @@
         default: 'undefined'
       })}
       <div class="flex items-center">
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-10 ml-1 mr-1"
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-10 p-1"
           >{@html RemoteBoltIcon}</button
         >
 
