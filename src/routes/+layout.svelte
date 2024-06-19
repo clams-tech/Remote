@@ -187,7 +187,7 @@
   {/if}
 
   <header class="flex w-full items-center justify-between">
-    <!-- show clams icon in top left if not welcome or decrypt routes -->
+    <!-- show remote icon in top left if not welcome or decrypt routes -->
     {#if routeRequiresSession(path)}
       {@const lastPathRouteTitle = $translate(`app.routes.${routeHistory[0]}.title`, {
         default: 'undefined'
