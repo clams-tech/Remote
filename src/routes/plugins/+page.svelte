@@ -89,7 +89,7 @@
             active
           </div>
           {#if clbossInstalled}
-            <a href="/plugins/clboss">Configure</a>
+            <a href={`/plugins/clboss?wallet=${selectedWalletId}`}>Configure</a>
           {:else}
             <a target="_blank" rel="noopener noreferrer" href="https://github.com/ZmnSCPxj/clboss"
               >Learn more</a
