@@ -4,13 +4,11 @@
   import Button from '$lib/components/Button.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import RemoteIcon from '$lib/icons/remote'
   import { session$ } from '$lib/streams.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
   import { onMount } from 'svelte'
   import { createEventDispatcher } from 'svelte'
-  import { bytesToHex } from '@noble/hashes/utils'
-  import { secp256k1 } from '@noble/curves/secp256k1'
   import { decryptWithAES } from '$lib/crypto.js'
   import { storage } from '$lib/services.js'
   import { STORAGE_KEYS } from '$lib/constants.js'
@@ -79,7 +77,7 @@
 <Section>
   <div class="w-full flex justify-center mb-8">
     <div class="w-[150px] md:w-[200px] xl:w-[250px]">
-      <ClamsLogo />
+      {@html RemoteIcon}
     </div>
   </div>
 

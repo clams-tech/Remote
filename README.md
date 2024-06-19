@@ -1,7 +1,7 @@
-# Clams Remote
+# Remote
 
-![Clams Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote-dark.svg#gh-dark-mode-only)
-![Clams Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote.svg#gh-light-mode-only)
+![Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote-dark.svg#gh-dark-mode-only)
+![Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote.svg#gh-light-mode-only)
 
 Remote control your Core Lightning node(s) via the lightning network from any web enabled device.
 
