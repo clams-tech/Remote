@@ -280,10 +280,6 @@
           on:mouseenter={() => containerScrollable && (showFullButton = true)}
           on:mouseleave={() => containerScrollable && (showFullButton = false)}
         >
-          <div class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70">
-            <img src="/images/shell1.png" class="h-full w-full" alt="texture" />
-          </div>
-
           <div class="w-6 relative" class:-ml-2={!containerScrollable || showFullButton}>
             {@html button.icon}
           </div>

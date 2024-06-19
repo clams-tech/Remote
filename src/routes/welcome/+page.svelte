@@ -4,7 +4,7 @@
   import Button from '$lib/components/Button.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
-  import ClamsLogo from '$lib/icons/ClamsLogo.svelte'
+  import RemoteIcon from '$lib/icons/remote'
   import { session$, settings$ } from '$lib/streams.js'
   import Paragraph from '$lib/components/Paragraph.svelte'
   import { notification, storage } from '$lib/services.js'
@@ -103,7 +103,7 @@
     <div class="w-full flex flex-col items-center justify-center max-w-lg">
       <div class="w-full flex justify-center mb-8">
         <div class="w-[150px] md:w-[200px] xl:w-[250px]">
-          <ClamsLogo />
+          {@html RemoteIcon}
         </div>
       </div>
 
