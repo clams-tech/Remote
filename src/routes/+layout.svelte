@@ -2,7 +2,6 @@
   import '../app.css'
   import { page } from '$app/stores'
   import { translate } from '$lib/i18n/translations.js'
-  import clamsIconPlain from '$lib/icons/clamsIconPlain.js'
   import Lava from '$lib/components/Lava.svelte'
   import { fade, slide } from 'svelte/transition'
   import { afterNavigate, goto } from '$app/navigation'
@@ -30,6 +29,7 @@
   import InfoModal from '$lib/components/InfoModal.svelte'
   import type { Session } from '$lib/@types/session.js'
   import { validateWalletConfiguration } from '$lib/wallets/validation.js'
+  import RemoteBoltIcon from '$lib/icons/remote-bolt'
 
   import {
     autoConnectWallet$,
@@ -187,14 +187,14 @@
   {/if}
 
   <header class="flex w-full items-center justify-between">
-    <!-- show clams icon in top left if not welcome or decrypt routes -->
+    <!-- show remote icon in top left if not welcome or decrypt routes -->
     {#if routeRequiresSession(path)}
       {@const lastPathRouteTitle = $translate(`app.routes.${routeHistory[0]}.title`, {
         default: 'undefined'
       })}
       <div class="flex items-center">
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-16 p-1"
-          >{@html clamsIconPlain}</button
+        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-10 p-1"
+          >{@html RemoteBoltIcon}</button
         >
 
         {#if routeHistory[0]}

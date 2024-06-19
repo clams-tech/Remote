@@ -1,6 +1,6 @@
 {
 	"short_name": "Remote",
-	"name": "Clams Remote",
+	"name": "Remote",
 	"start_url": "/",
 	"display": "standalone",
   "description": "Remote control your Core Lightning node(s)",
