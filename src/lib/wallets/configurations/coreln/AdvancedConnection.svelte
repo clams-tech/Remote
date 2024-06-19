@@ -141,7 +141,7 @@
       >
         <label class="flex items-center cursor-pointer">
           <input type="radio" bind:group={connection.value} value={WS_PROXY} />
-          <span class="ml-1">Clams</span>
+          <span class="ml-1">Remote</span>
         </label>
 
         <label class="flex items-center ml-4 cursor-pointer">

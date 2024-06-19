@@ -30,7 +30,6 @@
   >
     <div
       class="absolute top-0 right-0 w-full h-full rounded-full overflow-hidden opacity-70 bg-cover"
-      style="background-image: url(/images/shell1.png);"
     />
 
     <div class="relative flex items-center justify-center">
