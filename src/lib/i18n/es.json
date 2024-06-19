@@ -39,7 +39,7 @@
     },
     "/wallets": {
       "title": "Billeteras",
-      "introduction": "Conecta una nueva <b>billetera</b> para sincronizar datos de <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b>. Agregar conexión a una billetera <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> te permitirá <b>controlar remotamente</b> tu nodo con <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
+      "introduction": "Conecta una nueva <b>billetera</b> para sincronizar datos de <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b>. Agregar conexión a una billetera <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> te permitirá <b>controlar remotamente</b> tu nodo con <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>.",
       "add_wallet": "Agregar Billetera",
       "delete_wallet_modal": {
         "heading": "Eliminar Billetera",
@@ -100,7 +100,7 @@
     },
     "/welcome": {
       "title": "Bienvenida",
-      "subheading": "<b>Bienvenido</b> a <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams Remote</b>. Para empezar, necesitamos una frase de contraseña <b>segura</b> para <b>encriptar</b> tu sesión. Sugerimos generar y salvar una frase de contraseña fuerte con un gestor de contraseñas.",
+      "subheading": "<b>Bienvenido</b> a <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>. Para empezar, necesitamos una frase de contraseña <b>segura</b> para <b>encriptar</b> tu sesión. Sugerimos generar y salvar una frase de contraseña fuerte con un gestor de contraseñas.",
       "passphrase": {
         "weak": "débil 😬",
         "medium": "media 🤞",
