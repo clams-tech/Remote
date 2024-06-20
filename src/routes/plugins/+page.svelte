@@ -16,7 +16,6 @@
   let selectedWalletId: Wallet['id']
   let clbossInstalled = false
   let clbossActive = false
-  let clbossStatus = null
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -37,21 +36,12 @@
     if (clbossPlugin) {
       clbossInstalled = true
       clbossActive = clbossPlugin.active
-      // TODO - move this logic to the clboss UI route
-      connection?.clboss?.get().then(response => {
-        clbossStatus = response
-      })
     } else {
       clbossInstalled = false
       clbossActive = false
     }
     loading = false
   })
-
-  // TODO
-  // check if we can reset CLN
-  // list all of the options they can change for clboss
-  // decipher between changes that can be made that require a CLN restart and those that don't
 </script>
 
 <svelte:head>
