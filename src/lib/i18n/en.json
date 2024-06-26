@@ -37,6 +37,9 @@
     "/plugins": {
       "title": "Plugins"
     },
+    "/plugins/clboss": {
+      "title": "CLBOSS"
+    },
     "/settings": {
       "title": "Settings"
     },

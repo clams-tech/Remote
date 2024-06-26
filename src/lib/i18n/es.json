@@ -34,6 +34,12 @@
     "/accounting": {
       "title": "Contabilidad"
     },
+    "/plugins": {
+      "title": "Plugins"
+    },
+    "/plugins/clboss": {
+      "title": "CLBOSS"
+    },
     "/settings": {
       "title": "Configuración"
     },

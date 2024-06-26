@@ -49,10 +49,10 @@
 </svelte:head>
 
 <Section>
-  <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
   <div class="flex items-center justify-between gap-x-4">
     <SectionHeading icon={terminal} />
   </div>
+  <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
   <div class="w-full flex items-center mt-4">
     <div class="flex flex-col gap-4">
       {#if !loading}
