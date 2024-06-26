@@ -17,6 +17,7 @@ export type Tile =
   // | 'charts'
   // | 'trades'
   | 'settings'
+  | 'plugins'
 
 export type Language =
   | 'en'
