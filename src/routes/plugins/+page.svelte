@@ -11,6 +11,7 @@
   import { combineLatest, map } from 'rxjs'
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
+  import Spinner from '$lib/components/Spinner.svelte'
 
   let loading = true
   let selectedWalletId: Wallet['id']
@@ -55,37 +56,44 @@
   <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
   <div class="w-full flex items-center mt-4">
     <div class="flex flex-col gap-4">
-      {#if !loading}
-        <div>
-          <h1>CLBOSS</h1>
-          <div class="flex items-center">
-            <div
-              class:border-utility-error={!clbossInstalled}
-              class:border-utility-success={clbossInstalled}
-              class="w-4 mr-1 border rounded-full"
-            >
-              {@html clbossInstalled ? check : close}
-            </div>
-            installed
+      {#if loading}
+        <Spinner size="1.5em" />
+      {:else}
+        <a
+          href={clbossInstalled
+            ? `/plugins/clboss?wallet=${selectedWalletId}`
+            : 'https://github.com/ZmnSCPxj/clboss'}
+          target={clbossInstalled ? null : '_blank'}
+          rel={clbossInstalled ? null : 'noopener noreferrer'}
+          class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+        >
+          <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
+            <div class="uppercase font-semibold">CLBOSS</div>
           </div>
-          <div class="flex items-center">
-            <div
-              class:border-utility-error={!clbossInstalled}
-              class:border-utility-success={clbossInstalled}
-              class="w-4 mr-1 border rounded-full"
-            >
-              {@html clbossActive ? check : close}
+
+          <div class="text-sm">
+            <div class="flex items-center">
+              <div
+                class:border-utility-error={!clbossInstalled}
+                class:border-utility-success={clbossInstalled}
+                class="w-4 mr-1 border rounded-full"
+              >
+                {@html clbossInstalled ? check : close}
+              </div>
+              installed
             </div>
-            active
+            <div class="flex items-center">
+              <div
+                class:border-utility-error={!clbossInstalled}
+                class:border-utility-success={clbossInstalled}
+                class="w-4 mr-1 border rounded-full"
+              >
+                {@html clbossActive ? check : close}
+              </div>
+              active
+            </div>
           </div>
-          {#if clbossInstalled}
-            <a href={`/plugins/clboss?wallet=${selectedWalletId}`}>Configure</a>
-          {:else}
-            <a target="_blank" rel="noopener noreferrer" href="https://github.com/ZmnSCPxj/clboss"
-              >Learn more</a
-            >
-          {/if}
-        </div>
+        </a>
       {/if}
     </div>
   </div>
