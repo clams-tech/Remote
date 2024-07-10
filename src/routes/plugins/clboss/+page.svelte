@@ -70,8 +70,9 @@
 
   $: console.log(`clbossStatus = `, clbossStatus)
 
-  // Style tooltip icon
+  // @TODO
   // Add tooltip descriptions
+  // Add commands UI
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
 </script>
@@ -82,42 +83,45 @@
   </div>
   {#if loading}
     <Spinner size="1.5em" />
-  {:else}
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    {#if clbossActive}
-      <h1 class="w-full flex items-center mt-4">Optimize node to:</h1>
-      <div class="mt-4 flex flex-col gap-4">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setPreference('send')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={preferences.send}>
-              <div slot="right" class="ml-2">Mostly Send Payments</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Mostly Send description" />
+  {:else if clbossActive}
+    <!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
+    <div class="mt-4 flex flex-col gap-4">
+      <div class="flex gap-1" on:click={() => setPreference('send')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.send}>
+            <div slot="right" class="ml-2">Mostly Send Payments</div>
+          </Toggle>
         </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setPreference('both')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={preferences.both}>
-              <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Equally Send & Receive description" />
-        </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setPreference('receive')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={preferences.receive}>
-              <div slot="right" class="ml-2">Mostly Receive Payments</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Mostly Receive description" />
-        </div>
+        <Tooltip text="Mostly Send description" />
       </div>
+      <div class="flex gap-1" on:click={() => setPreference('both')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.both}>
+            <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
+          </Toggle>
+        </div>
+        <Tooltip text="Equally Send & Receive description" />
+      </div>
+      <div class="flex gap-1" on:click={() => setPreference('receive')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.receive}>
+            <div slot="right" class="ml-2">Mostly Receive Payments</div>
+          </Toggle>
+        </div>
+        <Tooltip text="Mostly Receive description" />
+      </div>
+    </div> -->
+    <p>
+      A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
+      Nevertheless, CLBOSS exposes a few commands and configuration options as well. Please be
+      mindful that updating the configuration options requires a restart of your node.
+    </p>
 
-      <h1 class="mt-8">Onchain / Offchain</h1>
-      <div class="mt-4 flex flex-col gap-4">
+    <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
+
+    <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
+    <div class="mt-4">
+      <div class="flex flex-col gap-4">
         <TextInput
           name="minOnchain"
           type="number"
@@ -140,51 +144,62 @@
           value={maxChannelSize}
         />
       </div>
-
-      <h1 class="mt-8">Base Fee</h1>
-      <div class="mt-4 flex gap-4">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setBaseFee('required')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={baseFee.required}>
-              <div slot="right" class="ml-2">Required</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Required description" />
-        </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setBaseFee('allow')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={baseFee.allow}>
-              <div slot="right" class="ml-2">Allow</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Allow description" />
-        </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setBaseFee('disallow')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={baseFee.disallow}>
-              <div slot="right" class="ml-2">Disallow</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Disallow description" />
-        </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div class="flex gap-1" on:click={() => setBaseFee('default')}>
-          <div class="pointer-events-none">
-            <Toggle bind:toggled={baseFee.default}>
-              <div slot="right" class="ml-2">Default</div>
-            </Toggle>
-          </div>
-          <Tooltip text="Default description" />
+    </div>
+    <div class="mt-4 flex items-center gap-4">
+      <h2>Auto Close <Tooltip text="Required description" /></h2>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={baseFee.required}>
+            <div slot="right" class="ml-1" />
+          </Toggle>
         </div>
       </div>
-      <div class="mt-8 w-min">
-        <Button text="Save" />
+    </div>
+    <div class="mt-4 flex items-center gap-4">
+      <h2>Zero Base Fee <Tooltip text="Default description" /></h2>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={baseFee.required}>
+            <div slot="right" class="ml-1 text-sm">Required</div>
+          </Toggle>
+        </div>
       </div>
-    {:else}
-      <p>Would you like to activate CLBOSS?</p>
-    {/if}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="flex items-center gap-1" on:click={() => setBaseFee('allow')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={baseFee.allow}>
+            <div slot="right" class="ml-1 text-sm">Allow</div>
+          </Toggle>
+        </div>
+      </div>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="flex items-center gap-1" on:click={() => setBaseFee('disallow')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={baseFee.disallow}>
+            <div slot="right" class="ml-1 text-sm">Disallow</div>
+          </Toggle>
+        </div>
+      </div>
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="flex items-center gap-1" on:click={() => setBaseFee('default')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={baseFee.default}>
+            <div slot="right" class="ml-1 text-sm">Default</div>
+          </Toggle>
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 w-min">
+      <Button text="Save" />
+    </div>
+  {:else}
+    <p>Would you like to activate CLBOSS?</p>
   {/if}
 </Section>
