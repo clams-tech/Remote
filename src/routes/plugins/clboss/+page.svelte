@@ -11,6 +11,8 @@
   import { connections$ } from '$lib/streams'
   import type { Connection } from '$lib/wallets/interfaces'
   import type { PageData } from './$types'
+  import Modal from '$lib/components/Modal.svelte'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
 
   export let data: PageData
   let loading = true
@@ -27,6 +29,7 @@
     disallow: false,
     default: false
   }
+  let showStatusModal = false
 
   const { wallet } = data
 
@@ -39,10 +42,6 @@
 
         clbossActive = clbossPlugin ? clbossPlugin.active : false
         loading = false
-      })
-
-      connection.clboss?.get().then(response => {
-        clbossStatus = response
       })
     }
   }
@@ -68,10 +67,17 @@
   let minChannelSize: number | null = null
   let maxChannelSize: number | null = null
 
-  $: console.log(`clbossStatus = `, clbossStatus)
+  function getStatus() {
+    connection.clboss?.get().then(response => {
+      clbossStatus = response
+      console.log(`clbossStatus = `, clbossStatus)
+      showStatusModal = true
+    })
+  }
 
   // @TODO
-  // Add tooltip descriptions
+  // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
+  // Fix tooltip descriptions so they dont spread over screen
   // Add commands UI
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
@@ -118,6 +124,31 @@
     </p>
 
     <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
+    <div>
+      {#if showStatusModal}
+        <Modal on:close={() => (showStatusModal = false)}>
+          <SummaryRow>
+            <div slot="label">Channel Candidates</div>
+            <div slot="value">{JSON.stringify(clbossStatus?.channel_candidates)}</div>
+          </SummaryRow>
+          <SummaryRow>
+            <div slot="label">Internet</div>
+            <div slot="value">{clbossStatus?.internet?.connection}</div>
+          </SummaryRow>
+          <SummaryRow>
+            <div slot="label">Onchain Fee Rate</div>
+            <div slot="value">{clbossStatus?.onchain_feerate.judgment}</div>
+          </SummaryRow>
+          <SummaryRow>
+            <div slot="label">Peer Metrics</div>
+            <div slot="value">{clbossStatus?.peer_metrics}</div>
+          </SummaryRow>
+        </Modal>
+      {/if}
+      <div class="mt-8 w-min">
+        <Button text="Get Status" on:click={getStatus} />
+      </div>
+    </div>
 
     <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
     <div class="mt-4">
@@ -146,7 +177,11 @@
       </div>
     </div>
     <div class="mt-4 flex items-center gap-4">
-      <h2>Auto Close <Tooltip text="Required description" /></h2>
+      <h2>
+        Auto Close <Tooltip
+          text="Enable if you want CLBOSS to have the ability to close channels it deems unprofitable. This can be costly, please understand the ramifications before enabling. Default: False"
+        />
+      </h2>
       <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
@@ -158,7 +193,17 @@
       </div>
     </div>
     <div class="mt-4 flex items-center gap-4">
-      <h2>Zero Base Fee <Tooltip text="Default description" /></h2>
+      <h2>
+        Zero Base Fee <Tooltip
+          text="Specify how this node will advertise its base fee.
+Required: The base fee must be always 0.
+Allow: If the heuristics of CLBOSS think it might be a good idea to set base fee to 0, let it be 0, but otherwise set it to whatever value the heuristics want.
+Disallow: The base fee must always be non-zero. If the heuristics think it might be good to set it to 0, set it to 1 instead.
+Default: default (use fee set by Advanced -> Routing Base Fee)
+Some pathfinding algorithms under development may strongly prefer 0 or low base fees, so you might want to set CLBOSS to 0 base fee, or to allow a 0 base fee.
+"
+        />
+      </h2>
       <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
