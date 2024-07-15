@@ -10,7 +10,10 @@ export type Plugin = {
 }
 
 export type ClbossStatus = {
-  channel_candidates: []
+  channel_candidates: {
+    id: string
+    onlineness: number
+  }[]
   internet: {
     connection: string // "online" | "offline"
     checking_connectivity: boolean
@@ -20,18 +23,18 @@ export type ClbossStatus = {
     init_mid: number
     lo_to_hi: number
     last_feerate_perkw: number
-    judgment: string // "low fees" | "high fees"
+    judgment: 'high fees' | 'low fees'
   }
   peer_metrics: {
-    '025bc9015cc657efbcd1ae9d687d8f02d73c12b3c24229810909c999c72d08fbb3': {
-      age: 321535
-      age_human: '3 days, 17 hours, 18 minutes, 55 seconds'
-      seconds_per_attempt: 0
-      success_per_attempt: null
-      success_per_day: 0
-      connect_rate: 1
-      in_fee_msat_per_day: 0
-      out_fee_msat_per_day: 0
+    [key: string]: {
+      age: number
+      age_human: string
+      seconds_per_attempt: number
+      success_per_attempt: number | null
+      success_per_day: number
+      connect_rate: number
+      in_fee_msat_per_day: number
+      out_fee_msat_per_day: number
     }
   }
 }

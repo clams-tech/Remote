@@ -43,8 +43,6 @@
     }
     loading = false
   })
-
-  $: console.log(`connection info = `, connection?.info)
 </script>
 
 <svelte:head>

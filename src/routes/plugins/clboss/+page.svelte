@@ -13,6 +13,9 @@
   import type { PageData } from './$types'
   import Modal from '$lib/components/Modal.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
+  import { truncateValue } from '$lib/utils'
+  import link from '$lib/icons/link.js'
+  import { fade } from 'svelte/transition'
 
   export let data: PageData
   let loading = true
@@ -78,7 +81,6 @@
   // @TODO
   // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
-  // Add commands UI
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
 </script>
@@ -129,7 +131,26 @@
         <Modal on:close={() => (showStatusModal = false)}>
           <SummaryRow>
             <div slot="label">Channel Candidates</div>
-            <div slot="value">{JSON.stringify(clbossStatus?.channel_candidates)}</div>
+            <div slot="value">
+              {#if clbossStatus}
+                <div class="max-h-[5em] overflow-scroll scroll-smooth">
+                  {#each clbossStatus?.channel_candidates as candidate}
+                    <div class="flex items-center">
+                      <p>{truncateValue(candidate?.id, 4)}</p>
+                      <a
+                        href={`https://amboss.space/node/${candidate?.id}`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
+                          {@html link}
+                        </div></a
+                      >
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
           </SummaryRow>
           <SummaryRow>
             <div slot="label">Internet</div>
@@ -137,7 +158,14 @@
           </SummaryRow>
           <SummaryRow>
             <div slot="label">Onchain Fee Rate</div>
-            <div slot="value">{clbossStatus?.onchain_feerate.judgment}</div>
+            <div slot="value">
+              <p
+                class:text-utility-success={clbossStatus?.onchain_feerate.judgment === 'low fees'}
+                class:text-utility-error={clbossStatus?.onchain_feerate.judgment === 'high fees'}
+              >
+                {clbossStatus?.onchain_feerate.judgment}
+              </p>
+            </div>
           </SummaryRow>
           <SummaryRow>
             <div slot="label">Peer Metrics</div>
