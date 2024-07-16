@@ -133,21 +133,30 @@
             <div slot="label">Channel Candidates</div>
             <div slot="value">
               {#if clbossStatus}
-                <div class="max-h-[5em] overflow-scroll scroll-smooth">
-                  {#each clbossStatus?.channel_candidates as candidate}
-                    <div class="flex items-center">
-                      <p>{truncateValue(candidate?.id, 4)}</p>
-                      <a
-                        href={`https://amboss.space/node/${candidate?.id}`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1">
-                          {@html link}
-                        </div></a
-                      >
-                    </div>
-                  {/each}
+                <div class="max-h-[5em] overflow-scroll">
+                  {#if clbossStatus?.channel_candidates.length}
+                    {#each clbossStatus?.channel_candidates as candidate, index}
+                      <div class="grid grid-cols-2 gap-2">
+                        <p>
+                          {`${index + 1})`}
+                        </p>
+                        <div class="flex justify-between items-center gap-1">
+                          <p>{truncateValue(candidate?.id, 4)}</p>
+                          <a
+                            href={`https://amboss.space/node/${candidate?.id}`}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                              {@html link}
+                            </div></a
+                          >
+                        </div>
+                      </div>
+                    {/each}
+                  {:else}
+                    <p>'-'</p>
+                  {/if}
                 </div>
               {/if}
             </div>
@@ -160,16 +169,20 @@
             <div slot="label">Onchain Fee Rate</div>
             <div slot="value">
               <p
-                class:text-utility-success={clbossStatus?.onchain_feerate.judgment === 'low fees'}
-                class:text-utility-error={clbossStatus?.onchain_feerate.judgment === 'high fees'}
+                class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
+                class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
               >
-                {clbossStatus?.onchain_feerate.judgment}
+                {clbossStatus?.onchain_feerate?.judgment}
               </p>
             </div>
           </SummaryRow>
           <SummaryRow>
             <div slot="label">Peer Metrics</div>
-            <div slot="value">{clbossStatus?.peer_metrics}</div>
+            <div slot="value">
+              {clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length
+                ? clbossStatus?.peer_metrics
+                : '-'}
+            </div>
           </SummaryRow>
         </Modal>
       {/if}

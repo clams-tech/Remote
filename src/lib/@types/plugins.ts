@@ -25,16 +25,18 @@ export type ClbossStatus = {
     last_feerate_perkw: number
     judgment: 'high fees' | 'low fees'
   }
-  peer_metrics: {
-    [key: string]: {
-      age: number
-      age_human: string
-      seconds_per_attempt: number
-      success_per_attempt: number | null
-      success_per_day: number
-      connect_rate: number
-      in_fee_msat_per_day: number
-      out_fee_msat_per_day: number
-    }
-  }
+  peer_metrics:
+    | {
+        [key: string]: {
+          age: number
+          age_human: string
+          seconds_per_attempt: number
+          success_per_attempt: number | null
+          success_per_day: number
+          connect_rate: number
+          in_fee_msat_per_day: number
+          out_fee_msat_per_day: number
+        }
+      }
+    | Record<string, never> //empty object
 }
