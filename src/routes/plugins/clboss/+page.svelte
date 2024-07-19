@@ -16,6 +16,7 @@
   import { truncateValue } from '$lib/utils'
   import link from '$lib/icons/link.js'
   import { fade } from 'svelte/transition'
+  import CopyValue from '$lib/components/CopyValue.svelte'
 
   export let data: PageData
   let loading = true
@@ -33,6 +34,8 @@
     default: false
   }
   let showStatusModal = false
+  let showOnchainModal = false
+  let ignoreOnchainHours = 24
 
   const { wallet } = data
 
@@ -71,15 +74,28 @@
   let maxChannelSize: number | null = null
 
   function getStatus() {
-    connection.clboss?.get().then(response => {
+    connection.clboss?.getStatus().then(response => {
       clbossStatus = response
       console.log(`clbossStatus = `, clbossStatus)
-      showStatusModal = true
+    })
+  }
+
+  function ignoreOnchain() {
+    console.log(`ignoreOnchainHours = `, ignoreOnchainHours)
+    connection.clboss?.ignoreOnchain(ignoreOnchainHours).then(response => {
+      console.log(`response = `, response)
+      getStatus()
+    })
+  }
+
+  function noticeOnchain() {
+    connection.clboss?.noticeOnchain().then(response => {
+      console.log(`response = `, response)
+      getStatus()
     })
   }
 
   // @TODO
-  // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
@@ -126,69 +142,95 @@
     </p>
 
     <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
-    <div>
-      {#if showStatusModal}
-        <Modal on:close={() => (showStatusModal = false)}>
-          <SummaryRow>
-            <div slot="label">Channel Candidates</div>
-            <div slot="value">
-              {#if clbossStatus}
-                <div class="max-h-[5em] overflow-scroll">
-                  {#if clbossStatus?.channel_candidates.length}
-                    {#each clbossStatus?.channel_candidates as candidate, index}
-                      <div class="grid grid-cols-2 gap-2">
-                        <p>
-                          {`${index + 1})`}
-                        </p>
-                        <div class="flex justify-between items-center gap-1">
-                          <p>{truncateValue(candidate?.id, 4)}</p>
-                          <a
-                            href={`https://amboss.space/node/${candidate?.id}`}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                          >
-                            <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
-                              {@html link}
-                            </div></a
-                          >
+    <div />
+    <div class="flex flex-col gap-4">
+      <!-- STATUS MODAL -->
+      <div>
+        {#if showStatusModal}
+          <Modal on:close={() => (showStatusModal = false)}>
+            <SummaryRow>
+              <div slot="label">Channel Candidates</div>
+              <div slot="value">
+                {#if clbossStatus}
+                  <div class="max-h-[5em] overflow-scroll">
+                    {#if clbossStatus?.channel_candidates.length}
+                      {#each clbossStatus?.channel_candidates as candidate, index}
+                        <div class="grid grid-cols-2 gap-2">
+                          <p>
+                            {`${index + 1})`}
+                          </p>
+                          <div class="flex justify-between items-center gap-1">
+                            <p>{truncateValue(candidate?.id, 4)}</p>
+                            <a
+                              href={`https://amboss.space/node/${candidate?.id}`}
+                              rel="noopener noreferrer"
+                              target="_blank"
+                            >
+                              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                                {@html link}
+                              </div></a
+                            >
+                          </div>
                         </div>
-                      </div>
-                    {/each}
-                  {:else}
-                    <p>'-'</p>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          </SummaryRow>
-          <SummaryRow>
-            <div slot="label">Internet</div>
-            <div slot="value">{clbossStatus?.internet?.connection}</div>
-          </SummaryRow>
-          <SummaryRow>
-            <div slot="label">Onchain Fee Rate</div>
-            <div slot="value">
-              <p
-                class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
-                class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
-              >
-                {clbossStatus?.onchain_feerate?.judgment}
-              </p>
-            </div>
-          </SummaryRow>
-          <SummaryRow>
-            <div slot="label">Peer Metrics</div>
-            <div slot="value">
-              {clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length
-                ? clbossStatus?.peer_metrics
-                : '-'}
-            </div>
-          </SummaryRow>
-        </Modal>
-      {/if}
-      <div class="mt-8 w-min">
-        <Button text="Get Status" on:click={getStatus} />
+                      {/each}
+                    {:else}
+                      <p>-</p>
+                    {/if}
+                  </div>
+                {/if}
+              </div>
+            </SummaryRow>
+            <SummaryRow>
+              <div slot="label">Internet</div>
+              <div slot="value">{clbossStatus?.internet?.connection}</div>
+            </SummaryRow>
+            <SummaryRow>
+              <div slot="label">Onchain Fee Rate</div>
+              <div slot="value">
+                <p
+                  class:text-utility-success={clbossStatus?.onchain_feerate?.judgment ===
+                    'low fees'}
+                  class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
+                >
+                  {clbossStatus?.onchain_feerate?.judgment || '-'}
+                </p>
+              </div>
+            </SummaryRow>
+            <SummaryRow>
+              <div slot="label">Peer Metrics</div>
+              <div slot="value">
+                {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
+                  <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
+                {:else}
+                  <p>-</p>
+                {/if}
+              </div>
+            </SummaryRow>
+          </Modal>
+        {/if}
+        <div class="w-min">
+          <Button
+            text="Get Status"
+            on:click={() => {
+              getStatus()
+              showStatusModal = true
+            }}
+          />
+        </div>
       </div>
+      <!-- IGNORE ONCHAIN -->
+      <div class="flex flex-col gap-4">
+        <TextInput
+          name="ignoreOnchain"
+          type="number"
+          label="Ignore onchain"
+          placeholder="Number of hours CLBOSS should ignore onchain balance"
+          bind:value={ignoreOnchainHours}
+        />
+        <div class="w-min"><Button text="Send" on:click={ignoreOnchain} /></div>
+      </div>
+      <!-- NOTICE ONCHAIN -->
+      <div class="w-min"><Button text="Notice Onchain" on:click={noticeOnchain} /></div>
     </div>
 
     <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
@@ -199,21 +241,21 @@
           type="number"
           label="Minimum Onchain (sats)"
           placeholder="Min onchain balance CLBOSS will maintain"
-          value={minOnchain}
+          bind:value={minOnchain}
         />
         <TextInput
           name="minChannelSize"
           type="number"
           label="Minimum Channel Size (sats)"
           placeholder="Min channel size CLBOSS will open"
-          value={minChannelSize}
+          bind:value={minChannelSize}
         />
         <TextInput
           name="maxChannelSize"
           type="number"
           label="Maximum Channel Size (sats)"
           placeholder="Max channel size CLBOSS will open"
-          value={maxChannelSize}
+          bind:value={maxChannelSize}
         />
       </div>
     </div>

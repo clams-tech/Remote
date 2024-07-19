@@ -9,10 +9,25 @@ class Clboss implements ClbossInterface {
     this.connection = connection
   }
 
-  async get(): Promise<ClbossStatus> {
+  async getStatus(): Promise<ClbossStatus> {
     const result = (await this.connection.rpc({
       method: 'clboss-status'
     })) as ClbossStatus
+    return result
+  }
+
+  async ignoreOnchain(hours: number): Promise<object> {
+    const result = (await this.connection.rpc({
+      method: 'clboss-ignore-onchain',
+      params: { hours }
+    })) as object
+    return result
+  }
+
+  async noticeOnchain(): Promise<object> {
+    const result = (await this.connection.rpc({
+      method: 'clboss-notice-onchain'
+    })) as object
     return result
   }
 }

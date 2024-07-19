@@ -196,13 +196,14 @@ export interface NetworkInterface {
   getNode(id: string): Promise<Node | null>
 }
 
-export interface ClbossInterface {
-  connection: Connection
-  get(): Promise<ClbossStatus>
-}
-
 export interface PluginsInterface {
   connection: Connection
-
   get(): Promise<Plugin[]>
+}
+
+export interface ClbossInterface {
+  connection: Connection
+  getStatus(): Promise<ClbossStatus>
+  ignoreOnchain(hours: number): Promise<object>
+  noticeOnchain(): Promise<object>
 }
