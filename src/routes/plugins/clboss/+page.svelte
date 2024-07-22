@@ -17,6 +17,7 @@
   import link from '$lib/icons/link.js'
   import { fade } from 'svelte/transition'
   import CopyValue from '$lib/components/CopyValue.svelte'
+  import { formatUtcTimeString } from '$lib/dates'
 
   export let data: PageData
   let loading = true
@@ -36,6 +37,7 @@
   let showStatusModal = false
   let showOnchainModal = false
   let ignoreOnchainHours = 24
+  let ignoringOnchainFunds = false
 
   const { wallet } = data
 
@@ -52,13 +54,9 @@
     }
   }
 
-  function setPreference(value: 'send' | 'receive' | 'both') {
-    preferences = {
-      send: value === 'send',
-      receive: value === 'receive',
-      both: value === 'both'
-    }
-  }
+  $: clbossStatus?.should_monitor_onchain_funds?.status === 'ignore'
+    ? (ignoringOnchainFunds = true)
+    : (ignoringOnchainFunds = false)
 
   function setBaseFee(value: 'required' | 'allow' | 'disallow' | 'default') {
     baseFee = {
@@ -96,9 +94,19 @@
   }
 
   // @TODO
+  // Look into bug with timestamps
+  // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
+
+  $: {
+    if (clbossStatus?.should_monitor_onchain_funds.disable_until) {
+      const { disable_until } = clbossStatus.should_monitor_onchain_funds
+      const date = new Date(disable_until * 1000) // Convert timestamp to milliseconds
+      console.log('disabled until = ', date) // Output in ISO 8601 format
+    }
+  }
 </script>
 
 <Section>
@@ -108,33 +116,6 @@
   {#if loading}
     <Spinner size="1.5em" />
   {:else if clbossActive}
-    <!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
-    <div class="mt-4 flex flex-col gap-4">
-      <div class="flex gap-1" on:click={() => setPreference('send')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.send}>
-            <div slot="right" class="ml-2">Mostly Send Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Mostly Send description" />
-      </div>
-      <div class="flex gap-1" on:click={() => setPreference('both')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.both}>
-            <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Equally Send & Receive description" />
-      </div>
-      <div class="flex gap-1" on:click={() => setPreference('receive')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.receive}>
-            <div slot="right" class="ml-2">Mostly Receive Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Mostly Receive description" />
-      </div>
-    </div> -->
     <p>
       A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
       Nevertheless, CLBOSS exposes a few commands and configuration options as well. Please be
@@ -218,8 +199,8 @@
           />
         </div>
       </div>
-      <!-- IGNORE ONCHAIN -->
-      <div class="flex flex-col gap-4">
+      <!-- SHOULD MONITOR ONCHAIN -->
+      <div class="flex flex-col gap-4 border">
         <TextInput
           name="ignoreOnchain"
           type="number"
@@ -228,9 +209,14 @@
           bind:value={ignoreOnchainHours}
         />
         <div class="w-min"><Button text="Send" on:click={ignoreOnchain} /></div>
+        {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
+          <p>
+            CLBOSS is isnoring onchain funds until {clbossStatus?.should_monitor_onchain_funds
+              ?.disable_until_human}
+          </p>
+          <div class="w-min"><Button text="Notice Onchain" on:click={noticeOnchain} /></div>
+        {/if}
       </div>
-      <!-- NOTICE ONCHAIN -->
-      <div class="w-min"><Button text="Notice Onchain" on:click={noticeOnchain} /></div>
     </div>
 
     <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
@@ -331,3 +317,39 @@ Some pathfinding algorithms under development may strongly prefer 0 or low base 
     <p>Would you like to activate CLBOSS?</p>
   {/if}
 </Section>
+
+<!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
+    <div class="mt-4 flex flex-col gap-4">
+      <div class="flex gap-1" on:click={() => setPreference('send')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.send}>
+            <div slot="right" class="ml-2">Mostly Send Payments</div>
+          </Toggle>
+        </div>
+        <Tooltip text="Mostly Send description" />
+      </div>
+      <div class="flex gap-1" on:click={() => setPreference('both')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.both}>
+            <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
+          </Toggle>
+        </div>
+        <Tooltip text="Equally Send & Receive description" />
+      </div>
+      <div class="flex gap-1" on:click={() => setPreference('receive')}>
+        <div class="pointer-events-none">
+          <Toggle bind:toggled={preferences.receive}>
+            <div slot="right" class="ml-2">Mostly Receive Payments</div>
+          </Toggle>
+        </div>
+        <Tooltip text="Mostly Receive description" />
+      </div>
+    </div> -->
+<!-- 
+    // function setPreference(value: 'send' | 'receive' | 'both') {
+      //   preferences = {
+      //     send: value === 'send',
+      //     receive: value === 'receive',
+      //     both: value === 'both'
+      //   }
+      // } -->

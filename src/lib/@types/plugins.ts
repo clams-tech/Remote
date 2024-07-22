@@ -39,4 +39,12 @@ export type ClbossStatus = {
         }
       }
     | Record<string, never> //empty object
+  should_monitor_onchain_funds: {
+    status: 'notice' | 'ignore'
+    now: number
+    now_human: string
+    disable_until: number
+    disable_until_human: string
+    comment: string
+  }
 }
