@@ -206,4 +206,5 @@ export interface ClbossInterface {
   getStatus(): Promise<ClbossStatus>
   ignoreOnchain(hours: number): Promise<object>
   noticeOnchain(): Promise<object>
+  unmanage(nodeId: string, tags: string): Promise<object>
 }

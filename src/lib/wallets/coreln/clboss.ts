@@ -30,6 +30,17 @@ class Clboss implements ClbossInterface {
     })) as object
     return result
   }
+
+  async unmanage(nodeId: string, tags: string): Promise<object> {
+    const result = (await this.connection.rpc({
+      method: 'clboss-unmanage',
+      params: {
+        nodeId,
+        tags
+      }
+    })) as object
+    return result
+  }
 }
 
 export default Clboss

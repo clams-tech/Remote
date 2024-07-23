@@ -17,7 +17,10 @@
   import link from '$lib/icons/link.js'
   import { fade } from 'svelte/transition'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { formatUtcTimeString } from '$lib/dates'
+  import { formatDate } from '$lib/dates'
+  import { from } from 'rxjs'
+  import { liveQuery } from 'dexie'
+  import { db } from '$lib/db/index.js'
 
   export let data: PageData
   let loading = true
@@ -81,32 +84,35 @@
   function ignoreOnchain() {
     console.log(`ignoreOnchainHours = `, ignoreOnchainHours)
     connection.clboss?.ignoreOnchain(ignoreOnchainHours).then(response => {
-      console.log(`response = `, response)
+      // console.log(`response = `, response)
       getStatus()
     })
   }
 
   function noticeOnchain() {
     connection.clboss?.noticeOnchain().then(response => {
-      console.log(`response = `, response)
+      // console.log(`response = `, response)
       getStatus()
     })
   }
 
   // @TODO
-  // Look into bug with timestamps
+  // list all of the channels for the UNMANAGE ui, each channel should have 4 tags that can be passed to CLBOSS as "unmanage" areas.
+  // and include the option to unmanage everything for the channel
+
   // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
+  const activeChannel$ = from(
+    liveQuery(() =>
+      db.channels.toArray().then(channels => {
+        return channels?.filter(({ status }) => status === 'active')
+      })
+    )
+  )
 
-  $: {
-    if (clbossStatus?.should_monitor_onchain_funds.disable_until) {
-      const { disable_until } = clbossStatus.should_monitor_onchain_funds
-      const date = new Date(disable_until * 1000) // Convert timestamp to milliseconds
-      console.log('disabled until = ', date) // Output in ISO 8601 format
-    }
-  }
+  activeChannel$.subscribe(val => console.log(`val = `, val))
 </script>
 
 <Section>
@@ -199,24 +205,28 @@
           />
         </div>
       </div>
-      <!-- SHOULD MONITOR ONCHAIN -->
-      <div class="flex flex-col gap-4 border">
+      <!-- IGNORE / NOTICE ONCHAIN -->
+      <div class="flex flex-col gap-4 border border-rose-500">
         <TextInput
           name="ignoreOnchain"
           type="number"
-          label="Ignore onchain"
+          label="Ignore onchain (hours)"
           placeholder="Number of hours CLBOSS should ignore onchain balance"
           bind:value={ignoreOnchainHours}
         />
         <div class="w-min"><Button text="Send" on:click={ignoreOnchain} /></div>
         {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
           <p>
-            CLBOSS is isnoring onchain funds until {clbossStatus?.should_monitor_onchain_funds
-              ?.disable_until_human}
+            CLBOSS is isnoring onchain funds until
+            {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
+              {response}
+            {/await}
           </p>
           <div class="w-min"><Button text="Notice Onchain" on:click={noticeOnchain} /></div>
         {/if}
       </div>
+      <!-- UNMANAGE -->
+      <div class="flex flex-col gap-4 border border-rose-500" />
     </div>
 
     <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
