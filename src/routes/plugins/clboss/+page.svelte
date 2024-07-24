@@ -26,11 +26,6 @@
   let loading = true
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
-  let preferences = {
-    send: false,
-    receive: false,
-    both: true
-  }
   let baseFee = {
     required: false,
     allow: false,
@@ -38,11 +33,18 @@
     default: false
   }
   let showStatusModal = false
-  let showOnchainModal = false
   let ignoreOnchainHours = 24
   let ignoringOnchainFunds = false
 
   const { wallet } = data
+
+  const activeChannel$ = from(
+    liveQuery(() =>
+      db.channels.toArray().then(channels => {
+        return channels?.filter(({ status }) => status === 'active')
+      })
+    )
+  )
 
   $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
 
@@ -74,6 +76,7 @@
   let minChannelSize: number | null = null
   let maxChannelSize: number | null = null
 
+  // @TODO handle error state
   function getStatus() {
     connection.clboss?.getStatus().then(response => {
       clbossStatus = response
@@ -81,17 +84,32 @@
     })
   }
 
+  // @TODO handle error state
   function ignoreOnchain() {
     console.log(`ignoreOnchainHours = `, ignoreOnchainHours)
     connection.clboss?.ignoreOnchain(ignoreOnchainHours).then(response => {
-      // console.log(`response = `, response)
       getStatus()
     })
   }
 
+  // @TODO handle error state
   function noticeOnchain() {
     connection.clboss?.noticeOnchain().then(response => {
-      // console.log(`response = `, response)
+      getStatus()
+    })
+  }
+
+  const testNodeId = '025ecfe2969d73efdd874f878bf80b13700954a063eeb309acb1c51c742205b3b1'
+  const testTags = 'lnfee'
+
+  function unmanage(nodeId: string, tags: string) {
+    connection.clboss?.unmanage(nodeId, tags).then(response => {
+      console.log(
+        `response = `,
+        connection.clboss?.noticeOnchain().then(response => {
+          getStatus()
+        })
+      )
       getStatus()
     })
   }
@@ -104,15 +122,10 @@
   // Fix tooltip descriptions so they dont spread over screen
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
-  const activeChannel$ = from(
-    liveQuery(() =>
-      db.channels.toArray().then(channels => {
-        return channels?.filter(({ status }) => status === 'active')
-      })
-    )
-  )
 
   activeChannel$.subscribe(val => console.log(`val = `, val))
+
+  const channelManageCategories = ['lnfee', 'open', 'close', 'balance']
 </script>
 
 <Section>
@@ -206,15 +219,15 @@
         </div>
       </div>
       <!-- IGNORE / NOTICE ONCHAIN -->
-      <div class="flex flex-col gap-4 border border-rose-500">
+      <div class="mt-4 flex flex-col gap-4">
         <TextInput
           name="ignoreOnchain"
           type="number"
-          label="Ignore onchain (hours)"
+          label="Ignore onchain funds (hours)"
           placeholder="Number of hours CLBOSS should ignore onchain balance"
           bind:value={ignoreOnchainHours}
         />
-        <div class="w-min"><Button text="Send" on:click={ignoreOnchain} /></div>
+        <div class="w-min"><Button text="Update" on:click={ignoreOnchain} /></div>
         {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
           <p>
             CLBOSS is isnoring onchain funds until
@@ -222,11 +235,72 @@
               {response}
             {/await}
           </p>
-          <div class="w-min"><Button text="Notice Onchain" on:click={noticeOnchain} /></div>
+          <div class="w-min"><Button text="Disable" on:click={noticeOnchain} /></div>
         {/if}
       </div>
       <!-- UNMANAGE -->
-      <div class="flex flex-col gap-4 border border-rose-500" />
+      <div class="mt-4 flex flex-col gap-4">
+        <div class="w-min">
+          <Button text="Test Unmanage" on:click={() => unmanage(testNodeId, testTags)} />
+        </div>
+        <table class="table-auto border-collapse border border-slate-600 w-full">
+          <caption class="caption-top text-sm mb-4">
+            Toggle CLBOSS permissions on a per channel basis
+          </caption>
+          <thead>
+            <tr>
+              {#each ['Alias', 'Node Id', 'Permissions'] as header}
+                <th class="p-2 border border-slate-600">{header}</th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody class="max-h-[5em]">
+            {#if $activeChannel$.length}
+              {#each $activeChannel$ as { peerAlias, peerId }}
+                <tr>
+                  <td class="p-2 border border-slate-600">{peerAlias}</td>
+                  <td class="p-2 border border-slate-600">
+                    {#if peerId}
+                      <div class="flex flex-wrap justify-between items-center gap-1">
+                        <p>{truncateValue(peerId, 4)}</p>
+                        <CopyValue value={peerId} hideValue={true} />
+                        <a
+                          href={`https://amboss.space/node/${peerId}`}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                            {@html link}
+                          </div></a
+                        >
+                      </div>
+                    {:else}
+                      -
+                    {/if}</td
+                  >
+                  <td class="p-2 border border-slate-600">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                      {#each channelManageCategories as cat}
+                        <div class="flex items-center gap-1">
+                          <label for={peerId} class="font-semibold text-sm text-neutral-300"
+                            >{cat}</label
+                          >
+                          <input
+                            type="checkbox"
+                            id={peerId}
+                            name={peerId}
+                            class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
+                          />
+                        </div>
+                      {/each}
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            {/if}
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
@@ -328,6 +402,21 @@ Some pathfinding algorithms under development may strongly prefer 0 or low base 
   {/if}
 </Section>
 
+<!-- // let preferences = {
+  //   send: false,
+  //   receive: false,
+  //   both: true
+  // } -->
+
+<!-- 
+    // function setPreference(value: 'send' | 'receive' | 'both') {
+      //   preferences = {
+      //     send: value === 'send',
+      //     receive: value === 'receive',
+      //     both: value === 'both'
+      //   }
+      // } -->
+
 <!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-1" on:click={() => setPreference('send')}>
@@ -355,11 +444,3 @@ Some pathfinding algorithms under development may strongly prefer 0 or low base 
         <Tooltip text="Mostly Receive description" />
       </div>
     </div> -->
-<!-- 
-    // function setPreference(value: 'send' | 'receive' | 'both') {
-      //   preferences = {
-      //     send: value === 'send',
-      //     receive: value === 'receive',
-      //     both: value === 'both'
-      //   }
-      // } -->
