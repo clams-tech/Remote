@@ -21,7 +21,7 @@
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
-  import { Channel } from '$lib/@types/channels'
+  import type { Channel } from './@types/channels.js'
 
   export let data: PageData
   let loading = true
@@ -30,15 +30,18 @@
   let showStatusModal = false
   let ignoreOnchainHours = 24
   let ignoringOnchainFunds = false
+  enum channelManageCategories {
+    LNFEE = 'lnfee',
+    OPEN = 'open',
+    CLOSE = 'close',
+    BALANCE = 'balance'
+  }
   let managed: {
     // nodeId
     [key: string]: {
-      lnfee: boolean
-      open: boolean
-      close: boolean
-      balance: boolean
+      [key in channelManageCategories]: boolean
     }
-  }
+  } = {}
 
   const { wallet } = data
 
@@ -49,6 +52,8 @@
       })
     )
   )
+  let activeChannels: Channel[] = []
+  activeChannel$.subscribe(val => (activeChannels = val))
 
   $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
 
@@ -90,9 +95,6 @@
     })
   }
 
-  const testNodeId = '02c0d8faca275e161c20c9250afedfc64d223b4f7a0a00074a1d64f0dce9c6fe97'
-  const testTags = 'lnfee,open'
-
   function unmanage(nodeId: string, tags: string) {
     connection.clboss?.unmanage(nodeId, tags).then(response => {
       console.log(`response = `, response)
@@ -100,28 +102,34 @@
     })
   }
 
-  let activeChannels: Channel[] = []
-  activeChannel$.subscribe(val => (activeChannels = val))
-
-  const channelManageCategories = ['lnfee', 'open', 'close', 'balance']
-
   $: activeChannels.length &&
     clbossStatus?.unmanaged &&
-    createManaged(activeChannels, clbossStatus?.unmanaged)
+    updateManagedChannels(activeChannels, clbossStatus?.unmanaged)
 
-  function createManaged(activeChannels: Channel[], statusUnmanaged: ClbossStatus['unmanaged']) {
-    console.log(`activeChannels = `, activeChannels)
-    console.log(`statusUnmanaged = `, statusUnmanaged)
-
+  function updateManagedChannels(
+    activeChannels: Channel[],
+    statusUnmanaged: ClbossStatus['unmanaged']
+  ) {
     activeChannels.forEach(activeChannel => {
       const { peerId } = activeChannel
 
-      if (peerId) {
+      const unmanagedCategories: string | undefined = statusUnmanaged[peerId]
+
+      // CLBOSS has not received any "unmanage" requests for this channel
+      if (!unmanagedCategories) {
         managed[peerId] = {
-          lnfee: !statusUnmanaged[peerId]?.includes('lnfee') || true,
-          open: !statusUnmanaged[peerId]?.includes('open') || true,
-          close: !statusUnmanaged[peerId]?.includes('close') || true,
-          balance: !statusUnmanaged[peerId]?.includes('balance') || true
+          [channelManageCategories.LNFEE]: true,
+          [channelManageCategories.OPEN]: true,
+          [channelManageCategories.CLOSE]: true,
+          [channelManageCategories.BALANCE]: true
+        }
+        // CLBOSS has received at least one "unmanage" requests for this channel
+      } else {
+        managed[peerId] = {
+          [channelManageCategories.LNFEE]: Boolean(unmanagedCategories.includes('lnfee')),
+          [channelManageCategories.OPEN]: Boolean(unmanagedCategories.includes('open')),
+          [channelManageCategories.CLOSE]: Boolean(unmanagedCategories.includes('close')),
+          [channelManageCategories.BALANCE]: Boolean(unmanagedCategories.includes('balance'))
         }
       }
     })
@@ -249,9 +257,6 @@
       </div>
       <!-- UNMANAGE -->
       <div class="mt-4 flex flex-col gap-4">
-        <div class="w-min">
-          <Button text="Test Unmanage" on:click={() => unmanage(testNodeId, testTags)} />
-        </div>
         <table class="table-auto border-collapse border border-slate-600 w-full">
           <caption class="caption-top text-sm mb-4">
             Toggle CLBOSS permissions on a per channel basis
@@ -264,7 +269,7 @@
             </tr>
           </thead>
           <tbody class="max-h-[5em]">
-            {#if $activeChannel$.length}
+            {#if $activeChannel$.length && managed}
               {#each $activeChannel$ as { peerAlias, peerId }}
                 <tr>
                   <td class="p-2 border border-slate-600">{peerAlias}</td>
@@ -289,12 +294,14 @@
                   >
                   <td class="p-2 border border-slate-600">
                     <div class="flex flex-wrap justify-between items-center gap-2">
-                      {#each channelManageCategories as cat}
+                      {#each Object.values(channelManageCategories) as cat}
                         <div class="flex items-center gap-1">
                           <label for={peerId} class="font-semibold text-sm text-neutral-300"
                             >{cat}</label
                           >
-                          <Toggle toggled={true} />
+                          {#if peerId && managed[peerId]}
+                            <Toggle toggled={peerId && managed[peerId][cat]} />
+                          {/if}
                         </div>
                       {/each}
                     </div>
