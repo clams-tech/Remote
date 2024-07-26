@@ -21,20 +21,24 @@
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
+  import { Channel } from '$lib/@types/channels'
 
   export let data: PageData
   let loading = true
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
-  let baseFee = {
-    required: false,
-    allow: false,
-    disallow: false,
-    default: false
-  }
   let showStatusModal = false
   let ignoreOnchainHours = 24
   let ignoringOnchainFunds = false
+  let managed: {
+    // nodeId
+    [key: string]: {
+      lnfee: boolean
+      open: boolean
+      close: boolean
+      balance: boolean
+    }
+  }
 
   const { wallet } = data
 
@@ -63,19 +67,6 @@
     ? (ignoringOnchainFunds = true)
     : (ignoringOnchainFunds = false)
 
-  function setBaseFee(value: 'required' | 'allow' | 'disallow' | 'default') {
-    baseFee = {
-      required: value === 'required',
-      allow: value === 'allow',
-      disallow: value === 'disallow',
-      default: value === 'default'
-    }
-  }
-
-  let minOnchain: number | null = null
-  let minChannelSize: number | null = null
-  let maxChannelSize: number | null = null
-
   // @TODO handle error state
   function getStatus() {
     connection.clboss?.getStatus().then(response => {
@@ -99,33 +90,52 @@
     })
   }
 
-  const testNodeId = '025ecfe2969d73efdd874f878bf80b13700954a063eeb309acb1c51c742205b3b1'
-  const testTags = 'lnfee'
+  const testNodeId = '02c0d8faca275e161c20c9250afedfc64d223b4f7a0a00074a1d64f0dce9c6fe97'
+  const testTags = 'lnfee,open'
 
   function unmanage(nodeId: string, tags: string) {
     connection.clboss?.unmanage(nodeId, tags).then(response => {
-      console.log(
-        `response = `,
-        connection.clboss?.noticeOnchain().then(response => {
-          getStatus()
-        })
-      )
+      console.log(`response = `, response)
       getStatus()
     })
   }
 
+  let activeChannels: Channel[] = []
+  activeChannel$.subscribe(val => (activeChannels = val))
+
+  const channelManageCategories = ['lnfee', 'open', 'close', 'balance']
+
+  $: activeChannels.length &&
+    clbossStatus?.unmanaged &&
+    createManaged(activeChannels, clbossStatus?.unmanaged)
+
+  function createManaged(activeChannels: Channel[], statusUnmanaged: ClbossStatus['unmanaged']) {
+    console.log(`activeChannels = `, activeChannels)
+    console.log(`statusUnmanaged = `, statusUnmanaged)
+
+    activeChannels.forEach(activeChannel => {
+      const { peerId } = activeChannel
+
+      if (peerId) {
+        managed[peerId] = {
+          lnfee: !statusUnmanaged[peerId]?.includes('lnfee') || true,
+          open: !statusUnmanaged[peerId]?.includes('open') || true,
+          close: !statusUnmanaged[peerId]?.includes('close') || true,
+          balance: !statusUnmanaged[peerId]?.includes('balance') || true
+        }
+      }
+    })
+  }
+
+  $: console.log(`managed = `, managed)
+
   // @TODO
   // list all of the channels for the UNMANAGE ui, each channel should have 4 tags that can be passed to CLBOSS as "unmanage" areas.
   // and include the option to unmanage everything for the channel
-
   // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
   // Add button to activate CLBOSS if it not currently active
   // Add logic to update advanced configs and restart node to test changes
-
-  activeChannel$.subscribe(val => console.log(`val = `, val))
-
-  const channelManageCategories = ['lnfee', 'open', 'close', 'balance']
 </script>
 
 <Section>
@@ -137,8 +147,7 @@
   {:else if clbossActive}
     <p>
       A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
-      Nevertheless, CLBOSS exposes a few commands and configuration options as well. Please be
-      mindful that updating the configuration options requires a restart of your node.
+      Nevertheless, CLBOSS exposes a few commands.
     </p>
 
     <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
@@ -285,12 +294,7 @@
                           <label for={peerId} class="font-semibold text-sm text-neutral-300"
                             >{cat}</label
                           >
-                          <input
-                            type="checkbox"
-                            id={peerId}
-                            name={peerId}
-                            class="checked:bg-purple-400 hover:checked:bg-purple-500 rounded-md"
-                          />
+                          <Toggle toggled={true} />
                         </div>
                       {/each}
                     </div>
@@ -301,101 +305,6 @@
           </tbody>
         </table>
       </div>
-    </div>
-
-    <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
-    <div class="mt-4">
-      <div class="flex flex-col gap-4">
-        <TextInput
-          name="minOnchain"
-          type="number"
-          label="Minimum Onchain (sats)"
-          placeholder="Min onchain balance CLBOSS will maintain"
-          bind:value={minOnchain}
-        />
-        <TextInput
-          name="minChannelSize"
-          type="number"
-          label="Minimum Channel Size (sats)"
-          placeholder="Min channel size CLBOSS will open"
-          bind:value={minChannelSize}
-        />
-        <TextInput
-          name="maxChannelSize"
-          type="number"
-          label="Maximum Channel Size (sats)"
-          placeholder="Max channel size CLBOSS will open"
-          bind:value={maxChannelSize}
-        />
-      </div>
-    </div>
-    <div class="mt-4 flex items-center gap-4">
-      <h2>
-        Auto Close <Tooltip
-          text="Enable if you want CLBOSS to have the ability to close channels it deems unprofitable. This can be costly, please understand the ramifications before enabling. Default: False"
-        />
-      </h2>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={baseFee.required}>
-            <div slot="right" class="ml-1" />
-          </Toggle>
-        </div>
-      </div>
-    </div>
-    <div class="mt-4 flex items-center gap-4">
-      <h2>
-        Zero Base Fee <Tooltip
-          text="Specify how this node will advertise its base fee.
-Required: The base fee must be always 0.
-Allow: If the heuristics of CLBOSS think it might be a good idea to set base fee to 0, let it be 0, but otherwise set it to whatever value the heuristics want.
-Disallow: The base fee must always be non-zero. If the heuristics think it might be good to set it to 0, set it to 1 instead.
-Default: default (use fee set by Advanced -> Routing Base Fee)
-Some pathfinding algorithms under development may strongly prefer 0 or low base fees, so you might want to set CLBOSS to 0 base fee, or to allow a 0 base fee.
-"
-        />
-      </h2>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="flex items-center gap-1" on:click={() => setBaseFee('required')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={baseFee.required}>
-            <div slot="right" class="ml-1 text-sm">Required</div>
-          </Toggle>
-        </div>
-      </div>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="flex items-center gap-1" on:click={() => setBaseFee('allow')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={baseFee.allow}>
-            <div slot="right" class="ml-1 text-sm">Allow</div>
-          </Toggle>
-        </div>
-      </div>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="flex items-center gap-1" on:click={() => setBaseFee('disallow')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={baseFee.disallow}>
-            <div slot="right" class="ml-1 text-sm">Disallow</div>
-          </Toggle>
-        </div>
-      </div>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div class="flex items-center gap-1" on:click={() => setBaseFee('default')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={baseFee.default}>
-            <div slot="right" class="ml-1 text-sm">Default</div>
-          </Toggle>
-        </div>
-      </div>
-    </div>
-    <div class="mt-8 w-min">
-      <Button text="Save" />
     </div>
   {:else}
     <p>Would you like to activate CLBOSS?</p>
@@ -408,6 +317,10 @@ Some pathfinding algorithms under development may strongly prefer 0 or low base 
   //   both: true
   // } -->
 
+<!-- let minOnchain: number | null = null
+  let minChannelSize: number | null = null
+  let maxChannelSize: number | null = null -->
+
 <!-- 
     // function setPreference(value: 'send' | 'receive' | 'both') {
       //   preferences = {
@@ -417,6 +330,7 @@ Some pathfinding algorithms under development may strongly prefer 0 or low base 
       //   }
       // } -->
 
+<!-- <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
 <!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-1" on:click={() => setPreference('send')}>

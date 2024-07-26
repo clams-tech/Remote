@@ -47,4 +47,8 @@ export type ClbossStatus = {
     disable_until_human: string
     comment: string
   }
+  unmanaged: {
+    comment: ''
+    [key: string]: string
+  }
 }
