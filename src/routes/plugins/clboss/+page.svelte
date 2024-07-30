@@ -24,12 +24,16 @@
   import type { Channel } from './@types/channels.js'
 
   export let data: PageData
+  const { wallet } = data
+  let activeChannels: Channel[] = []
   let loading = true
+
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
   let showStatusModal = false
-  let ignoreOnchainHours = 24
   let ignoringOnchainFunds = false
+  let ignoreOnchainHours = 24
+
   enum channelManageCategories {
     LNFEE = 'lnfee',
     OPEN = 'open',
@@ -43,27 +47,28 @@
     }
   } = {}
 
-  const { wallet } = data
-
+  // active channels for the selected wallet
   const activeChannel$ = from(
     liveQuery(() =>
       db.channels.toArray().then(channels => {
-        return channels?.filter(({ status }) => status === 'active')
+        return channels?.filter(
+          ({ walletId, status }) => walletId === wallet && status === 'active'
+        )
       })
     )
   )
-  let activeChannels: Channel[] = []
   activeChannel$.subscribe(val => (activeChannels = val))
 
   $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
 
+  // Fetch status of CLBOSS if node connection is established
   $: {
     if (connection) {
       connection.plugins?.get().then(plugins => {
         const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
 
         clbossActive = clbossPlugin ? clbossPlugin.active : false
-        loading = false
+        getStatus()
       })
     }
   }
@@ -74,9 +79,11 @@
 
   // @TODO handle error state
   function getStatus() {
+    loading = true
     connection.clboss?.getStatus().then(response => {
       clbossStatus = response
       console.log(`clbossStatus = `, clbossStatus)
+      loading = false
     })
   }
 
@@ -95,7 +102,15 @@
     })
   }
 
-  function unmanage(nodeId: string, tags: string) {
+  function unmanage(nodeId: string, tag: channelManageCategories) {
+    let managedCategories = managed[nodeId]
+
+    managedCategories = { ...managedCategories, [tag]: !managedCategories[tag] }
+
+    const tags = Object.keys(managedCategories)
+      .filter(key => managedCategories[key])
+      .join(',')
+
     connection.clboss?.unmanage(nodeId, tags).then(response => {
       console.log(`response = `, response)
       getStatus()
@@ -135,10 +150,7 @@
     })
   }
 
-  $: console.log(`managed = `, managed)
-
   // @TODO
-  // list all of the channels for the UNMANAGE ui, each channel should have 4 tags that can be passed to CLBOSS as "unmanage" areas.
   // and include the option to unmanage everything for the channel
   // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
   // Fix tooltip descriptions so they dont spread over screen
@@ -292,20 +304,29 @@
                       -
                     {/if}</td
                   >
-                  <td class="p-2 border border-slate-600">
-                    <div class="flex flex-wrap justify-between items-center gap-2">
-                      {#each Object.values(channelManageCategories) as cat}
-                        <div class="flex items-center gap-1">
-                          <label for={peerId} class="font-semibold text-sm text-neutral-300"
-                            >{cat}</label
+                  {#if peerId}
+                    <td class="p-2 border border-slate-600">
+                      <div class="flex flex-wrap justify-between items-center gap-2">
+                        {#each Object.values(channelManageCategories) as category}
+                          <!-- svelte-ignore a11y-click-events-have-key-events -->
+                          <!-- svelte-ignore a11y-no-static-element-interactions -->
+                          <div
+                            class="flex items-center gap-1"
+                            on:click={() => unmanage(peerId, category)}
                           >
-                          {#if peerId && managed[peerId]}
-                            <Toggle toggled={peerId && managed[peerId][cat]} />
-                          {/if}
-                        </div>
-                      {/each}
-                    </div>
-                  </td>
+                            <label for={peerId} class="font-semibold text-sm text-neutral-300"
+                              >{category}</label
+                            >
+
+                            <Toggle
+                              on:click={() => unmanage(peerId, category)}
+                              bind:toggled={managed[peerId][category]}
+                            />
+                          </div>
+                        {/each}
+                      </div>
+                    </td>
+                  {/if}
                 </tr>
               {/each}
             {/if}
