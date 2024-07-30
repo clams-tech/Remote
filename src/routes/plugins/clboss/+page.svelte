@@ -22,6 +22,7 @@
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
   import type { Channel } from './@types/channels.js'
+  import refresh from '$lib/icons/refresh'
 
   export let data: PageData
   const { wallet } = data
@@ -30,7 +31,6 @@
 
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
-  let showStatusModal = false
   let ignoringOnchainFunds = false
   let ignoreOnchainHours = 24
 
@@ -61,7 +61,7 @@
 
   $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
 
-  // Fetch status of CLBOSS if node connection is established
+  // Fetch CLBOSS status when connection is established
   $: {
     if (connection) {
       connection.plugins?.get().then(plugins => {
@@ -108,6 +108,7 @@
     managedCategories = { ...managedCategories, [tag]: !managedCategories[tag] }
 
     const tags = Object.keys(managedCategories)
+      // TODO fix ts error
       .filter(key => managedCategories[key])
       .join(',')
 
@@ -162,91 +163,101 @@
   <div class="flex items-center justify-between gap-x-4">
     <SectionHeading icon={terminal} />
   </div>
+  <p>
+    A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
+    Nevertheless, CLBOSS exposes a few commands.
+  </p>
   {#if loading}
     <Spinner size="1.5em" />
   {:else if clbossActive}
-    <p>
-      A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
-      Nevertheless, CLBOSS exposes a few commands.
-    </p>
+    <h1 class="mt-8 text-lg flex justify-center gap-2">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      STATUS
+      <div
+        class="w-6 cursor-pointer"
+        on:click|stopPropagation={getStatus}
+        class:animate-spin={loading}
+      >
+        {@html refresh}
+      </div>
+    </h1>
+    <div class="mt-4">
+      <SummaryRow>
+        <div slot="label">Channel Candidates</div>
+        <div slot="value">
+          {#if clbossStatus}
+            <div class="max-h-[5em] overflow-scroll">
+              {#if clbossStatus?.channel_candidates.length}
+                {#each clbossStatus?.channel_candidates as candidate, index}
+                  <div class="grid grid-cols-2 gap-2">
+                    <p>
+                      {`${index + 1})`}
+                    </p>
+                    <div class="flex justify-between items-center gap-1">
+                      <p>{truncateValue(candidate?.id, 4)}</p>
+                      <a
+                        href={`https://amboss.space/node/${candidate?.id}`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                          {@html link}
+                        </div></a
+                      >
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <p>-</p>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </SummaryRow>
+      <SummaryRow>
+        <div slot="label">Internet</div>
+        <div slot="value">{clbossStatus?.internet?.connection}</div>
+      </SummaryRow>
+      <SummaryRow>
+        <div slot="label">Onchain Fee Rate</div>
+        <div slot="value">
+          <p
+            class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
+            class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
+          >
+            {clbossStatus?.onchain_feerate?.judgment || '-'}
+          </p>
+        </div>
+      </SummaryRow>
+      <SummaryRow>
+        <div slot="label">Peer Metrics</div>
+        <div slot="value">
+          {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
+            <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
+          {:else}
+            <p>-</p>
+          {/if}
+        </div>
+      </SummaryRow>
+      {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
+        <SummaryRow>
+          <div slot="label">
+            Inoring onchain funds until
+            {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
+              {response}
+            {/await}
+          </div>
+          <div slot="value">
+            <div class="w-min"><Button text="Disable" on:click={noticeOnchain} /></div>
+          </div>
+        </SummaryRow>
+      {/if}
+    </div>
 
     <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
     <div />
     <div class="flex flex-col gap-4">
-      <!-- STATUS MODAL -->
-      <div>
-        {#if showStatusModal}
-          <Modal on:close={() => (showStatusModal = false)}>
-            <SummaryRow>
-              <div slot="label">Channel Candidates</div>
-              <div slot="value">
-                {#if clbossStatus}
-                  <div class="max-h-[5em] overflow-scroll">
-                    {#if clbossStatus?.channel_candidates.length}
-                      {#each clbossStatus?.channel_candidates as candidate, index}
-                        <div class="grid grid-cols-2 gap-2">
-                          <p>
-                            {`${index + 1})`}
-                          </p>
-                          <div class="flex justify-between items-center gap-1">
-                            <p>{truncateValue(candidate?.id, 4)}</p>
-                            <a
-                              href={`https://amboss.space/node/${candidate?.id}`}
-                              rel="noopener noreferrer"
-                              target="_blank"
-                            >
-                              <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
-                                {@html link}
-                              </div></a
-                            >
-                          </div>
-                        </div>
-                      {/each}
-                    {:else}
-                      <p>-</p>
-                    {/if}
-                  </div>
-                {/if}
-              </div>
-            </SummaryRow>
-            <SummaryRow>
-              <div slot="label">Internet</div>
-              <div slot="value">{clbossStatus?.internet?.connection}</div>
-            </SummaryRow>
-            <SummaryRow>
-              <div slot="label">Onchain Fee Rate</div>
-              <div slot="value">
-                <p
-                  class:text-utility-success={clbossStatus?.onchain_feerate?.judgment ===
-                    'low fees'}
-                  class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
-                >
-                  {clbossStatus?.onchain_feerate?.judgment || '-'}
-                </p>
-              </div>
-            </SummaryRow>
-            <SummaryRow>
-              <div slot="label">Peer Metrics</div>
-              <div slot="value">
-                {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
-                  <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
-                {:else}
-                  <p>-</p>
-                {/if}
-              </div>
-            </SummaryRow>
-          </Modal>
-        {/if}
-        <div class="w-min">
-          <Button
-            text="Get Status"
-            on:click={() => {
-              getStatus()
-              showStatusModal = true
-            }}
-          />
-        </div>
-      </div>
       <!-- IGNORE / NOTICE ONCHAIN -->
       <div class="mt-4 flex flex-col gap-4">
         <TextInput
@@ -257,15 +268,6 @@
           bind:value={ignoreOnchainHours}
         />
         <div class="w-min"><Button text="Update" on:click={ignoreOnchain} /></div>
-        {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
-          <p>
-            CLBOSS is isnoring onchain funds until
-            {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
-              {response}
-            {/await}
-          </p>
-          <div class="w-min"><Button text="Disable" on:click={noticeOnchain} /></div>
-        {/if}
       </div>
       <!-- UNMANAGE -->
       <div class="mt-4 flex flex-col gap-4">
