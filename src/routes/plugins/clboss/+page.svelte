@@ -8,155 +8,115 @@
   import Toggle from '$lib/components/Toggle.svelte'
   import Tooltip from '$lib/components/Tooltip.svelte'
   import terminal from '$lib/icons/terminal'
-  import { connections$ } from '$lib/streams'
-  import type { Connection } from '$lib/wallets/interfaces'
-  import type { PageData } from './$types'
-  import Modal from '$lib/components/Modal.svelte'
-  import SummaryRow from '$lib/components/SummaryRow.svelte'
-  import { truncateValue } from '$lib/utils'
   import link from '$lib/icons/link.js'
-  import { fade } from 'svelte/transition'
+  import refresh from '$lib/icons/refresh'
   import CopyValue from '$lib/components/CopyValue.svelte'
-  import { formatDate } from '$lib/dates'
+  import SummaryRow from '$lib/components/SummaryRow.svelte'
+  import { connections$ } from '$lib/streams'
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db/index.js'
+  import { truncateValue } from '$lib/utils'
+  import { formatDate } from '$lib/dates'
+  import type { Connection } from '$lib/wallets/interfaces'
+  import type { PageData } from './$types'
   import type { Channel } from './@types/channels.js'
-  import refresh from '$lib/icons/refresh'
+  import { fade } from 'svelte/transition'
 
   export let data: PageData
   const { wallet } = data
+
   let activeChannels: Channel[] = []
   let loading = true
-
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
   let ignoringOnchainFunds = false
   let ignoreOnchainHours = 24
 
-  enum channelManageCategories {
+  enum ChannelManageCategories {
     LNFEE = 'lnfee',
     OPEN = 'open',
     CLOSE = 'close',
     BALANCE = 'balance'
   }
-  let managed: {
-    // nodeId
-    [key: string]: {
-      [key in channelManageCategories]: boolean
-    }
-  } = {}
 
-  // active channels for the selected wallet
+  let managed: Record<string, Record<ChannelManageCategories, boolean>> = {}
+
   const activeChannel$ = from(
     liveQuery(() =>
-      db.channels.toArray().then(channels => {
-        return channels?.filter(
-          ({ walletId, status }) => walletId === wallet && status === 'active'
+      db.channels
+        .toArray()
+        .then(channels =>
+          channels.filter(({ walletId, status }) => walletId === wallet && status === 'active')
         )
-      })
     )
   )
+
   activeChannel$.subscribe(val => (activeChannels = val))
 
   $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
 
-  // Fetch CLBOSS status when connection is established
   $: {
     if (connection) {
       connection.plugins?.get().then(plugins => {
         const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
-
         clbossActive = clbossPlugin ? clbossPlugin.active : false
         getStatus()
       })
     }
   }
 
-  $: clbossStatus?.should_monitor_onchain_funds?.status === 'ignore'
-    ? (ignoringOnchainFunds = true)
-    : (ignoringOnchainFunds = false)
+  $: ignoringOnchainFunds = clbossStatus?.should_monitor_onchain_funds?.status === 'ignore'
 
-  // @TODO handle error state
+  $: if (activeChannels.length && clbossStatus?.unmanaged) {
+    updateManagedChannels(activeChannels, clbossStatus.unmanaged)
+  }
+
   function getStatus() {
     loading = true
     connection.clboss?.getStatus().then(response => {
       clbossStatus = response
-      console.log(`clbossStatus = `, clbossStatus)
       loading = false
     })
   }
 
-  // @TODO handle error state
   function ignoreOnchain() {
-    console.log(`ignoreOnchainHours = `, ignoreOnchainHours)
-    connection.clboss?.ignoreOnchain(ignoreOnchainHours).then(response => {
-      getStatus()
-    })
+    connection.clboss?.ignoreOnchain(ignoreOnchainHours).then(getStatus)
   }
 
-  // @TODO handle error state
   function noticeOnchain() {
-    connection.clboss?.noticeOnchain().then(response => {
-      getStatus()
-    })
+    connection.clboss?.noticeOnchain().then(getStatus)
   }
 
-  function unmanage(nodeId: string, tag: channelManageCategories) {
-    let managedCategories = managed[nodeId]
-
-    managedCategories = { ...managedCategories, [tag]: !managedCategories[tag] }
-
+  function unmanage(nodeId: string, tag: ChannelManageCategories) {
+    const managedCategories = { ...managed[nodeId], [tag]: !managed[nodeId][tag] }
     const tags = Object.keys(managedCategories)
-      // TODO fix ts error
-      .filter(key => managedCategories[key])
+      .filter(key => managedCategories[key as ChannelManageCategories])
       .join(',')
-
-    connection.clboss?.unmanage(nodeId, tags).then(response => {
-      console.log(`response = `, response)
-      getStatus()
-    })
+    connection.clboss?.unmanage(nodeId, tags).then(getStatus)
   }
-
-  $: activeChannels.length &&
-    clbossStatus?.unmanaged &&
-    updateManagedChannels(activeChannels, clbossStatus?.unmanaged)
 
   function updateManagedChannels(
     activeChannels: Channel[],
     statusUnmanaged: ClbossStatus['unmanaged']
   ) {
-    activeChannels.forEach(activeChannel => {
-      const { peerId } = activeChannel
-
-      const unmanagedCategories: string | undefined = statusUnmanaged[peerId]
-
-      // CLBOSS has not received any "unmanage" requests for this channel
-      if (!unmanagedCategories) {
-        managed[peerId] = {
-          [channelManageCategories.LNFEE]: true,
-          [channelManageCategories.OPEN]: true,
-          [channelManageCategories.CLOSE]: true,
-          [channelManageCategories.BALANCE]: true
-        }
-        // CLBOSS has received at least one "unmanage" requests for this channel
-      } else {
-        managed[peerId] = {
-          [channelManageCategories.LNFEE]: Boolean(unmanagedCategories.includes('lnfee')),
-          [channelManageCategories.OPEN]: Boolean(unmanagedCategories.includes('open')),
-          [channelManageCategories.CLOSE]: Boolean(unmanagedCategories.includes('close')),
-          [channelManageCategories.BALANCE]: Boolean(unmanagedCategories.includes('balance'))
-        }
-      }
+    activeChannels.forEach(({ peerId }) => {
+      const unmanagedCategories = statusUnmanaged[peerId]
+      managed[peerId] = unmanagedCategories
+        ? {
+            [ChannelManageCategories.LNFEE]: unmanagedCategories.includes('lnfee'),
+            [ChannelManageCategories.OPEN]: unmanagedCategories.includes('open'),
+            [ChannelManageCategories.CLOSE]: unmanagedCategories.includes('close'),
+            [ChannelManageCategories.BALANCE]: unmanagedCategories.includes('balance')
+          }
+        : {
+            [ChannelManageCategories.LNFEE]: true,
+            [ChannelManageCategories.OPEN]: true,
+            [ChannelManageCategories.CLOSE]: true,
+            [ChannelManageCategories.BALANCE]: true
+          }
     })
   }
-
-  // @TODO
-  // and include the option to unmanage everything for the channel
-  // Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
-  // Fix tooltip descriptions so they dont spread over screen
-  // Add button to activate CLBOSS if it not currently active
-  // Add logic to update advanced configs and restart node to test changes
 </script>
 
 <Section>
@@ -168,7 +128,9 @@
     Nevertheless, CLBOSS exposes a few commands.
   </p>
   {#if loading}
-    <Spinner size="1.5em" />
+    <div class="mt-8">
+      <Spinner size="1.5em" />
+    </div>
   {:else if clbossActive}
     <h1 class="mt-8 text-lg flex justify-center gap-2">
       <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -194,14 +156,14 @@
                     <p>
                       {`${index + 1})`}
                     </p>
-                    <div class="flex justify-between items-center gap-1">
+                    <div class="flex justify-between">
                       <p>{truncateValue(candidate?.id, 4)}</p>
                       <a
                         href={`https://amboss.space/node/${candidate?.id}`}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                        <div in:fade|local={{ duration: 250 }} class="m-auto w-6 cursor-pointer">
                           {@html link}
                         </div></a
                       >
@@ -309,7 +271,7 @@
                   {#if peerId}
                     <td class="p-2 border border-slate-600">
                       <div class="flex flex-wrap justify-between items-center gap-2">
-                        {#each Object.values(channelManageCategories) as category}
+                        {#each Object.values(ChannelManageCategories) as category}
                           <!-- svelte-ignore a11y-click-events-have-key-events -->
                           <!-- svelte-ignore a11y-no-static-element-interactions -->
                           <div
@@ -340,6 +302,13 @@
     <p>Would you like to activate CLBOSS?</p>
   {/if}
 </Section>
+
+<!-- // @TODO
+// and include the option to unmanage everything for the channel
+// Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
+// Fix tooltip descriptions so they dont spread over screen
+// Add button to activate CLBOSS if it not currently active
+// Add logic to update advanced configs and restart node to test changes -->
 
 <!-- // let preferences = {
   //   send: false,

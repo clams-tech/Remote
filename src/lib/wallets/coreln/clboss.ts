@@ -32,11 +32,6 @@ class Clboss implements ClbossInterface {
   }
 
   async unmanage(nodeId: string, tags: string): Promise<object> {
-    console.log(`params passed to unmanage = `, {
-      nodeid: nodeId,
-      tags
-    })
-
     const result = (await this.connection.rpc({
       method: 'clboss-unmanage',
       params: {
