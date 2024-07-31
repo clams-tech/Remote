@@ -119,196 +119,198 @@
   }
 </script>
 
-<Section>
-  <div class="flex items-center justify-between gap-x-4">
-    <SectionHeading icon={terminal} />
+{#if loading}
+  <div class="mt-8">
+    <Spinner size="1.5em" />
   </div>
-  <p>
-    A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
-    Nevertheless, CLBOSS exposes a few commands.
-  </p>
-  {#if loading}
-    <div class="mt-8">
-      <Spinner size="1.5em" />
+{:else}
+  <Section>
+    <div class="flex items-center justify-between gap-x-4">
+      <SectionHeading icon={terminal} />
     </div>
-  {:else if clbossActive}
-    <h1 class="mt-8 text-lg flex justify-center gap-2">
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      STATUS
-      <div
-        class="w-6 cursor-pointer"
-        on:click|stopPropagation={getStatus}
-        class:animate-spin={loading}
-      >
-        {@html refresh}
-      </div>
-    </h1>
-    <div class="mt-4">
-      <SummaryRow>
-        <div slot="label">Channel Candidates</div>
-        <div slot="value">
-          {#if clbossStatus}
-            <div class="max-h-[5em] overflow-scroll">
-              {#if clbossStatus?.channel_candidates.length}
-                {#each clbossStatus?.channel_candidates as candidate, index}
-                  <div class="grid grid-cols-2 gap-2">
-                    <p>
-                      {`${index + 1})`}
-                    </p>
-                    <div class="flex justify-between">
-                      <p>{truncateValue(candidate?.id, 4)}</p>
-                      <a
-                        href={`https://amboss.space/node/${candidate?.id}`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <div in:fade|local={{ duration: 250 }} class="m-auto w-6 cursor-pointer">
-                          {@html link}
-                        </div></a
-                      >
-                    </div>
-                  </div>
-                {/each}
-              {:else}
-                <p>-</p>
-              {/if}
-            </div>
-          {/if}
+    <p>
+      A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
+      Nevertheless, CLBOSS exposes a few commands.
+    </p>
+
+    {#if clbossActive}
+      <h1 class="mt-8 text-lg font-bold flex justify-center gap-2">
+        STATUS
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div
+          class="w-6 cursor-pointer"
+          on:click|stopPropagation={getStatus}
+          class:animate-spin={loading}
+        >
+          {@html refresh}
         </div>
-      </SummaryRow>
-      <SummaryRow>
-        <div slot="label">Internet</div>
-        <div slot="value">{clbossStatus?.internet?.connection}</div>
-      </SummaryRow>
-      <SummaryRow>
-        <div slot="label">Onchain Fee Rate</div>
-        <div slot="value">
-          <p
-            class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
-            class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
-          >
-            {clbossStatus?.onchain_feerate?.judgment || '-'}
-          </p>
-        </div>
-      </SummaryRow>
-      <SummaryRow>
-        <div slot="label">Peer Metrics</div>
-        <div slot="value">
-          {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
-            <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
-          {:else}
-            <p>-</p>
-          {/if}
-        </div>
-      </SummaryRow>
-      {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
+      </h1>
+      <div class="mt-4">
         <SummaryRow>
-          <div slot="label">
-            Inoring onchain funds until
-            {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
-              {response}
-            {/await}
-          </div>
+          <div slot="label">Internet</div>
+          <div slot="value">{clbossStatus?.internet?.connection}</div>
+        </SummaryRow>
+        <SummaryRow>
+          <div slot="label">Onchain Fee Rate</div>
           <div slot="value">
-            <div class="w-min"><Button text="Disable" on:click={noticeOnchain} /></div>
+            <p
+              class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
+              class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
+            >
+              {clbossStatus?.onchain_feerate?.judgment || '-'}
+            </p>
           </div>
         </SummaryRow>
-      {/if}
-    </div>
-
-    <h1 class="mt-8 text-lg text-center">COMMANDS</h1>
-    <div />
-    <div class="flex flex-col gap-4">
-      <!-- IGNORE / NOTICE ONCHAIN -->
-      <div class="mt-4 flex flex-col gap-4">
-        <TextInput
-          name="ignoreOnchain"
-          type="number"
-          label="Ignore onchain funds (hours)"
-          placeholder="Number of hours CLBOSS should ignore onchain balance"
-          bind:value={ignoreOnchainHours}
-        />
-        <div class="w-min"><Button text="Update" on:click={ignoreOnchain} /></div>
-      </div>
-      <!-- UNMANAGE -->
-      <div class="mt-4 flex flex-col gap-4">
-        <table class="table-auto border-collapse border border-slate-600 w-full">
-          <caption class="caption-top text-sm mb-4">
-            Toggle CLBOSS permissions on a per channel basis
-          </caption>
-          <thead>
-            <tr>
-              {#each ['Alias', 'Node Id', 'Permissions'] as header}
-                <th class="p-2 border border-slate-600">{header}</th>
-              {/each}
-            </tr>
-          </thead>
-          <tbody class="max-h-[5em]">
-            {#if $activeChannel$.length && managed}
-              {#each $activeChannel$ as { peerAlias, peerId }}
-                <tr>
-                  <td class="p-2 border border-slate-600">{peerAlias}</td>
-                  <td class="p-2 border border-slate-600">
-                    {#if peerId}
-                      <div class="flex flex-wrap justify-between items-center gap-1">
-                        <p>{truncateValue(peerId, 4)}</p>
-                        <CopyValue value={peerId} hideValue={true} />
+        <SummaryRow>
+          <div slot="label">Channel Candidates</div>
+          <div slot="value">
+            {#if clbossStatus}
+              <div class="max-h-[5em] overflow-scroll">
+                {#if clbossStatus?.channel_candidates.length}
+                  {#each clbossStatus?.channel_candidates as candidate, index}
+                    <div class="grid grid-cols-2 gap-2">
+                      <p>
+                        {`${index + 1})`}
+                      </p>
+                      <div class="flex justify-between">
+                        <p>{truncateValue(candidate?.id, 4)}</p>
                         <a
-                          href={`https://amboss.space/node/${peerId}`}
+                          href={`https://amboss.space/node/${candidate?.id}`}
                           rel="noopener noreferrer"
                           target="_blank"
                         >
-                          <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                          <div in:fade|local={{ duration: 250 }} class="m-auto w-6 cursor-pointer">
                             {@html link}
                           </div></a
                         >
                       </div>
-                    {:else}
-                      -
-                    {/if}</td
-                  >
-                  {#if peerId}
-                    <td class="p-2 border border-slate-600">
-                      <div class="flex flex-wrap justify-between items-center gap-2">
-                        {#each Object.values(ChannelManageCategories) as category}
-                          <!-- svelte-ignore a11y-click-events-have-key-events -->
-                          <!-- svelte-ignore a11y-no-static-element-interactions -->
-                          <div
-                            class="flex items-center gap-1"
-                            on:click={() => unmanage(peerId, category)}
-                          >
-                            <label for={peerId} class="font-semibold text-sm text-neutral-300"
-                              >{category}</label
-                            >
-
-                            <Toggle
-                              on:click={() => unmanage(peerId, category)}
-                              bind:toggled={managed[peerId][category]}
-                            />
-                          </div>
-                        {/each}
-                      </div>
-                    </td>
-                  {/if}
-                </tr>
-              {/each}
+                    </div>
+                  {/each}
+                {:else}
+                  <p>-</p>
+                {/if}
+              </div>
             {/if}
-          </tbody>
-        </table>
+          </div>
+        </SummaryRow>
+        <SummaryRow>
+          <div slot="label">Peer Metrics</div>
+          <div slot="value">
+            {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
+              <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
+            {:else}
+              <p>-</p>
+            {/if}
+          </div>
+        </SummaryRow>
+        {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
+          <SummaryRow>
+            <!-- TODO - fix copy on mobile -->
+            <div slot="label" class="border flex flex-wrap">
+              Ignoring onchain funds until
+              {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
+                {response}
+              {/await}
+            </div>
+            <div slot="value">
+              <div class="w-min"><Button text="Disable" on:click={noticeOnchain} /></div>
+            </div>
+          </SummaryRow>
+        {/if}
       </div>
-    </div>
-  {:else}
-    <p>Would you like to activate CLBOSS?</p>
-  {/if}
-</Section>
+
+      <h1 class="mt-8 text-lg font-bold text-center">COMMANDS</h1>
+      <div class="mt-4 flex flex-col gap-4">
+        <!-- IGNORE / NOTICE ONCHAIN -->
+        <div class="flex flex-col gap-4">
+          <TextInput
+            name="ignoreOnchain"
+            type="number"
+            label="Ignore onchain funds (hours)"
+            placeholder="Number of hours CLBOSS should ignore onchain balance"
+            bind:value={ignoreOnchainHours}
+          />
+          <div class="w-min"><Button text="Update" on:click={ignoreOnchain} /></div>
+        </div>
+        <!-- UNMANAGE -->
+        <div class="mt-4 mb-8 flex flex-col gap-4">
+          <table class="table-auto border-collapse border border-slate-600 w-full">
+            <caption class="caption-top text-sm mb-4">
+              Toggle CLBOSS permissions on a per channel basis
+            </caption>
+            <thead>
+              <tr>
+                {#each ['Alias', 'Node Id', 'Permissions'] as header}
+                  <th class="p-2 border border-slate-600">{header}</th>
+                {/each}
+              </tr>
+            </thead>
+            <tbody class="max-h-[5em]">
+              {#if $activeChannel$.length && managed}
+                {#each $activeChannel$ as { peerAlias, peerId }}
+                  <tr>
+                    <td class="p-2 border border-slate-600">{peerAlias}</td>
+                    <td class="p-2 border border-slate-600">
+                      {#if peerId}
+                        <div class="flex flex-wrap justify-between items-center gap-1">
+                          <p>{truncateValue(peerId, 4)}</p>
+                          <CopyValue value={peerId} hideValue={true} />
+                          <a
+                            href={`https://amboss.space/node/${peerId}`}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer">
+                              {@html link}
+                            </div></a
+                          >
+                        </div>
+                      {:else}
+                        -
+                      {/if}</td
+                    >
+                    {#if peerId}
+                      <td class="p-2 border border-slate-600">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                          {#each Object.values(ChannelManageCategories) as category}
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                            <div
+                              class="flex items-center gap-1"
+                              on:click={() => unmanage(peerId, category)}
+                            >
+                              <label for={peerId} class="font-semibold text-sm text-neutral-300"
+                                >{category}</label
+                              >
+
+                              <Toggle
+                                on:click={() => unmanage(peerId, category)}
+                                bind:toggled={managed[peerId][category]}
+                              />
+                            </div>
+                          {/each}
+                        </div>
+                      </td>
+                    {/if}
+                  </tr>
+                {/each}
+              {/if}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {:else}
+      <p class="mt-8">You need to activate CLBOSS</p>
+    {/if}
+  </Section>
+{/if}
 
 <!-- // @TODO
-// and include the option to unmanage everything for the channel
-// Finish the status modal - https://github.com/ZmnSCPxj/clboss?tab=readme-ov-file#clboss-status
-// Fix tooltip descriptions so they dont spread over screen
-// Add button to activate CLBOSS if it not currently active
-// Add logic to update advanced configs and restart node to test changes -->
+// Fix mobile styles
+// Add tooltips 
+// Add button to activate CLBOSS if it not currently active?
+-->
 
 <!-- // let preferences = {
   //   send: false,
@@ -330,7 +332,7 @@
       // } -->
 
 <!-- <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
-<!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
+     <h1 class="text-lg mt-4">Optimize node to:</h1>
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-1" on:click={() => setPreference('send')}>
         <div class="pointer-events-none">
