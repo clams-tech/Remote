@@ -198,7 +198,9 @@ export interface NetworkInterface {
 
 export interface PluginsInterface {
   connection: Connection
-  get(): Promise<Plugin[]>
+  list(): Promise<Plugin[]>
+  start(plugin: string): Promise<Plugin[]>
+  stop(plugin: string): Promise<string>
 }
 
 export interface ClbossInterface {

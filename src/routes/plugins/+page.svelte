@@ -22,16 +22,14 @@
     map(([wallets, connections]) =>
       wallets.filter(({ id }) => {
         const connection = connections.find(({ walletId }) => walletId === id)
-        return !!connection?.plugins?.get
+        return !!connection?.plugins?.list
       })
     )
   )
 
-  $: connection = connections$.value.find(
-    ({ walletId }) => walletId === selectedWalletId
-  ) as Connection
+  $: connection = $connections$.find(({ walletId }) => walletId === selectedWalletId) as Connection
 
-  $: connection?.plugins?.get().then(plugins => {
+  $: connection?.plugins?.list().then(plugins => {
     const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
 
     if (clbossPlugin) {

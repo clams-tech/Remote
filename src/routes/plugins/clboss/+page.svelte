@@ -26,7 +26,6 @@
   export let data: PageData
   const { wallet } = data
 
-  let activeChannels: Channel[] = []
   let loading = true
   let clbossActive = false
   let clbossStatus: ClbossStatus | null = null
@@ -52,13 +51,11 @@
     )
   )
 
-  activeChannel$.subscribe(val => (activeChannels = val))
-
-  $: connection = connections$.value.find(({ walletId }) => walletId === wallet) as Connection
+  $: connection = $connections$.find(({ walletId }) => walletId === wallet) as Connection
 
   $: {
     if (connection) {
-      connection.plugins?.get().then(plugins => {
+      connection.plugins?.list().then(plugins => {
         const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
         clbossActive = clbossPlugin ? clbossPlugin.active : false
         getStatus()
@@ -68,8 +65,8 @@
 
   $: ignoringOnchainFunds = clbossStatus?.should_monitor_onchain_funds?.status === 'ignore'
 
-  $: if (activeChannels.length && clbossStatus?.unmanaged) {
-    updateManagedChannels(activeChannels, clbossStatus.unmanaged)
+  $: if ($activeChannel$?.length && clbossStatus?.unmanaged) {
+    updateManagedChannels($activeChannel$, clbossStatus.unmanaged)
   }
 
   function getStatus() {
@@ -117,6 +114,10 @@
           }
     })
   }
+
+  function startClboss() {
+    connection?.plugins?.start('clboss').then(getStatus)
+  }
 </script>
 
 {#if loading}
@@ -132,8 +133,8 @@
       A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
       Nevertheless, CLBOSS exposes a few commands.
     </p>
-
     {#if clbossActive}
+      <!-- STATUS -->
       <h1 class="mt-8 text-lg font-bold flex justify-center gap-2">
         STATUS
         <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -188,7 +189,7 @@
                     </div>
                   {/each}
                 {:else}
-                  <p>-</p>
+                  <p>none</p>
                 {/if}
               </div>
             {/if}
@@ -200,14 +201,14 @@
             {#if clbossStatus?.peer_metrics && Object.keys(clbossStatus?.peer_metrics).length}
               <CopyValue value={JSON.stringify(clbossStatus?.peer_metrics)} hideValue={true} />
             {:else}
-              <p>-</p>
+              <p>none</p>
             {/if}
           </div>
         </SummaryRow>
         {#if ignoringOnchainFunds && clbossStatus?.should_monitor_onchain_funds}
           <SummaryRow>
             <!-- TODO - fix copy on mobile -->
-            <div slot="label" class="border flex flex-wrap">
+            <div slot="label" class="flex flex-wrap">
               Ignoring onchain funds until
               {#await formatDate(clbossStatus?.should_monitor_onchain_funds.disable_until, 'HH:mm - yyyy-MM-dd') then response}
                 {response}
@@ -219,7 +220,7 @@
           </SummaryRow>
         {/if}
       </div>
-
+      <!-- COMMANDS -->
       <h1 class="mt-8 text-lg font-bold text-center">COMMANDS</h1>
       <div class="mt-4 flex flex-col gap-4">
         <!-- IGNORE / NOTICE ONCHAIN -->
@@ -234,7 +235,7 @@
           <div class="w-min"><Button text="Update" on:click={ignoreOnchain} /></div>
         </div>
         <!-- UNMANAGE -->
-        <div class="mt-4 mb-8 flex flex-col gap-4">
+        <div class="mt-4 flex flex-col gap-4">
           <table class="table-auto border-collapse border border-slate-600 w-full">
             <caption class="caption-top text-sm mb-4">
               Toggle CLBOSS permissions on a per channel basis
@@ -300,8 +301,11 @@
           </table>
         </div>
       </div>
+      <!-- CONFIGURATION -->
+      <h1 class="mt-8 text-lg font-bold text-center">CONFIGURATION</h1>
     {:else}
-      <p class="mt-8">You need to activate CLBOSS</p>
+      <!-- START CLBOSS -->
+      <div class="mt-8 w-min"><Button text="Start CLBOSS" on:click={startClboss} /></div>
     {/if}
   </Section>
 {/if}
@@ -318,18 +322,37 @@
   //   both: true
   // } -->
 
+<!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
+  <div class="mt-4 flex flex-col gap-4">
+    <div class="flex gap-1" on:click={() => setPreference('send')}>
+      <div class="pointer-events-none">
+        <Toggle bind:toggled={preferences.send}>
+          <div slot="right" class="ml-2">Mostly Send Payments</div>
+        </Toggle>
+      </div>
+      <Tooltip text="Mostly Send description" />
+    </div>
+    <div class="flex gap-1" on:click={() => setPreference('both')}>
+      <div class="pointer-events-none">
+        <Toggle bind:toggled={preferences.both}>
+          <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
+        </Toggle>
+      </div>
+      <Tooltip text="Equally Send & Receive description" />
+    </div>
+    <div class="flex gap-1" on:click={() => setPreference('receive')}>
+      <div class="pointer-events-none">
+        <Toggle bind:toggled={preferences.receive}>
+          <div slot="right" class="ml-2">Mostly Receive Payments</div>
+        </Toggle>
+      </div>
+      <Tooltip text="Mostly Receive description" />
+    </div>
+  </div> -->
+
 <!-- let minOnchain: number | null = null
   let minChannelSize: number | null = null
   let maxChannelSize: number | null = null -->
-
-<!-- 
-    // function setPreference(value: 'send' | 'receive' | 'both') {
-      //   preferences = {
-      //     send: value === 'send',
-      //     receive: value === 'receive',
-      //     both: value === 'both'
-      //   }
-      // } -->
 
 <!-- <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
      <h1 class="text-lg mt-4">Optimize node to:</h1>
