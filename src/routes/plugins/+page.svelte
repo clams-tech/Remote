@@ -29,6 +29,10 @@
 
   $: connection = $connections$.find(({ walletId }) => walletId === selectedWalletId) as Connection
 
+  $: if (connection) {
+    loading = true
+  }
+
   $: connection?.plugins?.list().then(plugins => {
     const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
 

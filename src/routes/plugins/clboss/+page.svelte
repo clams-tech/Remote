@@ -73,6 +73,7 @@
     loading = true
     connection.clboss?.getStatus().then(response => {
       clbossStatus = response
+      console.log(`clboss status = `, clbossStatus)
       loading = false
     })
   }
@@ -311,6 +312,8 @@
 <!-- // @TODO
 // Fix mobile styles
 // Add tooltips 
+// Render lnfee as "fees" in the toggle list
+// english/spanish support
 -->
 
 <!-- // let preferences = {
