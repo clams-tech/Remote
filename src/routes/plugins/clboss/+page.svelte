@@ -301,11 +301,9 @@
           </table>
         </div>
       </div>
-      <!-- CONFIGURATION -->
-      <h1 class="mt-8 text-lg font-bold text-center">CONFIGURATION</h1>
     {:else}
       <!-- START CLBOSS -->
-      <div class="mt-8 w-min"><Button text="Start CLBOSS" on:click={startClboss} /></div>
+      <div class="mt-4 w-min"><Button text="Start CLBOSS" on:click={startClboss} /></div>
     {/if}
   </Section>
 {/if}
@@ -313,7 +311,6 @@
 <!-- // @TODO
 // Fix mobile styles
 // Add tooltips 
-// Add button to activate CLBOSS if it not currently active?
 -->
 
 <!-- // let preferences = {
