@@ -15,7 +15,7 @@ export type ClbossStatus = {
     onlineness: number
   }[]
   internet: {
-    connection: string // "online" | "offline"
+    connection: 'online' | 'offline'
     checking_connectivity: boolean
   }
   onchain_feerate: {

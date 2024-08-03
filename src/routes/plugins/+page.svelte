@@ -70,7 +70,7 @@
           class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
         >
           <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
-            <div class="uppercase font-semibold">CLBOSS</div>
+            <div class="font-semibold">{$translate('app.labels.clboss')}</div>
           </div>
 
           <div class="text-sm">
@@ -82,7 +82,7 @@
               >
                 {@html clbossInstalled ? check : close}
               </div>
-              installed
+              {$translate('app.labels.installed')}
             </div>
             <div class="flex items-center">
               <div
@@ -92,7 +92,7 @@
               >
                 {@html clbossActive ? check : close}
               </div>
-              active
+              {$translate('app.labels.active')}
             </div>
           </div>
         </a>
