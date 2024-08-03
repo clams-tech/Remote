@@ -6,7 +6,6 @@
   import Spinner from '$lib/components/Spinner.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import Toggle from '$lib/components/Toggle.svelte'
-  import Tooltip from '$lib/components/Tooltip.svelte'
   import terminal from '$lib/icons/terminal'
   import link from '$lib/icons/link.js'
   import refresh from '$lib/icons/refresh'
@@ -38,6 +37,25 @@
     CLOSE = 'close',
     BALANCE = 'balance'
   }
+
+  const ChannelManageCategoryDetails = {
+    [ChannelManageCategories.LNFEE]: {
+      label: 'fees', // lang support
+      category: ChannelManageCategories.LNFEE
+    },
+    [ChannelManageCategories.OPEN]: {
+      label: 'open', // lang support
+      category: ChannelManageCategories.OPEN
+    },
+    [ChannelManageCategories.CLOSE]: {
+      label: 'close', // lang support
+      category: ChannelManageCategories.CLOSE
+    },
+    [ChannelManageCategories.BALANCE]: {
+      label: 'balance', // lang support
+      category: ChannelManageCategories.BALANCE
+    }
+  } as const
 
   let managed: Record<string, Record<ChannelManageCategories, boolean>> = {}
 
@@ -73,7 +91,6 @@
     loading = true
     connection.clboss?.getStatus().then(response => {
       clbossStatus = response
-      console.log(`clboss status = `, clbossStatus)
       loading = false
     })
   }
@@ -86,8 +103,8 @@
     connection.clboss?.noticeOnchain().then(getStatus)
   }
 
-  function unmanage(nodeId: string, tag: ChannelManageCategories) {
-    const managedCategories = { ...managed[nodeId], [tag]: !managed[nodeId][tag] }
+  function unmanage(nodeId: string, category: ChannelManageCategories) {
+    const managedCategories = { ...managed[nodeId], [category]: !managed[nodeId][category] }
     const tags = Object.keys(managedCategories)
       .filter(key => managedCategories[key as ChannelManageCategories])
       .join(',')
@@ -130,14 +147,11 @@
     <div class="flex items-center justify-between gap-x-4">
       <SectionHeading icon={terminal} />
     </div>
-    <p>
-      A goal of CLBOSS is that you never have to monitor or check your node, or CLBOSS, at all.
-      Nevertheless, CLBOSS exposes a few commands.
-    </p>
     {#if clbossActive}
       <!-- STATUS -->
-      <h1 class="mt-8 text-lg font-bold flex justify-center gap-2">
-        STATUS
+      <div class="mt-8 flex justify-center">
+        <CopyValue value={JSON.stringify(clbossStatus)} hideValue={true} />
+        <h1 class="text-lg font-bold ml-1 mr-2">STATUS</h1>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
@@ -147,7 +161,7 @@
         >
           {@html refresh}
         </div>
-      </h1>
+      </div>
       <div class="mt-4">
         <SummaryRow>
           <div slot="label">Internet</div>
@@ -223,7 +237,7 @@
       </div>
       <!-- COMMANDS -->
       <h1 class="mt-8 text-lg font-bold text-center">COMMANDS</h1>
-      <div class="mt-4 flex flex-col gap-4">
+      <div class="mt-4 mb-8 flex flex-col gap-4">
         <!-- IGNORE / NOTICE ONCHAIN -->
         <div class="flex flex-col gap-4">
           <TextInput
@@ -275,7 +289,7 @@
                     {#if peerId}
                       <td class="p-2 border border-slate-600">
                         <div class="flex flex-wrap justify-between items-center gap-2">
-                          {#each Object.values(ChannelManageCategories) as category}
+                          {#each Object.values(ChannelManageCategoryDetails) as { label, category }}
                             <!-- svelte-ignore a11y-click-events-have-key-events -->
                             <!-- svelte-ignore a11y-no-static-element-interactions -->
                             <div
@@ -283,7 +297,7 @@
                               on:click={() => unmanage(peerId, category)}
                             >
                               <label for={peerId} class="font-semibold text-sm text-neutral-300"
-                                >{category}</label
+                                >{label}</label
                               >
 
                               <Toggle
@@ -310,75 +324,7 @@
 {/if}
 
 <!-- // @TODO
-// Fix mobile styles
 // Add tooltips 
 // Render lnfee as "fees" in the toggle list
 // english/spanish support
 -->
-
-<!-- // let preferences = {
-  //   send: false,
-  //   receive: false,
-  //   both: true
-  // } -->
-
-<!-- <h1 class="text-lg mt-4">Optimize node to:</h1>
-  <div class="mt-4 flex flex-col gap-4">
-    <div class="flex gap-1" on:click={() => setPreference('send')}>
-      <div class="pointer-events-none">
-        <Toggle bind:toggled={preferences.send}>
-          <div slot="right" class="ml-2">Mostly Send Payments</div>
-        </Toggle>
-      </div>
-      <Tooltip text="Mostly Send description" />
-    </div>
-    <div class="flex gap-1" on:click={() => setPreference('both')}>
-      <div class="pointer-events-none">
-        <Toggle bind:toggled={preferences.both}>
-          <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
-        </Toggle>
-      </div>
-      <Tooltip text="Equally Send & Receive description" />
-    </div>
-    <div class="flex gap-1" on:click={() => setPreference('receive')}>
-      <div class="pointer-events-none">
-        <Toggle bind:toggled={preferences.receive}>
-          <div slot="right" class="ml-2">Mostly Receive Payments</div>
-        </Toggle>
-      </div>
-      <Tooltip text="Mostly Receive description" />
-    </div>
-  </div> -->
-
-<!-- let minOnchain: number | null = null
-  let minChannelSize: number | null = null
-  let maxChannelSize: number | null = null -->
-
-<!-- <h1 class="mt-8 text-lg text-center">CONFIGURATION</h1>
-     <h1 class="text-lg mt-4">Optimize node to:</h1>
-    <div class="mt-4 flex flex-col gap-4">
-      <div class="flex gap-1" on:click={() => setPreference('send')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.send}>
-            <div slot="right" class="ml-2">Mostly Send Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Mostly Send description" />
-      </div>
-      <div class="flex gap-1" on:click={() => setPreference('both')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.both}>
-            <div slot="right" class="ml-2">Equally Send & Receive Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Equally Send & Receive description" />
-      </div>
-      <div class="flex gap-1" on:click={() => setPreference('receive')}>
-        <div class="pointer-events-none">
-          <Toggle bind:toggled={preferences.receive}>
-            <div slot="right" class="ml-2">Mostly Receive Payments</div>
-          </Toggle>
-        </div>
-        <Tooltip text="Mostly Receive description" />
-      </div>
-    </div> -->
