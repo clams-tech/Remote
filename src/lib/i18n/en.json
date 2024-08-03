@@ -526,6 +526,8 @@
     "online": "online",
     "offline": "offline",
     "onchain_fee_rate": "Onchain fee rate",
+    "high fees": "high fees",
+    "low fees": "low fees",
     "channel_candidates": "Channel candidates",
     "peer_metrics": "Peer metrics",
     "none": "none",

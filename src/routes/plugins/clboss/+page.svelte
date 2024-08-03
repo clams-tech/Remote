@@ -174,12 +174,16 @@
         <SummaryRow>
           <div slot="label">{$translate('app.labels.onchain_fee_rate')}</div>
           <div slot="value">
-            <p
-              class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
-              class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
-            >
-              {clbossStatus?.onchain_feerate?.judgment || '-'}
-            </p>
+            {#if clbossStatus?.onchain_feerate?.judgment}
+              <p
+                class:text-utility-success={clbossStatus?.onchain_feerate?.judgment === 'low fees'}
+                class:text-utility-error={clbossStatus?.onchain_feerate?.judgment === 'high fees'}
+              >
+                {$translate(`app.labels.${clbossStatus?.onchain_feerate?.judgment}`)}
+              </p>
+            {:else}
+              <p>{$translate('app.labels.none')}</p>
+            {/if}
           </div>
         </SummaryRow>
         <SummaryRow>

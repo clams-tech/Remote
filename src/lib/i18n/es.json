@@ -525,6 +525,8 @@
     "online": "en línea",
     "offline": "desconectado",
     "onchain_fee_rate": "Tarifa de cadena",
+    "high fees": "altas tarifas",
+    "low fees": "bajas tarifas",
     "channel_candidates": "Candidatos de canal",
     "peer_metrics": "Métricas de pares",
     "none": "ninguno",
