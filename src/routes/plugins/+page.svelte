@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Wallet } from '$lib/@types/wallets'
-  import Msg from '$lib/components/Msg.svelte'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import WalletSelector from '$lib/components/WalletSelector.svelte'
@@ -39,11 +38,12 @@
     if (clbossPlugin) {
       clbossInstalled = true
       clbossActive = clbossPlugin.active
+      loading = false
     } else {
       clbossInstalled = false
       clbossActive = false
+      loading = false
     }
-    loading = false
   })
 </script>
 
@@ -86,8 +86,8 @@
             </div>
             <div class="flex items-center">
               <div
-                class:border-utility-error={!clbossInstalled}
-                class:border-utility-success={clbossInstalled}
+                class:border-utility-error={!clbossActive}
+                class:border-utility-success={clbossActive}
                 class="w-4 mr-1 border rounded-full"
               >
                 {@html clbossActive ? check : close}
