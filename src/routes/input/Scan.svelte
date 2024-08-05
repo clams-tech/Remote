@@ -31,6 +31,7 @@
     .subscribe(({ data }) => handleScanResult(data.result as string))
 
   const handleScanResult = (val: string) => {
+    console.log(`val = `, val)
     if (val) {
       parsed = parseInput(val)
     }
