@@ -1,5 +1,3 @@
-import { toOutputScript } from 'bitcoinjs-lib/src/address.js'
-import { networks } from 'bitcoinjs-lib'
 import type { ParsedInput } from './@types/common.js'
 
 import {
@@ -7,6 +5,7 @@ import {
   hostRegex,
   nodeConnectRegex,
   nodePublicKeyRegex,
+  onchainRegex,
   usernameRegex
 } from './regex.js'
 
@@ -20,25 +19,6 @@ export function decodeLightningAddress(val: string): { username: string; domain:
   }
 
   return { username, domain }
-}
-
-export function isValidBitcoinAddress(val: string) {
-  try {
-    toOutputScript(val)
-    return true
-  } catch (e) {
-    try {
-      toOutputScript(val, networks.testnet)
-      return true
-    } catch (e) {
-      try {
-        toOutputScript(val, networks.regtest)
-        return true
-      } catch (e) {
-        return false
-      }
-    }
-  }
 }
 
 export const isBolt12Offer = (input: string): boolean =>
@@ -79,7 +59,7 @@ export function getInputType(destination: string): ParsedInput {
   }
 
   // Onchain
-  if (isValidBitcoinAddress(destination)) {
+  if (onchainRegex.test(destination)) {
     return {
       type: 'onchain',
       value: destination
