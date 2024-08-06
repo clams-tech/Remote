@@ -33,6 +33,7 @@ import type {
   PayInvoiceOptions,
   PayKeysendOptions
 } from '$lib/@types/invoices.js'
+import type { Plugin, ClbossStatus } from '$lib/@types/plugins'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -62,6 +63,8 @@ export interface Connection {
   withdrawals?: WithdrawalsInterface
   deposits?: DepositsInterface
   network?: NetworkInterface
+  plugins?: PluginsInterface
+  clboss?: ClbossInterface
 }
 
 export type Info = {
@@ -191,4 +194,19 @@ export interface DepositsInterface {
 export interface NetworkInterface {
   /** get node details */
   getNode(id: string): Promise<Node | null>
+}
+
+export interface PluginsInterface {
+  connection: Connection
+  list(): Promise<Plugin[]>
+  start(plugin: string): Promise<Plugin[]>
+  stop(plugin: string): Promise<string>
+}
+
+export interface ClbossInterface {
+  connection: Connection
+  getStatus(): Promise<ClbossStatus>
+  ignoreOnchain(hours: number): Promise<object>
+  noticeOnchain(): Promise<object>
+  unmanage(nodeId: string, tags: string): Promise<object>
 }

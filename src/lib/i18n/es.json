@@ -34,6 +34,12 @@
     "/accounting": {
       "title": "Contabilidad"
     },
+    "/plugins": {
+      "title": "Plugins"
+    },
+    "/plugins/clboss": {
+      "title": "CLBOSS"
+    },
     "/settings": {
       "title": "Configuración"
     },
@@ -510,7 +516,25 @@
     "go_to_closing_transaction": "Ir a la transacción de cierre",
     "tor_support": "Soporte de Tor",
     "spend_all": "Gastar todo",
-    "expose_private_channels": "Exponer canales privados"
+    "expose_private_channels": "Exponer canales privados",
+    "installed": "Instalado",
+    "clboss": "CLBOSS",
+    "start_clboss": "Iniciar CLBOSS",
+    "commands": "Comandos",
+    "internet": "Internet",
+    "online": "en línea",
+    "offline": "desconectado",
+    "onchain_fee_rate": "Tarifa de cadena",
+    "high fees": "altas tarifas",
+    "low fees": "bajas tarifas",
+    "channel_candidates": "Candidatos de canal",
+    "peer_metrics": "Métricas de pares",
+    "none": "ninguno",
+    "ignore_onchain_funds": "Ignorar fondos en cadena (horas)",
+    "ignoring_onchain_funds_until": "Ignorando fondos en cadena hasta",
+    "toggle_clboss_permissions": "Alternar permisos de CLBOSS por canal",
+    "node_id": "ID del nodo",
+    "permissions": "Permisos"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
