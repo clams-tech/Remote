@@ -6,6 +6,7 @@ import list from '$lib/icons/list.js'
 import settingsOutline from '$lib/icons/settings-outline.js'
 import wallet from '$lib/icons/wallet.js'
 import forward from '$lib/icons/forward.js'
+import terminal from './icons/terminal.js'
 import type { Network } from './@types/payments.js'
 
 export const DEV = import.meta.env.DEV
@@ -36,6 +37,7 @@ export const TILES: Record<Tile, boolean> = {
   // accounting: true,
   // charts: true,
   // trades: true,
+  plugins: true,
   settings: true
 }
 
@@ -46,10 +48,11 @@ export const TILE_ICONS: Record<Tile, string> = {
   channels: channels,
   offers: lightningOutline,
   forwards: forward,
+  plugins: terminal,
+  settings: settingsOutline
   // trades: trade,
   // accounting: feeOutline,
   // charts: graph,
-  settings: settingsOutline
 }
 
 export const ALL_LANGUAGES: Language[] = [
