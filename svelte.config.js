@@ -26,35 +26,6 @@ const config = {
     },
     csrf: {
       checkOrigin: true
-    },
-    prerender: {
-      entries: [
-        '/',
-        '/wallets',
-        '/wallets/add',
-        '/wallets/[id]',
-        '/welcome',
-        '/channels',
-        '/channels/open',
-        '/channels/[id]',
-        '/input',
-        '/settings',
-        '/payments',
-        '/payments/pay/bolt11/[invoice]',
-        '/payments/pay/keysend/[pubkey]',
-        '/payments/pay/onchain/[address]',
-        '/payments/receive',
-        '/payments/[id]',
-        '/utxos',
-        '/utxos/[id]',
-        '/forwards',
-        '/forwards/[id]',
-        '/lnurl/[value]',
-        '/offers',
-        '/offers/offer/create',
-        '/offers/offer/[bolt12]',
-        '/offers/[id]'
-      ]
     }
   }
 }
