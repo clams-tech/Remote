@@ -56,8 +56,8 @@
     <SectionHeading icon={terminal} />
   </div>
   <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
-  <div class="w-full flex items-center mt-4">
-    {#if $availableWallets$.length}
+  {#if $availableWallets$.length}
+    <div class="w-full flex items-center mt-4">
       <div class="flex flex-col gap-4">
         {#if loading}
           <Spinner size="1.5em" />
@@ -99,6 +99,6 @@
           </a>
         {/if}
       </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
 </Section>
