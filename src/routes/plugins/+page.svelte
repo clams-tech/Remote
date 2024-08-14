@@ -56,47 +56,49 @@
     <SectionHeading icon={terminal} />
   </div>
   <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
-  <div class="w-full flex items-center mt-4">
-    <div class="flex flex-col gap-4">
-      {#if loading}
-        <Spinner size="1.5em" />
-      {:else}
-        <a
-          href={clbossInstalled
-            ? `/plugins/clboss?wallet=${selectedWalletId}`
-            : 'https://github.com/ZmnSCPxj/clboss'}
-          target={clbossInstalled ? null : '_blank'}
-          rel={clbossInstalled ? null : 'noopener noreferrer'}
-          class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
-        >
-          <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
-            <div class="font-semibold">{$translate('app.labels.clboss')}</div>
-          </div>
+  {#if $availableWallets$.length}
+    <div class="w-full flex items-center mt-4">
+      <div class="flex flex-col gap-4">
+        {#if loading}
+          <Spinner size="1.5em" />
+        {:else}
+          <a
+            href={clbossInstalled
+              ? `/plugins/clboss?wallet=${selectedWalletId}`
+              : 'https://github.com/ZmnSCPxj/clboss'}
+            target={clbossInstalled ? null : '_blank'}
+            rel={clbossInstalled ? null : 'noopener noreferrer'}
+            class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+          >
+            <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
+              <div class="font-semibold">{$translate('app.labels.clboss')}</div>
+            </div>
 
-          <div class="text-sm">
-            <div class="flex items-center">
-              <div
-                class:border-utility-error={!clbossInstalled}
-                class:border-utility-success={clbossInstalled}
-                class="w-4 mr-1 border rounded-full"
-              >
-                {@html clbossInstalled ? check : close}
+            <div class="text-sm">
+              <div class="flex items-center">
+                <div
+                  class:border-utility-error={!clbossInstalled}
+                  class:border-utility-success={clbossInstalled}
+                  class="w-4 mr-1 border rounded-full"
+                >
+                  {@html clbossInstalled ? check : close}
+                </div>
+                {$translate('app.labels.installed')}
               </div>
-              {$translate('app.labels.installed')}
-            </div>
-            <div class="flex items-center">
-              <div
-                class:border-utility-error={!clbossActive}
-                class:border-utility-success={clbossActive}
-                class="w-4 mr-1 border rounded-full"
-              >
-                {@html clbossActive ? check : close}
+              <div class="flex items-center">
+                <div
+                  class:border-utility-error={!clbossActive}
+                  class:border-utility-success={clbossActive}
+                  class="w-4 mr-1 border rounded-full"
+                >
+                  {@html clbossActive ? check : close}
+                </div>
+                {$translate('app.labels.active')}
               </div>
-              {$translate('app.labels.active')}
             </div>
-          </div>
-        </a>
-      {/if}
+          </a>
+        {/if}
+      </div>
     </div>
-  </div>
+  {/if}
 </Section>
