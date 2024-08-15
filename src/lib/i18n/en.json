@@ -34,12 +34,18 @@
     "/accounting": {
       "title": "Accounting"
     },
+    "/plugins": {
+      "title": "Plugins"
+    },
+    "/plugins/clboss": {
+      "title": "CLBOSS"
+    },
     "/settings": {
       "title": "Settings"
     },
     "/wallets": {
       "title": "Wallets",
-      "introduction": "Connect a new <b>wallet</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> wallet connection will allow you to <b>remote control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
+      "introduction": "Connect a new <b>wallet</b> to sync your <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b> data. Adding a <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> wallet connection will allow you to <b>remote control</b> your node with <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>.",
       "add_wallet": "Add Wallet",
       "delete_wallet_modal": {
         "heading": "Delete Wallet",
@@ -100,7 +106,7 @@
     },
     "/welcome": {
       "title": "Welcome",
-      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams Remote</b>. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
+      "subheading": "<b>Welcome</b> to <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>. To get started, we need a <b>secure</b> passphrase to <b>encrypt</b> your session. We suggest generating and saving a strong passphrase with a password manager.",
       "passphrase": {
         "weak": "weak 😬",
         "medium": "medium 🤞",
@@ -511,7 +517,25 @@
     "go_to_closing_transaction": "Go to closing transaction",
     "tor_support": "Tor support",
     "spend_all": "Spend all",
-    "expose_private_channels": "Expose private channels"
+    "expose_private_channels": "Expose private channels",
+    "installed": "Installed",
+    "clboss": "CLBOSS",
+    "start_clboss": "Start CLBOSS",
+    "commands": "Commands",
+    "internet": "Internet",
+    "online": "online",
+    "offline": "offline",
+    "onchain_fee_rate": "Onchain fee rate",
+    "high fees": "high fees",
+    "low fees": "low fees",
+    "channel_candidates": "Channel candidates",
+    "peer_metrics": "Peer metrics",
+    "none": "none",
+    "ignore_onchain_funds": "Ignore onchain funds (hours)",
+    "ignoring_onchain_funds_until": "Ignoring onchain funds until",
+    "toggle_clboss_permissions": "Toggle CLBOSS permissions on a per channel basis",
+    "node_id": "Node ID",
+    "permissions": "Permissions"
   },
   "messages": {
     "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",

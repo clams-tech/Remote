@@ -142,7 +142,7 @@
           {$translate('app.labels.spendable')}
         </div>
 
-        <BitcoinAmount sats={totalSpendableUtxos} />
+        <BitcoinAmount sats={totalSpendableUtxos || 0} />
       </div>
 
       {#if spendAll}

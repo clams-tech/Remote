@@ -34,12 +34,18 @@
     "/accounting": {
       "title": "Contabilidad"
     },
+    "/plugins": {
+      "title": "Plugins"
+    },
+    "/plugins/clboss": {
+      "title": "CLBOSS"
+    },
     "/settings": {
       "title": "Configuración"
     },
     "/wallets": {
       "title": "Billeteras",
-      "introduction": "Conecta una nueva <b>billetera</b> para sincronizar datos de <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b>. Agregar conexión a una billetera <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> te permitirá <b>controlar remotamente</b> tu nodo con <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams</b>.",
+      "introduction": "Conecta una nueva <b>billetera</b> para sincronizar datos de <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-orange'>Bitcoin</b>. Agregar conexión a una billetera <b class='underline decoration-2 underline-offset-4 decoration-bitcoin-yellow'>Lightning</b> te permitirá <b>controlar remotamente</b> tu nodo con <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>.",
       "add_wallet": "Agregar Billetera",
       "delete_wallet_modal": {
         "heading": "Eliminar Billetera",
@@ -100,7 +106,7 @@
     },
     "/welcome": {
       "title": "Bienvenida",
-      "subheading": "<b>Bienvenido</b> a <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Clams Remote</b>. Para empezar, necesitamos una frase de contraseña <b>segura</b> para <b>encriptar</b> tu sesión. Sugerimos generar y salvar una frase de contraseña fuerte con un gestor de contraseñas.",
+      "subheading": "<b>Bienvenido</b> a <b class='underline decoration-2 underline-offset-4 decoration-purple-500'>Remote</b>. Para empezar, necesitamos una frase de contraseña <b>segura</b> para <b>encriptar</b> tu sesión. Sugerimos generar y salvar una frase de contraseña fuerte con un gestor de contraseñas.",
       "passphrase": {
         "weak": "débil 😬",
         "medium": "media 🤞",
@@ -510,7 +516,25 @@
     "go_to_closing_transaction": "Ir a la transacción de cierre",
     "tor_support": "Soporte de Tor",
     "spend_all": "Gastar todo",
-    "expose_private_channels": "Exponer canales privados"
+    "expose_private_channels": "Exponer canales privados",
+    "installed": "Instalado",
+    "clboss": "CLBOSS",
+    "start_clboss": "Iniciar CLBOSS",
+    "commands": "Comandos",
+    "internet": "Internet",
+    "online": "en línea",
+    "offline": "desconectado",
+    "onchain_fee_rate": "Tarifa de cadena",
+    "high fees": "altas tarifas",
+    "low fees": "bajas tarifas",
+    "channel_candidates": "Candidatos de canal",
+    "peer_metrics": "Métricas de pares",
+    "none": "ninguno",
+    "ignore_onchain_funds": "Ignorar fondos en cadena (horas)",
+    "ignoring_onchain_funds_until": "Ignorando fondos en cadena hasta",
+    "toggle_clboss_permissions": "Alternar permisos de CLBOSS por canal",
+    "node_id": "ID del nodo",
+    "permissions": "Permisos"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
