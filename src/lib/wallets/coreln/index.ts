@@ -17,6 +17,7 @@ import { parseNodeAddress } from '$lib/address.js'
 import handleError from './error.js'
 import Network from './network.js'
 import Clboss from './clboss.js'
+import Prism from './prism.js'
 import { createSocket } from './worker.js'
 
 import type {
@@ -40,7 +41,8 @@ import type {
   NetworkInterface,
   ConnectionStatus,
   PluginsInterface,
-  ClbossInterface
+  ClbossInterface,
+  PrismInterface
 } from '../interfaces.js'
 import Plugins from './plugins.js'
 
@@ -69,6 +71,7 @@ class CoreLightning implements CorelnConnectionInterface {
   network: NetworkInterface
   plugins: PluginsInterface
   clboss: ClbossInterface
+  prism: PrismInterface
 
   constructor(
     walletId: string,
@@ -181,6 +184,7 @@ class CoreLightning implements CorelnConnectionInterface {
     this.network = new Network(this)
     this.plugins = new Plugins(this)
     this.clboss = new Clboss(this)
+    this.prism = new Prism(this)
   }
 
   updateToken(token: string): void {

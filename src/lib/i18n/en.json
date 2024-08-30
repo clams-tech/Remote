@@ -40,6 +40,9 @@
     "/plugins/clboss": {
       "title": "CLBOSS"
     },
+    "/plugins/prism": {
+      "title": "BOLT12 Prism"
+    },
     "/settings": {
       "title": "Settings"
     },

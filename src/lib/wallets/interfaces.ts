@@ -65,6 +65,7 @@ export interface Connection {
   network?: NetworkInterface
   plugins?: PluginsInterface
   clboss?: ClbossInterface
+  prism?: PrismInterface
 }
 
 export type Info = {
@@ -209,4 +210,9 @@ export interface ClbossInterface {
   ignoreOnchain(hours: number): Promise<object>
   noticeOnchain(): Promise<object>
   unmanage(nodeId: string, tags: string): Promise<object>
+}
+
+export interface PrismInterface {
+  connection: Connection
+  listPrisms(): Promise<object>
 }
