@@ -3,7 +3,9 @@ import type {
   PrismType,
   PrismMember,
   ListPrismBindingsResponse,
-  PrismBinding
+  PrismBinding,
+  PrismPayResponse,
+  PrismMemberPayouts
 } from '$lib/@types/plugins.js'
 import type { PrismInterface } from '../interfaces.js'
 import type { CorelnConnectionInterface } from './types.js'
@@ -15,6 +17,9 @@ class Prism implements PrismInterface {
     this.connection = connection
   }
 
+  /* ----- 
+  Prisms
+  ----- */
   async listPrisms(): Promise<PrismType[]> {
     const { prisms } = (await this.connection.rpc({
       method: 'prism-list'
@@ -38,6 +43,17 @@ class Prism implements PrismInterface {
     return prism
   }
 
+  async payPrism(prism_id: string, amount_msat: number): Promise<PrismMemberPayouts> {
+    const { prism_member_payouts } = (await this.connection.rpc({
+      method: 'prism-pay',
+      params: {
+        prism_id,
+        amount_msat
+      }
+    })) as PrismPayResponse
+    return prism_member_payouts
+  }
+
   async deletePrism(prism_id: string): Promise<unknown> {
     const response = await this.connection.rpc({
       method: 'prism-delete',
@@ -48,6 +64,9 @@ class Prism implements PrismInterface {
     return response
   }
 
+  /* -----
+  Bindings
+  ----- */
   async listBindings(offer_id: string): Promise<PrismBinding[]> {
     const { bolt12_prism_bindings } = (await this.connection.rpc({
       method: 'prism-bindinglist',

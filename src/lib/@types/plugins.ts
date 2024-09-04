@@ -76,7 +76,7 @@ export type PrismType = {
   prism_members: PrismMember[]
 }
 
-export type ListPrismsResponse = {
+export interface ListPrismsResponse {
   prisms: PrismType[]
 }
 
@@ -100,6 +100,25 @@ export type PrismBinding = {
   ]
 }
 
-export type ListPrismBindingsResponse = {
+export interface ListPrismBindingsResponse {
   bolt12_prism_bindings: PrismBinding[]
+}
+
+type Payout = {
+  destination: string
+  payment_hash: string
+  created_at: number
+  parts: number
+  amount_msat: number
+  amount_sent_msat: number
+  payment_preimage: string
+  status: string
+}
+
+export type PrismMemberPayouts = {
+  [key: string]: Payout
+}
+
+export interface PrismPayResponse {
+  prism_member_payouts: PrismMemberPayouts
 }
