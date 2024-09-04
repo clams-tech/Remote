@@ -9,6 +9,9 @@ export type Plugin = {
   dynamic: boolean
 }
 
+/* ----- 
+CLBOSS
+----- */
 export type ClbossStatus = {
   channel_candidates: {
     id: string
@@ -51,4 +54,52 @@ export type ClbossStatus = {
     comment: ''
     [key: string]: string
   }
+}
+
+/* -----
+Prism
+----- */
+export type PrismMember = {
+  member_id?: string
+  description: string
+  destination: string
+  split: number
+  fees_incurred_by: 'local' | 'remote' | string
+  payout_threshold_msat: number
+}
+
+export type PrismType = {
+  prism_id: string
+  description: string
+  timestamp: number
+  outlay_factor: number
+  prism_members: PrismMember[]
+}
+
+export type ListPrismsResponse = {
+  prisms: PrismType[]
+}
+
+export type PrismBinding = {
+  offer_id: string
+  prism_id: string
+  timestamp: number
+  member_outlays: [
+    {
+      member_id: string
+      outlay_msat: number
+    },
+    {
+      member_id: string
+      outlay_msat: number
+    },
+    {
+      member_id: string
+      outlay_msat: number
+    }
+  ]
+}
+
+export type ListPrismBindingsResponse = {
+  bolt12_prism_bindings: PrismBinding[]
 }

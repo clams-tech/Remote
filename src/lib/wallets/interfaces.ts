@@ -33,7 +33,7 @@ import type {
   PayInvoiceOptions,
   PayKeysendOptions
 } from '$lib/@types/invoices.js'
-import type { Plugin, ClbossStatus } from '$lib/@types/plugins'
+import type { Plugin, ClbossStatus, PrismType } from '$lib/@types/plugins'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
 
@@ -214,5 +214,5 @@ export interface ClbossInterface {
 
 export interface PrismInterface {
   connection: Connection
-  listPrisms(): Promise<object>
+  listPrisms(): Promise<PrismType[]>
 }
