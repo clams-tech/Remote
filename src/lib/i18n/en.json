@@ -43,6 +43,9 @@
     "/plugins/prism": {
       "title": "Prism"
     },
+    "/plugins/prism/create": {
+      "title": "Create Prism"
+    },
     "/settings": {
       "title": "Settings"
     },
@@ -244,6 +247,8 @@
     "no_forwards_filtered": "No forwards match your current filters.",
     "no_wallets": "No wallets here, add a wallet to get started.",
     "no_wallets_filtered": "No wallets match your current filters.",
+    "no_prisms": "No prisms here, create a prism to get started.",
+    "no_prisms_filtered": "No prisms march your current filters",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",
     "confirmed": "Spendable",

@@ -45,7 +45,8 @@
   const loadItems = async () => {
     try {
       if (initialLoad) {
-        processing = true
+        // console.log('setting processing to true!')
+        // processing = true
       }
 
       const rawItems = (await getSortedFilteredItems({
@@ -172,6 +173,7 @@
   }
 
   const syncItems = async () => {
+    console.log(`syncItems called`)
     try {
       await Promise.all(connections$.value.map(connection => connection.info && sync(connection)))
     } catch (error) {
@@ -184,19 +186,20 @@
 
   loadItems()
 
+  // TODO
   // larp mode polling
-  if (larpMode$.value) {
-    timer(1000, 3000)
-      .pipe(takeUntil(onDestroy$))
-      .subscribe(async () => {
-        try {
-          await syncItems()
-        } catch (error) {
-          const { message } = error as Error
-          console.error(`Error syncing items: ${message}`)
-        }
-      })
-  }
+  // if (larpMode$.value) {
+  //   timer(1000, 3000)
+  //     .pipe(takeUntil(onDestroy$))
+  //     .subscribe(async () => {
+  //       try {
+  //         await syncItems()
+  //       } catch (error) {
+  //         const { message } = error as Error
+  //         console.error(`Error syncing items: ${message}`)
+  //       }
+  //     })
+  // }
 </script>
 
 <div

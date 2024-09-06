@@ -1,7 +1,4 @@
 <script lang="ts">
-  import Section from '$lib/components/Section.svelte'
-  import SectionHeading from '$lib/components/SectionHeading.svelte'
-  import Spinner from '$lib/components/Spinner.svelte'
   import { connections$ } from '$lib/streams'
   import type { Connection } from '$lib/wallets/interfaces'
   import type { PageData } from './$types'
@@ -10,14 +7,15 @@
   import PrismRow from './PrismRow.svelte'
   import ItemsList from '$lib/components/ItemsList.svelte'
   import { getFilters, getSorters, getTags } from '$lib/filters'
-  import { Filter, Sorters } from '$lib/@types/common'
+  import type { Filter, Sorters } from '$lib/@types/common'
+  import type { PrismType } from '$lib/@types/plugins'
 
   export let data: PageData
   const { wallet } = data
 
   let loading = true
   let prismActive = false
-  let prisms = {}
+  let prisms: PrismType[] | [] = []
 
   $: connection = $connections$.find(({ walletId }) => walletId === wallet) as Connection
 
@@ -47,8 +45,22 @@
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
 
+  const sync = async (connection: Connection) => {
+    loading = true
+    try {
+      const response = await connection.prism?.listPrisms()
+      if (response) {
+        prisms = response
+      }
+    } catch (error) {
+      console.error('Error syncing prisms:', error)
+    } finally {
+      loading = false
+    }
+  }
+
   const button = {
-    href: '/offers/offer/create',
+    href: '/plugins/prism/create',
     text: $translate('app.labels.create'),
     icon: prismIcon
   }
@@ -58,19 +70,8 @@
   <title>{$translate('app.routes./plugins/prism.title')}</title>
 </svelte:head>
 
-{#if loading}
-  <div class="mt-8">
-    <Spinner size="1.5em" />
+<ItemsList {route} {rowSize} {filters} {sorters} {sync} {tags} {button}>
+  <div slot="row" let:item>
+    <PrismRow prism={item} />
   </div>
-{:else}
-  <!-- <Section>
-    <div class="flex items-center justify-between gap-x-4">
-      <SectionHeading icon={prismIcon} />
-    </div>
-  </Section> -->
-  <ItemsList {route} {rowSize} {filters} {sorters} sync={listPrisms} {tags} {button}>
-    <div slot="row" let:item>
-      <PrismRow offer={item} />
-    </div>
-  </ItemsList>
-{/if}
+</ItemsList>
