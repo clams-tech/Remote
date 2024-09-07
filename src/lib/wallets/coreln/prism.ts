@@ -32,6 +32,18 @@ class Prism implements PrismInterface {
     members: PrismMember[],
     outlay_factor: number
   ): Promise<PrismType> {
+    console.log(`
+      
+      createPrism called!!
+      
+      `)
+
+    console.log(`params = `, {
+      description,
+      members,
+      outlay_factor
+    })
+
     const prism = (await this.connection.rpc({
       method: 'prism-create',
       params: {

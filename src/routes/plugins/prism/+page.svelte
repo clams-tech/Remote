@@ -14,7 +14,7 @@
   const { wallet } = data
 
   let loading = true
-  let prismActive = false
+  let prismActive = false // @TODO add message to say prism plugin isn't active
   let prisms: PrismType[] | [] = []
 
   $: connection = $connections$.find(({ walletId }) => walletId === wallet) as Connection
@@ -60,7 +60,7 @@
   }
 
   const button = {
-    href: '/plugins/prism/create',
+    href: `/plugins/prism/create?wallet=${wallet}`,
     text: $translate('app.labels.create'),
     icon: prismIcon
   }

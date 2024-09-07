@@ -1,30 +1,99 @@
 <script lang="ts">
-  import type { PrismMember } from '$lib/@types/plugins'
+  import type { PrismMember, PrismType } from '$lib/@types/plugins'
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
   import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import prismIcon from '$lib/icons/prism'
+  import { connections$, wallets$ } from '$lib/streams'
+  import { nowSeconds } from '$lib/utils'
+  import { combineLatest, map } from 'rxjs'
+  import type { PageData } from './$types'
+  import type { AppError } from '$lib/@types/errors'
+  import Button from '$lib/components/Button.svelte'
 
-  let description = ''
+  export let data: PageData
+  const { wallet } = data
 
+  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+    map(([wallets, connections]) =>
+      wallets.filter(({ id }) => {
+        const connection = connections.find(({ walletId }) => walletId === id)
+        return !!connection?.prism?.listPrisms
+      })
+    )
+  )
+
+  let description = 'Best prism ever'
+  let outlayFactor = 0.75
   let members: PrismMember[] = [
     {
-      description: '',
-      destination: '',
-      split: 0,
+      description: 'Bob',
+      destination:
+        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
+      split: 2.2,
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
     },
     {
-      description: '',
-      destination: '',
-      split: 0,
+      description: 'Carol',
+      destination:
+        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pq2wslr4p52slqg7kgeudlp2s84wfzt9k57la6et7mm82dezs6xggw',
+      split: 2.2,
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
     }
   ]
+
+  let createPrismError
+  let creatingPrism = false
+
+  // @TODO - fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
+  const createPrism = async () => {
+    createPrismError = null
+    creatingPrism = true
+
+    const connection = $connections$.find(({ walletId }) => walletId === wallet)
+
+    if (!connection) {
+      throw {
+        key: 'connection_not_available',
+        detail: {
+          timestamp: nowSeconds(),
+          message: `Could not find a connection for wallet: ${
+            $availableWallets$.find(({ id }) => id === wallet)?.label
+          }`,
+          context: 'Creating offer'
+        }
+      }
+    }
+
+    let prism: PrismType | null
+
+    try {
+      prism = (await connection.prism!.createPrism!(description, members, outlayFactor)) || null
+    } catch (error) {
+      console.log(`error = `, error)
+      createPrismError = error as AppError
+      prism = null
+    }
+
+    if (prism) {
+      console.log(
+        `
+      
+      prism created!!
+      
+      
+      `,
+        prism
+      )
+      // await goto(`/prism/${prism.id}`) @TODO
+    }
+
+    creatingPrism = false
+  }
 </script>
 
 <svelte:head>
@@ -35,6 +104,7 @@
   <SectionHeading icon={prismIcon} />
   <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
     <TextInput bind:value={description} name="description" label="Description" type="text" />
+    <TextInput bind:value={outlayFactor} name="outlayFactor" label="Outlay Factor" type="number" />
     {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
       <h1 class="text-lg font-bold text-center uppercase">Member {i + 1}</h1>
       <TextInput bind:value={description} name="description" label="Description" type="text" />
@@ -50,13 +120,26 @@
       </div>
       <p>Fees incurred by</p>
       <div class="flex gap-4">
-        <Toggle>
-          <div slot="left" class="mr-2">{'Local'}</div>
+        <Toggle toggled={fees_incurred_by === 'local' ? true : false}>
+          <div slot="left" class="mr-2">Local</div>
         </Toggle>
-        <Toggle>
-          <div slot="left" class="mr-2">{'Remote'}</div>
+        <Toggle toggled={fees_incurred_by === 'remote' ? true : false}>
+          <div slot="left" class="mr-2">Remote</div>
         </Toggle>
       </div>
     {/each}
   </div>
+
+  {#if $availableWallets$.length}
+    <div class="w-full flex justify-end mt-2">
+      <div class="w-min">
+        <Button
+          requesting={creatingPrism}
+          on:click={createPrism}
+          primary
+          text={$translate('app.labels.create')}
+        />
+      </div>
+    </div>
+  {/if}
 </Section>
