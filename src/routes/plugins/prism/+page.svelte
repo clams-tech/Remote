@@ -13,7 +13,7 @@
   const { wallet } = data
 
   const route = 'prisms'
-  const rowSize = 102
+  const rowSize = 80
   const filters: Filter[] = getFilters(route)
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
@@ -27,9 +27,6 @@
     text: $translate('app.labels.create'),
     icon: prismIcon
   }
-
-  // @TODO
-  // render the list of prisms as PrismRows
 </script>
 
 <svelte:head>
