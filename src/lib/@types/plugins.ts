@@ -69,6 +69,7 @@ export type PrismMember = {
 }
 
 export type PrismType = {
+  id?: string
   prism_id: string
   description: string
   timestamp: number

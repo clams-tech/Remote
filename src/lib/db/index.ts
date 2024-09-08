@@ -13,6 +13,7 @@ import type { ExchangeRate } from '../@types/exchange-rates.js'
 import type { Node } from '../@types/nodes.js'
 import type { Payment } from '$lib/@types/payments.js'
 import type { Tag } from '$lib/@types/metadata.js'
+import type { PrismType } from '$lib/@types/plugins.js'
 
 class DB extends Dexie {
   channels!: Table<Channel>
@@ -29,6 +30,7 @@ class DB extends Dexie {
   utxos!: Table<Utxo>
   wallets!: Table<Wallet>
   withdrawals!: Table<Withdrawal>
+  prisms!: Table<PrismType>
 
   constructor() {
     super('Clams Remote')
@@ -53,7 +55,8 @@ class DB extends Dexie {
       utxos: '&id, walletId, txid, timestamp, spendingTxid, *metadata.tags, metadata.contact',
       wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
       withdrawals:
-        '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
+        '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact',
+      prisms: `&id, prism_id, description, timestamp, outlay_factor, prism_members`
     })
   }
 }

@@ -24,7 +24,13 @@ class Prism implements PrismInterface {
     const { prisms } = (await this.connection.rpc({
       method: 'prism-list'
     })) as ListPrismsResponse
-    return prisms
+
+    return prisms.map(prism => {
+      return {
+        id: prism.prism_id,
+        ...prism
+      }
+    })
   }
 
   async createPrism(
@@ -32,18 +38,6 @@ class Prism implements PrismInterface {
     members: PrismMember[],
     outlay_factor: number
   ): Promise<PrismType> {
-    console.log(`
-      
-      createPrism called!!
-      
-      `)
-
-    console.log(`params = `, {
-      description,
-      members,
-      outlay_factor
-    })
-
     const prism = (await this.connection.rpc({
       method: 'prism-create',
       params: {

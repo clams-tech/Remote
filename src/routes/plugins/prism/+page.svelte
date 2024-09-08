@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { connections$ } from '$lib/streams'
   import type { Connection } from '$lib/wallets/interfaces'
   import type { PageData } from './$types'
   import prismIcon from '$lib/icons/prism'
@@ -8,36 +7,10 @@
   import ItemsList from '$lib/components/ItemsList.svelte'
   import { getFilters, getSorters, getTags } from '$lib/filters'
   import type { Filter, Sorters } from '$lib/@types/common'
-  import type { PrismType } from '$lib/@types/plugins'
+  import { fetchPrisms } from '$lib/wallets'
 
   export let data: PageData
   const { wallet } = data
-
-  let loading = true
-  let prismActive = false // @TODO add message to say prism plugin isn't active
-  let prisms: PrismType[] | [] = []
-
-  $: connection = $connections$.find(({ walletId }) => walletId === wallet) as Connection
-
-  $: {
-    if (connection) {
-      connection.plugins?.list().then(plugins => {
-        const prismPlugin = plugins.find(plugin => plugin.name.includes('bolt12-prism'))
-        prismActive = prismPlugin ? prismPlugin.active : false
-        listPrisms()
-      })
-    }
-  }
-
-  function listPrisms() {
-    loading = true
-    connection.prism?.listPrisms().then(response => {
-      prisms = response
-      loading = false
-    })
-  }
-
-  $: console.log(`prisms = `, prisms)
 
   const route = 'prisms'
   const rowSize = 102
@@ -46,17 +19,7 @@
   const tags: string[] = getTags(route)
 
   const sync = async (connection: Connection) => {
-    loading = true
-    try {
-      const response = await connection.prism?.listPrisms()
-      if (response) {
-        prisms = response
-      }
-    } catch (error) {
-      console.error('Error syncing prisms:', error)
-    } finally {
-      loading = false
-    }
+    await Promise.all([fetchPrisms(connection)])
   }
 
   const button = {
@@ -64,6 +27,9 @@
     text: $translate('app.labels.create'),
     icon: prismIcon
   }
+
+  // @TODO
+  // render the list of prisms as PrismRows
 </script>
 
 <svelte:head>

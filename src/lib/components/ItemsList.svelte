@@ -45,8 +45,7 @@
   const loadItems = async () => {
     try {
       if (initialLoad) {
-        // console.log('setting processing to true!')
-        // processing = true
+        processing = true
       }
 
       const rawItems = (await getSortedFilteredItems({
@@ -173,7 +172,6 @@
   }
 
   const syncItems = async () => {
-    console.log(`syncItems called`)
     try {
       await Promise.all(connections$.value.map(connection => connection.info && sync(connection)))
     } catch (error) {

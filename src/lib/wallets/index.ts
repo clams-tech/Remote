@@ -263,6 +263,18 @@ export const fetchDeposits = async (connection: Connection) =>
     })
     .catch(error => log.error(error?.detail?.message || error))
 
+/* -----
+Plugins
+----- */
+export const fetchPrisms = async (connection: Connection) =>
+  connection.prism &&
+  connection.prism
+    .listPrisms()
+    .then(prisms => {
+      return updateTableItems('prisms', prisms)
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
 let lastPaidInvoiceIndexNotification: number
 
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
