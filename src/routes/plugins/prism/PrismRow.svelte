@@ -5,14 +5,13 @@
   import caret from '$lib/icons/caret.js'
 
   export let prism: PrismType
+  export let wallet: string
 
   const { prism_id, description, prism_members, timestamp } = prism
-
-  console.log(`prism = `, prism)
 </script>
 
 <a
-  href={`/plugins/prism/${prism_id}`}
+  href={`/plugins/prism/${prism_id}?wallet=${wallet}`}
   class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[80px]"
 >
   <div class="flex flex-col justify-center h-full">

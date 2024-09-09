@@ -12,6 +12,7 @@
   import type { PageData } from './$types'
   import type { AppError } from '$lib/@types/errors'
   import Button from '$lib/components/Button.svelte'
+  import { goto } from '$app/navigation'
 
   export let data: PageData
   const { wallet } = data
@@ -49,7 +50,9 @@
   let createPrismError
   let creatingPrism = false
 
-  // @TODO - fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
+  // @TODO
+  // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
+  // handle create prism error in the UI
   const createPrism = async () => {
     createPrismError = null
     creatingPrism = true
@@ -80,16 +83,7 @@
     }
 
     if (prism) {
-      console.log(
-        `
-      
-      prism created!!
-      
-      
-      `,
-        prism
-      )
-      // await goto(`/prism/${prism.id}`) @TODO
+      await goto(`/plugins/prism/${prism.prism_id}`)
     }
 
     creatingPrism = false

@@ -35,6 +35,6 @@
 
 <ItemsList {route} {rowSize} {filters} {sorters} {sync} {tags} {button}>
   <div slot="row" let:item>
-    <PrismRow prism={item} />
+    <PrismRow prism={item} wallet={wallet || ''} />
   </div>
 </ItemsList>
