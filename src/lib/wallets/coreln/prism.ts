@@ -5,7 +5,9 @@ import type {
   ListPrismBindingsResponse,
   PrismBinding,
   PrismPayResponse,
-  PrismMemberPayouts
+  PrismMemberPayouts,
+  DeletePrismResponse,
+  DeletedPrism
 } from '$lib/@types/plugins.js'
 import type { PrismInterface } from '../interfaces.js'
 import type { CorelnConnectionInterface } from './types.js'
@@ -60,14 +62,14 @@ class Prism implements PrismInterface {
     return prism_member_payouts
   }
 
-  async deletePrism(prism_id: string): Promise<unknown> {
-    const response = await this.connection.rpc({
+  async deletePrism(prism_id: string): Promise<DeletedPrism> {
+    const { deleted } = (await this.connection.rpc({
       method: 'prism-delete',
       params: {
         prism_id
       }
-    })
-    return response
+    })) as DeletePrismResponse
+    return deleted
   }
 
   /* -----

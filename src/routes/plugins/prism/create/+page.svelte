@@ -13,6 +13,7 @@
   import type { AppError } from '$lib/@types/errors'
   import Button from '$lib/components/Button.svelte'
   import { goto } from '$app/navigation'
+  import { db } from '$lib/db'
 
   export let data: PageData
   const { wallet } = data
@@ -50,9 +51,6 @@
   let createPrismError
   let creatingPrism = false
 
-  // @TODO
-  // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
-  // handle create prism error in the UI
   const createPrism = async () => {
     createPrismError = null
     creatingPrism = true
@@ -76,18 +74,22 @@
 
     try {
       prism = (await connection.prism!.createPrism!(description, members, outlayFactor)) || null
+
+      if (prism) {
+        await db.prisms.add(prism, prism?.prism_id)
+        creatingPrism = false
+        goto(`/plugins/prism/${prism.prism_id}?wallet=${wallet}`)
+      }
     } catch (error) {
       console.log(`error = `, error)
       createPrismError = error as AppError
-      prism = null
+      creatingPrism = false
     }
-
-    if (prism) {
-      await goto(`/plugins/prism/${prism.prism_id}`)
-    }
-
-    creatingPrism = false
   }
+
+  // @TODO
+  // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
+  // handle create prism error in the UI
 </script>
 
 <svelte:head>

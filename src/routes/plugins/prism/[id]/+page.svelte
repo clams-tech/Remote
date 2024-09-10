@@ -12,6 +12,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import { translate } from '$lib/i18n/translations.js'
   import Button from '$lib/components/Button.svelte'
+  import { goto } from '$app/navigation'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
@@ -41,8 +42,6 @@
     loadData()
   }
 
-  $: console.log(`prism = `, prism)
-
   const deletePrism = async () => {
     deletePrismError = null
     deletingPrism = true
@@ -63,22 +62,26 @@
     }
 
     try {
-      const response = (await connection.prism!.deletePrism!(id)) || null
-      console.log(`delete prism response = `, response)
+      const deletedPrism = (await connection.prism!.deletePrism!(id)) || null
+
+      if (deletedPrism) {
+        await db.prisms.delete(id)
+        deletingPrism = false
+        goto(`/plugins/prism?wallet=${wallet}`)
+      }
     } catch (error) {
       deletePrismError = error as AppError
+      deletingPrism = false
     }
-
-    deletingPrism = false
   }
 
   // @TODO
+  // handle delete prism error
+  // fix bug where if i delete all prisms, then create a new one i get a dexie db id error
   // Finish the prism details
   // add delete response to the types
   // return user to the prisms list and call sync to show the updated list of prisms
   // add the option to bind this prism to an existing offer
-  // handle delete prism error
-  // update DB logic to remove deleted prisms
 </script>
 
 <Section>

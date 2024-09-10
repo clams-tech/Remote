@@ -81,6 +81,17 @@ export interface ListPrismsResponse {
   prisms: PrismType[]
 }
 
+export type DeletedPrism = {
+  key: string[] // Array of strings representing key elements
+  generation: number // Generation number (possibly version control?)
+  hex: string // Hexadecimal representation of some data
+  string: string // Stringified JSON object (containing prism details)
+}
+
+export interface DeletePrismResponse {
+  deleted: DeletedPrism
+}
+
 export type PrismBinding = {
   offer_id: string
   prism_id: string

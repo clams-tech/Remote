@@ -38,7 +38,8 @@ import type {
   ClbossStatus,
   PrismType,
   PrismMember,
-  PrismMemberPayouts
+  PrismMemberPayouts,
+  DeletedPrism
 } from '$lib/@types/plugins'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
@@ -227,7 +228,7 @@ export interface PrismInterface {
     outlay_factor: number
   ): Promise<PrismType>
   payPrism(prism_id: string, amount_msat: number): Promise<PrismMemberPayouts>
-  deletePrism(prism_id: string): Promise<unknown>
+  deletePrism(prism_id: string): Promise<DeletedPrism>
   listBindings(offer_id: string): Promise<PrismBinding[]>
   createBinding(prism_id: string, offer_id: string): Promise<unknown>
   updateBindingOutlay(
