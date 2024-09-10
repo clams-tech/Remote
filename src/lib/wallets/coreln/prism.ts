@@ -48,7 +48,10 @@ class Prism implements PrismInterface {
         outlay_factor
       }
     })) as PrismType
-    return prism
+    return {
+      id: prism.prism_id,
+      ...prism
+    }
   }
 
   async payPrism(prism_id: string, amount_msat: number): Promise<PrismMemberPayouts> {

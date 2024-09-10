@@ -77,7 +77,6 @@
 
   // @TODO
   // handle delete prism error
-  // fix bug where if i delete all prisms, then create a new one i get a dexie db id error
   // Finish the prism details
   // add delete response to the types
   // return user to the prisms list and call sync to show the updated list of prisms
