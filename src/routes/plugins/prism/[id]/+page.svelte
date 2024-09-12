@@ -7,7 +7,7 @@
   import { db } from '$lib/db'
   import { connections$, wallets$ } from '$lib/streams.js'
   import { nowSeconds, truncateValue } from '$lib/utils.js'
-  import { combineLatest, map } from 'rxjs'
+  import { combineLatest, from, map } from 'rxjs'
   import type { PageData } from './$types.js'
   import type { AppError } from '$lib/@types/errors.js'
   import { translate } from '$lib/i18n/translations.js'
@@ -15,6 +15,11 @@
   import { goto } from '$app/navigation'
   import Toggle from '$lib/components/Toggle.svelte'
   import CopyValue from '$lib/components/CopyValue.svelte'
+  import { liveQuery } from 'dexie'
+  import warning from '$lib/icons/warning.js'
+  import Modal from '$lib/components/Modal.svelte'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import { slide } from 'svelte/transition'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
@@ -31,17 +36,63 @@
   let loading = false
   let prism: PrismType | null = null
 
-  let deletePrismError = null
+  let bindPrismError: AppError | null = null
+  let bindingPrism = false
+
+  let showClosePrismModal = false
+  let deletePrismError: AppError | null = null
   let deletingPrism = false
 
   const loadData = async () => {
     loading = true
-    prism = (await db.prisms.get(id)) as PrismType
+    const result = await db.prisms.get(id)
+
+    if (result) {
+      prism = result
+    }
+
     loading = false
   }
 
   $: if (id) {
     loadData()
+  }
+
+  const createBinding = async (offer_id: string) => {
+    bindPrismError = null
+    bindingPrism = true
+
+    const connection = $connections$.find(({ walletId }) => walletId === wallet)
+
+    if (!connection) {
+      throw {
+        key: 'connection_not_available',
+        detail: {
+          timestamp: nowSeconds(),
+          message: `Could not find a connection for wallet: ${
+            $availableWallets$.find(({ id }) => id === wallet)?.label
+          }`,
+          context: 'Creating offer'
+        }
+      }
+    }
+
+    try {
+      console.log(`trying to bind prism!!`)
+      const bindedPrism = (await connection.prism!.createBinding!(id, offer_id)) || null
+
+      if (bindedPrism) {
+        console.log(`bindedPrism = `, bindedPrism)
+        bindingPrism = false
+        // TODO
+        // update the prism in the DB
+        // fetch prism bindings
+      }
+    } catch (error) {
+      console.log(`error = `, error)
+      bindPrismError = error as AppError
+      bindingPrism = false
+    }
   }
 
   const deletePrism = async () => {
@@ -78,13 +129,21 @@
   }
 
   // @TODO
-  // handle delete prism error
   // Finish the prism details
-  // return user to the prisms list and call sync to show the updated list of prisms
   // add the option to bind this prism to an existing offer
   // add warning that a binding has not been added (prism is not functional)
 
   $: console.log(`prism = `, prism)
+
+  const offers$ = from(
+    liveQuery(() =>
+      db.offers.toArray().then(offers => {
+        return offers
+      })
+    )
+  )
+
+  $: console.log('offers = ', $offers$)
 </script>
 
 <Section>
@@ -116,20 +175,15 @@
       <SummaryRow>
         <div slot="label">Binding</div>
         <div slot="value">
-          <div class="w-full flex gap-2 flex-wrap">
+          <SummaryRow>
+            <div slot="label" class="font-bold">Offers</div>
+          </SummaryRow>
+          {#each $offers$ as { id, label, description, bolt12 }}
             <SummaryRow>
-              <div slot="label">Tips</div>
-              <div slot="value"><Toggle toggled={true} /></div>
+              <div slot="label">{label || description || truncateValue(bolt12, 5)}</div>
+              <div slot="value"><Toggle toggled={true} on:click={() => createBinding(id)} /></div>
             </SummaryRow>
-            <SummaryRow>
-              <div slot="label">Funds for band</div>
-              <div slot="value"><Toggle toggled={false} /></div>
-            </SummaryRow>
-            <SummaryRow>
-              <div slot="label">College fund</div>
-              <div slot="value"><Toggle toggled={false} /></div>
-            </SummaryRow>
-          </div>
+          {/each}
         </div>
       </SummaryRow>
       <SummaryRow>
@@ -174,17 +228,52 @@
           </div>
         </div>
       </SummaryRow>
+
       {#if $availableWallets$.length}
         <div class="w-full flex justify-end mt-2">
           <div class="w-min">
             <Button
-              requesting={deletingPrism}
-              on:click={deletePrism}
-              primary
+              warning
+              on:click={() => (showClosePrismModal = true)}
               text={$translate('app.labels.delete')}
-            />
+            >
+              <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
+            </Button>
           </div>
         </div>
+      {/if}
+
+      {#if showClosePrismModal}
+        <Modal
+          on:close={() => {
+            showClosePrismModal = false
+          }}
+        >
+          <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
+            <h4 class="font-semibold mb-2 w-full text-2xl">Delete Prism</h4>
+
+            <div>Are you sure you want to delete this Prism?</div>
+
+            {#if deletePrismError}
+              <div in:slide|local={{ duration: 250 }}>
+                <ErrorDetail error={deletePrismError} />
+              </div>
+            {/if}
+
+            <div class="mt-2 w-full flex justify-end">
+              <div class="w-min">
+                <Button
+                  warning
+                  requesting={deletingPrism}
+                  on:click={deletePrism}
+                  text={$translate('app.labels.delete')}
+                >
+                  <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div></Button
+                >
+              </div>
+            </div>
+          </div>
+        </Modal>
       {/if}
     {:else}
       <!-- @TODO style error message -->

@@ -7,7 +7,7 @@
   import ItemsList from '$lib/components/ItemsList.svelte'
   import { getFilters, getSorters, getTags } from '$lib/filters'
   import type { Filter, Sorters } from '$lib/@types/common'
-  import { fetchPrisms } from '$lib/wallets'
+  import { fetchPrismBindings, fetchPrisms } from '$lib/wallets'
 
   export let data: PageData
   const { wallet } = data
@@ -18,8 +18,9 @@
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
 
+  // add the prism bindings to the PrismType (and in the DB) to make managing them more easily in the UI
   const sync = async (connection: Connection) => {
-    await Promise.all([fetchPrisms(connection)])
+    await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
   }
 
   const button = {

@@ -81,13 +81,13 @@
         goto(`/plugins/prism/${prism.prism_id}?wallet=${wallet}`)
       }
     } catch (error) {
-      console.log(`error = `, error)
       createPrismError = error as AppError
       creatingPrism = false
     }
   }
 
   // @TODO
+  // Add option to add memeber and delete a member
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
   // handle create prism error in the UI
 </script>

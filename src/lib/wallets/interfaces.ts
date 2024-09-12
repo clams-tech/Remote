@@ -39,7 +39,8 @@ import type {
   PrismType,
   PrismMember,
   PrismMemberPayouts,
-  DeletedPrism
+  DeletedPrism,
+  PrismBinding
 } from '$lib/@types/plugins'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'waiting_reconnect' | 'disconnected'
@@ -229,7 +230,7 @@ export interface PrismInterface {
   ): Promise<PrismType>
   payPrism(prism_id: string, amount_msat: number): Promise<PrismMemberPayouts>
   deletePrism(prism_id: string): Promise<DeletedPrism>
-  listBindings(offer_id: string): Promise<PrismBinding[]>
+  listBindings(offer_id?: string): Promise<PrismBinding[]>
   createBinding(prism_id: string, offer_id: string): Promise<unknown>
   updateBindingOutlay(
     offer_id: string,

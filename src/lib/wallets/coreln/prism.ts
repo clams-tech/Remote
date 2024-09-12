@@ -7,7 +7,8 @@ import type {
   PrismPayResponse,
   PrismMemberPayouts,
   DeletePrismResponse,
-  DeletedPrism
+  DeletedPrism,
+  CreateBindingReponse
 } from '$lib/@types/plugins.js'
 import type { PrismInterface } from '../interfaces.js'
 import type { CorelnConnectionInterface } from './types.js'
@@ -72,30 +73,30 @@ class Prism implements PrismInterface {
         prism_id
       }
     })) as DeletePrismResponse
+
     return deleted
   }
 
   /* -----
   Bindings
   ----- */
-  async listBindings(offer_id: string): Promise<PrismBinding[]> {
+  async listBindings(offer_id?: string): Promise<PrismBinding[]> {
     const { bolt12_prism_bindings } = (await this.connection.rpc({
       method: 'prism-bindinglist',
-      params: {
-        offer_id
-      }
+      ...(offer_id && { offer_id })
     })) as ListPrismBindingsResponse
+
     return bolt12_prism_bindings
   }
 
-  async createBinding(prism_id: string, offer_id: string): Promise<unknown> {
-    const response = await this.connection.rpc({
+  async createBinding(prism_id: string, offer_id: string): Promise<CreateBindingReponse> {
+    const response = (await this.connection.rpc({
       method: 'prism-bindingadd',
       params: {
         prism_id,
         offer_id
       }
-    })
+    })) as CreateBindingReponse
     return response
   }
 
@@ -112,6 +113,7 @@ class Prism implements PrismInterface {
         new_outlay_msat
       }
     })) as ListPrismBindingsResponse
+
     return bolt12_prism_bindings
   }
 
@@ -122,6 +124,7 @@ class Prism implements PrismInterface {
         offer_id
       }
     })) as unknown
+
     return response
   }
 }

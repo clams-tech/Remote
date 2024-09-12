@@ -116,6 +116,15 @@ export interface ListPrismBindingsResponse {
   bolt12_prism_bindings: PrismBinding[]
 }
 
+export type CreateBindingReponse = {
+  status: 'must-replace' | string
+  timestamp: 1726125745
+  offer_id: string
+  prism_id: string
+  prism_binding_key: string[]
+  prism_members: PrismMember[]
+}
+
 type Payout = {
   destination: string
   payment_hash: string
