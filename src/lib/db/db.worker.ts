@@ -33,6 +33,10 @@ type UpdateInvoicesMessage = MessageBase & {
   type: 'update_invoices'
 }
 
+type UpdatePrismsMessage = MessageBase & {
+  type: 'update_prisms'
+}
+
 type UpdateTableItemsMessage = MessageBase & {
   type: 'update_table_items'
   table: string
@@ -68,6 +72,7 @@ type Message =
   | BulkPutMessage
   | UpdateAddressesMessage
   | UpdateInvoicesMessage
+  | UpdatePrismsMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -195,6 +200,56 @@ onmessage = async (message: MessageEvent<Message>) => {
           }
         }
 
+        self.postMessage({ id: message.data.id })
+      } catch (error) {
+        const { message: errMsg } = error as Error
+        self.postMessage({ id: message.data.id, error: errMsg })
+      }
+
+      return
+    }
+    case 'update_prisms': {
+      try {
+        const prisms = await db.prisms.toArray()
+        const prismBindings = await db.prismBindings.toArray()
+
+        // TODO fetch bindings and add them to the prisms in the DB
+        console.log({
+          prisms,
+          prismBindings
+        })
+        // const prismBindings = db.prism
+        // TODO fetch bindings and add them to the prisms in the DB
+
+        // const invoicesWaitingWithFallback = (await db.payments
+        //   .where({ type: 'invoice', status: 'waiting' })
+        //   .filter(({ data }) => !(data as InvoicePayment['data']).fallbackAddress)
+        //   .toArray()) as InvoicePayment[]
+
+        // for (const invoice of invoicesWaitingWithFallback) {
+        //   try {
+        //     const transaction = (await db.payments
+        //       .where({ type: 'transaction' })
+        //       .filter(
+        //         transaction =>
+        //           !!(transaction.data as TransactionPayment['data']).outputs.find(
+        //             ({ address }) => address === invoice.data.fallbackAddress
+        //           )
+        //       )
+        //       .first()) as TransactionPayment
+
+        //     if (transaction) {
+        //       const updated: InvoicePayment = {
+        //         ...invoice,
+        //         status: transaction.data.blockHeight ? 'complete' : 'pending'
+        //       }
+
+        //       await db.payments.put(updated)
+        //     }
+        //   } catch (error) {
+        //     //
+        //   }
+        // }
         self.postMessage({ id: message.data.id })
       } catch (error) {
         const { message: errMsg } = error as Error

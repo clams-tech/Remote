@@ -86,7 +86,12 @@ class Prism implements PrismInterface {
       ...(offer_id && { offer_id })
     })) as ListPrismBindingsResponse
 
-    return bolt12_prism_bindings
+    return bolt12_prism_bindings.map(prismBinding => {
+      return {
+        id: prismBinding.prism_id,
+        ...prismBinding
+      }
+    })
   }
 
   async createBinding(prism_id: string, offer_id: string): Promise<CreateBindingReponse> {

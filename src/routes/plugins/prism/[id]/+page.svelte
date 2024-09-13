@@ -132,6 +132,7 @@
   // Finish the prism details
   // add the option to bind this prism to an existing offer
   // add warning that a binding has not been added (prism is not functional)
+  // add delete binding functionality to the toggles
 
   $: console.log(`prism = `, prism)
 
@@ -142,8 +143,6 @@
       })
     )
   )
-
-  $: console.log('offers = ', $offers$)
 </script>
 
 <Section>
@@ -175,57 +174,61 @@
       <SummaryRow>
         <div slot="label">Binding</div>
         <div slot="value">
-          <SummaryRow>
-            <div slot="label" class="font-bold">Offers</div>
-          </SummaryRow>
-          {#each $offers$ as { id, label, description, bolt12 }}
-            <SummaryRow>
-              <div slot="label">{label || description || truncateValue(bolt12, 5)}</div>
-              <div slot="value"><Toggle toggled={true} on:click={() => createBinding(id)} /></div>
-            </SummaryRow>
-          {/each}
+          {#if $offers$?.length}
+            <p class="font-bold">Offers</p>
+            {#each $offers$ as { id, label, description, bolt12 }}
+              <SummaryRow>
+                <div slot="label">{label || description || truncateValue(bolt12, 5)}</div>
+                <div slot="value"><Toggle toggled={true} on:click={() => createBinding(id)} /></div>
+              </SummaryRow>
+            {/each}
+          {:else}
+            <p>No offers found, create one (link to offers page)</p>
+          {/if}
         </div>
       </SummaryRow>
       <SummaryRow>
         <div slot="label">Members</div>
         <div slot="value">
-          <div class="flex gap-2 flex-wrap justify-end">
-            {#each prism_members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, index}
-              <div class="p-2 border rounded w-full md:w-auto">
-                <SummaryRow>
-                  <div slot="label">
-                    <div
-                      class="w-6 h-6 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
-                    >
-                      {index + 1}
+          {#if prism_members?.length}
+            <div class="flex gap-2 flex-wrap justify-end">
+              {#each prism_members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, index}
+                <div class="p-2 border rounded w-full md:w-auto">
+                  <SummaryRow>
+                    <div slot="label">
+                      <div
+                        class="w-6 h-6 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+                      >
+                        {index + 1}
+                      </div>
                     </div>
-                  </div>
-                </SummaryRow>
-                <SummaryRow>
-                  <div slot="label">Description</div>
-                  <div slot="value">{description}</div>
-                </SummaryRow>
-                <SummaryRow>
-                  <div slot="label">Destination</div>
-                  <div slot="value">
-                    <CopyValue value={destination} label={truncateValue(destination, 5)} />
-                  </div>
-                </SummaryRow>
-                <SummaryRow>
-                  <div slot="label">Split</div>
-                  <div slot="value">{split}</div>
-                </SummaryRow>
-                <SummaryRow>
-                  <div slot="label">Fees incurred by</div>
-                  <div slot="value">{fees_incurred_by}</div>
-                </SummaryRow>
-                <SummaryRow>
-                  <div slot="label">Payout threshold</div>
-                  <div slot="value">{payout_threshold_msat}</div>
-                </SummaryRow>
-              </div>
-            {/each}
-          </div>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <div slot="label">Description</div>
+                    <div slot="value">{description}</div>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <div slot="label">Destination</div>
+                    <div slot="value">
+                      <CopyValue value={destination} label={truncateValue(destination, 5)} />
+                    </div>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <div slot="label">Split</div>
+                    <div slot="value">{split}</div>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <div slot="label">Fees incurred by</div>
+                    <div slot="value">{fees_incurred_by}</div>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <div slot="label">Payout threshold</div>
+                    <div slot="value">{payout_threshold_msat}</div>
+                  </SummaryRow>
+                </div>
+              {/each}
+            </div>
+          {/if}
         </div>
       </SummaryRow>
 
