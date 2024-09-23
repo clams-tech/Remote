@@ -69,13 +69,13 @@ export type PrismMember = {
 }
 
 export type PrismType = {
-  id?: string
+  id?: string // prism_id
   prism_id: string
   description: string
   timestamp: number
   outlay_factor: number
   prism_members: PrismMember[]
-  binding?: PrismBinding // added via
+  binding?: PrismBinding // added via update_prisms message event
 }
 
 export interface ListPrismsResponse {
@@ -94,6 +94,7 @@ export interface DeletePrismResponse {
 }
 
 export type PrismBinding = {
+  id?: string // prism_id
   offer_id: string
   prism_id: string
   timestamp: number
@@ -124,6 +125,17 @@ export type CreateBindingReponse = {
   prism_id: string
   prism_binding_key: string[]
   prism_members: PrismMember[]
+}
+
+export type DeletedBinding = {
+  key: string[]
+  generation: number
+  hex: string
+  string: string // JSON object
+}
+
+export type DeleteBindingResponse = {
+  binding_removed: DeletedBinding
 }
 
 type Payout = {

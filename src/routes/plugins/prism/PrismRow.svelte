@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { PrismType } from '$lib/@types/plugins'
   import { formatDate } from '$lib/dates'
-
+  import check from '$lib/icons/check'
+  import close from '$lib/icons/close'
   import caret from '$lib/icons/caret.js'
 
   export let prism: PrismType
@@ -36,6 +37,18 @@
         {#await formatDate(timestamp, 'do MMM hh:mma') then formatted}
           <div class="text-[0.75em] font-semibold mt-1">{formatted}</div>
         {/await}
+      </div>
+      <div>
+        <div class="flex items-center justify-end text-xs font-semibold">
+          {'offer'}
+          <div
+            class:border-utility-error={!prism.binding}
+            class:border-utility-success={prism.binding}
+            class=" w-4 ml-1 border rounded-full"
+          >
+            {@html prism.binding ? check : close}
+          </div>
+        </div>
       </div>
     </div>
 

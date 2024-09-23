@@ -19,10 +19,9 @@
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
 
-  // add the prism bindings to the PrismType (and in the DB) to make managing them more easily in the UI
   const sync = async (connection: Connection) => {
     await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-
+    // add prism bindings to the PrismType
     await Promise.all([updatePrisms()])
   }
 

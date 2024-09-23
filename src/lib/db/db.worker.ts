@@ -213,43 +213,28 @@ onmessage = async (message: MessageEvent<Message>) => {
         const prisms = await db.prisms.toArray()
         const prismBindings = await db.prismBindings.toArray()
 
-        // TODO fetch bindings and add them to the prisms in the DB
         console.log({
           prisms,
           prismBindings
         })
-        // const prismBindings = db.prism
-        // TODO fetch bindings and add them to the prisms in the DB
 
-        // const invoicesWaitingWithFallback = (await db.payments
-        //   .where({ type: 'invoice', status: 'waiting' })
-        //   .filter(({ data }) => !(data as InvoicePayment['data']).fallbackAddress)
-        //   .toArray()) as InvoicePayment[]
+        // Fetch bindings and add them to the prisms in the DB
+        const updatedPrisms = prisms.map(prism => {
+          const binding = prismBindings.find(binding => binding.prism_id === prism.prism_id)
 
-        // for (const invoice of invoicesWaitingWithFallback) {
-        //   try {
-        //     const transaction = (await db.payments
-        //       .where({ type: 'transaction' })
-        //       .filter(
-        //         transaction =>
-        //           !!(transaction.data as TransactionPayment['data']).outputs.find(
-        //             ({ address }) => address === invoice.data.fallbackAddress
-        //           )
-        //       )
-        //       .first()) as TransactionPayment
+          if (binding) {
+            return { ...prism, binding }
+          }
 
-        //     if (transaction) {
-        //       const updated: InvoicePayment = {
-        //         ...invoice,
-        //         status: transaction.data.blockHeight ? 'complete' : 'pending'
-        //       }
+          return prism
+        })
 
-        //       await db.payments.put(updated)
-        //     }
-        //   } catch (error) {
-        //     //
-        //   }
-        // }
+        await Promise.all(updatedPrisms.map(updatedPrism => db.prisms.put(updatedPrism)))
+
+        const updatedPrismsFromDb = await db.prisms.toArray()
+
+        console.log(`updatedPrismsFromDb = `, updatedPrismsFromDb)
+
         self.postMessage({ id: message.data.id })
       } catch (error) {
         const { message: errMsg } = error as Error
@@ -258,6 +243,7 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
+
     case 'bulk_put': {
       try {
         // eslint-disable-next-line

@@ -8,7 +8,8 @@ import type {
   PrismMemberPayouts,
   DeletePrismResponse,
   DeletedPrism,
-  CreateBindingReponse
+  CreateBindingReponse,
+  DeleteBindingResponse
 } from '$lib/@types/plugins.js'
 import type { PrismInterface } from '../interfaces.js'
 import type { CorelnConnectionInterface } from './types.js'
@@ -102,6 +103,7 @@ class Prism implements PrismInterface {
         offer_id
       }
     })) as CreateBindingReponse
+
     return response
   }
 
@@ -122,15 +124,15 @@ class Prism implements PrismInterface {
     return bolt12_prism_bindings
   }
 
-  async deleteBinding(offer_id: string): Promise<unknown> {
-    const response = (await this.connection.rpc({
+  async deleteBinding(offer_id: string): Promise<DeletedBinding> {
+    const { binding_removed } = (await this.connection.rpc({
       method: 'prism-bindingremove',
       params: {
         offer_id
       }
-    })) as unknown
+    })) as DeleteBindingResponse
 
-    return response
+    return binding_removed
   }
 }
 

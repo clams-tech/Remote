@@ -271,7 +271,6 @@ export const fetchPrisms = async (connection: Connection) =>
   connection.prism
     .listPrisms()
     .then(prisms => {
-      console.log(`prisms = `, prisms)
       return updateTableItems('prisms', prisms)
     })
     .catch(error => log.error(error?.detail?.message || error))
@@ -281,7 +280,6 @@ export const fetchPrismBindings = async (connection: Connection) =>
   connection.prism
     .listBindings()
     .then(prismBindings => {
-      console.log(`prismBindings = `, prismBindings)
       return updateTableItems('prismBindings', prismBindings)
     })
     .catch(error => log.error(error?.detail?.message || error))
