@@ -293,9 +293,10 @@ export const createPrismBinding = async (
   connection.prism &&
   connection.prism
     .createBinding(prism_id, offer_id)
-    .then(async () => {
+    .then(async createBindingResponse => {
       await fetchPrismBindings(connection)
       await updatePrisms() // add binding to prism in DB
+      return createBindingResponse
     })
     .catch(error => log.error(error?.detail?.message || error))
 
@@ -307,9 +308,10 @@ export const deletePrismBinding = async (
   connection.prism &&
   connection.prism
     .deleteBinding(offer_id)
-    .then(async () => {
+    .then(async deletedPrismBinding => {
       await db.prismBindings.delete(prism_id)
       await updatePrisms() // remove binding from prism in DB
+      return deletedPrismBinding
     })
     .catch(error => log.error(error?.detail?.message || error))
 
@@ -317,8 +319,9 @@ export const deletePrism = async (connection: Connection, prism_id: string) =>
   connection.prism &&
   connection.prism
     .deletePrism(prism_id)
-    .then(async () => {
+    .then(async deletedPrism => {
       await db.prisms.delete(prism_id)
+      return deletedPrism
     })
     .catch(error => log.error(error?.detail?.message || error))
 

@@ -89,7 +89,9 @@
     deletingPrism = true
 
     try {
-      const deletedPrism = (await deletePrism(connection, id)) || null
+      const deletedPrism = await deletePrism(connection, id)
+
+      console.log('deleted prism = ', deletePrism)
 
       if (deletedPrism) {
         deletingPrism = false
