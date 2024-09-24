@@ -8,8 +8,9 @@ import type {
   PrismMemberPayouts,
   DeletePrismResponse,
   DeletedPrism,
-  CreateBindingReponse,
-  DeleteBindingResponse
+  CreateBindingResponse,
+  DeleteBindingResponse,
+  DeletedBinding
 } from '$lib/@types/plugins.js'
 import type { PrismInterface } from '../interfaces.js'
 import type { CorelnConnectionInterface } from './types.js'
@@ -95,14 +96,14 @@ class Prism implements PrismInterface {
     })
   }
 
-  async createBinding(prism_id: string, offer_id: string): Promise<CreateBindingReponse> {
+  async createBinding(prism_id: string, offer_id: string): Promise<CreateBindingResponse> {
     const response = (await this.connection.rpc({
       method: 'prism-bindingadd',
       params: {
         prism_id,
         offer_id
       }
-    })) as CreateBindingReponse
+    })) as CreateBindingResponse
 
     return response
   }

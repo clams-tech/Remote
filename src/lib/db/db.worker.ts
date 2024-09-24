@@ -224,16 +224,15 @@ onmessage = async (message: MessageEvent<Message>) => {
 
           if (binding) {
             return { ...prism, binding }
+          } else {
+            // Remove binding field if it exists on prism in the DB
+            // eslint-disable-next-line unused-imports/no-unused-vars
+            const { binding, ...prismWithoutBinding } = prism // Remove binding field
+            return prismWithoutBinding
           }
-
-          return prism
         })
 
         await Promise.all(updatedPrisms.map(updatedPrism => db.prisms.put(updatedPrism)))
-
-        const updatedPrismsFromDb = await db.prisms.toArray()
-
-        console.log(`updatedPrismsFromDb = `, updatedPrismsFromDb)
 
         self.postMessage({ id: message.data.id })
       } catch (error) {

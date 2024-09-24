@@ -118,7 +118,7 @@ export interface ListPrismBindingsResponse {
   bolt12_prism_bindings: PrismBinding[]
 }
 
-export type CreateBindingReponse = {
+export type CreateBindingResponse = {
   status: 'must-replace' | string
   timestamp: 1726125745
   offer_id: string

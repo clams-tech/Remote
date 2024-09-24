@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { PrismType } from '$lib/@types/plugins.js'
   import Section from '$lib/components/Section.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
@@ -20,11 +19,11 @@
   import Modal from '$lib/components/Modal.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { slide } from 'svelte/transition'
-  import { fetchPrismBindings } from '$lib/wallets/index.js'
-  import { updatePrisms } from '$lib/db/helpers.js'
+  import { createPrismBinding, deletePrism, deletePrismBinding } from '$lib/wallets/index.js'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
+  let loading = false
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -35,99 +34,13 @@
     )
   )
 
-  let loading = false
-  let prism: PrismType | null = null
-
   let bindPrismError: AppError | null = null
   let bindingPrism = false
-
   let showClosePrismModal = false
   let deletePrismError: AppError | null = null
   let deletingPrism = false
 
-  const loadData = async () => {
-    loading = true
-    const result = await db.prisms.get(id)
-
-    if (result) {
-      prism = result
-    }
-
-    loading = false
-  }
-
-  $: if (id) {
-    loadData()
-  }
-
   $: connection = $connections$.find(({ walletId }) => walletId === wallet)
-
-  const createBinding = async (offer_id: string) => {
-    console.log(`createBinding called!`)
-    bindPrismError = null
-    bindingPrism = true
-
-    if (!connection) {
-      throw {
-        key: 'connection_not_available',
-        detail: {
-          timestamp: nowSeconds(),
-          message: `Could not find a connection for wallet: ${
-            $availableWallets$.find(({ id }) => id === wallet)?.label
-          }`,
-          context: 'Creating offer'
-        }
-      }
-    }
-
-    try {
-      const bindedPrism = (await connection.prism!.createBinding!(id, offer_id)) || null
-
-      if (bindedPrism) {
-        bindingPrism = false
-      }
-    } catch (error) {
-      console.log(`error = `, error)
-      bindPrismError = error as AppError
-      bindingPrism = false
-    }
-  }
-
-  const deleteBinding = async (offer_id: string) => {
-    console.log(`deleteBinding called!`)
-    bindPrismError = null
-    bindingPrism = true
-
-    if (!connection) {
-      throw {
-        key: 'connection_not_available',
-        detail: {
-          timestamp: nowSeconds(),
-          message: `Could not find a connection for wallet: ${
-            $availableWallets$.find(({ id }) => id === wallet)?.label
-          }`,
-          context: 'Creating offer'
-        }
-      }
-    }
-
-    try {
-      const deleteBindingResponse = (await connection.prism!.deleteBinding!(offer_id)) || null
-
-      if (deleteBindingResponse) {
-        console.log(`deleteBindingResponse = `, deleteBindingResponse)
-        bindingPrism = false
-        // fetch prism bindings
-        await Promise.all([fetchPrismBindings(connection)])
-        // add prism bindings to the PrismType
-        await Promise.all([updatePrisms()])
-      }
-    } catch (error) {
-      console.log(`error = `, error)
-      bindPrismError = error as AppError
-      bindingPrism = false
-    }
-  }
 
   const toggleBinding = async (offer_id: string) => {
     if (!connection) {
@@ -138,29 +51,27 @@
           message: `Could not find a connection for wallet: ${
             $availableWallets$.find(({ id }) => id === wallet)?.label
           }`,
-          context: 'Creating offer'
+          context: 'Updating prism'
         }
       }
     }
 
-    if (!isBindingToggled[offer_id]) {
-      await createBinding(offer_id)
-    } else {
-      await deleteBinding(offer_id)
-    }
+    bindPrismError = null
+    bindingPrism = false
 
-    // fetch prism bindings
-    await Promise.all([fetchPrismBindings(connection)])
-    // add prism bindings to the PrismType
-    await Promise.all([updatePrisms()])
+    try {
+      if (!isBindingToggled[offer_id]) {
+        await createPrismBinding(connection, id, offer_id)
+      } else {
+        await deletePrismBinding(connection, id, offer_id)
+      }
+    } catch (error) {
+      bindPrismError = error as AppError
+      bindingPrism = false
+    }
   }
 
-  const deletePrism = async () => {
-    deletePrismError = null
-    deletingPrism = true
-
-    const connection = $connections$.find(({ walletId }) => walletId === wallet)
-
+  const handleDeletePrism = async () => {
     if (!connection) {
       throw {
         key: 'connection_not_available',
@@ -169,16 +80,18 @@
           message: `Could not find a connection for wallet: ${
             $availableWallets$.find(({ id }) => id === wallet)?.label
           }`,
-          context: 'Creating offer'
+          context: 'Deleting prism'
         }
       }
     }
 
+    deletePrismError = null
+    deletingPrism = true
+
     try {
-      const deletedPrism = (await connection.prism!.deletePrism!(id)) || null
+      const deletedPrism = (await deletePrism(connection, id)) || null
 
       if (deletedPrism) {
-        await db.prisms.delete(id)
         deletingPrism = false
         goto(`/plugins/prism?wallet=${wallet}`)
       }
@@ -188,6 +101,14 @@
     }
   }
 
+  const prism$ = from(
+    liveQuery(() =>
+      db.prisms.toArray().then(prisms => {
+        return prisms.find(prism => prism.id === id)
+      })
+    )
+  )
+
   const offers$ = from(
     liveQuery(() =>
       db.offers.toArray().then(offers => {
@@ -196,37 +117,34 @@
     )
   )
 
-  // @TODO
-  // fix bugs with the toggle binding functionality
-  // Finish the prism details
-  // add warning that a binding has not been added (prism is not functional)
-  // add delete binding functionality to the toggles
-  $: console.log(`prism = `, prism)
-  $: console.log('offers = ', $offers$)
-  $: console.log('isBindingToggled = ', isBindingToggled)
-
   let isBindingToggled: { [offer_id: string]: boolean } = {}
 
+  // Updates the "binding" Toggle components referencing the prisms "binding" value
   $: {
-    // Initialize all offer IDs in isBindingToggled to false
     $offers$?.forEach(({ id }) => {
       isBindingToggled[id] = false
     })
 
-    // Set the binding to true for the offer that matches prism.binding.offer_id
-    if (prism?.binding?.offer_id) {
-      console.log(`prism?.binding?.offer_id = `, prism?.binding?.offer_id)
-      isBindingToggled[prism.binding.offer_id] = true
+    if ($prism$?.binding?.offer_id) {
+      isBindingToggled[$prism$.binding.offer_id] = true
     }
   }
+
+  // @TODO
+  // add warning that a binding has not been added (prism is not functional)
+  // add qr code to allow payment of prism, i.e. render the offer as a QR code
+  // Finish the prism details
+  // render toggle binding errors
+  // render delete prism errors
+  // add logic to prevent user from binding two prisms to the same offer
 </script>
 
 <Section>
   <div class="w-full flex flex-col items-center h-full overflow-auto">
     {#if loading}
       <Spinner />
-    {:else if prism}
-      {@const { description, timestamp, outlay_factor, prism_members, binding } = prism}
+    {:else if $prism$}
+      {@const { description, timestamp, outlay_factor, prism_members, binding } = $prism$}
       <SummaryRow>
         <div slot="label">Name</div>
         <div slot="value">
@@ -346,7 +264,7 @@
                 <Button
                   warning
                   requesting={deletingPrism}
-                  on:click={deletePrism}
+                  on:click={handleDeletePrism}
                   text={$translate('app.labels.delete')}
                 >
                   <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div></Button

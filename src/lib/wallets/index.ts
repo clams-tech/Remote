@@ -21,7 +21,8 @@ import {
   updateChannels,
   updateTransactions,
   updateInvoices,
-  updateAddresses
+  updateAddresses,
+  updatePrisms
 } from '$lib/db/helpers.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
@@ -281,6 +282,43 @@ export const fetchPrismBindings = async (connection: Connection) =>
     .listBindings()
     .then(prismBindings => {
       return updateTableItems('prismBindings', prismBindings)
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const createPrismBinding = async (
+  connection: Connection,
+  prism_id: string,
+  offer_id: string
+) =>
+  connection.prism &&
+  connection.prism
+    .createBinding(prism_id, offer_id)
+    .then(async () => {
+      await fetchPrismBindings(connection)
+      await updatePrisms() // add binding to prism in DB
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const deletePrismBinding = async (
+  connection: Connection,
+  prism_id: string,
+  offer_id: string
+) =>
+  connection.prism &&
+  connection.prism
+    .deleteBinding(offer_id)
+    .then(async () => {
+      await db.prismBindings.delete(prism_id)
+      await updatePrisms() // remove binding from prism in DB
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const deletePrism = async (connection: Connection, prism_id: string) =>
+  connection.prism &&
+  connection.prism
+    .deletePrism(prism_id)
+    .then(async () => {
+      await db.prisms.delete(prism_id)
     })
     .catch(error => log.error(error?.detail?.message || error))
 
