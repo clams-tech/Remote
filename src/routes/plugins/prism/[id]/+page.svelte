@@ -19,7 +19,14 @@
   import Modal from '$lib/components/Modal.svelte'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { slide } from 'svelte/transition'
-  import { createPrismBinding, deletePrism, deletePrismBinding } from '$lib/wallets/index.js'
+  import {
+    createPrismBinding,
+    deletePrism,
+    deletePrismBinding,
+    fetchPrismBindings,
+    fetchPrisms
+  } from '$lib/wallets/index.js'
+  import { updatePrisms } from '$lib/db/helpers.js'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
@@ -62,8 +69,14 @@
     try {
       if (!isBindingToggled[offer_id]) {
         await createPrismBinding(connection, id, offer_id)
+        await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
+        // add binding to prism in DB
+        await Promise.all([updatePrisms()])
       } else {
         await deletePrismBinding(connection, id, offer_id)
+        await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
+        // remove binding from prism in DB
+        await Promise.all([updatePrisms()])
       }
     } catch (error) {
       bindPrismError = error as AppError
@@ -89,9 +102,10 @@
     deletingPrism = true
 
     try {
+      if ($prism$?.binding) {
+        await deletePrismBinding(connection, id, $prism$.binding.offer_id)
+      }
       const deletedPrism = await deletePrism(connection, id)
-
-      console.log('deleted prism = ', deletePrism)
 
       if (deletedPrism) {
         deletingPrism = false
@@ -138,7 +152,6 @@
   // Finish the prism details
   // render toggle binding errors
   // render delete prism errors
-  // add logic to prevent user from binding two prisms to the same offer
 </script>
 
 <Section>
@@ -146,7 +159,7 @@
     {#if loading}
       <Spinner />
     {:else if $prism$}
-      {@const { description, timestamp, outlay_factor, prism_members, binding } = $prism$}
+      {@const { description, timestamp, outlay_factor, prism_members } = $prism$}
       <SummaryRow>
         <div slot="label">Name</div>
         <div slot="value">

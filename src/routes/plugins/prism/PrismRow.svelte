@@ -4,11 +4,26 @@
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
   import caret from '$lib/icons/caret.js'
+  import { from } from 'rxjs'
+  import { liveQuery } from 'dexie'
+  import { db } from '$lib/db'
 
   export let prism: PrismType
   export let wallet: string
 
-  const { prism_id, description, prism_members, timestamp } = prism
+  const { prism_id, description, prism_members, timestamp, binding } = prism
+
+  console.log(`binding = `, binding)
+
+  const offers$ = from(
+    liveQuery(() =>
+      db.offers.toArray().then(offers => {
+        return offers
+      })
+    )
+  )
+
+  $: boundOffer = $offers$?.find(offer => offer.id === prism.binding?.offer_id)
 </script>
 
 <a
@@ -40,13 +55,13 @@
       </div>
       <div>
         <div class="flex items-center justify-end text-xs font-semibold">
-          {'offer'}
+          {`${boundOffer?.label || boundOffer?.description || ''} offer`}
           <div
-            class:border-utility-error={!prism.binding}
-            class:border-utility-success={prism.binding}
+            class:border-utility-error={!binding}
+            class:border-utility-success={binding}
             class=" w-4 ml-1 border rounded-full"
           >
-            {@html prism.binding ? check : close}
+            {@html binding ? check : close}
           </div>
         </div>
       </div>

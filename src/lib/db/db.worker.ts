@@ -213,11 +213,6 @@ onmessage = async (message: MessageEvent<Message>) => {
         const prisms = await db.prisms.toArray()
         const prismBindings = await db.prismBindings.toArray()
 
-        console.log({
-          prisms,
-          prismBindings
-        })
-
         // Fetch bindings and add them to the prisms in the DB
         const updatedPrisms = prisms.map(prism => {
           const binding = prismBindings.find(binding => binding.prism_id === prism.prism_id)

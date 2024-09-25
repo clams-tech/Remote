@@ -90,7 +90,7 @@ class Prism implements PrismInterface {
 
     return bolt12_prism_bindings.map(prismBinding => {
       return {
-        id: prismBinding.prism_id,
+        id: prismBinding.offer_id,
         ...prismBinding
       }
     })

@@ -21,7 +21,7 @@
 
   const sync = async (connection: Connection) => {
     await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-    // add prism bindings to the PrismType
+    // add prism binding to each prism in DB
     await Promise.all([updatePrisms()])
   }
 
