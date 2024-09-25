@@ -159,7 +159,7 @@
     {#if loading}
       <Spinner />
     {:else if $prism$}
-      {@const { description, timestamp, outlay_factor, prism_members } = $prism$}
+      {@const { description, timestamp, outlay_factor, prism_members, binding } = $prism$}
       <SummaryRow>
         <div slot="label">Name</div>
         <div slot="value">
@@ -244,7 +244,7 @@
       </SummaryRow>
 
       {#if $availableWallets$.length}
-        <div class="w-full flex justify-end mt-2">
+        <div class="w-full flex justify-end mt-4 gap-2">
           <div class="w-min">
             <Button
               warning
@@ -254,6 +254,11 @@
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
             </Button>
           </div>
+          {#if binding}
+            <a class="no-underline" href={`/offers/${binding?.offer_id}`}>
+              <Button text={'Pay Prism'} />
+            </a>
+          {/if}
         </div>
       {/if}
 
