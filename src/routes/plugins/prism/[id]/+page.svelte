@@ -147,9 +147,10 @@
   }
 
   // @TODO
-  // add warning that a binding has not been added (prism is not functional)
-  // add qr code to allow payment of prism, i.e. render the offer as a QR code
-  // Finish the prism details
+  // fix bug in binding toggle, toggle a binding, then toggle another binding, should see the toggles change
+  // prevent clicking of the toggles and other actions when a toggle is being updating (use variable)
+  // update logic to prevent binding prism to a disabled offer
+  // render the prism members left to right with a scroll on mobile
   // render toggle binding errors
   // render delete prism errors
 </script>
@@ -160,6 +161,14 @@
       <Spinner />
     {:else if $prism$}
       {@const { description, timestamp, outlay_factor, prism_members, binding } = $prism$}
+      <SummaryRow>
+        <div slot="label">Status</div>
+        <div slot="value">
+          <p class:text-utility-error={!binding} class:text-utility-success={binding}>
+            {binding ? 'Active' : 'Inactive'}
+          </p>
+        </div>
+      </SummaryRow>
       <SummaryRow>
         <div slot="label">Name</div>
         <div slot="value">
@@ -254,11 +263,10 @@
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
             </Button>
           </div>
-          {#if binding}
-            <a class="no-underline" href={`/offers/${binding?.offer_id}`}>
-              <Button text={'Pay Prism'} />
-            </a>
-          {/if}
+
+          <a class="no-underline" href={`/offers/${binding?.offer_id}`}>
+            <Button disabled={!binding} text={'Pay Prism'} />
+          </a>
         </div>
       {/if}
 
