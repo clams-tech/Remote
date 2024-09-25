@@ -13,8 +13,6 @@
 
   const { prism_id, description, prism_members, timestamp, binding } = prism
 
-  console.log(`binding = `, binding)
-
   const offers$ = from(
     liveQuery(() =>
       db.offers.toArray().then(offers => {
