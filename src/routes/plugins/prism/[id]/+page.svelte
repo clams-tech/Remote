@@ -148,7 +148,6 @@
 
   // @TODO
   // fix bug in binding toggle, toggle a binding, then toggle another binding, should see the toggles change
-  // prevent clicking of the toggles and other actions when a toggle is being updating (use variable)
   // update logic to prevent binding prism to a disabled offer
   // render the prism members left to right with a scroll on mobile
   // render toggle binding errors
@@ -194,13 +193,22 @@
         <div slot="value">
           {#if $offers$?.length}
             <p class="font-bold">Offers</p>
-            {#each $offers$ as { id, label, description, bolt12 }}
-              <SummaryRow>
-                <div slot="label">{label || description || truncateValue(bolt12, 5)}</div>
-                <div slot="value">
-                  <Toggle bind:toggled={isBindingToggled[id]} on:click={() => toggleBinding(id)} />
-                </div>
-              </SummaryRow>
+            {#each $offers$ as { id, label, description, bolt12, active }}
+              <!-- Prism can only be bound to an active offer -->
+              {#if active}
+                <SummaryRow>
+                  <div slot="label" class="flex gap-1">
+                    {label || description || truncateValue(bolt12, 5)}
+                  </div>
+                  <div slot="value">
+                    <Toggle
+                      disabled={bindingPrism}
+                      bind:toggled={isBindingToggled[id]}
+                      on:click={() => toggleBinding(id)}
+                    />
+                  </div>
+                </SummaryRow>
+              {/if}
             {/each}
           {:else}
             <p>No offers found, create one (link to offers page)</p>
@@ -265,7 +273,7 @@
           </div>
 
           <a class="no-underline" href={`/offers/${binding?.offer_id}`}>
-            <Button disabled={!binding} text={'Pay Prism'} />
+            <Button disabled={!binding || bindingPrism} text={'Pay Prism'} />
           </a>
         </div>
       {/if}
