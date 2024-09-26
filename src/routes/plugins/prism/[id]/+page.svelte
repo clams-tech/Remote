@@ -27,6 +27,7 @@
     fetchPrisms
   } from '$lib/wallets/index.js'
   import { updatePrisms } from '$lib/db/helpers.js'
+  import Msg from '$lib/components/Msg.svelte'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
@@ -69,15 +70,12 @@
     try {
       if (!isBindingToggled[offer_id]) {
         await createPrismBinding(connection, id, offer_id)
-        await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-        // add binding to prism in DB
-        await Promise.all([updatePrisms()])
       } else {
         await deletePrismBinding(connection, id, offer_id)
-        await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-        // remove binding from prism in DB
-        await Promise.all([updatePrisms()])
       }
+      await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
+      // add binding to prism in DB
+      await Promise.all([updatePrisms()])
     } catch (error) {
       bindPrismError = error as AppError
       bindingPrism = false
@@ -125,19 +123,19 @@
     )
   )
 
-  const offers$ = from(
+  const activeOffers$ = from(
     liveQuery(() =>
       db.offers.toArray().then(offers => {
-        return offers
+        return offers.filter(offer => offer.active)
       })
     )
   )
 
   let isBindingToggled: { [offer_id: string]: boolean } = {}
 
-  // Updates the "binding" Toggle components referencing the prisms "binding" value
+  // Toggle components state
   $: {
-    $offers$?.forEach(({ id }) => {
+    $activeOffers$?.forEach(({ id }) => {
       isBindingToggled[id] = false
     })
 
@@ -147,11 +145,8 @@
   }
 
   // @TODO
-  // fix bug in binding toggle, toggle a binding, then toggle another binding, should see the toggles change
-  // update logic to prevent binding prism to a disabled offer
+  // When plugin code is fixed test bug where a prism can be bound to multiple offers
   // render the prism members left to right with a scroll on mobile
-  // render toggle binding errors
-  // render delete prism errors
 </script>
 
 <Section>
@@ -191,27 +186,29 @@
       <SummaryRow>
         <div slot="label">Binding</div>
         <div slot="value">
-          {#if $offers$?.length}
+          {#if $activeOffers$?.length}
             <p class="font-bold">Offers</p>
-            {#each $offers$ as { id, label, description, bolt12, active }}
-              <!-- Prism can only be bound to an active offer -->
-              {#if active}
-                <SummaryRow>
-                  <div slot="label" class="flex gap-1">
-                    {label || description || truncateValue(bolt12, 5)}
-                  </div>
-                  <div slot="value">
-                    <Toggle
-                      disabled={bindingPrism}
-                      bind:toggled={isBindingToggled[id]}
-                      on:click={() => toggleBinding(id)}
-                    />
-                  </div>
-                </SummaryRow>
-              {/if}
+            {#each $activeOffers$ as { id, label, description, bolt12 }}
+              <SummaryRow>
+                <div slot="label" class="flex gap-1">
+                  {label || description || truncateValue(bolt12, 5)}
+                </div>
+                <div slot="value">
+                  <Toggle
+                    disabled={bindingPrism}
+                    bind:toggled={isBindingToggled[id]}
+                    on:click={() => toggleBinding(id)}
+                  />
+                </div>
+              </SummaryRow>
             {/each}
           {:else}
-            <p>No offers found, create one (link to offers page)</p>
+            <p>No active offers found, <a href="/offers">create one</a></p>
+          {/if}
+          {#if bindPrismError}
+            <div in:slide|local={{ duration: 250 }}>
+              <ErrorDetail error={bindPrismError} />
+            </div>
           {/if}
         </div>
       </SummaryRow>
@@ -311,8 +308,7 @@
         </Modal>
       {/if}
     {:else}
-      <!-- @TODO style error message -->
-      <div>Prism not found!</div>
+      <Msg type="error" closable={false} message={'Could not find this Prism.'} />
     {/if}
   </div>
 </Section>
