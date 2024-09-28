@@ -7,6 +7,7 @@
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db'
+  import type { Offer } from '$lib/@types/offers'
 
   export let prism: PrismType
   export let wallet: string
@@ -21,12 +22,31 @@
     )
   )
 
-  $: boundOffer = $offers$?.find(offer => offer.id === prism.binding?.offer_id)
+  const prismBindings$ = from(
+    liveQuery(() =>
+      db.prismBindings.toArray().then(prismBindings => {
+        return prismBindings
+      })
+    )
+  )
+
+  let boundOffers: Offer[] = []
+
+  $: {
+    $prismBindings$?.forEach(prismBinding => {
+      if (prismBinding.prism_id === prism_id) {
+        const boundOffer = $offers$.find(offer => offer.id === prismBinding.offer_id)
+        if (boundOffer) {
+          boundOffers = [...boundOffers, boundOffer]
+        }
+      }
+    })
+  }
 </script>
 
 <a
   href={`/plugins/prism/${prism_id}?wallet=${wallet}`}
-  class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[80px]"
+  class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[90px]"
 >
   <div class="flex flex-col justify-center h-full">
     <div class="font-semibold">Prism</div>
@@ -51,18 +71,23 @@
           <div class="text-[0.75em] font-semibold mt-1">{formatted}</div>
         {/await}
       </div>
-      <div>
+      {#if boundOffers.length}
+        {#each boundOffers as boundOffer}
+          <div class="mb-1 flex items-center justify-end text-xs font-semibold">
+            {`${boundOffer?.label || boundOffer?.description || ''} offer`}
+            <div class=" w-4 ml-1 border rounded-full border-utility-success">
+              {@html check}
+            </div>
+          </div>
+        {/each}
+      {:else}
         <div class="flex items-center justify-end text-xs font-semibold">
-          {`${boundOffer?.label || boundOffer?.description || ''} offer`}
-          <div
-            class:border-utility-error={!binding}
-            class:border-utility-success={binding}
-            class=" w-4 ml-1 border rounded-full"
-          >
-            {@html binding ? check : close}
+          {'offer'}
+          <div class=" w-4 ml-1 border rounded-full border-utility-error">
+            {@html close}
           </div>
         </div>
-      </div>
+      {/if}
     </div>
 
     <div class="w-6 -rotate-90 -mr-1 ml-1">{@html caret}</div>
