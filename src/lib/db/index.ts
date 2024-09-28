@@ -57,7 +57,7 @@ class DB extends Dexie {
       wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
       withdrawals:
         '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact',
-      prisms: `&id, prism_id, description, timestamp, outlay_factor, prism_members, binding`,
+      prisms: `&id, prism_id, description, timestamp, outlay_factor, prism_members`,
       prismBindings: `&id, prism_id, offer_id, timestamp, member_outlays`
     })
   }
