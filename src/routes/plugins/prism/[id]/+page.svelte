@@ -47,6 +47,7 @@
   let showClosePrismModal = false
   let deletePrismError: AppError | null = null
   let deletingPrism = false
+  let openMembers: string[] = [] // indexes of open member dropdowns
 
   $: connection = $connections$.find(({ walletId }) => walletId === wallet)
 
@@ -116,6 +117,17 @@
     }
   }
 
+  const toggleOpenMember = (memberIndex: number) => {
+    // close an open member dropdown
+    if (openMembers.includes(memberIndex.toString())) {
+      openMembers = openMembers.filter(member => member !== memberIndex.toString())
+      return
+    } else {
+      // open a closed member dropdown
+      openMembers = [...openMembers, memberIndex.toString()]
+    }
+  }
+
   const handleDeletePrism = async () => {
     if (!connection) {
       throw {
@@ -151,9 +163,6 @@
       deletingPrism = false
     }
   }
-
-  // @TODO
-  // render the prism members left to right with a scroll on mobile
 </script>
 
 <Section>
@@ -231,43 +240,48 @@
         <div slot="label">Members</div>
         <div slot="value">
           {#if prism_members?.length}
-            <div class="flex gap-2 flex-wrap justify-end">
-              {#each prism_members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, index}
-                <div class="p-2 border rounded w-full md:w-auto">
-                  <SummaryRow>
-                    <div slot="label">
-                      <div
-                        class="w-6 h-6 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
-                      >
-                        {index + 1}
-                      </div>
-                    </div>
-                  </SummaryRow>
-                  <SummaryRow>
-                    <div slot="label">Description</div>
-                    <div slot="value">{description}</div>
-                  </SummaryRow>
-                  <SummaryRow>
-                    <div slot="label">Destination</div>
-                    <div slot="value">
-                      <CopyValue value={destination} label={truncateValue(destination, 5)} />
-                    </div>
-                  </SummaryRow>
-                  <SummaryRow>
-                    <div slot="label">Split</div>
-                    <div slot="value">{split}</div>
-                  </SummaryRow>
-                  <SummaryRow>
-                    <div slot="label">Fees incurred by</div>
-                    <div slot="value">{fees_incurred_by}</div>
-                  </SummaryRow>
-                  <SummaryRow>
-                    <div slot="label">Payout threshold</div>
-                    <div slot="value">{payout_threshold_msat}</div>
-                  </SummaryRow>
+            {#each prism_members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
+              <div class="mt-2 rounded" class:border={openMembers.includes(i.toString())}>
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div
+                  class="rounded p-2 flex items-center gap-1 cursor-pointer w-[100%]"
+                  class:border={!openMembers.includes(i.toString())}
+                  on:click={() => toggleOpenMember(i)}
+                >
+                  <div
+                    class="mr-1.5 w-4 h-4 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+                  >
+                    {i + 1}
+                  </div>
+                  <p>
+                    {description ? description : '?'}
+                  </p>
                 </div>
-              {/each}
-            </div>
+                {#if openMembers.includes(i.toString())}
+                  <div transition:slide={{ duration: 250 }} class="flex flex-col p-2">
+                    <SummaryRow>
+                      <div slot="label">Destination</div>
+                      <div slot="value">
+                        <CopyValue value={destination} label={truncateValue(destination, 5)} />
+                      </div>
+                    </SummaryRow>
+                    <SummaryRow>
+                      <div slot="label">Split</div>
+                      <div slot="value">{split}</div>
+                    </SummaryRow>
+                    <SummaryRow>
+                      <div slot="label">Fees incurred by</div>
+                      <div slot="value">{fees_incurred_by}</div>
+                    </SummaryRow>
+                    <SummaryRow>
+                      <div slot="label">Payout threshold</div>
+                      <div slot="value">{payout_threshold_msat}</div>
+                    </SummaryRow>
+                  </div>
+                {/if}
+              </div>
+            {/each}
           {/if}
         </div>
       </SummaryRow>

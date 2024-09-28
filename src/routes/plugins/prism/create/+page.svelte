@@ -76,13 +76,10 @@
   //   const indexInList = members.indexOf(memberIndex.toString())
   // }
 
-  $: console.log('openMembers = ', openMembers)
-
   const toggleOpenMember = (memberIndex: number) => {
     // close an open member dropdown
     if (openMembers.includes(memberIndex.toString())) {
-      const indexOfOpenMember = openMembers.indexOf(memberIndex.toString())
-      openMembers = openMembers.splice(indexOfOpenMember + 1, 1)
+      openMembers = openMembers.filter(member => member !== memberIndex.toString())
       return
     } else {
       // open a closed member dropdown
@@ -126,7 +123,7 @@
   }
 
   // @TODO
-  // Add option to add member and delete a member
+  // Add option to delete a member
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
   // update the fees incurred by toggle to work
 </script>
@@ -149,7 +146,7 @@
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
-            class="rounded p-2 flex items-center gap-1"
+            class="rounded p-2 flex items-center gap-1 cursor-pointer"
             class:border={!openMembers.includes(i.toString())}
             on:click={() => toggleOpenMember(i)}
           >
