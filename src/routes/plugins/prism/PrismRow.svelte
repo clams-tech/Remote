@@ -43,7 +43,7 @@
           >
             {prism_members.length}
           </div>
-          <div>members</div>
+          <div>{prism_members.length > 1 ? 'members' : 'member'}</div>
         </div>
       </div>
       <div class="text-right w-full text-xs italic truncate whitespace-nowrap pr-1">

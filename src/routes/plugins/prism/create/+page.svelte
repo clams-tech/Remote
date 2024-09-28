@@ -14,6 +14,8 @@
   import Button from '$lib/components/Button.svelte'
   import { goto } from '$app/navigation'
   import { db } from '$lib/db'
+  import { slide } from 'svelte/transition'
+  import ErrorDetail from '$lib/components/ErrorDetail.svelte'
 
   export let data: PageData
   const { wallet } = data
@@ -37,19 +39,56 @@
       split: 2.2,
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
-    },
-    {
-      description: 'Carol',
-      destination:
-        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pq2wslr4p52slqg7kgeudlp2s84wfzt9k57la6et7mm82dezs6xggw',
-      split: 2.2,
-      fees_incurred_by: 'local', // 'local' or 'remote'
-      payout_threshold_msat: 0
     }
+    // {
+    //   description: 'Carol',
+    //   destination:
+    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pq2wslr4p52slqg7kgeudlp2s84wfzt9k57la6et7mm82dezs6xggw',
+    //   split: 2.2,
+    //   fees_incurred_by: 'local', // 'local' or 'remote'
+    //   payout_threshold_msat: 0
+    // }
   ]
+  let openMembers: string[] = ['0'] // indexes of open member dropdowns
 
-  let createPrismError
+  let createPrismError: AppError | null
   let creatingPrism = false
+
+  const addMember = () => {
+    const currentMemberCount = members.length
+
+    members = [
+      ...members,
+      {
+        description: '',
+        destination: '',
+        split: 0,
+        fees_incurred_by: 'local', // 'local' or 'remote'
+        payout_threshold_msat: 0
+      }
+    ]
+
+    // Open dropdown for newly added member
+    openMembers = [currentMemberCount.toString()]
+  }
+
+  // const removeMember = (memberIndex: number) => {
+  //   const indexInList = members.indexOf(memberIndex.toString())
+  // }
+
+  $: console.log('openMembers = ', openMembers)
+
+  const toggleOpenMember = (memberIndex: number) => {
+    // close an open member dropdown
+    if (openMembers.includes(memberIndex.toString())) {
+      const indexOfOpenMember = openMembers.indexOf(memberIndex.toString())
+      openMembers = openMembers.splice(indexOfOpenMember + 1, 1)
+      return
+    } else {
+      // open a closed member dropdown
+      openMembers = [...openMembers, memberIndex.toString()]
+    }
+  }
 
   const createPrism = async () => {
     createPrismError = null
@@ -87,9 +126,9 @@
   }
 
   // @TODO
-  // Add option to add memeber and delete a member
+  // Add option to add member and delete a member
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
-  // handle create prism error in the UI
+  // update the fees incurred by toggle to work
 </script>
 
 <svelte:head>
@@ -101,33 +140,78 @@
   <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
     <TextInput bind:value={description} name="description" label="Description" type="text" />
     <TextInput bind:value={outlayFactor} name="outlayFactor" label="Outlay Factor" type="number" />
-    {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
-      <h1 class="text-lg font-bold text-center uppercase">Member {i + 1}</h1>
-      <TextInput bind:value={description} name="description" label="Description" type="text" />
-      <TextInput bind:value={destination} name="destination" label="Destination" type="text" />
-      <div class="flex gap-4">
-        <TextInput bind:value={split} name="split" label="Split" type="number" />
-        <TextInput
-          bind:value={payout_threshold_msat}
-          name="Payout Threshold"
-          label="Payout Threshold (sats)"
-          type="number"
-        />
-      </div>
-      <p>Fees incurred by</p>
-      <div class="flex gap-4">
-        <Toggle toggled={fees_incurred_by === 'local' ? true : false}>
-          <div slot="left" class="mr-2">Local</div>
-        </Toggle>
-        <Toggle toggled={fees_incurred_by === 'remote' ? true : false}>
-          <div slot="left" class="mr-2">Remote</div>
-        </Toggle>
-      </div>
-    {/each}
+    <div>
+      <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
+        Members
+      </label>
+      {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
+        <div class="mt-2 rounded" class:border={openMembers.includes(i.toString())}>
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <div
+            class="rounded p-2 flex items-center gap-1"
+            class:border={!openMembers.includes(i.toString())}
+            on:click={() => toggleOpenMember(i)}
+          >
+            <div
+              class="mr-1.5 w-4 h-4 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+            >
+              {i + 1}
+            </div>
+            <p>
+              {description ? description : '?'}
+            </p>
+          </div>
+          {#if openMembers.includes(i.toString())}
+            <div transition:slide={{ duration: 250 }} class="flex flex-col gap-y-4 p-4">
+              <TextInput
+                bind:value={description}
+                name="description"
+                label="Description"
+                type="text"
+              />
+              <TextInput
+                bind:value={destination}
+                name="destination"
+                label="Destination"
+                type="text"
+              />
+              <div class="flex gap-4">
+                <TextInput bind:value={split} name="split" label="Split" type="number" />
+                <TextInput
+                  bind:value={payout_threshold_msat}
+                  name="Payout Threshold"
+                  label="Payout Threshold (sats)"
+                  type="number"
+                />
+              </div>
+              <p>Fees incurred by</p>
+              <div class="flex gap-4">
+                <Toggle toggled={fees_incurred_by === 'local' ? true : false}>
+                  <div slot="left" class="mr-2">Local</div>
+                </Toggle>
+                <Toggle toggled={fees_incurred_by === 'remote' ? true : false}>
+                  <div slot="left" class="mr-2">Remote</div>
+                </Toggle>
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/each}
+    </div>
   </div>
+
+  {#if createPrismError}
+    <div in:slide|local={{ duration: 250 }}>
+      <ErrorDetail error={createPrismError} />
+    </div>
+  {/if}
 
   {#if $availableWallets$.length}
     <div class="w-full flex justify-end mt-2">
+      <div class="w-min">
+        <Button on:click={addMember} primary text="Add Member" />
+      </div>
       <div class="w-min">
         <Button
           requesting={creatingPrism}

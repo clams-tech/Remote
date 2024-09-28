@@ -44,13 +44,50 @@
 
   let bindPrismError: AppError | null = null
   let bindingPrism = false
+  let boundOfferIds: string[] = []
   let showClosePrismModal = false
   let deletePrismError: AppError | null = null
   let deletingPrism = false
 
   $: connection = $connections$.find(({ walletId }) => walletId === wallet)
 
+  const prism$ = from(
+    liveQuery(() =>
+      db.prisms.toArray().then(prisms => {
+        return prisms.find(prism => prism.id === id)
+      })
+    )
+  )
+
+  const activeOffers$ = from(
+    liveQuery(() =>
+      db.offers.toArray().then(offers => {
+        return offers.filter(offer => offer.active)
+      })
+    )
+  )
+
+  const prismBindings$ = from(
+    liveQuery(() =>
+      db.prismBindings.toArray().then(prismBindings => {
+        return prismBindings
+      })
+    )
+  )
+
+  // Keep binding toggles in sync with offers bound to this prism in local DB
+  $: {
+    boundOfferIds = []
+    $prismBindings$?.forEach(prismBinding => {
+      if (prismBinding.prism_id === id) {
+        boundOfferIds.push(prismBinding.offer_id)
+      }
+    })
+  }
+
   const toggleBinding = async (offer_id: string) => {
+    bindPrismError = null
+
     if (!connection) {
       throw {
         key: 'connection_not_available',
@@ -64,15 +101,15 @@
       }
     }
 
-    bindPrismError = null
-    bindingPrism = false
-
     try {
-      if (!isBindingToggled[offer_id]) {
-        await createPrismBinding(connection, id, offer_id)
-      } else {
+      bindingPrism = true
+
+      if (boundOfferIds.includes(offer_id)) {
         await deletePrismBinding(connection, id, offer_id)
+      } else {
+        await createPrismBinding(connection, id, offer_id)
       }
+
       await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
       // add binding to prism in DB
       await Promise.all([updatePrisms()])
@@ -115,37 +152,7 @@
     }
   }
 
-  const prism$ = from(
-    liveQuery(() =>
-      db.prisms.toArray().then(prisms => {
-        return prisms.find(prism => prism.id === id)
-      })
-    )
-  )
-
-  const activeOffers$ = from(
-    liveQuery(() =>
-      db.offers.toArray().then(offers => {
-        return offers.filter(offer => offer.active)
-      })
-    )
-  )
-
-  let isBindingToggled: { [offer_id: string]: boolean } = {}
-
-  // Toggle components state
-  $: {
-    $activeOffers$?.forEach(({ id }) => {
-      isBindingToggled[id] = false
-    })
-
-    if ($prism$?.binding?.offer_id) {
-      isBindingToggled[$prism$.binding.offer_id] = true
-    }
-  }
-
   // @TODO
-  // When plugin code is fixed test bug where a prism can be bound to multiple offers
   // render the prism members left to right with a scroll on mobile
 </script>
 
@@ -196,7 +203,7 @@
                 <div slot="value">
                   <Toggle
                     disabled={bindingPrism}
-                    bind:toggled={isBindingToggled[id]}
+                    toggled={boundOfferIds.includes(id)}
                     on:click={() => toggleBinding(id)}
                   />
                 </div>
