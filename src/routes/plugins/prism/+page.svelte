@@ -8,7 +8,6 @@
   import { getFilters, getSorters, getTags } from '$lib/filters'
   import type { Filter, Sorters } from '$lib/@types/common'
   import { fetchPrismBindings, fetchPrisms } from '$lib/wallets'
-  import { updatePrisms } from '$lib/db/helpers'
 
   export let data: PageData
   const { wallet } = data
@@ -21,8 +20,6 @@
 
   const sync = async (connection: Connection) => {
     await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-    // add prism binding to each prism in DB
-    await Promise.all([updatePrisms()])
   }
 
   const button = {

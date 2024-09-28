@@ -26,7 +26,6 @@
     fetchPrismBindings,
     fetchPrisms
   } from '$lib/wallets/index.js'
-  import { updatePrisms } from '$lib/db/helpers.js'
   import Msg from '$lib/components/Msg.svelte'
 
   export let data: PageData
@@ -111,8 +110,6 @@
       }
 
       await Promise.all([fetchPrisms(connection), fetchPrismBindings(connection)])
-      // add binding to prism in DB
-      await Promise.all([updatePrisms()])
     } catch (error) {
       bindPrismError = error as AppError
       bindingPrism = false
@@ -137,8 +134,11 @@
     deletingPrism = true
 
     try {
-      if ($prism$?.binding) {
-        await deletePrismBinding(connection, id, $prism$.binding.offer_id)
+      // Remove all existing bindings before deleting prism
+      if (boundOfferIds.length) {
+        boundOfferIds.forEach(async boundOfferId => {
+          await deletePrismBinding(connection, id, boundOfferId)
+        })
       }
       const deletedPrism = await deletePrism(connection, id)
 
@@ -161,12 +161,15 @@
     {#if loading}
       <Spinner />
     {:else if $prism$}
-      {@const { description, timestamp, outlay_factor, prism_members, binding } = $prism$}
+      {@const { description, timestamp, outlay_factor, prism_members } = $prism$}
       <SummaryRow>
         <div slot="label">Status</div>
         <div slot="value">
-          <p class:text-utility-error={!binding} class:text-utility-success={binding}>
-            {binding ? 'Active' : 'Inactive'}
+          <p
+            class:text-utility-error={!boundOfferIds.length}
+            class:text-utility-success={boundOfferIds.length}
+          >
+            {boundOfferIds.length ? 'Active' : 'Inactive'}
           </p>
         </div>
       </SummaryRow>
@@ -198,7 +201,12 @@
             {#each $activeOffers$ as { id, label, description, bolt12 }}
               <SummaryRow>
                 <div slot="label" class="flex gap-1">
-                  {label || description || truncateValue(bolt12, 5)}
+                  <a class="no-underline" href={`/offers/${id}`}>
+                    <Button
+                      disabled={!boundOfferIds.includes(id)}
+                      text={label || description || truncateValue(bolt12, 5)}
+                    />
+                  </a>
                 </div>
                 <div slot="value">
                   <Toggle
@@ -275,10 +283,6 @@
               <div slot="iconLeft" class="w-6 mr-1 -ml-2">{@html warning}</div>
             </Button>
           </div>
-
-          <a class="no-underline" href={`/offers/${binding?.offer_id}`}>
-            <Button disabled={!binding || bindingPrism} text={'Pay Prism'} />
-          </a>
         </div>
       {/if}
 

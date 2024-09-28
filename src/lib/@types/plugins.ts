@@ -75,7 +75,6 @@ export type PrismType = {
   timestamp: number
   outlay_factor: number
   prism_members: PrismMember[]
-  binding?: PrismBinding // added via update_prisms message event
 }
 
 export interface ListPrismsResponse {

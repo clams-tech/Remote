@@ -21,8 +21,7 @@ import {
   updateChannels,
   updateTransactions,
   updateInvoices,
-  updateAddresses,
-  updatePrisms
+  updateAddresses
 } from '$lib/db/helpers.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'

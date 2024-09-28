@@ -87,25 +87,6 @@ export const updateInvoices = async (): Promise<void> => {
   return complete
 }
 
-export const updatePrisms = async (): Promise<void> => {
-  const id = createRandomHex()
-
-  const complete = firstValueFrom(
-    messages$.pipe(
-      filter(message => message.data.id === id),
-      map(message => {
-        if (message.data.error) {
-          throw new Error(message.data.error)
-        }
-      })
-    )
-  )
-
-  worker.postMessage({ id, type: 'update_prisms' })
-
-  return complete
-}
-
 export const updateTableItems = async (table: string, data: unknown[]): Promise<void> => {
   const id = createRandomHex()
 

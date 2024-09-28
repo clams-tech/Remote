@@ -33,10 +33,6 @@ type UpdateInvoicesMessage = MessageBase & {
   type: 'update_invoices'
 }
 
-type UpdatePrismsMessage = MessageBase & {
-  type: 'update_prisms'
-}
-
 type UpdateTableItemsMessage = MessageBase & {
   type: 'update_table_items'
   table: string
@@ -72,7 +68,6 @@ type Message =
   | BulkPutMessage
   | UpdateAddressesMessage
   | UpdateInvoicesMessage
-  | UpdatePrismsMessage
 
 onmessage = async (message: MessageEvent<Message>) => {
   switch (message.data.type) {
@@ -208,36 +203,6 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       return
     }
-    case 'update_prisms': {
-      try {
-        const prisms = await db.prisms.toArray()
-        const prismBindings = await db.prismBindings.toArray()
-
-        // Fetch bindings and add them to the prisms in the DB
-        const updatedPrisms = prisms.map(prism => {
-          const binding = prismBindings.find(binding => binding.prism_id === prism.prism_id)
-
-          if (binding) {
-            return { ...prism, binding }
-          } else {
-            // Remove binding field if it exists on prism in the DB
-            // eslint-disable-next-line unused-imports/no-unused-vars
-            const { binding, ...prismWithoutBinding } = prism // Remove binding field
-            return prismWithoutBinding
-          }
-        })
-
-        await Promise.all(updatedPrisms.map(updatedPrism => db.prisms.put(updatedPrism)))
-
-        self.postMessage({ id: message.data.id })
-      } catch (error) {
-        const { message: errMsg } = error as Error
-        self.postMessage({ id: message.data.id, error: errMsg })
-      }
-
-      return
-    }
-
     case 'bulk_put': {
       try {
         // eslint-disable-next-line
