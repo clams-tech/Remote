@@ -16,6 +16,7 @@
   import { db } from '$lib/db'
   import { slide } from 'svelte/transition'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
+  import trashOutline from '$lib/icons/trash-outline.js'
 
   export let data: PageData
   const { wallet } = data
@@ -33,13 +34,20 @@
   let outlayFactor = 0.75
   let members: PrismMember[] = [
     {
-      description: 'Bob',
-      destination:
-        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
-      split: 2.2,
+      description: '',
+      destination: '',
+      split: 0,
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
     }
+    // {
+    //   description: 'Bob',
+    //   destination:
+    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
+    //   split: 2.2,
+    //   fees_incurred_by: 'local', // 'local' or 'remote'
+    //   payout_threshold_msat: 0
+    // }
     // {
     //   description: 'Carol',
     //   destination:
@@ -72,9 +80,9 @@
     openMembers = [currentMemberCount.toString()]
   }
 
-  // const removeMember = (memberIndex: number) => {
-  //   const indexInList = members.indexOf(memberIndex.toString())
-  // }
+  const removeMember = (memberIndex: number) => {
+    members = members.filter((_, index) => index !== memberIndex)
+  }
 
   const toggleOpenMember = (memberIndex: number) => {
     // close an open member dropdown
@@ -85,6 +93,18 @@
       // open a closed member dropdown
       openMembers = [...openMembers, memberIndex.toString()]
     }
+  }
+
+  // @TODO why is this function being called twice by onclick?
+  function toggleFeesIncurredBy(memberIndex: number) {
+    console.log('toggleFeesIncurredBy called!')
+
+    // Update the members array in a more concise way
+    members = members.map((member, index) =>
+      index === memberIndex
+        ? { ...member, fees_incurred_by: member.fees_incurred_by === 'local' ? 'remote' : 'local' }
+        : member
+    )
   }
 
   const createPrism = async () => {
@@ -123,9 +143,10 @@
   }
 
   // @TODO
-  // Add option to delete a member
+  // Add form field validation
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
-  // update the fees incurred by toggle to work
+  // improve the UX and copy when adding a member, eg Split can be rendered as a %
+  // Outlay Factor should be worded so its easier to understand
 </script>
 
 <svelte:head>
@@ -138,26 +159,33 @@
     <TextInput bind:value={description} name="description" label="Description" type="text" />
     <TextInput bind:value={outlayFactor} name="outlayFactor" label="Outlay Factor" type="number" />
     <div>
-      <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
-        Members
-      </label>
+      {#if members.length}
+        <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
+          Members
+        </label>
+      {/if}
       {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
         <div class="mt-2 rounded" class:border={openMembers.includes(i.toString())}>
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
-            class="rounded p-2 flex items-center gap-1 cursor-pointer"
+            class="rounded p-2 flex items-center justify-between cursor-pointer"
             class:border={!openMembers.includes(i.toString())}
             on:click={() => toggleOpenMember(i)}
           >
-            <div
-              class="mr-1.5 w-4 h-4 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
-            >
-              {i + 1}
+            <div class="flex items-center gap-1">
+              <div
+                class="mr-1.5 w-4 h-4 leading-none flex items-center justify-center rounded-full bg-neutral-900 -mr-1"
+              >
+                {i + 1}
+              </div>
+              <p>
+                {description ? description : '?'}
+              </p>
             </div>
-            <p>
-              {description ? description : '?'}
-            </p>
+            <div on:click={() => removeMember(i)} class="w-6 cursor-pointer">
+              {@html trashOutline}
+            </div>
           </div>
           {#if openMembers.includes(i.toString())}
             <div transition:slide={{ duration: 250 }} class="flex flex-col gap-y-4 p-4">
@@ -184,10 +212,16 @@
               </div>
               <p>Fees incurred by</p>
               <div class="flex gap-4">
-                <Toggle toggled={fees_incurred_by === 'local' ? true : false}>
+                <Toggle
+                  on:click={() => toggleFeesIncurredBy(i)}
+                  toggled={fees_incurred_by === 'local'}
+                >
                   <div slot="left" class="mr-2">Local</div>
                 </Toggle>
-                <Toggle toggled={fees_incurred_by === 'remote' ? true : false}>
+                <Toggle
+                  on:click={() => toggleFeesIncurredBy(i)}
+                  toggled={fees_incurred_by === 'remote'}
+                >
                   <div slot="left" class="mr-2">Remote</div>
                 </Toggle>
               </div>
