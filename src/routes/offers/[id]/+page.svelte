@@ -26,10 +26,14 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { InvoicePayment } from '$lib/@types/payments.js'
   import trashOutline from '$lib/icons/trash-outline.js'
+  import type { PrismType } from '$lib/@types/plugins'
+  import prismIcon from '$lib/icons/prism'
 
   export let data: PageData
 
   let offerNotFound: boolean
+
+  let bindingPrism: PrismType
 
   const offer$ = from(
     liveQuery(() =>
@@ -39,6 +43,18 @@
       })
     )
   )
+
+  $: {
+    if ($offer$) {
+      db.prismBindings.get($offer$?.id).then(prismBinding => {
+        if (prismBinding) {
+          db.prisms.get(prismBinding.prism_id).then(prism => {
+            bindingPrism = prism
+          })
+        }
+      })
+    }
+  }
 
   const offerPayments$: Observable<InvoicePayment[]> = offer$.pipe(
     filter(x => !!x),
@@ -148,7 +164,7 @@
       <Spinner />
     </div>
   {:else}
-    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12, id, active } =
+    {@const { label, amount, issuer, walletId, type, description, expiry, bolt12, active } =
       $offer$}
     <div class="w-full">
       <div class="text-3xl font-semibold flex items-center justify-center w-full">
@@ -173,6 +189,21 @@
             <ExpiryCountdown {expiry} />
           {/if}
         </div>
+      {/if}
+
+      {#if bindingPrism}
+        <SummaryRow>
+          <div slot="label">
+            <div class="flex">
+              <div in:fade={{ duration: 250 }} class="w-[1.5em]">
+                {@html prismIcon}
+              </div>
+            </div>
+          </div>
+          <div slot="value">
+            {bindingPrism?.description}
+          </div>
+        </SummaryRow>
       {/if}
 
       <SummaryRow>

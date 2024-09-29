@@ -7,20 +7,11 @@
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db'
-  import type { Offer } from '$lib/@types/offers'
 
   export let prism: PrismType
   export let wallet: string
 
-  const { prism_id, description, prism_members, timestamp, binding } = prism
-
-  const offers$ = from(
-    liveQuery(() =>
-      db.offers.toArray().then(offers => {
-        return offers
-      })
-    )
-  )
+  const { prism_id, description, prism_members, timestamp } = prism
 
   const prismBindings$ = from(
     liveQuery(() =>
@@ -30,15 +21,12 @@
     )
   )
 
-  let boundOffers: Offer[] = []
+  let offerBound = false
 
   $: {
     $prismBindings$?.forEach(prismBinding => {
       if (prismBinding.prism_id === prism_id) {
-        const boundOffer = $offers$.find(offer => offer.id === prismBinding.offer_id)
-        if (boundOffer) {
-          boundOffers = [...boundOffers, boundOffer]
-        }
+        offerBound = true
       }
     })
   }
@@ -71,23 +59,16 @@
           <div class="text-[0.75em] font-semibold mt-1">{formatted}</div>
         {/await}
       </div>
-      {#if boundOffers.length}
-        {#each boundOffers as boundOffer}
-          <div class="mb-1 flex items-center justify-end text-xs font-semibold">
-            {`${boundOffer?.label || boundOffer?.description || ''} offer`}
-            <div class=" w-4 ml-1 border rounded-full border-utility-success">
-              {@html check}
-            </div>
-          </div>
-        {/each}
-      {:else}
-        <div class="flex items-center justify-end text-xs font-semibold">
-          {'offer'}
-          <div class=" w-4 ml-1 border rounded-full border-utility-error">
-            {@html close}
-          </div>
+      <div class="flex items-center justify-end text-xs font-semibold">
+        {'offer bound'}
+        <div
+          class="w-4 ml-1 border rounded-full"
+          class:border-utility-success={offerBound}
+          class:border-utility-error={!offerBound}
+        >
+          {@html offerBound ? check : close}
         </div>
-      {/if}
+      </div>
     </div>
 
     <div class="w-6 -rotate-90 -mr-1 ml-1">{@html caret}</div>
