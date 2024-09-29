@@ -105,7 +105,7 @@
       bindingPrism = true
 
       if (boundOfferIds.includes(offer_id)) {
-        await deletePrismBinding(connection, id, offer_id)
+        await deletePrismBinding(connection, offer_id)
       } else {
         await createPrismBinding(connection, id, offer_id)
       }
@@ -149,7 +149,7 @@
       // Remove all existing bindings before deleting prism
       if (boundOfferIds.length) {
         boundOfferIds.forEach(async boundOfferId => {
-          await deletePrismBinding(connection, id, boundOfferId)
+          await deletePrismBinding(connection, boundOfferId)
         })
       }
       const deletedPrism = await deletePrism(connection, id)
@@ -275,7 +275,7 @@
                       <div slot="value">{fees_incurred_by}</div>
                     </SummaryRow>
                     <SummaryRow>
-                      <div slot="label">Payout threshold</div>
+                      <div slot="label">Payout threshold (msats)</div>
                       <div slot="value">{payout_threshold_msat}</div>
                     </SummaryRow>
                   </div>

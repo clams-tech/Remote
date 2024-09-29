@@ -31,23 +31,23 @@
   )
 
   let description = 'Best prism ever'
-  let outlayFactor = 0.75
+  let outlayFactor = 0.99
   let members: PrismMember[] = [
-    {
-      description: '',
-      destination: '',
-      split: 0,
-      fees_incurred_by: 'local', // 'local' or 'remote'
-      payout_threshold_msat: 0
-    }
     // {
-    //   description: 'Bob',
-    //   destination:
-    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
-    //   split: 2.2,
+    //   description: '',
+    //   destination: '',
+    //   split: 1,
     //   fees_incurred_by: 'local', // 'local' or 'remote'
     //   payout_threshold_msat: 0
     // }
+    {
+      description: 'Bob',
+      destination:
+        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
+      split: 1.1,
+      fees_incurred_by: 'local', // 'local' or 'remote'
+      payout_threshold_msat: 0
+    }
     // {
     //   description: 'Carol',
     //   destination:
@@ -156,14 +156,12 @@
 <Section>
   <SectionHeading icon={prismIcon} />
   <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
-    <TextInput bind:value={description} name="description" label="Description" type="text" />
+    <TextInput bind:value={description} name="description" label="Name" type="text" />
     <TextInput bind:value={outlayFactor} name="outlayFactor" label="Outlay Factor" type="number" />
-    <div>
-      {#if members.length}
-        <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
-          Members
-        </label>
-      {/if}
+    {#if members.length}
+      <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
+        Members
+      </label>
       {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
         <div class="mt-2 rounded" class:border={openMembers.includes(i.toString())}>
           <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -192,13 +190,15 @@
               <TextInput
                 bind:value={description}
                 name="description"
-                label="Description"
+                label="Name"
+                placeholder={'Alice'}
                 type="text"
               />
               <TextInput
                 bind:value={destination}
                 name="destination"
                 label="Destination"
+                placeholder={'BOLT12 offer or node pubkey'}
                 type="text"
               />
               <div class="flex gap-4">
@@ -206,7 +206,7 @@
                 <TextInput
                   bind:value={payout_threshold_msat}
                   name="Payout Threshold"
-                  label="Payout Threshold (sats)"
+                  label="Payout Threshold (msats)"
                   type="number"
                 />
               </div>
@@ -229,7 +229,7 @@
           {/if}
         </div>
       {/each}
-    </div>
+    {/if}
   </div>
 
   {#if createPrismError}

@@ -297,11 +297,7 @@ export const createPrismBinding = async (
     })
     .catch(error => log.error(error?.detail?.message || error))
 
-export const deletePrismBinding = async (
-  connection: Connection,
-  prism_id: string,
-  offer_id: string
-) =>
+export const deletePrismBinding = async (connection: Connection, offer_id: string) =>
   connection.prism &&
   connection.prism
     .deleteBinding(offer_id)
