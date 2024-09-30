@@ -29,7 +29,7 @@
     )
   )
 
-  let description = 'Best prism ever'
+  let description = ''
   let outlayFactorAsPercentage = 100
   $: outlayFactor = outlayFactorAsPercentage / 100 // value passed to plugin
   let members = [
@@ -127,6 +127,7 @@
       name="description"
       label={$translate('app.labels.name')}
       type="text"
+      placeholder={$translate('app.labels.prism_name_placeholder')}
     />
     <TextInput
       bind:value={outlayFactorAsPercentage}
@@ -174,7 +175,7 @@
                 bind:value={destination}
                 name="destination"
                 label={$translate('app.labels.destination')}
-                placeholder={'BOLT12 offer or node pubkey'}
+                placeholder={$translate('app.labels.member_destination_placeholder')}
                 type="text"
               />
               <div class="flex gap-4">
@@ -226,7 +227,11 @@
   {#if $availableWallets$.length}
     <div class="w-full flex justify-end mt-2">
       <div class="w-min">
-        <Button on:click={addMember} primary text="Add Member" />
+        <Button
+          on:click={addMember}
+          primary
+          text={`${$translate('app.labels.add')} ${$translate('app.labels.member')}`}
+        />
       </div>
       <div class="w-min">
         <Button

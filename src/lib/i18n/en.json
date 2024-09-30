@@ -558,7 +558,9 @@
     "offers": "Offers",
     "delete_prism_warning": "Are you sure you want to delete this Prism?",
     "no_active_offers_found": "No active offers found",
-    "create_one": "create one"
+    "create_one": "create one",
+    "prism_name_placeholder": "Tips for the band",
+    "member_destination_placeholder": "BOLT12 offer or node pubkey"
   },
   "messages": {
     "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",
