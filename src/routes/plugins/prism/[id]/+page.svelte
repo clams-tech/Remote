@@ -197,9 +197,9 @@
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Outlay factor</div>
+        <div slot="label">Member Payout</div>
         <div slot="value">
-          <div>{outlay_factor}</div>
+          <div>{outlay_factor * 100}%</div>
         </div>
       </SummaryRow>
       <SummaryRow>

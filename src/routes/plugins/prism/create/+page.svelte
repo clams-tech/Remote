@@ -30,7 +30,8 @@
   )
 
   let description = 'Best prism ever'
-  let outlayFactor = 0.99
+  let outlayFactorAsPercentage = 100
+  $: outlayFactor = outlayFactorAsPercentage / 100 // value passed to plugin
   let members = [
     {
       description: '',
@@ -134,6 +135,7 @@
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
   // improve the UX and copy when adding a member, eg Split can be rendered as a %
   // Outlay Factor should be worded so its easier to understand
+  $: console.log('outlayFactor = ', outlayFactor)
 </script>
 
 <svelte:head>
@@ -144,7 +146,12 @@
   <SectionHeading icon={prismIcon} />
   <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
     <TextInput bind:value={description} name="description" label="Name" type="text" />
-    <TextInput bind:value={outlayFactor} name="outlayFactor" label="Outlay Factor" type="number" />
+    <TextInput
+      bind:value={outlayFactorAsPercentage}
+      name="outlayFactor"
+      label="Member Payout (%)"
+      type="number"
+    />
     {#if members.length}
       <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
         Members
