@@ -3,7 +3,6 @@
   import Section from '$lib/components/Section.svelte'
   import SectionHeading from '$lib/components/SectionHeading.svelte'
   import TextInput from '$lib/components/TextInput.svelte'
-  import Toggle from '$lib/components/Toggle.svelte'
   import { translate } from '$lib/i18n/translations'
   import prismIcon from '$lib/icons/prism'
   import { connections$, wallets$ } from '$lib/streams'
@@ -32,22 +31,22 @@
 
   let description = 'Best prism ever'
   let outlayFactor = 0.99
-  let members: PrismMember[] = [
-    // {
-    //   description: '',
-    //   destination: '',
-    //   split: 1,
-    //   fees_incurred_by: 'local', // 'local' or 'remote'
-    //   payout_threshold_msat: 0
-    // }
+  let members = [
     {
-      description: 'Bob',
-      destination:
-        'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
-      split: 1.1,
+      description: '',
+      destination: '',
+      split: 0,
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
     }
+    // {
+    //   description: 'Bob',
+    //   destination:
+    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
+    //   split: 1.1,
+    //   fees_incurred_by: 'local', // 'local' or 'remote'
+    //   payout_threshold_msat: 0
+    // }
     // {
     //   description: 'Carol',
     //   destination:
@@ -93,18 +92,6 @@
       // open a closed member dropdown
       openMembers = [...openMembers, memberIndex.toString()]
     }
-  }
-
-  // @TODO why is this function being called twice by onclick?
-  function toggleFeesIncurredBy(memberIndex: number) {
-    console.log('toggleFeesIncurredBy called!')
-
-    // Update the members array in a more concise way
-    members = members.map((member, index) =>
-      index === memberIndex
-        ? { ...member, fees_incurred_by: member.fees_incurred_by === 'local' ? 'remote' : 'local' }
-        : member
-    )
   }
 
   const createPrism = async () => {
@@ -162,7 +149,7 @@
       <label class="text-sm w-1/2 text-inherit text-neutral-300 mb-2 font-semibold" for="members">
         Members
       </label>
-      {#each members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
+      {#each members as { description, destination, split, payout_threshold_msat, fees_incurred_by }, i}
         <div class="mt-2 rounded" class:border={openMembers.includes(i.toString())}>
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -212,18 +199,14 @@
               </div>
               <p>Fees incurred by</p>
               <div class="flex gap-4">
-                <Toggle
-                  on:click={() => toggleFeesIncurredBy(i)}
-                  toggled={fees_incurred_by === 'local'}
-                >
-                  <div slot="left" class="mr-2">Local</div>
-                </Toggle>
-                <Toggle
-                  on:click={() => toggleFeesIncurredBy(i)}
-                  toggled={fees_incurred_by === 'remote'}
-                >
-                  <div slot="left" class="mr-2">Remote</div>
-                </Toggle>
+                <label class="flex items-center cursor-pointer">
+                  <input type="radio" bind:group={fees_incurred_by} value="local" />
+                  <span class="ml-1">local</span>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input type="radio" bind:group={fees_incurred_by} value="remote" />
+                  <span class="ml-1">remote</span>
+                </label>
               </div>
             </div>
           {/if}
