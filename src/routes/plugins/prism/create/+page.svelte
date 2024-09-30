@@ -129,10 +129,6 @@
       creatingPrism = false
     }
   }
-
-  // @TODO
-  // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
-  // improve the UX and copy when adding a member, eg Split can be rendered as a %
 </script>
 
 <svelte:head>
