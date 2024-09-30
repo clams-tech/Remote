@@ -3,7 +3,6 @@
 
   export let toggled = false
   export let large = false
-  export let disabled = false
 
   const roundedStyles = large
     ? 'peer-checked:before:translate-x-6 before:h-5 before:w-5 before:left-[2px] before:bottom-[2px]'
@@ -25,13 +24,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
   <label on:click|stopPropagation class="relative inline-block m-0 {sliderStyles}">
-    <input
-      {disabled}
-      bind:checked={toggled}
-      on:change
-      class="opacity-0 w-0 h-0 peer"
-      type="checkbox"
-    />
+    <input bind:checked={toggled} on:change class="opacity-0 w-0 h-0 peer" type="checkbox" />
     <span
       class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-neutral-300 peer-checked:bg-purple-500 transition-all rounded-full before:absolute before:bg-white before:transition-all before:rounded-full before:shadow-md {roundedStyles}"
     />
