@@ -14,7 +14,6 @@
 
   const route = 'prisms'
   const rowSize = 90
-  const filters: Filter[] = getFilters(route)
   const sorters: Sorters = getSorters(route)
   const tags: string[] = getTags(route)
 
@@ -33,7 +32,7 @@
   <title>{$translate('app.routes./plugins/prism.title')}</title>
 </svelte:head>
 
-<ItemsList {route} {rowSize} {filters} {sorters} {sync} {tags} {button}>
+<ItemsList {route} {rowSize} filters={[]} {sorters} {sync} {tags} {button}>
   <div slot="row" let:item>
     <PrismRow prism={item} wallet={wallet || ''} />
   </div>

@@ -327,8 +327,6 @@ export const routeFilters = (route: string): Filter[] => {
       return [forwardStatusFilter(), walletFilter(), feeFilter(), timestampFilter()]
     case 'wallets':
       return [walletTypeFilter()]
-    case 'prisms':
-      return [] // @TODO
     default:
       throw new Error(`Unknown route: ${route}`)
   }
