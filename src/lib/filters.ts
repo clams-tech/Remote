@@ -385,14 +385,12 @@ export const routeSorters = (route: string): Sorters => {
         options: [timestamp]
       }
     }
-    // @TODO
     case 'prisms': {
+      const timestamp = timestampSorter()
+
       return {
-        applied: {
-          key: '',
-          direction: 'asc'
-        },
-        options: []
+        applied: { key: timestamp.key, direction: timestamp.direction },
+        options: [timestamp]
       }
     }
 
