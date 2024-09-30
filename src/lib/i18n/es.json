@@ -546,7 +546,10 @@
     "binding": "Vinculante",
     "member": "Miembro",
     "members": "Miembros",
-    "offers": "Ofertas"
+    "offers": "Ofertas",
+    "delete_prism_warning": "¿Estás seguro de que deseas eliminar este Prism?",
+    "no_active_offers_found": "No se encontraron ofertas activas",
+    "create_one": "crear una"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",

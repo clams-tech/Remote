@@ -227,7 +227,10 @@
               </SummaryRow>
             {/each}
           {:else}
-            <p>No active offers found, <a href="/offers">create one</a></p>
+            <p>
+              {$translate('app.labels.no_active_offers_found')},
+              <a href="/offers">{$translate('app.labels.create_one')}</a>
+            </p>
           {/if}
           {#if bindPrismError}
             <div in:slide|local={{ duration: 250 }}>
@@ -307,10 +310,11 @@
           }}
         >
           <div class="w-[25rem] max-w-full gap-y-4 flex flex-col overflow-hidden h-full">
-            <h4 class="font-semibold mb-2 w-full text-2xl">Delete Prism</h4>
-
-            <div>Are you sure you want to delete this Prism?</div>
-
+            <h4 class="font-semibold mb-2 w-full text-2xl">
+              {$translate('app.labels.delete')}
+              {$translate('app.labels.prism')}
+            </h4>
+            <div>{$translate('app.labels.delete_prism_warning')}</div>
             {#if deletePrismError}
               <div in:slide|local={{ duration: 250 }}>
                 <ErrorDetail error={deletePrismError} />
