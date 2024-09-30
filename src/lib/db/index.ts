@@ -36,7 +36,7 @@ class DB extends Dexie {
   constructor() {
     super('Clams Remote')
 
-    this.version(1).stores({
+    this.version(2).stores({
       channels:
         '&[id+walletId], id, walletId, shortId, balanceLocal, balanceRemote, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput], [fundingTransactionId+fundingOutput+walletId], closeTo, *metadata.tags, metadata.contact',
       contacts: '&id, name, npub',
