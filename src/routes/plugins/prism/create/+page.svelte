@@ -131,11 +131,8 @@
   }
 
   // @TODO
-  // Add form field validation
   // fix error thrown when member split is not a float for whole numbers, eg 2 should be 2.0
   // improve the UX and copy when adding a member, eg Split can be rendered as a %
-  // Outlay Factor should be worded so its easier to understand
-  $: console.log('outlayFactor = ', outlayFactor)
 </script>
 
 <svelte:head>
