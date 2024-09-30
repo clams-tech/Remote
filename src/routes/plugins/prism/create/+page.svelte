@@ -40,22 +40,6 @@
       fees_incurred_by: 'local', // 'local' or 'remote'
       payout_threshold_msat: 0
     }
-    // {
-    //   description: 'Bob',
-    //   destination:
-    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pqw4m2tsyxz66llufnvnn7jf3g0r23k2kn3sa6gexsvw7u6nce69jg',
-    //   split: 1.1,
-    //   fees_incurred_by: 'local', // 'local' or 'remote'
-    //   payout_threshold_msat: 0
-    // }
-    // {
-    //   description: 'Carol',
-    //   destination:
-    //     'lno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrc2qajx2enpw4k8g93pq2wslr4p52slqg7kgeudlp2s84wfzt9k57la6et7mm82dezs6xggw',
-    //   split: 2.2,
-    //   fees_incurred_by: 'local', // 'local' or 'remote'
-    //   payout_threshold_msat: 0
-    // }
   ]
   let openMembers: string[] = ['0'] // indexes of open member dropdowns
 
@@ -71,7 +55,7 @@
         description: '',
         destination: '',
         split: 0,
-        fees_incurred_by: 'local', // 'local' or 'remote'
+        fees_incurred_by: 'local',
         payout_threshold_msat: 0
       }
     ]
@@ -138,11 +122,16 @@
 <Section>
   <SectionHeading icon={prismIcon} />
   <div class="flex flex-col gap-y-4 w-full mt-2 overflow-scroll p-1">
-    <TextInput bind:value={description} name="description" label="Name" type="text" />
+    <TextInput
+      bind:value={description}
+      name="description"
+      label={$translate('app.labels.name')}
+      type="text"
+    />
     <TextInput
       bind:value={outlayFactorAsPercentage}
       name="outlayFactor"
-      label="Member Payout (%)"
+      label={$translate('app.labels.member_payout_percentage')}
       type="number"
     />
     {#if members.length}
@@ -177,36 +166,49 @@
               <TextInput
                 bind:value={description}
                 name="description"
-                label="Name"
+                label={$translate('app.labels.name')}
                 placeholder={'Alice'}
                 type="text"
               />
               <TextInput
                 bind:value={destination}
                 name="destination"
-                label="Destination"
+                label={$translate('app.labels.destination')}
                 placeholder={'BOLT12 offer or node pubkey'}
                 type="text"
               />
               <div class="flex gap-4">
-                <TextInput bind:value={split} name="split" label="Split" type="number" />
+                <TextInput
+                  bind:value={split}
+                  name="split"
+                  label={$translate('app.labels.split')}
+                  type="number"
+                />
                 <TextInput
                   bind:value={payout_threshold_msat}
                   name="Payout Threshold"
-                  label="Payout Threshold (msats)"
+                  label={$translate('app.labels.payout_threshold')}
                   type="number"
                 />
               </div>
-              <p>Fees incurred by</p>
-              <div class="flex gap-4">
-                <label class="flex items-center cursor-pointer">
-                  <input type="radio" bind:group={fees_incurred_by} value="local" />
-                  <span class="ml-1">local</span>
+
+              <div class="flex flex-col">
+                <label
+                  class="text-sm w-3/4 text-inherit text-neutral-300 font-semibold mb-1"
+                  for="fees_incurred_by"
+                >
+                  {$translate('app.labels.fees_incurred_by')}
                 </label>
-                <label class="flex items-center cursor-pointer">
-                  <input type="radio" bind:group={fees_incurred_by} value="remote" />
-                  <span class="ml-1">remote</span>
-                </label>
+                <div class="flex gap-4">
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" bind:group={fees_incurred_by} value="local" />
+                    <span class="ml-1">local</span>
+                  </label>
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" bind:group={fees_incurred_by} value="remote" />
+                    <span class="ml-1">remote</span>
+                  </label>
+                </div>
               </div>
             </div>
           {/if}

@@ -534,7 +534,19 @@
     "ignoring_onchain_funds_until": "Ignorando fondos en cadena hasta",
     "toggle_clboss_permissions": "Alternar permisos de CLBOSS por canal",
     "node_id": "ID del nodo",
-    "permissions": "Permisos"
+    "permissions": "Permisos",
+    "prism": "Prism",
+    "offer_bound": "límite de oferta",
+    "name": "Nombre",
+    "member_payout": "Pago al miembro",
+    "member_payout_percentage": "Porcentaje de pago al miembro (%)",
+    "split": "División",
+    "payout_threshold": "Umbral de pago (msats)",
+    "fees_incurred_by": "Comisiones asumidas por",
+    "binding": "Vinculante",
+    "member": "Miembro",
+    "members": "Miembros",
+    "offers": "Ofertas"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",

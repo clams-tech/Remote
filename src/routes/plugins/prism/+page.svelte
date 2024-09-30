@@ -5,8 +5,8 @@
   import { translate } from '$lib/i18n/translations'
   import PrismRow from './PrismRow.svelte'
   import ItemsList from '$lib/components/ItemsList.svelte'
-  import { getFilters, getSorters, getTags } from '$lib/filters'
-  import type { Filter, Sorters } from '$lib/@types/common'
+  import { getSorters, getTags } from '$lib/filters'
+  import type { Sorters } from '$lib/@types/common'
   import { fetchPrismBindings, fetchPrisms } from '$lib/wallets'
 
   export let data: PageData

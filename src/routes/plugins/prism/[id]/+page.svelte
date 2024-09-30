@@ -172,7 +172,7 @@
     {:else if $prism$}
       {@const { description, timestamp, outlay_factor, prism_members } = $prism$}
       <SummaryRow>
-        <div slot="label">Status</div>
+        <div slot="label">{$translate('app.labels.status')}</div>
         <div slot="value">
           <p
             class:text-utility-error={!boundOfferIds.length}
@@ -183,13 +183,13 @@
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Name</div>
+        <div slot="label">{$translate('app.labels.name')}</div>
         <div slot="value">
           {description}
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Created</div>
+        <div slot="label">{$translate('app.labels.created')}</div>
         <div slot="value">
           {#await formatDate(timestamp, 'do MMM hh:mma') then formatted}
             <div>{formatted}</div>
@@ -197,16 +197,16 @@
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Member Payout</div>
+        <div slot="label">{$translate('app.labels.member_payout')}</div>
         <div slot="value">
           <div>{outlay_factor * 100}%</div>
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Binding</div>
+        <div slot="label">{$translate('app.labels.binding')}</div>
         <div slot="value">
           {#if $activeOffers$?.length}
-            <p class="font-bold">Offers</p>
+            <p class="font-bold">{$translate('app.labels.offers')}</p>
             {#each $activeOffers$ as { id, label, description, bolt12 }}
               <SummaryRow>
                 <div slot="label" class="flex gap-1">
@@ -237,7 +237,7 @@
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">Members</div>
+        <div slot="label">{$translate('app.labels.members')}</div>
         <div slot="value">
           {#if prism_members?.length}
             {#each prism_members as { description, destination, split, fees_incurred_by, payout_threshold_msat }, i}
@@ -261,21 +261,21 @@
                 {#if openMembers.includes(i.toString())}
                   <div transition:slide={{ duration: 250 }} class="flex flex-col p-2">
                     <SummaryRow>
-                      <div slot="label">Destination</div>
+                      <div slot="label">{$translate('app.labels.destination')}</div>
                       <div slot="value">
                         <CopyValue value={destination} label={truncateValue(destination, 5)} />
                       </div>
                     </SummaryRow>
                     <SummaryRow>
-                      <div slot="label">Split</div>
+                      <div slot="label">{$translate('app.labels.split')}</div>
                       <div slot="value">{split}</div>
                     </SummaryRow>
                     <SummaryRow>
-                      <div slot="label">Fees incurred by</div>
+                      <div slot="label">{$translate('app.labels.fees_incurred_by')}</div>
                       <div slot="value">{fees_incurred_by}</div>
                     </SummaryRow>
                     <SummaryRow>
-                      <div slot="label">Payout threshold (msats)</div>
+                      <div slot="label">{$translate('app.labels.payout_threshold')}</div>
                       <div slot="value">{payout_threshold_msat}</div>
                     </SummaryRow>
                   </div>

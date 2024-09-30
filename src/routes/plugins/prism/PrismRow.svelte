@@ -7,6 +7,7 @@
   import { from } from 'rxjs'
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db'
+  import { translate } from '$lib/i18n/translations'
 
   export let prism: PrismType
   export let wallet: string
@@ -37,7 +38,7 @@
   class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[90px]"
 >
   <div class="flex flex-col justify-center h-full">
-    <div class="font-semibold">Prism</div>
+    <div class="font-semibold">{$translate('app.labels.prism')}</div>
     <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{description}</div>
   </div>
   <div class="flex items-center ml-4 h-full">
@@ -51,7 +52,11 @@
           >
             {prism_members.length}
           </div>
-          <div>{prism_members.length > 1 ? 'members' : 'member'}</div>
+          <div>
+            {prism_members.length > 1
+              ? `${$translate('app.labels.members')}`.toLowerCase()
+              : `${$translate('app.labels.member')}`.toLowerCase()}
+          </div>
         </div>
       </div>
       <div class="text-right w-full text-xs italic truncate whitespace-nowrap pr-1">
@@ -60,7 +65,7 @@
         {/await}
       </div>
       <div class="flex items-center justify-end text-xs font-semibold">
-        {'offer bound'}
+        {$translate('app.labels.offer_bound')}
         <div
           class="w-4 ml-1 border rounded-full"
           class:border-utility-success={offerBound}
