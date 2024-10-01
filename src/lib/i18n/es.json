@@ -40,6 +40,9 @@
     "/plugins/clboss": {
       "title": "CLBOSS"
     },
+    "/plugins/prism": {
+      "title": "Prisms"
+    },
     "/settings": {
       "title": "Configuración"
     },
@@ -538,8 +541,7 @@
     "prism": "Prism",
     "offer_bound": "límite de oferta",
     "name": "Nombre",
-    "member_payout": "Pago al miembro",
-    "member_payout_percentage": "Porcentaje de pago al miembro (%)",
+    "outlay_factor": "Factor de desembolso",
     "split": "División",
     "payout_threshold": "Umbral de pago (msats)",
     "fees_incurred_by": "Comisiones asumidas por",

@@ -8,6 +8,7 @@
   import { liveQuery } from 'dexie'
   import { db } from '$lib/db'
   import { translate } from '$lib/i18n/translations'
+  import { truncateValue } from '$lib/utils'
 
   export let prism: PrismType
   export let wallet: string
@@ -39,7 +40,9 @@
 >
   <div class="flex flex-col justify-center h-full">
     <div class="font-semibold">{$translate('app.labels.prism')}</div>
-    <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{description}</div>
+    <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">
+      {truncateValue(description, 15)}
+    </div>
   </div>
   <div class="flex items-center ml-4 h-full">
     <div>

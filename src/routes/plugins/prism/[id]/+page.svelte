@@ -197,9 +197,9 @@
         </div>
       </SummaryRow>
       <SummaryRow>
-        <div slot="label">{$translate('app.labels.member_payout')}</div>
+        <div slot="label">{$translate('app.labels.outlay_factor')}</div>
         <div slot="value">
-          <div>{outlay_factor * 100}%</div>
+          <div>{outlay_factor}</div>
         </div>
       </SummaryRow>
       <SummaryRow>

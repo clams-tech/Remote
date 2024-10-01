@@ -59,14 +59,14 @@
 
   $: plugins = [
     {
-      label: $translate('app.labels.clboss'),
+      label: 'CLBOSS',
       installed: clbossInstalled,
       active: clbossActive,
       repo: 'https://github.com/ZmnSCPxj/clboss',
       route: '/plugins/clboss'
     },
     {
-      label: $translate('app.labels.prism'),
+      label: 'BOLT12-Prism',
       installed: prismInstalled,
       active: prismActive,
       repo: 'https://github.com/gudnuf/bolt12-prism',
@@ -90,41 +90,46 @@
         {#if loading}
           <Spinner size="1.5em" />
         {:else}
-          {#each plugins as { label, installed, active, repo, route }}
-            <a
-              href={installed ? `${route}?wallet=${selectedWalletId}` : repo}
-              target={installed ? null : '_blank'}
-              rel={installed ? null : 'noopener noreferrer'}
-              class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
-            >
-              <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
-                <div class="font-semibold">{label}</div>
-              </div>
+          <div
+            class="grid gap-4"
+            style="grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr)"
+          >
+            {#each plugins as { label, installed, active, repo, route }}
+              <a
+                href={installed ? `${route}?wallet=${selectedWalletId}` : repo}
+                target={installed ? null : '_blank'}
+                rel={installed ? null : 'noopener noreferrer'}
+                class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+              >
+                <div class="flex items-center justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
+                  <div class="font-semibold">{label}</div>
+                </div>
 
-              <div class="text-sm">
-                <div class="flex items-center">
-                  <div
-                    class:border-utility-error={!installed}
-                    class:border-utility-success={installed}
-                    class="w-4 mr-1 border rounded-full"
-                  >
-                    {@html installed ? check : close}
+                <div class="text-sm">
+                  <div class="flex items-center">
+                    <div
+                      class:border-utility-error={!installed}
+                      class:border-utility-success={installed}
+                      class="w-4 mr-1 border rounded-full"
+                    >
+                      {@html installed ? check : close}
+                    </div>
+                    {$translate('app.labels.installed')}
                   </div>
-                  {$translate('app.labels.installed')}
-                </div>
-                <div class="flex items-center">
-                  <div
-                    class:border-utility-error={!active}
-                    class:border-utility-success={active}
-                    class="w-4 mr-1 border rounded-full"
-                  >
-                    {@html active ? check : close}
+                  <div class="flex items-center">
+                    <div
+                      class:border-utility-error={!active}
+                      class:border-utility-success={active}
+                      class="w-4 mr-1 border rounded-full"
+                    >
+                      {@html active ? check : close}
+                    </div>
+                    {$translate('app.labels.active')}
                   </div>
-                  {$translate('app.labels.active')}
                 </div>
-              </div>
-            </a>
-          {/each}
+              </a>
+            {/each}
+          </div>
         {/if}
       </div>
     </div>

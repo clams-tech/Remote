@@ -15,7 +15,10 @@
   import { db } from '$lib/db'
   import { slide } from 'svelte/transition'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
-  import trashOutline from '$lib/icons/trash-outline.js'
+  import trashOutlineIcon from '$lib/icons/trash-outline.js'
+  import Scan from '../../../input/Scan.svelte'
+  import { isBolt12Offer } from '$lib/input-parser'
+  import type { ParsedInput } from '$lib/@types/common'
 
   export let data: PageData
   const { wallet } = data
@@ -30,14 +33,13 @@
   )
 
   let description = ''
-  let outlayFactorAsPercentage = 100
-  $: outlayFactor = outlayFactorAsPercentage / 100 // value passed to plugin
-  let members = [
+  let outlay_factor = 1
+  let members: PrismMember[] = [
     {
       description: '',
       destination: '',
-      split: 0,
-      fees_incurred_by: 'local', // 'local' or 'remote'
+      split: 1,
+      fees_incurred_by: 'remote', // 'local' or 'remote'
       payout_threshold_msat: 0
     }
   ]
@@ -54,8 +56,8 @@
       {
         description: '',
         destination: '',
-        split: 0,
-        fees_incurred_by: 'local',
+        split: 1,
+        fees_incurred_by: 'remote',
         payout_threshold_msat: 0
       }
     ]
@@ -66,6 +68,21 @@
 
   const removeMember = (memberIndex: number) => {
     members = members.filter((_, index) => index !== memberIndex)
+  }
+
+  const handleInput = async (
+    { type, value, amount, label, message, lightning }: ParsedInput,
+    memberIndex: number
+  ) => {
+    if (type === 'node_address') {
+      console.log('node address = ', { type, value, amount, label, message, lightning })
+      console.log('member index = ', memberIndex)
+      members[memberIndex].description = value
+    } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
+      console.log('offer = ', { type, value, amount, label, message, lightning })
+      console.log('member index = ', memberIndex)
+      members[memberIndex].description = value
+    }
   }
 
   const toggleOpenMember = (memberIndex: number) => {
@@ -101,7 +118,7 @@
     let prism: PrismType | null
 
     try {
-      prism = (await connection.prism!.createPrism!(description, members, outlayFactor)) || null
+      prism = (await connection.prism!.createPrism!(description, members, outlay_factor)) || null
 
       if (prism) {
         await db.prisms.add(prism, prism?.prism_id)
@@ -130,9 +147,9 @@
       placeholder={$translate('app.labels.prism_name_placeholder')}
     />
     <TextInput
-      bind:value={outlayFactorAsPercentage}
+      bind:value={outlay_factor}
       name="outlayFactor"
-      label={$translate('app.labels.member_payout_percentage')}
+      label={$translate('app.labels.outlay_factor')}
       type="number"
     />
     {#if members.length}
@@ -159,7 +176,7 @@
               </p>
             </div>
             <div on:click={() => removeMember(i)} class="w-6 cursor-pointer">
-              {@html trashOutline}
+              {@html trashOutlineIcon}
             </div>
           </div>
           {#if openMembers.includes(i.toString())}
@@ -177,8 +194,10 @@
                 label={$translate('app.labels.destination')}
                 placeholder={$translate('app.labels.member_destination_placeholder')}
                 type="text"
-              />
-              <div class="flex gap-4">
+              >
+                <Scan on:input={e => handleInput(e.detail)} /></TextInput
+              >
+              <div class="flex flex-col sm:flex-row gap-4">
                 <TextInput
                   bind:value={split}
                   name="split"
@@ -202,12 +221,12 @@
                 </label>
                 <div class="flex gap-4">
                   <label class="flex items-center cursor-pointer">
-                    <input type="radio" bind:group={fees_incurred_by} value="local" />
-                    <span class="ml-1">local</span>
-                  </label>
-                  <label class="flex items-center cursor-pointer">
                     <input type="radio" bind:group={fees_incurred_by} value="remote" />
                     <span class="ml-1">remote</span>
+                  </label>
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" bind:group={fees_incurred_by} value="local" />
+                    <span class="ml-1">local</span>
                   </label>
                 </div>
               </div>

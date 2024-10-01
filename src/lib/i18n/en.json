@@ -41,7 +41,7 @@
       "title": "CLBOSS"
     },
     "/plugins/prism": {
-      "title": "Prism"
+      "title": "Prisms"
     },
     "/plugins/prism/create": {
       "title": "Create Prism"
@@ -547,8 +547,7 @@
     "prism": "Prism",
     "offer_bound": "offer bound",
     "name": "Name",
-    "member_payout": "Member payout",
-    "member_payout_percentage": "Member payout (%)",
+    "outlay_factor": "Outlay factor",
     "split": "Split",
     "payout_threshold": "Payout threshold (msats)",
     "fees_incurred_by": "Fees incurred by",
