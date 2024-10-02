@@ -260,7 +260,7 @@
                     {i + 1}
                   </div>
                   <p>
-                    {description ? description : '?'}
+                    {description ? truncateValue(description, 12) : '?'}
                   </p>
                 </div>
                 {#if openMembers.includes(i.toString())}
