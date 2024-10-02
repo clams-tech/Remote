@@ -84,7 +84,7 @@ class Prism implements PrismInterface {
   ----- */
   async listBindings(offer_id?: string): Promise<PrismBinding[]> {
     const { bolt12_prism_bindings } = (await this.connection.rpc({
-      method: 'prism-bindinglist',
+      method: 'prism-listbindings',
       ...(offer_id && { offer_id })
     })) as ListPrismBindingsResponse
 
@@ -98,7 +98,7 @@ class Prism implements PrismInterface {
 
   async createBinding(prism_id: string, offer_id: string): Promise<CreateBindingResponse> {
     const response = (await this.connection.rpc({
-      method: 'prism-bindingadd',
+      method: 'prism-addbinding',
       params: {
         prism_id,
         offer_id
@@ -127,7 +127,7 @@ class Prism implements PrismInterface {
 
   async deleteBinding(offer_id: string): Promise<DeletedBinding> {
     const { binding_removed } = (await this.connection.rpc({
-      method: 'prism-bindingremove',
+      method: 'prism-deletebinding',
       params: {
         offer_id
       }
