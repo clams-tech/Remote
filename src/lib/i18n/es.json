@@ -43,6 +43,9 @@
     "/plugins/prism": {
       "title": "Prisms"
     },
+    "/plugins/prism/create": {
+      "title": "Crear Prism"
+    },
     "/settings": {
       "title": "Configuración"
     },
@@ -243,6 +246,8 @@
     "no_forwards_filtered": "No hay reenvios que coincidan con tus filtros actuales.",
     "no_wallets": "No hay billeteras aquí, agrega una billetera para comenzar.",
     "no_wallets_filtered": "No hay billeteras que coincidan con tus filtros actuales.",
+    "no_prisms": "No hay Prisms aquí, crea un Prism para comenzar.",
+    "no_prisms_filtered": "No hay Prisms que coincidan con tus filtros actuales.",
     "destination": "Destino",
     "unconfirmed": "Para gastar (sin confirmar)",
     "confirmed": "Para gastar",
