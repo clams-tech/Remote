@@ -213,7 +213,9 @@
                   <a class="no-underline" href={`/offers/${id}`}>
                     <Button
                       disabled={!boundOfferIds.includes(id)}
-                      text={label || description || truncateValue(bolt12, 5)}
+                      text={truncateValue(label ?? '', 8) ||
+                        truncateValue(description, 8) ||
+                        truncateValue(bolt12, 8)}
                     />
                   </a>
                 </div>

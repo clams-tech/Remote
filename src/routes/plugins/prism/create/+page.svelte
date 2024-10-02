@@ -16,9 +16,11 @@
   import { slide } from 'svelte/transition'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import trashOutlineIcon from '$lib/icons/trash-outline.js'
+  import ScanIcon from '$lib/icons/scan.js'
   import Scan from '../../../input/Scan.svelte'
   import { isBolt12Offer } from '$lib/input-parser'
   import type { ParsedInput } from '$lib/@types/common'
+  import Modal from '$lib/components/Modal.svelte'
 
   export let data: PageData
   const { wallet } = data
@@ -44,6 +46,7 @@
     }
   ]
   let openMembers: string[] = ['0'] // indexes of open member dropdowns
+  let showMemberDestinationModal = false
 
   let createPrismError: AppError | null
   let creatingPrism = false
@@ -70,18 +73,11 @@
     members = members.filter((_, index) => index !== memberIndex)
   }
 
-  const handleInput = async (
-    { type, value, amount, label, message, lightning }: ParsedInput,
-    memberIndex: number
-  ) => {
-    if (type === 'node_address') {
-      console.log('node address = ', { type, value, amount, label, message, lightning })
+  const handleInput = async ({ type, value, lightning }: ParsedInput, memberIndex: number) => {
+    if (type === 'node_publickey' || type === 'offer' || (lightning && isBolt12Offer(lightning))) {
       console.log('member index = ', memberIndex)
-      members[memberIndex].description = value
-    } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
-      console.log('offer = ', { type, value, amount, label, message, lightning })
-      console.log('member index = ', memberIndex)
-      members[memberIndex].description = value
+      members[memberIndex].destination = value
+      showMemberDestinationModal = false
     }
   }
 
@@ -195,8 +191,20 @@
                 placeholder={$translate('app.labels.member_destination_placeholder')}
                 type="text"
               >
-                <Scan on:input={e => handleInput(e.detail)} /></TextInput
-              >
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div
+                  class="ml-2 w-12 cursor-pointer"
+                  on:click={() => (showMemberDestinationModal = true)}
+                >
+                  {@html ScanIcon}
+                </div>
+              </TextInput>
+              {#if showMemberDestinationModal}
+                <Modal on:close={() => (showMemberDestinationModal = false)}>
+                  <Scan on:input={e => handleInput(e.detail, i)} />
+                </Modal>
+              {/if}
               <div class="flex flex-col sm:flex-row gap-4">
                 <TextInput
                   bind:value={split}
