@@ -1,5 +1,5 @@
 import { fromEvent, type BehaviorSubject, firstValueFrom, filter, map } from 'rxjs'
-import type { ConnectionStatus } from '../interfaces.js'
+import type { Connection, ConnectionStatus } from '../interfaces.js'
 import { createRandomHex } from '$lib/crypto.js'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import type { Forward } from '$lib/@types/forwards.js'
@@ -96,12 +96,23 @@ export const createSocket = async (
 export const formatPayments = async (
   invoices: RawInvoice[],
   pays: Pay[],
+  connection: Connection,
   walletId: string,
   network: Network
 ): Promise<InvoicePayment[]> => {
+  console.log(`connection passed to formatPayments = `, connection)
+
   const id = createRandomHex()
 
-  coreLnWorker.postMessage({ id, type: 'format_payments', invoices, pays, walletId, network })
+  coreLnWorker.postMessage({
+    id,
+    type: 'format_payments',
+    invoices,
+    pays,
+    connection,
+    walletId,
+    network
+  })
 
   return firstValueFrom(
     messages$.pipe(

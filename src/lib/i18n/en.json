@@ -586,6 +586,8 @@
     "invalid_qr": "Unrecognized QR encoding",
     "invalid_bolt11": "Invalid Bolt11 Invoice Request",
     "invalid_bolt12": "Invalid Bolt12 Offer",
+    "invalid_invoice": "Invalid invoice",
+    "unknown_type": "Unknown type",
     "unrecognized_payment_type": "Unrecognized Invoice Type",
     "onchain_unsupported": "Onchain payments are not yet supported",
     "permissions_clipboard": "The request to read your clipboard was rejected. Please adjust your browser preferences if you would like to enable clipboard read access.",

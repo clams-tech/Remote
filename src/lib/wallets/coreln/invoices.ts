@@ -53,6 +53,7 @@ class Invoices implements InvoicesInterface {
       const formatted = await formatPayments(
         invoices,
         pays,
+        this.connection,
         this.connection.walletId,
         this.connection.info.network
       )
@@ -289,6 +290,7 @@ class Invoices implements InvoicesInterface {
       invoice = rawInvoice
         ? await formatInvoice(
             rawInvoice as RawInvoice,
+            this.connection,
             this.connection.walletId,
             this.connection.info.network
           )

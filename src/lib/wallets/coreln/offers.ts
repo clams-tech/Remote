@@ -49,7 +49,10 @@ class Offers implements OffersInterface {
       const formattedOffers = await Promise.all(
         offers.map(async offer => {
           const { offer_id, bolt12, active, single_use, used, label } = offer
-          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(bolt12)
+          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(
+            this.connection,
+            bolt12
+          )
 
           const formatted: Offer = {
             id: offer_id,
@@ -74,7 +77,10 @@ class Offers implements OffersInterface {
       const formattedInvoiceRequests = await Promise.all(
         invoicerequests.map(async offer => {
           const { invreq_id, bolt12, active, single_use, used, label } = offer
-          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(bolt12)
+          const { description, denomination, amount, issuer, expiry } = await decodeBolt12(
+            this.connection,
+            bolt12
+          )
 
           const formatted: Offer = {
             id: invreq_id,
@@ -306,6 +312,7 @@ class Offers implements OffersInterface {
       throw connectionError
     }
   }
+
   async payInvoice(bolt12: string): Promise<InvoicePayment> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })

@@ -585,6 +585,8 @@
     "invalid_qr": "Codificación QR no reconocida",
     "invalid_bolt11": "Solicitud de factura Bolt11 inválida",
     "invalid_bolt12": "Oferta Bolt12 inválida",
+    "invalid_invoice": "Factura inválida",
+    "unknown_type": "Tipo desconocido",
     "unrecognized_payment_type": "Tipo de factura no reconocido",
     "onchain_unsupported": "Pagos Onchain no están soportados todavía",
     "permissions_clipboard": "La solicitud de lectura de su portapapeles fue rechazada. Por favor ajuste las preferencias de su navegador si desea habilitar el acceso a la lectura del portapapeles.",

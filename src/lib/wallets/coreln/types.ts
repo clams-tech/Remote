@@ -204,9 +204,9 @@ export type InvoiceResponse = {
    */
   payment_hash: string
   /**
-   * the *payment_secret* to place in the onion
+   * the *payment_string* to place in the onion
    */
-  payment_secret: string
+  payment_string: string
   /**
    * even using all possible channels, there's not enough incoming capacity to pay this
    * invoice.
@@ -970,7 +970,7 @@ type Transaction = {
   outputs: {
     index: number
     amount_msat: string
-    scriptPubKey: string
+    scriptstring: string
     type?: InputOutputType
     channel?: string
   }[]
@@ -1171,6 +1171,337 @@ export type ListNodesResponse = {
   nodes: (NodeBaseResponse | NodeFullResponse)[]
 }
 
+/* -----
+'lightning-decode' method
+----- */
+
+// Common types
+type Hex = string // Hexadecimal string
+type U64 = string // 64-bit unsigned integer as string
+type U32 = number // 32-bit unsigned integer
+
+// Base interface for the decode response
+interface BaseDecodeResponse {
+  type:
+    | 'bolt12 offer'
+    | 'bolt12 invoice'
+    | 'bolt12 invoice_request'
+    | 'bolt11 invoice'
+    | 'rune'
+    | 'emergency recover'
+  valid: boolean
+}
+
+// Offer Paths
+interface PathHop {
+  blinded_node_id: string
+  encrypted_recipient_data: Hex
+}
+
+interface OfferPath {
+  blinding: string
+  path: PathHop[]
+  first_node_id?: string
+  first_scid?: string
+  first_scid_dir?: U32
+}
+
+// Offer Recurrence
+interface OfferPayWindow {
+  seconds_before: U32
+  seconds_after: U32
+  proportional_amount?: true // Always true
+}
+
+interface OfferRecurrence {
+  time_unit: U32
+  period: U32
+  time_unit_name?: string
+  basetime?: U64
+  start_any_period?: U64
+  limit?: U32
+  paywindow?: OfferPayWindow
+}
+
+// Unknown TLV
+interface UnknownTlv {
+  type: U64
+  length: U64
+  value: Hex
+}
+
+// Bolt12 Offer Valid
+export interface Bolt12OfferValid extends BaseDecodeResponse {
+  type: 'bolt12 offer'
+  valid: true
+  offer_id: Hex
+  offer_chains?: Hex[] // Array of genesis block hashes
+  offer_metadata?: Hex
+  offer_currency?: string // ISO 4217 code
+  currency_minor_unit?: U32
+  offer_amount?: U64
+  offer_amount_msat?: string
+  offer_description?: string
+  offer_issuer?: string
+  offer_features?: Hex
+  offer_absolute_expiry?: U64
+  offer_quantity_max?: number
+  offer_paths?: OfferPath[]
+  offer_node_id?: string // Deprecated
+  offer_issuer_id?: string
+  offer_recurrence?: OfferRecurrence
+  unknown_offer_tlvs?: UnknownTlv[]
+  // Warnings
+  warning_unknown_offer_currency?: string
+  warning_empty_blinded_path?: string
+}
+
+// Bolt12 Offer Invalid
+interface Bolt12OfferInvalid extends BaseDecodeResponse {
+  type: 'bolt12 offer'
+  valid: false
+  // Warnings
+  warning_missing_offer_node_id?: string // Deprecated
+  warning_missing_offer_issuer_id?: string
+  warning_invalid_offer_description?: string
+  warning_missing_offer_description?: string
+  warning_invalid_offer_currency?: string
+  warning_invalid_offer_issuer?: string
+}
+
+// Bolt12 Invoice Request Valid
+export interface Bolt12InvoiceRequestValid extends BaseDecodeResponse {
+  type: 'bolt12 invoice_request'
+  valid: true
+  invreq_metadata: Hex
+  invreq_payer_id: Hex
+  signature: string
+  offer_id?: Hex
+  offer_chains?: Hex[]
+  offer_metadata?: Hex
+  offer_currency?: string
+  currency_minor_unit?: U32
+  offer_amount?: U64
+  offer_amount_msat?: string
+  offer_description?: string
+  offer_issuer?: string
+  offer_features?: Hex
+  offer_absolute_expiry?: U64
+  offer_quantity_max?: number
+  offer_paths?: OfferPath[]
+  offer_node_id?: string // Deprecated
+  offer_issuer_id?: string
+  offer_recurrence?: OfferRecurrence
+  invreq_chain?: Hex
+  invreq_amount_msat?: string
+  invreq_features?: Hex
+  invreq_quantity?: U64
+  invreq_payer_note?: string
+  invreq_paths?: OfferPath[]
+  invreq_recurrence_counter?: U32
+  invreq_recurrence_start?: U32
+  unknown_invoice_request_tlvs?: UnknownTlv[]
+  // Warnings
+  warning_unknown_offer_currency?: string
+}
+
+// Bolt12 Invoice Request Invalid
+interface Bolt12InvoiceRequestInvalid extends BaseDecodeResponse {
+  type: 'bolt12 invoice_request'
+  valid: false
+  // Warnings
+  warning_invalid_offer_description?: string
+  warning_missing_offer_description?: string
+  warning_invalid_offer_currency?: string
+  warning_invalid_offer_issuer?: string
+  warning_missing_invreq_metadata?: string
+  warning_missing_invreq_payer_id?: string
+  warning_invalid_invreq_payer_note?: string
+  warning_missing_invoice_request_signature?: string
+  warning_invalid_invoice_request_signature?: string
+}
+
+// Invoice Paths
+interface InvoicePathPayInfo {
+  fee_base_msat: string
+  fee_proportional_millionths: U32
+  cltv_expiry_delta: U32
+  features: Hex
+}
+
+interface InvoicePath {
+  blinding: string
+  payinfo: InvoicePathPayInfo
+  path: PathHop[]
+  first_node_id?: string
+  first_scid?: string
+  first_scid_dir?: U32
+}
+
+// Invoice Fallbacks
+interface InvoiceFallback {
+  version: U32
+  hex: Hex
+  address?: string
+}
+
+// Bolt12 Invoice Valid
+export interface Bolt12InvoiceValid extends BaseDecodeResponse {
+  type: 'bolt12 invoice'
+  valid: true
+  invreq_metadata: Hex
+  invreq_payer_id: Hex
+  invoice_paths: InvoicePath[]
+  invoice_created_at: number
+  invoice_payment_hash: Hex
+  invoice_amount_msat: string
+  signature: string
+  offer_id?: Hex
+  offer_chains?: Hex[]
+  offer_metadata?: Hex
+  offer_currency?: string
+  currency_minor_unit?: U32
+  offer_amount?: U64
+  offer_amount_msat?: string
+  offer_description?: string
+  offer_issuer?: string
+  offer_features?: Hex
+  offer_absolute_expiry?: U64
+  offer_quantity_max?: number
+  offer_paths?: OfferPath[]
+  offer_node_id?: string // Deprecated
+  offer_issuer_id?: string
+  offer_recurrence?: OfferRecurrence
+  invreq_chain?: Hex
+  invreq_amount_msat?: string
+  invreq_features?: Hex
+  invreq_quantity?: U64
+  invreq_payer_note?: string
+  invreq_paths?: OfferPath[]
+  invreq_recurrence_counter?: U32
+  invreq_recurrence_start?: U32
+  invoice_relative_expiry?: U32
+  invoice_fallbacks?: InvoiceFallback[]
+  invoice_features?: Hex
+  invoice_node_id?: string
+  invoice_recurrence_basetime?: U64
+  unknown_invoice_tlvs?: UnknownTlv[]
+  // Warnings
+  warning_unknown_offer_currency?: string
+}
+
+// Bolt12 Invoice Invalid
+interface Bolt12InvoiceInvalid extends BaseDecodeResponse {
+  type: 'bolt12 invoice'
+  valid: false
+  fallbacks?: InvoiceFallback[]
+  // Warnings
+  warning_invoice_fallbacks_version_invalid?: string
+  warning_invalid_offer_description?: string
+  warning_missing_offer_description?: string
+  warning_invalid_offer_currency?: string
+  warning_invalid_offer_issuer?: string
+  warning_missing_invreq_metadata?: string
+  warning_invalid_invreq_payer_note?: string
+  warning_missing_invoice_paths?: string
+  warning_missing_invoice_blindedpay?: string
+  warning_missing_invoice_created_at?: string
+  warning_missing_invoice_payment_hash?: string
+  warning_missing_invoice_amount?: string
+  warning_missing_invoice_recurrence_basetime?: string
+  warning_missing_invoice_node_id?: string
+  warning_missing_invoice_signature?: string
+  warning_invalid_invoice_signature?: string
+}
+
+// Bolt11 Fallbacks
+interface Bolt11Fallback {
+  type: 'P2PKH' | 'P2SH' | 'P2WPKH' | 'P2WSH' | 'P2TR'
+  hex: Hex
+  addr?: string
+}
+
+// Bolt11 Route Hops
+interface Bolt11RouteHop {
+  pubkey: string
+  short_channel_id: string
+  fee_base_msat: string
+  fee_proportional_millionths: U32
+  cltv_expiry_delta: U32
+}
+
+// Bolt11 Invoice Valid
+interface Bolt11InvoiceValid extends BaseDecodeResponse {
+  type: 'bolt11 invoice'
+  valid: true
+  currency: string
+  created_at: U64
+  expiry: U64
+  payee: string
+  payment_hash: string
+  signature: string // Signature
+  min_final_cltv_expiry: U32
+  amount_msat?: string
+  description?: string
+  description_hash?: string
+  payment_string?: string
+  features?: Hex
+  payment_metadata?: Hex
+  fallbacks?: Bolt11Fallback[]
+  routes?: Bolt11RouteHop[][]
+  extra?: Array<{ tag: string; data: string }>
+}
+
+// Rune Restrictions
+interface RuneRestriction {
+  alternatives: string[]
+  summary: string
+}
+
+// Rune Valid
+interface RuneValid extends BaseDecodeResponse {
+  type: 'rune'
+  valid: true
+  string: string
+  restrictions: RuneRestriction[]
+  unique_id?: string
+  version?: string
+}
+
+// Rune Invalid
+interface RuneInvalid extends BaseDecodeResponse {
+  type: 'rune'
+  valid: false
+  hex?: Hex
+  // Warnings
+  warning_rune_invalid_utf8?: string
+}
+
+// Emergency Recover Valid
+interface EmergencyRecoverValid extends BaseDecodeResponse {
+  type: 'emergency recover'
+  valid: true
+  decrypted: Hex
+}
+
+export type Bolt12ValidDecodeReponse =
+  | Bolt12OfferValid
+  | Bolt12InvoiceValid
+  | Bolt12InvoiceRequestValid
+
+// Union type for the decode response
+export type DecodeResponse =
+  | Bolt12OfferValid
+  | Bolt12OfferInvalid
+  | Bolt12InvoiceRequestValid
+  | Bolt12InvoiceRequestInvalid
+  | Bolt12InvoiceValid
+  | Bolt12InvoiceInvalid
+  | Bolt11InvoiceValid
+  | RuneValid
+  | RuneInvalid
+  | EmergencyRecoverValid
+
 export type LNResponse =
   | InvoiceResponse
   | ListinvoicesResponse
@@ -1198,6 +1529,7 @@ export type LNResponse =
   | ListForwardsResponse
   | FundChannelResponse
   | ListNodesResponse
+  | DecodeResponse
 
 export type RpcRequest = (req: JsonRpcRequest & { rune: string }) => Promise<unknown>
 
