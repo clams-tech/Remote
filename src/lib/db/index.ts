@@ -13,6 +13,7 @@ import type { ExchangeRate } from '../@types/exchange-rates.js'
 import type { Node } from '../@types/nodes.js'
 import type { Payment } from '$lib/@types/payments.js'
 import type { Tag } from '$lib/@types/metadata.js'
+import type { PrismBinding, PrismType } from '$lib/@types/plugins.js'
 
 class DB extends Dexie {
   channels!: Table<Channel>
@@ -29,11 +30,13 @@ class DB extends Dexie {
   utxos!: Table<Utxo>
   wallets!: Table<Wallet>
   withdrawals!: Table<Withdrawal>
+  prisms!: Table<PrismType>
+  prismBindings!: Table<PrismBinding>
 
   constructor() {
     super('Clams Remote')
 
-    this.version(1).stores({
+    this.version(2).stores({
       channels:
         '&[id+walletId], id, walletId, shortId, balanceLocal, balanceRemote, peerId, status, opener, [id+opener], [fundingTransactionId+fundingOutput], [fundingTransactionId+fundingOutput+walletId], closeTo, *metadata.tags, metadata.contact',
       contacts: '&id, name, npub',
@@ -53,7 +56,9 @@ class DB extends Dexie {
       utxos: '&id, walletId, txid, timestamp, spendingTxid, *metadata.tags, metadata.contact',
       wallets: '&id, type, label, nodeId, *metadata.tags, metadata.contact, createdAt',
       withdrawals:
-        '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact'
+        '&id, walletId, destination, timestamp, amount, fee, *metadata.tags, metadata.contact',
+      prisms: `&id, prism_id, description, timestamp, outlay_factor, prism_members`,
+      prismBindings: `&id, prism_id, offer_id, timestamp, member_outlays`
     })
   }
 }
