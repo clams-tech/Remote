@@ -9,6 +9,9 @@ export type Plugin = {
   dynamic: boolean
 }
 
+/* ----- 
+CLBOSS
+----- */
 export type ClbossStatus = {
   channel_candidates: {
     id: string
@@ -51,4 +54,104 @@ export type ClbossStatus = {
     comment: ''
     [key: string]: string
   }
+}
+
+/* -----
+Prism
+----- */
+export type PrismMember = {
+  member_id?: string
+  description: string
+  destination: string
+  split: number
+  fees_incurred_by: 'local' | 'remote' | string
+  payout_threshold_msat: number
+}
+
+export type PrismType = {
+  id?: string // prism_id
+  prism_id: string
+  description: string
+  timestamp: number
+  outlay_factor: number
+  prism_members: PrismMember[]
+}
+
+export interface ListPrismsResponse {
+  prisms: PrismType[]
+}
+
+export type DeletedPrism = {
+  key: string[] // Array of strings representing key elements
+  generation: number // Generation number (possibly version control?)
+  hex: string // Hexadecimal representation of some data
+  string: string // Stringified JSON object (containing prism details)
+}
+
+export interface DeletePrismResponse {
+  deleted: DeletedPrism
+}
+
+export type PrismBinding = {
+  id?: string // prism_id
+  offer_id: string
+  prism_id: string
+  timestamp: number
+  member_outlays: [
+    {
+      member_id: string
+      outlay_msat: number
+    },
+    {
+      member_id: string
+      outlay_msat: number
+    },
+    {
+      member_id: string
+      outlay_msat: number
+    }
+  ]
+}
+
+export interface ListPrismBindingsResponse {
+  bolt12_prism_bindings: PrismBinding[]
+}
+
+export type CreateBindingResponse = {
+  status: 'must-replace' | string
+  timestamp: 1726125745
+  offer_id: string
+  prism_id: string
+  prism_binding_key: string[]
+  prism_members: PrismMember[]
+}
+
+export type DeletedBinding = {
+  key: string[]
+  generation: number
+  hex: string
+  string: string // JSON object
+}
+
+export type DeleteBindingResponse = {
+  binding_removed: DeletedBinding
+}
+
+type Payout = {
+  destination: string
+  payment_hash: string
+  created_at: number
+  parts: number
+  amount_msat: number
+  amount_sent_msat: number
+  payment_preimage: string
+  status: string
+}
+
+export type PrismMemberPayouts = {
+  [key: string]: Payout
+}
+
+export interface PrismPayResponse {
+  prism_member_payouts: PrismMemberPayouts
 }

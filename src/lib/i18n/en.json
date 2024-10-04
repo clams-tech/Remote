@@ -40,6 +40,12 @@
     "/plugins/clboss": {
       "title": "CLBOSS"
     },
+    "/plugins/prism": {
+      "title": "Prisms"
+    },
+    "/plugins/prism/create": {
+      "title": "Create Prism"
+    },
     "/settings": {
       "title": "Settings"
     },
@@ -241,6 +247,8 @@
     "no_forwards_filtered": "No forwards match your current filters.",
     "no_wallets": "No wallets here, add a wallet to get started.",
     "no_wallets_filtered": "No wallets match your current filters.",
+    "no_prisms": "No prisms here, create a prism to get started.",
+    "no_prisms_filtered": "No prisms march your current filters",
     "destination": "Destination",
     "unconfirmed": "Spendable (unconfirmed)",
     "confirmed": "Spendable",
@@ -535,7 +543,23 @@
     "ignoring_onchain_funds_until": "Ignoring onchain funds until",
     "toggle_clboss_permissions": "Toggle CLBOSS permissions on a per channel basis",
     "node_id": "Node ID",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "prism": "Prism",
+    "offer_bound": "offer bound",
+    "name": "Name",
+    "outlay_factor": "Outlay factor",
+    "split": "Split",
+    "payout_threshold": "Payout threshold (msats)",
+    "fees_incurred_by": "Fees incurred by",
+    "binding": "Binding",
+    "member": "Member",
+    "members": "Members",
+    "offers": "Offers",
+    "delete_prism_warning": "Are you sure you want to delete this Prism?",
+    "no_active_offers_found": "No active offers found",
+    "create_one": "create one",
+    "prism_name_placeholder": "Tips for the band",
+    "member_destination_placeholder": "BOLT12 offer or node pubkey"
   },
   "messages": {
     "closing_channel": "Closing a channel will publish an onchain transaction and settle the current channel balances.",

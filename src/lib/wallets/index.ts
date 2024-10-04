@@ -263,6 +263,60 @@ export const fetchDeposits = async (connection: Connection) =>
     })
     .catch(error => log.error(error?.detail?.message || error))
 
+/* -----
+Plugins
+----- */
+export const fetchPrisms = async (connection: Connection) =>
+  connection.prism &&
+  connection.prism
+    .listPrisms()
+    .then(prisms => {
+      return updateTableItems('prisms', prisms)
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const fetchPrismBindings = async (connection: Connection) =>
+  connection.prism &&
+  connection.prism
+    .listBindings()
+    .then(prismBindings => {
+      return updateTableItems('prismBindings', prismBindings)
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const createPrismBinding = async (
+  connection: Connection,
+  prism_id: string,
+  offer_id: string
+) =>
+  connection.prism &&
+  connection.prism
+    .createBinding(prism_id, offer_id)
+    .then(async createBindingResponse => {
+      return createBindingResponse
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const deletePrismBinding = async (connection: Connection, offer_id: string) =>
+  connection.prism &&
+  connection.prism
+    .deleteBinding(offer_id)
+    .then(async deletedPrismBinding => {
+      await db.prismBindings.delete(offer_id)
+      return deletedPrismBinding
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
+export const deletePrism = async (connection: Connection, prism_id: string) =>
+  connection.prism &&
+  connection.prism
+    .deletePrism(prism_id)
+    .then(async deletedPrism => {
+      await db.prisms.delete(prism_id)
+      return deletedPrism
+    })
+    .catch(error => log.error(error?.detail?.message || error))
+
 let lastPaidInvoiceIndexNotification: number
 
 /** lastSync unix timestamp seconds to be used in future pass to get methods to get update
