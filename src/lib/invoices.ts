@@ -58,16 +58,15 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
     }
   }
 
-  console.log(`decoded response from rpc = `, decoded)
-
   const {
     type,
     offer_id,
     offer_currency,
     offer_amount_msat,
     offer_description,
-    offer_node_id,
     offer_issuer,
+    offer_issuer_id,
+    offer_node_id,
     offer_absolute_expiry,
     offer_quantity_max
   } = decoded as Bolt12ValidDecodeReponse
@@ -77,7 +76,7 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
     (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
   const quantityMax = offer_quantity_max
   let amount = msatsToSats(formatMsatString(offer_amount_msat))
-  const receiverNodeId = offer_issuer || offer_node_id
+  const receiverNodeId = offer_issuer_id || offer_node_id
   let id = offer_id
   let senderNodeId: string | undefined
   let createdAt: number | undefined
