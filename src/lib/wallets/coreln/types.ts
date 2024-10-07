@@ -1231,7 +1231,7 @@ interface UnknownTlv {
 }
 
 // Bolt12 Offer Valid
-export interface Bolt12Offer extends BaseDecodeResponse {
+export interface DecodedBolt12Offer extends BaseDecodeResponse {
   type: 'bolt12 offer'
   valid: true
   offer_id: Hex
@@ -1257,7 +1257,7 @@ export interface Bolt12Offer extends BaseDecodeResponse {
 }
 
 // Bolt12 Offer Invalid
-interface Bolt12OfferInvalid extends BaseDecodeResponse {
+interface DecodedBolt12OfferInvalid extends BaseDecodeResponse {
   type: 'bolt12 offer'
   valid: false
   // Warnings
@@ -1270,7 +1270,7 @@ interface Bolt12OfferInvalid extends BaseDecodeResponse {
 }
 
 // Bolt12 Invoice Request Valid
-export interface Bolt12InvoiceRequest extends BaseDecodeResponse {
+export interface DecodedBolt12InvoiceRequest extends BaseDecodeResponse {
   type: 'bolt12 invoice_request'
   valid: true
   invreq_metadata: Hex
@@ -1306,7 +1306,7 @@ export interface Bolt12InvoiceRequest extends BaseDecodeResponse {
 }
 
 // Bolt12 Invoice Request Invalid
-interface Bolt12InvoiceRequestInvalid extends BaseDecodeResponse {
+interface DecodedBolt12InvoiceRequestInvalid extends BaseDecodeResponse {
   type: 'bolt12 invoice_request'
   valid: false
   // Warnings
@@ -1346,7 +1346,7 @@ interface InvoiceFallback {
 }
 
 // Bolt12 Invoice Valid
-export interface Bolt12Invoice extends BaseDecodeResponse {
+export interface DecodedBolt12Invoice extends BaseDecodeResponse {
   type: 'bolt12 invoice'
   valid: true
   invreq_metadata: Hex
@@ -1391,7 +1391,7 @@ export interface Bolt12Invoice extends BaseDecodeResponse {
 }
 
 // Bolt12 Invoice Invalid
-interface Bolt12InvoiceInvalid extends BaseDecodeResponse {
+interface DecodedBolt12InvoiceInvalid extends BaseDecodeResponse {
   type: 'bolt12 invoice'
   valid: false
   fallbacks?: InvoiceFallback[]
@@ -1431,7 +1431,7 @@ interface Bolt11RouteHop {
 }
 
 // Bolt11 Invoice Valid
-interface Bolt11Invoice extends BaseDecodeResponse {
+interface DecodedBolt11Invoice extends BaseDecodeResponse {
   type: 'bolt11 invoice'
   valid: true
   currency: string
@@ -1459,7 +1459,7 @@ interface RuneRestriction {
 }
 
 // Rune Valid
-interface RuneValid extends BaseDecodeResponse {
+interface DecodedRuneValid extends BaseDecodeResponse {
   type: 'rune'
   valid: true
   string: string
@@ -1469,7 +1469,7 @@ interface RuneValid extends BaseDecodeResponse {
 }
 
 // Rune Invalid
-interface RuneInvalid extends BaseDecodeResponse {
+interface DecodedRuneInvalid extends BaseDecodeResponse {
   type: 'rune'
   valid: false
   hex?: Hex
@@ -1478,7 +1478,7 @@ interface RuneInvalid extends BaseDecodeResponse {
 }
 
 // Emergency Recover Valid
-interface EmergencyRecoverValid extends BaseDecodeResponse {
+interface DecodedEmergencyRecover extends BaseDecodeResponse {
   type: 'emergency recover'
   valid: true
   decrypted: Hex
@@ -1488,16 +1488,16 @@ export type Bolt12ValidDecodeReponse = Bolt12Offer | Bolt12Invoice | Bolt12Invoi
 
 // Union type for the decode response
 export type DecodeResponse =
-  | Bolt12Offer
-  | Bolt12OfferInvalid
-  | Bolt12InvoiceRequest
-  | Bolt12InvoiceRequestInvalid
-  | Bolt12Invoice
-  | Bolt12InvoiceInvalid
-  | Bolt11Invoice
-  | RuneValid
-  | RuneInvalid
-  | EmergencyRecoverValid
+  | DecodedBolt12Offer
+  | DecodedBolt12OfferInvalid
+  | DecodedBolt12InvoiceRequest
+  | DecodedBolt12InvoiceRequestInvalid
+  | DecodedBolt12Invoice
+  | DecodedBolt12InvoiceInvalid
+  | DecodedBolt11Invoice
+  | DecodedRuneValid
+  | DecodedRuneInvalid
+  | DecodedEmergencyRecover
 
 export type LNResponse =
   | InvoiceResponse

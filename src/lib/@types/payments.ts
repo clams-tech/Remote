@@ -1,4 +1,4 @@
-import type { Bolt12Invoice, Bolt12Offer } from '$lib/wallets/coreln/types.js'
+import type { DecodedBolt12Invoice, DecodedBolt12Offer } from '$lib/wallets/coreln/types.js'
 import type { Metadata } from './metadata.js'
 
 export type PaymentBase = {
@@ -87,9 +87,9 @@ export type InvoicePayment = PaymentBase & {
     direction: PaymentDirection
     offer?: {
       id?: string
-      issuer?: Bolt12Offer['offer_issuer']
-      payerNote?: Bolt12Invoice['invreq_payer_note']
-      description?: Bolt12Offer['offer_description']
+      issuer?: DecodedBolt12Offer['offer_issuer']
+      payerNote?: DecodedBolt12Invoice['invreq_payer_note']
+      description?: DecodedBolt12Offer['offer_description']
     }
   }
 }
