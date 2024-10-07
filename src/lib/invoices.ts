@@ -62,6 +62,7 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
 
   const {
     type,
+    offer_id,
     offer_currency,
     offer_amount_msat,
     offer_description,
@@ -76,48 +77,45 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
     (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
   const quantityMax = offer_quantity_max
   let amount = msatsToSats(formatMsatString(offer_amount_msat))
-  let receiverNodeId = offer_issuer || offer_node_id
-  let id = ''
+  const receiverNodeId = offer_issuer || offer_node_id
+  let id = offer_id
   let senderNodeId: string | undefined
   let createdAt: number | undefined
   let payerNote: string | undefined
 
-  // Type-specific handling with switch
   switch (type) {
     case 'bolt12 offer': {
-      const { offer_id, offer_issuer_id } = decoded as Bolt12OfferValid
+      const { offer_id } = decoded as Bolt12OfferValid
       id = offer_id
-      receiverNodeId = offer_issuer_id || offer_node_id
+
       break
     }
 
     case 'bolt12 invoice': {
       const {
-        offer_id,
-        offer_issuer_id,
         invoice_created_at,
         invreq_payer_note,
         invreq_payer_id,
         invoice_amount_msat,
         invreq_amount_msat
       } = decoded as Bolt12InvoiceValid
-      id = offer_id || ''
-      receiverNodeId = offer_issuer_id || offer_node_id
+
       senderNodeId = invreq_payer_id
       createdAt = invoice_created_at
       payerNote = invreq_payer_note
       amount = msatsToSats(formatMsatString(invoice_amount_msat || invreq_amount_msat))
+
       break
     }
 
     case 'bolt12 invoice_request': {
-      const { offer_id, offer_issuer_id, invreq_amount_msat, invreq_payer_id, invreq_payer_note } =
+      const { invreq_amount_msat, invreq_payer_id, invreq_payer_note } =
         decoded as Bolt12InvoiceRequestValid
-      id = offer_id || ''
+
       amount = msatsToSats(formatMsatString(invreq_amount_msat))
       senderNodeId = invreq_payer_id
-      receiverNodeId = offer_issuer_id || offer_node_id
       payerNote = invreq_payer_note
+
       break
     }
 
