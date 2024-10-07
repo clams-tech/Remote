@@ -1,4 +1,4 @@
-import type { DecodedBolt12Invoice, DecodedBolt12Offer } from 'bolt12-decoder/@types/types.js'
+import type { DecodedBolt12Invoice, DecodedBolt12Offer } from '$lib/wallets/coreln/types.js'
 import type { Metadata } from './metadata.js'
 
 export type PaymentBase = {

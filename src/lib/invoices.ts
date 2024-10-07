@@ -3,13 +3,15 @@ import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
 import { formatMsatString } from './wallets/coreln/utils.js'
 import { msatsToSats } from './conversion.js'
-
+import { nowSeconds } from './utils.js'
 import type {
-  DecodedBolt12Invoice,
   DecodedBolt12InvoiceRequest,
+  DecodedBolt12Invoice,
   DecodedBolt12Offer,
-  DecodedType
-} from 'bolt12-decoder/@types/types.js'
+  Bolt12ValidDecodeReponse,
+  DecodeResponse
+} from './wallets/coreln/types.js'
+import { connections$ } from './streams.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -29,57 +31,106 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
 }
 
 export const decodeBolt12 = async (bolt12: string) => {
-  const { default: decoder } = await import('bolt12-decoder')
-  const decoded = decoder(bolt12)
+  const connection = connections$.value?.find(connection => connection)
+
+  console.log(`connection = `, connection)
+
+  if (!connection?.rpc) {
+    throw {
+      key: 'connection_not_available',
+      detail: {
+        timestamp: nowSeconds(),
+        message: 'Could not find CLN rpc to decode offer',
+        context: 'Decoding offer'
+      }
+    }
+  }
+
+  const decoded = (await connection.rpc({
+    method: 'decode',
+    params: { string: bolt12 }
+  })) as DecodeResponse
+
+  if (!decoded.valid) {
+    throw {
+      key: 'invalid_invoice',
+      detail: {
+        timestamp: nowSeconds(),
+        message: 'This offer is invalid',
+        context: 'Decoding offer'
+      }
+    }
+  }
 
   const {
     type,
+    offer_id,
     offer_currency,
-    offer_amount,
+    offer_amount_msat,
     offer_description,
-    offer_node_id,
     offer_issuer,
+    offer_issuer_id,
+    offer_node_id,
     offer_absolute_expiry,
     offer_quantity_max
-  } = decoded
+  } = decoded as Bolt12ValidDecodeReponse
 
-  let denomination: BitcoinDenomination.sats | FiatDenomination
-  let quantityMax: number | undefined
-  let amount: number
-  let id: string
+  // Common data across all types
+  const denomination: BitcoinDenomination.sats | FiatDenomination =
+    (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
+  const quantityMax = offer_quantity_max
+  let amount = msatsToSats(formatMsatString(offer_amount_msat))
+  const receiverNodeId = offer_issuer_id || offer_node_id
+  let id = offer_id
   let senderNodeId: string | undefined
-  let receiverNodeId: string | undefined
   let createdAt: number | undefined
   let payerNote: string | undefined
 
-  if (type === 'bolt12 invoice_request') {
-    const { invreq_amount, invreq_payer_id, invreq_id, invoice_created_at, invreq_payer_note } =
-      decoded as DecodedBolt12InvoiceRequest
-    denomination = BitcoinDenomination.sats
-    amount = msatsToSats(formatMsatString(invreq_amount))
-    senderNodeId = invreq_payer_id
-    receiverNodeId = offer_node_id
-    quantityMax = offer_quantity_max
-    id = invreq_id
-    createdAt = invoice_created_at
-    payerNote = invreq_payer_note
-  } else {
-    const {
-      invreq_amount,
-      invoice_node_id,
-      invoice_created_at,
-      invreq_payer_note,
-      invreq_payer_id
-    } = decoded as DecodedBolt12Invoice
-    const { offer_id } = decoded as DecodedBolt12Offer
-    denomination = (offer_currency?.toLowerCase() as FiatDenomination) || BitcoinDenomination.sats
-    amount = msatsToSats(formatMsatString(offer_amount || invreq_amount))
-    receiverNodeId = offer_node_id || invoice_node_id
-    senderNodeId = invreq_payer_id
-    quantityMax = offer_quantity_max
-    id = offer_id
-    createdAt = invoice_created_at
-    payerNote = invreq_payer_note
+  switch (type) {
+    case 'bolt12 offer': {
+      const { offer_id } = decoded as DecodedBolt12Offer
+      id = offer_id
+
+      break
+    }
+
+    case 'bolt12 invoice': {
+      const {
+        invoice_created_at,
+        invreq_payer_note,
+        invreq_payer_id,
+        invoice_amount_msat,
+        invreq_amount_msat
+      } = decoded as DecodedBolt12Invoice
+
+      senderNodeId = invreq_payer_id
+      createdAt = invoice_created_at
+      payerNote = invreq_payer_note
+      amount = msatsToSats(formatMsatString(invoice_amount_msat || invreq_amount_msat))
+
+      break
+    }
+
+    case 'bolt12 invoice_request': {
+      const { invreq_amount_msat, invreq_payer_id, invreq_payer_note } =
+        decoded as DecodedBolt12InvoiceRequest
+
+      amount = msatsToSats(formatMsatString(invreq_amount_msat))
+      senderNodeId = invreq_payer_id
+      payerNote = invreq_payer_note
+
+      break
+    }
+
+    default:
+      throw {
+        key: 'unknown_type',
+        detail: {
+          timestamp: nowSeconds(),
+          message: `Unknown type: ${type}`,
+          context: 'Decoding offer'
+        }
+      }
   }
 
   return {

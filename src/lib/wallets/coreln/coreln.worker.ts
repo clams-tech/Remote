@@ -129,6 +129,7 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'connect': {
       try {
         const socket = sockets[message.data.socketId]
+
         const result = await socket.connect()
         self.postMessage({ id: message.data.id, result })
       } catch (error) {

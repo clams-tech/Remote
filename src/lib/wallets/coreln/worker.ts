@@ -101,7 +101,14 @@ export const formatPayments = async (
 ): Promise<InvoicePayment[]> => {
   const id = createRandomHex()
 
-  coreLnWorker.postMessage({ id, type: 'format_payments', invoices, pays, walletId, network })
+  coreLnWorker.postMessage({
+    id,
+    type: 'format_payments',
+    invoices,
+    pays,
+    walletId,
+    network
+  })
 
   return firstValueFrom(
     messages$.pipe(

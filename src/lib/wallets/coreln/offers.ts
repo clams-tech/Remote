@@ -306,6 +306,7 @@ class Offers implements OffersInterface {
       throw connectionError
     }
   }
+
   async payInvoice(bolt12: string): Promise<InvoicePayment> {
     try {
       const result = await this.connection.rpc({ method: 'pay', params: [bolt12] })
