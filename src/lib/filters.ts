@@ -383,6 +383,15 @@ export const routeSorters = (route: string): Sorters => {
         options: [timestamp]
       }
     }
+    case 'prisms': {
+      const timestamp = timestampSorter()
+
+      return {
+        applied: { key: timestamp.key, direction: timestamp.direction },
+        options: [timestamp]
+      }
+    }
+
     default: {
       throw new Error(`Unknown route: ${route}`)
     }

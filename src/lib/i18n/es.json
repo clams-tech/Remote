@@ -40,6 +40,12 @@
     "/plugins/clboss": {
       "title": "CLBOSS"
     },
+    "/plugins/prism": {
+      "title": "Prisms"
+    },
+    "/plugins/prism/create": {
+      "title": "Crear Prism"
+    },
     "/settings": {
       "title": "Configuración"
     },
@@ -240,6 +246,8 @@
     "no_forwards_filtered": "No hay reenvios que coincidan con tus filtros actuales.",
     "no_wallets": "No hay billeteras aquí, agrega una billetera para comenzar.",
     "no_wallets_filtered": "No hay billeteras que coincidan con tus filtros actuales.",
+    "no_prisms": "No hay Prisms aquí, crea un Prism para comenzar.",
+    "no_prisms_filtered": "No hay Prisms que coincidan con tus filtros actuales.",
     "destination": "Destino",
     "unconfirmed": "Para gastar (sin confirmar)",
     "confirmed": "Para gastar",
@@ -534,7 +542,23 @@
     "ignoring_onchain_funds_until": "Ignorando fondos en cadena hasta",
     "toggle_clboss_permissions": "Alternar permisos de CLBOSS por canal",
     "node_id": "ID del nodo",
-    "permissions": "Permisos"
+    "permissions": "Permisos",
+    "prism": "Prism",
+    "offer_bound": "límite de oferta",
+    "name": "Nombre",
+    "outlay_factor": "Factor de desembolso",
+    "split": "División",
+    "payout_threshold": "Umbral de pago (msats)",
+    "fees_incurred_by": "Comisiones asumidas por",
+    "binding": "Vinculante",
+    "member": "Miembro",
+    "members": "Miembros",
+    "offers": "Ofertas",
+    "delete_prism_warning": "¿Estás seguro de que deseas eliminar este Prism?",
+    "no_active_offers_found": "No se encontraron ofertas activas",
+    "create_one": "crear una",
+    "prism_name_placeholder": "Consejos para la banda",
+    "member_destination_placeholder": "Oferta BOLT12 o clave pública del nodo"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",

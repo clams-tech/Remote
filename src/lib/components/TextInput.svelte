@@ -39,7 +39,7 @@
 <div style="width: {width};" class="flex flex-col relative">
   {#if label}
     <label
-      class="{micro ? 'text-xs' : 'text-sm'} w-1/2 text-inherit text-neutral-300 mb-2 font-semibold"
+      class="{micro ? 'text-xs' : 'text-sm'} w-3/4 text-inherit text-neutral-300 mb-2 font-semibold"
       for={name}
     >
       {label}

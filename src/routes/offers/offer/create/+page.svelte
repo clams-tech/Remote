@@ -126,11 +126,11 @@
 
       <TextInput
         type="text"
-        label={$translate('app.labels.label')}
-        name="label"
-        bind:value={label}
-        placeholder={$translate('app.labels.offer_label_placeholder')}
-        hint={$translate('app.labels.optional')}
+        label={$translate('app.labels.description')}
+        name="description"
+        bind:value={description}
+        hint={$translate('app.labels.required')}
+        placeholder={$translate('app.labels.offer_description_placeholder')}
       />
 
       <div class="text-sm">
@@ -140,11 +140,11 @@
 
             <TextInput
               type="text"
-              label={$translate('app.labels.description')}
-              name="description"
-              bind:value={description}
+              label={$translate('app.labels.label')}
+              name="label"
+              bind:value={label}
+              placeholder={$translate('app.labels.offer_label_placeholder')}
               hint={$translate('app.labels.optional')}
-              placeholder={$translate('app.labels.offer_description_placeholder')}
             />
 
             <TextInput
@@ -166,7 +166,7 @@
       <div class="w-min">
         <Button
           requesting={creatingOffer}
-          disabled={type === 'withdraw' && !amount}
+          disabled={(type === 'withdraw' && !amount) || !description}
           on:click={createOffer}
           primary
           text={$translate('app.labels.create')}
