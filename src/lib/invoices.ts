@@ -3,7 +3,6 @@ import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
 import { formatMsatString } from './wallets/coreln/utils.js'
 import { msatsToSats } from './conversion.js'
-import type { Connection } from './wallets/interfaces.js'
 import { nowSeconds } from './utils.js'
 import type {
   DecodedBolt12InvoiceRequest,
@@ -12,6 +11,7 @@ import type {
   Bolt12ValidDecodeReponse,
   DecodeResponse
 } from './wallets/coreln/types.js'
+import { connections$ } from './streams.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -30,7 +30,11 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   }
 }
 
-export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
+export const decodeBolt12 = async (bolt12: string) => {
+  const connection = connections$.value?.find(connection => connection)
+
+  console.log(`connection = `, connection)
+
   if (!connection?.rpc) {
     throw {
       key: 'connection_not_available',

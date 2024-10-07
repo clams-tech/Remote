@@ -42,7 +42,6 @@ export function invoiceStatusToPaymentStatus(
 
 export async function formatInvoice(
   invoice: RawInvoice,
-  connection: Connection,
   walletId: string,
   network: Network
 ): Promise<InvoicePayment> {
@@ -77,7 +76,7 @@ export async function formatInvoice(
   }
 
   if (bolt12) {
-    const decoded = await decodeBolt12(connection, bolt12)
+    const decoded = await decodeBolt12(bolt12)
 
     const {
       createdAt: invoiceCreatedAt,

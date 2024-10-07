@@ -96,12 +96,9 @@ export const createSocket = async (
 export const formatPayments = async (
   invoices: RawInvoice[],
   pays: Pay[],
-  connection: Connection,
   walletId: string,
   network: Network
 ): Promise<InvoicePayment[]> => {
-  console.log(`connection passed to formatPayments = `, connection)
-
   const id = createRandomHex()
 
   coreLnWorker.postMessage({
@@ -109,7 +106,6 @@ export const formatPayments = async (
     type: 'format_payments',
     invoices,
     pays,
-    connection,
     walletId,
     network
   })

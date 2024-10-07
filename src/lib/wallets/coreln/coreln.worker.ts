@@ -30,7 +30,6 @@ import type {
   ListPeerChannelsResponse,
   ListfundsResponse
 } from './types.js'
-import type { Connection } from '../interfaces.js'
 
 // required to be init at least once to derive taproot addresses
 initEccLib(secp256k1)
@@ -74,7 +73,6 @@ type FormatPaymentsMessage = MessageBase & {
   type: 'format_payments'
   invoices: RawInvoice[]
   pays: Pay[]
-  connection: Connection
   walletId: string
   network: Network
 }
@@ -131,6 +129,7 @@ onmessage = async (message: MessageEvent<Message>) => {
     case 'connect': {
       try {
         const socket = sockets[message.data.socketId]
+
         const result = await socket.connect()
         self.postMessage({ id: message.data.id, result })
       } catch (error) {
@@ -156,10 +155,10 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
     }
     case 'format_payments': {
-      const { id, invoices, pays, connection, walletId, network } = message.data
+      const { id, invoices, pays, walletId, network } = message.data
 
       const invoicePayments: InvoicePayment[] = await Promise.all(
-        invoices.map(invoice => formatInvoice(invoice, connection, walletId, network))
+        invoices.map(invoice => formatInvoice(invoice, walletId, network))
       )
 
       const sentPayments: InvoicePayment[] = await Promise.all(

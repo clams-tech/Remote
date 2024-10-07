@@ -51,7 +51,7 @@
 
   const decoded$ =
     connection &&
-    from(decodeBolt12(connection, data.bolt12)).pipe(
+    from(decodeBolt12(data.bolt12)).pipe(
       catchError(() => {
         decodeError = $translate('app.errors.invalid_bolt12')
         return of(null)
