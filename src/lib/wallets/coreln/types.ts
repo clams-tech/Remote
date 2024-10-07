@@ -1231,7 +1231,7 @@ interface UnknownTlv {
 }
 
 // Bolt12 Offer Valid
-export interface Bolt12OfferValid extends BaseDecodeResponse {
+export interface Bolt12Offer extends BaseDecodeResponse {
   type: 'bolt12 offer'
   valid: true
   offer_id: Hex
@@ -1270,7 +1270,7 @@ interface Bolt12OfferInvalid extends BaseDecodeResponse {
 }
 
 // Bolt12 Invoice Request Valid
-export interface Bolt12InvoiceRequestValid extends BaseDecodeResponse {
+export interface Bolt12InvoiceRequest extends BaseDecodeResponse {
   type: 'bolt12 invoice_request'
   valid: true
   invreq_metadata: Hex
@@ -1346,7 +1346,7 @@ interface InvoiceFallback {
 }
 
 // Bolt12 Invoice Valid
-export interface Bolt12InvoiceValid extends BaseDecodeResponse {
+export interface Bolt12Invoice extends BaseDecodeResponse {
   type: 'bolt12 invoice'
   valid: true
   invreq_metadata: Hex
@@ -1431,7 +1431,7 @@ interface Bolt11RouteHop {
 }
 
 // Bolt11 Invoice Valid
-interface Bolt11InvoiceValid extends BaseDecodeResponse {
+interface Bolt11Invoice extends BaseDecodeResponse {
   type: 'bolt11 invoice'
   valid: true
   currency: string
@@ -1484,20 +1484,17 @@ interface EmergencyRecoverValid extends BaseDecodeResponse {
   decrypted: Hex
 }
 
-export type Bolt12ValidDecodeReponse =
-  | Bolt12OfferValid
-  | Bolt12InvoiceValid
-  | Bolt12InvoiceRequestValid
+export type Bolt12ValidDecodeReponse = Bolt12Offer | Bolt12Invoice | Bolt12InvoiceRequest
 
 // Union type for the decode response
 export type DecodeResponse =
-  | Bolt12OfferValid
+  | Bolt12Offer
   | Bolt12OfferInvalid
-  | Bolt12InvoiceRequestValid
+  | Bolt12InvoiceRequest
   | Bolt12InvoiceRequestInvalid
-  | Bolt12InvoiceValid
+  | Bolt12Invoice
   | Bolt12InvoiceInvalid
-  | Bolt11InvoiceValid
+  | Bolt11Invoice
   | RuneValid
   | RuneInvalid
   | EmergencyRecoverValid

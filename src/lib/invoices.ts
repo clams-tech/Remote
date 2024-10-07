@@ -6,9 +6,9 @@ import { msatsToSats } from './conversion.js'
 import type { Connection } from './wallets/interfaces.js'
 import { nowSeconds } from './utils.js'
 import type {
-  Bolt12InvoiceRequestValid,
-  Bolt12InvoiceValid,
-  Bolt12OfferValid,
+  Bolt12InvoiceRequest,
+  Bolt12Invoice,
+  Bolt12Offer,
   Bolt12ValidDecodeReponse,
   DecodeResponse
 } from './wallets/coreln/types.js'
@@ -84,7 +84,7 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
 
   switch (type) {
     case 'bolt12 offer': {
-      const { offer_id } = decoded as Bolt12OfferValid
+      const { offer_id } = decoded as Bolt12Offer
       id = offer_id
 
       break
@@ -97,7 +97,7 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
         invreq_payer_id,
         invoice_amount_msat,
         invreq_amount_msat
-      } = decoded as Bolt12InvoiceValid
+      } = decoded as Bolt12Invoice
 
       senderNodeId = invreq_payer_id
       createdAt = invoice_created_at
@@ -109,7 +109,7 @@ export const decodeBolt12 = async (connection: Connection, bolt12: string) => {
 
     case 'bolt12 invoice_request': {
       const { invreq_amount_msat, invreq_payer_id, invreq_payer_note } =
-        decoded as Bolt12InvoiceRequestValid
+        decoded as Bolt12InvoiceRequest
 
       amount = msatsToSats(formatMsatString(invreq_amount_msat))
       senderNodeId = invreq_payer_id
