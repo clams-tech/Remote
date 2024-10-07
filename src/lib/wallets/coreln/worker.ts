@@ -1,5 +1,5 @@
 import { fromEvent, type BehaviorSubject, firstValueFrom, filter, map } from 'rxjs'
-import type { Connection, ConnectionStatus } from '../interfaces.js'
+import type { ConnectionStatus } from '../interfaces.js'
 import { createRandomHex } from '$lib/crypto.js'
 import type { CommandoRequest, LnWebSocketOptions } from 'lnmessage/dist/types.js'
 import type { Forward } from '$lib/@types/forwards.js'

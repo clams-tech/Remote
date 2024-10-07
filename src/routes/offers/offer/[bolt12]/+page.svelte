@@ -36,29 +36,23 @@
   let customAmount: number
   let payerNote: string
 
-  let connection: Connection | undefined
+  const decoded$ = from(decodeBolt12(data.bolt12)).pipe(
+    catchError(() => {
+      decodeError = $translate('app.errors.invalid_bolt12')
+      return of(null)
+    })
+  )
 
-  const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
+  const availableWallets$ = combineLatest([decoded$, wallets$, connections$]).pipe(
     filter(([offer]) => !!offer),
-    map(([wallets, connections]) =>
+    map(([decoded, wallets, connections]) =>
       wallets.filter(({ id, nodeId }) => {
-        connection = connections.find(({ walletId }) => walletId === id)
-
-        return !!connection?.invoices?.pay
+        const connection = connections.find(({ walletId }) => walletId === id)
+        const selfPay = nodeId === decoded?.receiverNodeId || nodeId === decoded?.senderNodeId
+        return !!connection?.invoices?.pay && !selfPay
       })
     )
   )
-
-  const decoded$ =
-    connection &&
-    from(decodeBolt12(data.bolt12)).pipe(
-      catchError(() => {
-        decodeError = $translate('app.errors.invalid_bolt12')
-        return of(null)
-      })
-    )
-
-  console.log(`decoded$ = `, $decoded$)
 
   const handleKeyUp = (e: KeyboardEvent) =>
     e.key === 'Enter' && ($decoded$?.amount || customAmount) && useOffer()
