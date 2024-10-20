@@ -233,7 +233,22 @@ export const methods = [
   'bkpr-listaccountevents',
   'newaddr',
   'withdraw',
-  'listclosedchannels'
+  'listclosedchannels',
+  'plugin',
+  // CLBOSS plugin
+  'clboss-status',
+  'clboss-ignore-onchain',
+  'clboss-notice-onchain',
+  'clboss-unmanage',
+  // bolt12-prism plugin
+  'prism-list',
+  'prism-create',
+  'prism-pay',
+  'prism-delete',
+  'prism-listbindings',
+  'prism-addbinding',
+  'prism-setoutlay',
+  'prism-deletebinding'
 ]
 
 export default CoreLightning
