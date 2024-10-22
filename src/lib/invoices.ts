@@ -31,7 +31,17 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   }
 }
 
-export const decodeBolt12 = async (bolt12: string, socket?: LnMessage, rune?: string) => {
+export const decodeBolt12 = async (
+  bolt12: string,
+  socket?: LnMessage | null | undefined,
+  rune?: string | null
+) => {
+  console.log('params passed to decodeBolt12 = ', {
+    bolt12,
+    socket,
+    rune
+  })
+
   let decoded
 
   if (socket && rune) {
