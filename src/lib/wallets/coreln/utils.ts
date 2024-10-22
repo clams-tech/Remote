@@ -7,6 +7,7 @@ import { log } from '$lib/services.js'
 import { msatsToSats } from '$lib/conversion.js'
 import { nowSeconds } from '$lib/utils.js'
 import type { InvoicePayment, Network, Payment } from '$lib/@types/payments.js'
+import LnMessage from 'lnmessage'
 
 /**Will strip the msat suffix from msat values if there and also convert 'any' to 0 */
 export function formatMsatString(val: string | number | undefined): string {
@@ -42,7 +43,9 @@ export function invoiceStatusToPaymentStatus(
 export async function formatInvoice(
   invoice: RawInvoice,
   walletId: string,
-  network: Network
+  network: Network,
+  socket: LnMessage,
+  rune: string
 ): Promise<InvoicePayment> {
   const {
     bolt11,
@@ -75,7 +78,7 @@ export async function formatInvoice(
   }
 
   if (bolt12) {
-    const decoded = await decodeBolt12(bolt12)
+    const decoded = await decodeBolt12(bolt12, socket, rune)
 
     const {
       createdAt: invoiceCreatedAt,

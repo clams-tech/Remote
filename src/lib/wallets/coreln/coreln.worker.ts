@@ -75,6 +75,8 @@ type FormatPaymentsMessage = MessageBase & {
   pays: Pay[]
   walletId: string
   network: Network
+  socketId: string
+  rune: string
 }
 
 type FormatForwardsMessage = MessageBase & {
@@ -155,10 +157,11 @@ onmessage = async (message: MessageEvent<Message>) => {
       }
     }
     case 'format_payments': {
-      const { id, invoices, pays, walletId, network } = message.data
+      const { id, invoices, pays, walletId, network, socketId, rune } = message.data
+      const socket = sockets[socketId]
 
       const invoicePayments: InvoicePayment[] = await Promise.all(
-        invoices.map(invoice => formatInvoice(invoice, walletId, network))
+        invoices.map(invoice => formatInvoice(invoice, walletId, network, socket, rune))
       )
 
       const sentPayments: InvoicePayment[] = await Promise.all(
@@ -408,6 +411,7 @@ onmessage = async (message: MessageEvent<Message>) => {
 
       try {
         const socket = sockets[message.data.socketId]
+
         const result = await socket.commando({ method: 'listclosedchannels', rune })
 
         closedChannels = await Promise.all(

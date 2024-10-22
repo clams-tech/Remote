@@ -12,6 +12,7 @@ import type {
   DecodeResponse
 } from './wallets/coreln/types.js'
 import { connections$ } from './streams.js'
+import LnMessage from 'lnmessage'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -30,26 +31,34 @@ export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   }
 }
 
-export const decodeBolt12 = async (bolt12: string) => {
-  const connection = connections$.value?.find(connection => connection)
+export const decodeBolt12 = async (bolt12: string, socket?: LnMessage, rune?: string) => {
+  let decoded
 
-  console.log(`connection = `, connection)
+  if (socket && rune) {
+    decoded = (await socket.commando({
+      method: 'decode',
+      params: { string: bolt12 },
+      rune
+    })) as DecodeResponse
+  } else {
+    const connection = connections$.value?.find(connection => connection)
 
-  if (!connection?.rpc) {
-    throw {
-      key: 'connection_not_available',
-      detail: {
-        timestamp: nowSeconds(),
-        message: 'Could not find CLN rpc to decode offer',
-        context: 'Decoding offer'
+    if (!connection?.rpc) {
+      throw {
+        key: 'connection_not_available',
+        detail: {
+          timestamp: nowSeconds(),
+          message: 'Could not find CLN rpc to decode offer',
+          context: 'Decoding offer'
+        }
       }
     }
-  }
 
-  const decoded = (await connection.rpc({
-    method: 'decode',
-    params: { string: bolt12 }
-  })) as DecodeResponse
+    decoded = (await connection.rpc({
+      method: 'decode',
+      params: { string: bolt12 }
+    })) as DecodeResponse
+  }
 
   if (!decoded.valid) {
     throw {
@@ -153,7 +162,7 @@ export function isBolt12Invoice(invoice: string): boolean {
   return invoice.toLowerCase().startsWith('lni')
 }
 
-export function decodedOfferTypeToOfferType(type: DecodedType): 'pay' | 'withdraw' {
+export function decodedOfferTypeToOfferType(type: string): 'pay' | 'withdraw' {
   if (type === 'bolt12 invoice_request') {
     return 'withdraw'
   } else {

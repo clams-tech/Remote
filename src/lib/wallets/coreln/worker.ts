@@ -97,7 +97,9 @@ export const formatPayments = async (
   invoices: RawInvoice[],
   pays: Pay[],
   walletId: string,
-  network: Network
+  network: Network,
+  socketId: string,
+  rune: string
 ): Promise<InvoicePayment[]> => {
   const id = createRandomHex()
 
@@ -107,7 +109,9 @@ export const formatPayments = async (
     invoices,
     pays,
     walletId,
-    network
+    network,
+    socketId,
+    rune
   })
 
   return firstValueFrom(

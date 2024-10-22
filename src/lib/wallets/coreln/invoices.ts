@@ -54,7 +54,9 @@ class Invoices implements InvoicesInterface {
         invoices,
         pays,
         this.connection.walletId,
-        this.connection.info.network
+        this.connection.info.network,
+        this.connection.socket!.id,
+        this.connection.rune
       )
 
       return formatted
