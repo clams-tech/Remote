@@ -59,7 +59,7 @@
     "bech32": "^2.0.0",
     "big.js": "^6.2.1",
     "bitcoinjs-lib": "^6.1.3",
-    "bolt12-decoder": "^0.0.9",
+    "bolt12-decoder": "^1.0.0",
     "chart.js": "^4.3.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^2.30.0",
