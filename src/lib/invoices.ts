@@ -3,6 +3,7 @@ import decode from './bolt11.js'
 import type { DecodedBolt11Invoice } from './@types/invoices.js'
 import type { Invoice, InvoiceRequest } from 'bolt12-decoder'
 import { msatsToSats } from './conversion.js'
+import { formatMsatString } from './wallets/coreln/utils.js'
 
 export function decodeBolt11(bolt11: string): DecodedBolt11Invoice | null {
   bolt11 = bolt11.toLowerCase()
@@ -60,7 +61,7 @@ export const decodeBolt12 = async (bolt12: string) => {
     description,
     issuer,
     denomination,
-    amount,
+    amount: amount && msatsToSats(formatMsatString(amount)),
     senderNodeId,
     receiverNodeId,
     quantityMax,
