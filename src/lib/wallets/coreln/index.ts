@@ -203,25 +203,27 @@ class CoreLightning implements CorelnConnectionInterface {
 
 /** all methods this connection uses for rune creation */
 export const methods = [
-  'method^list', // Matches all methods that start with 'list'
-  'method^wait', // Matches all methods that start with 'wait'
-  'method^get', // Matches all methods that start with 'get'
-  'method^bkpr', // Matches all methods that start with 'bkpr'
-  'method=summary', // Exact match for 'summary'
-  'method=connect', // Exact match for 'connect'
-  'method=fundchannel', // Exact match for 'fundchannel'
-  'method=setchannel', // Exact match for 'setchannel'
-  'method=pay', // Exact match for 'pay'
-  'method=keysend', // Exact match for 'keysend'
-  'method=invoice', // Exact match for 'invoice'
-  'method^offer', // Matches 'offer' and any method starting with 'offer'
-  'method^disableoffer', // Matches 'disableoffer' specifically
-  'method^invoicerequest', // Matches 'invoicerequest' and methods starting with it
-  'method=fetchinvoice', // Exact match for 'fetchinvoice'
-  'method=sendinvoice', // Exact match for 'sendinvoice'
-  'method=signmessage', // Exact match for 'signmessage'
-  'method=newaddr', // Exact match for 'newaddr'
-  'method=withdraw', // Exact match for 'withdraw'
+  // Matches
+  'method^list',
+  'method^wait',
+  'method^get',
+  'method^bkpr',
+  'method^offer',
+  'method^disableoffer',
+  'method^invoicerequest',
+  // Exact Matches
+  'method=summary',
+  'method=connect',
+  'method=fundchannel',
+  'method=setchannel',
+  'method=pay',
+  'method=keysend',
+  'method=invoice',
+  'method=fetchinvoice',
+  'method=sendinvoice',
+  'method=signmessage',
+  'method=newaddr',
+  'method=withdraw',
   /* Plugins */
   'method=plugin', // Exact match for 'plugin'
   'method^clboss-', // Matches all methods that start with 'clboss-'
