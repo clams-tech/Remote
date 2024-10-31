@@ -225,9 +225,9 @@ export const methods = [
   'method=newaddr',
   'method=withdraw',
   /* Plugins */
-  'method=plugin', // Exact match for 'plugin'
-  'method^clboss-', // Matches all methods that start with 'clboss-'
-  'method^prism-' // Matches all methods that start with 'prism-'
+  'method=plugin',
+  'method^clboss-',
+  'method^prism-'
 ]
 
 export default CoreLightning
