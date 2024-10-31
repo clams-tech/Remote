@@ -203,52 +203,29 @@ class CoreLightning implements CorelnConnectionInterface {
 
 /** all methods this connection uses for rune creation */
 export const methods = [
-  'listfunds',
-  'waitblockheight',
-  'getinfo',
-  'listpeers',
-  'listnodes',
-  'listpeerchannels',
-  'setchannel',
-  'connect',
-  'fundchannel',
-  'listforwards',
-  'listinvoices',
-  'listpays',
-  'invoice',
-  'pay',
-  'keysend',
-  'waitinvoice',
-  'waitanyinvoice',
-  'listoffers',
-  'listinvoicerequests',
-  'offer',
-  'disableoffer',
-  'invoicerequest',
-  'disableinvoicerequest',
-  'fetchinvoice',
-  'sendinvoice',
-  'signmessage',
-  'listtransactions',
-  'bkpr-listaccountevents',
-  'newaddr',
-  'withdraw',
-  'listclosedchannels',
-  'plugin',
-  // CLBOSS plugin
-  'clboss-status',
-  'clboss-ignore-onchain',
-  'clboss-notice-onchain',
-  'clboss-unmanage',
-  // bolt12-prism plugin
-  'prism-list',
-  'prism-create',
-  'prism-pay',
-  'prism-delete',
-  'prism-listbindings',
-  'prism-addbinding',
-  'prism-setoutlay',
-  'prism-deletebinding'
+  'method^list', // Matches all methods that start with 'list'
+  'method^wait', // Matches all methods that start with 'wait'
+  'method^get', // Matches all methods that start with 'get'
+  'method^bkpr', // Matches all methods that start with 'bkpr'
+  'method=summary', // Exact match for 'summary'
+  'method=connect', // Exact match for 'connect'
+  'method=fundchannel', // Exact match for 'fundchannel'
+  'method=setchannel', // Exact match for 'setchannel'
+  'method=pay', // Exact match for 'pay'
+  'method=keysend', // Exact match for 'keysend'
+  'method=invoice', // Exact match for 'invoice'
+  'method^offer', // Matches 'offer' and any method starting with 'offer'
+  'method^disableoffer', // Matches 'disableoffer' specifically
+  'method^invoicerequest', // Matches 'invoicerequest' and methods starting with it
+  'method=fetchinvoice', // Exact match for 'fetchinvoice'
+  'method=sendinvoice', // Exact match for 'sendinvoice'
+  'method=signmessage', // Exact match for 'signmessage'
+  'method=newaddr', // Exact match for 'newaddr'
+  'method=withdraw', // Exact match for 'withdraw'
+  /* Plugins */
+  'method=plugin', // Exact match for 'plugin'
+  'method^clboss-', // Matches all methods that start with 'clboss-'
+  'method^prism-' // Matches all methods that start with 'prism-'
 ]
 
 export default CoreLightning

@@ -60,19 +60,19 @@
 
   const getClamsRuneCommand = () => {
     const { id } = $session$ as Session
-    return `lightning-cli commando-rune restrictions='[["id=${id}"], [${methods.map(
-      method => `"method=${method}"`
-    )}], ["rate=120"]]'`
+    return `lightning-cli createrune restrictions='[["id=${id}"], [${methods.map(
+      method => `"${method}"`
+    )}], ["rate=1000"]]`
   }
 
   const getAdminRuneCommand = () => {
     const { id } = $session$ as Session
-    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"]]'`
+    return `lightning-cli createrune restrictions='[["id=${id}"], ["rate=1000"]]'`
   }
 
   const getReadOnlyRuneCommand = () => {
     const { id } = $session$ as Session
-    return `lightning-cli commando-rune restrictions='[["id=${id}"], ["rate=120"], ["method^list", "method^get", "method=summary", "method^bkpr", "method=waitinvoice", "method=waitanyinvoice"], ["method/listdatastore"]]'`
+    return `lightning-cli createrune restrictions='[["id=${id}"], ["rate=1000"], ["method^list", "method^get", "method=summary", "method^bkpr", "method=waitinvoice", "method=waitanyinvoice"], ["method/listdatastore"]]'`
   }
 
   const handleKeyPress = (e: KeyboardEvent) => {
