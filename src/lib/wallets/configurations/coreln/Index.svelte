@@ -62,7 +62,7 @@
     const { id } = $session$ as Session
     return `lightning-cli createrune restrictions='[["id=${id}"], [${methods.map(
       method => `"${method}"`
-    )}], ["rate=1000"]]`
+    )}], ["rate=1000"]]'`
   }
 
   const getAdminRuneCommand = () => {
