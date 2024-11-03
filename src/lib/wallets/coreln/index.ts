@@ -203,37 +203,31 @@ class CoreLightning implements CorelnConnectionInterface {
 
 /** all methods this connection uses for rune creation */
 export const methods = [
-  'listfunds',
-  'waitblockheight',
-  'getinfo',
-  'listpeers',
-  'listnodes',
-  'listpeerchannels',
-  'setchannel',
-  'connect',
-  'fundchannel',
-  'listforwards',
-  'listinvoices',
-  'listpays',
-  'invoice',
-  'pay',
-  'keysend',
-  'waitinvoice',
-  'waitanyinvoice',
-  'listoffers',
-  'listinvoicerequests',
-  'offer',
-  'disableoffer',
-  'invoicerequest',
-  'disableinvoicerequest',
-  'fetchinvoice',
-  'sendinvoice',
-  'signmessage',
-  'listtransactions',
-  'bkpr-listaccountevents',
-  'newaddr',
-  'withdraw',
-  'listclosedchannels'
+  // Matches
+  'method^list',
+  'method^wait',
+  'method^get',
+  'method^bkpr',
+  'method^offer',
+  'method^disableoffer',
+  'method^invoicerequest',
+  // Exact Matches
+  'method=summary',
+  'method=connect',
+  'method=fundchannel',
+  'method=setchannel',
+  'method=pay',
+  'method=keysend',
+  'method=invoice',
+  'method=fetchinvoice',
+  'method=sendinvoice',
+  'method=signmessage',
+  'method=newaddr',
+  'method=withdraw',
+  /* Plugins */
+  'method=plugin',
+  'method^clboss-',
+  'method^prism-'
 ]
 
 export default CoreLightning
