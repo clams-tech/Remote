@@ -11,8 +11,12 @@
   import { nowSeconds } from '$lib/utils.js'
   import { liveQuery } from 'dexie'
   import { map, timer } from 'rxjs'
+  import prismIcon from '$lib/icons/prism'
+  import { fade } from 'svelte/transition'
 
   export let offer: Offer
+
+  let prismBound = false
 
   const query =
     offer.type === 'withdraw'
@@ -55,6 +59,12 @@
       wallet = result
     }
   })
+
+  db.prismBindings.get(offer.id).then(result => {
+    if (result) {
+      prismBound = true
+    }
+  })
 </script>
 
 <a
@@ -65,7 +75,14 @@
     <div class="font-semibold">{offer.label || $translate('app.labels.offer')}</div>
 
     {#if offer.description}
-      <div class="w-full text-xs italic truncate whitespace-nowrap pr-1">{offer.description}</div>
+      <div class="w-full text-xs italic truncate whitespace-nowrap pr-1 flex items-center">
+        {offer.description}
+        {#if prismBound}
+          <div in:fade={{ duration: 250 }} class="ml-2 w-[1.5em]">
+            {@html prismIcon}
+          </div>
+        {/if}
+      </div>
     {/if}
 
     {#if wallet}

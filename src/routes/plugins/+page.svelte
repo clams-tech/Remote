@@ -16,6 +16,8 @@
   let selectedWalletId: Wallet['id']
   let clbossInstalled = false
   let clbossActive = false
+  let prismInstalled = false
+  let prismActive = false
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -34,17 +36,43 @@
 
   $: connection?.plugins?.list().then(plugins => {
     const clbossPlugin = plugins.find(plugin => plugin.name.includes('clboss'))
+    const prismPlugin = plugins.find(plugin => plugin.name.includes('bolt12-prism'))
 
     if (clbossPlugin) {
       clbossInstalled = true
       clbossActive = clbossPlugin.active
-      loading = false
     } else {
       clbossInstalled = false
       clbossActive = false
-      loading = false
     }
+
+    if (prismPlugin) {
+      prismInstalled = true
+      prismActive = prismPlugin.active
+    } else {
+      prismInstalled = false
+      prismActive = false
+    }
+
+    loading = false
   })
+
+  $: plugins = [
+    {
+      label: 'CLBOSS',
+      installed: clbossInstalled,
+      active: clbossActive,
+      repo: 'https://github.com/ZmnSCPxj/clboss',
+      route: '/plugins/clboss'
+    },
+    {
+      label: 'BOLT12-Prism',
+      installed: prismInstalled,
+      active: prismActive,
+      repo: 'https://github.com/gudnuf/bolt12-prism',
+      route: '/plugins/prism'
+    }
+  ]
 </script>
 
 <svelte:head>
@@ -58,45 +86,50 @@
   <WalletSelector wallets={$availableWallets$} bind:selectedWalletId />
   {#if $availableWallets$.length}
     <div class="w-full flex items-center mt-4">
-      <div class="flex flex-col gap-4">
+      <div class="flex gap-4">
         {#if loading}
           <Spinner size="1.5em" />
         {:else}
-          <a
-            href={clbossInstalled
-              ? `/plugins/clboss?wallet=${selectedWalletId}`
-              : 'https://github.com/ZmnSCPxj/clboss'}
-            target={clbossInstalled ? null : '_blank'}
-            rel={clbossInstalled ? null : 'noopener noreferrer'}
-            class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+          <div
+            class="grid gap-4"
+            style="grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr)"
           >
-            <div class="flex items-center w-full justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
-              <div class="font-semibold">{$translate('app.labels.clboss')}</div>
-            </div>
+            {#each plugins as { label, installed, active, repo, route }}
+              <a
+                href={installed ? `${route}?wallet=${selectedWalletId}` : repo}
+                target={installed ? null : '_blank'}
+                rel={installed ? null : 'noopener noreferrer'}
+                class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"
+              >
+                <div class="flex items-center justify-between gap-x-2 mb-2 flex-wrap gap-y-1">
+                  <div class="font-semibold">{label}</div>
+                </div>
 
-            <div class="text-sm">
-              <div class="flex items-center">
-                <div
-                  class:border-utility-error={!clbossInstalled}
-                  class:border-utility-success={clbossInstalled}
-                  class="w-4 mr-1 border rounded-full"
-                >
-                  {@html clbossInstalled ? check : close}
+                <div class="text-sm">
+                  <div class="flex items-center">
+                    <div
+                      class:border-utility-error={!installed}
+                      class:border-utility-success={installed}
+                      class="w-4 mr-1 border rounded-full"
+                    >
+                      {@html installed ? check : close}
+                    </div>
+                    {$translate('app.labels.installed')}
+                  </div>
+                  <div class="flex items-center">
+                    <div
+                      class:border-utility-error={!active}
+                      class:border-utility-success={active}
+                      class="w-4 mr-1 border rounded-full"
+                    >
+                      {@html active ? check : close}
+                    </div>
+                    {$translate('app.labels.active')}
+                  </div>
                 </div>
-                {$translate('app.labels.installed')}
-              </div>
-              <div class="flex items-center">
-                <div
-                  class:border-utility-error={!clbossActive}
-                  class:border-utility-success={clbossActive}
-                  class="w-4 mr-1 border rounded-full"
-                >
-                  {@html clbossActive ? check : close}
-                </div>
-                {$translate('app.labels.active')}
-              </div>
-            </div>
-          </a>
+              </a>
+            {/each}
+          </div>
         {/if}
       </div>
     </div>
