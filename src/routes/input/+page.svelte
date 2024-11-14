@@ -43,11 +43,10 @@
 
           if (type && value && isBolt12Offer(value)) {
             await goto(`/offers/offer/${value}`)
-          } else {
-            await goto(`/lnurl/${value}?type=${type}`)
           }
         }
       }
+      await goto(`/lnurl/${value}?type=${type}`)
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {

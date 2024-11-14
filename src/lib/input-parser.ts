@@ -142,8 +142,6 @@ export function parseInput(input: string): ParsedInput {
 
     const { type, value } = result as ParsedInput
 
-    console.log('type and value = ', { type, value })
-
     if (type === 'onchain') {
       amount = searchParams.get('amount') || undefined
       label = searchParams.get('label') || undefined
