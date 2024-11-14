@@ -19,7 +19,7 @@ function parseBitcoinTxtRecord(record: string) {
   try {
     const equalsIndex = record.indexOf('=')
     if (equalsIndex === -1) {
-      throw new Error('Invalid format: Missing "=" in record')
+      console.error('Invalid BIP353 format: Missing "="')
     }
 
     const questionMarkIndex = record.indexOf('?')
@@ -34,7 +34,6 @@ function parseBitcoinTxtRecord(record: string) {
     }
   } catch (error) {
     console.error(`Error parsing Bitcoin TXT record: ${error as AppError}`)
-    throw new Error('Invalid BIP353 address format')
   }
 }
 
@@ -50,20 +49,19 @@ export async function fetchBitcoinTxtRecord(username: string, domain: string) {
     }>
 
     if (!txtRecords || txtRecords.length === 0) {
-      throw new Error('No TXT records found')
+      console.error('No Bitcoin TXT records found')
     }
 
     for (const record of txtRecords) {
       const parsedRecord = parseBitcoinTxtRecord(record.data)
       if (parsedRecord) {
-        return parsedRecord // Return first valid parsed record
+        return parsedRecord // Return first valid record
       }
     }
 
-    return // no valid records were found
+    return // no valid records found
   } catch (error) {
     console.error(`Error fetching Bitcoin TXT record for ${username}@${domain}: ${error}`)
-    throw new Error('Failed to fetch Bitcoin TXT record')
   }
 }
 
