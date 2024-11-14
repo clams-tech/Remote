@@ -185,18 +185,18 @@
   loadItems()
 
   // larp mode polling
-  // if (larpMode$.value) {
-  //   timer(1000, 3000)
-  //     .pipe(takeUntil(onDestroy$))
-  //     .subscribe(async () => {
-  //       try {
-  //         await syncItems()
-  //       } catch (error) {
-  //         const { message } = error as Error
-  //         console.error(`Error syncing items: ${message}`)
-  //       }
-  //     })
-  // }
+  if (larpMode$.value) {
+    timer(1000, 3000)
+      .pipe(takeUntil(onDestroy$))
+      .subscribe(async () => {
+        try {
+          await syncItems()
+        } catch (error) {
+          const { message } = error as Error
+          console.error(`Error syncing items: ${message}`)
+        }
+      })
+  }
 </script>
 
 <div
