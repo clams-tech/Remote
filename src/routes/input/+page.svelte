@@ -10,7 +10,12 @@
   import NFCComponent from './Nfc.svelte'
   import { nfc } from '$lib/services.js'
   import { goto } from '$app/navigation'
-  import { isBolt12Offer, parseInput } from '$lib/input-parser.js'
+  import {
+    decodeLightningAddress,
+    fetchBitcoinTxtRecord,
+    isBolt12Offer,
+    parseInput
+  } from '$lib/input-parser.js'
   import type { PageData } from './$types.js'
 
   type InputKey = 'scan' | 'paste' | 'import' | 'nfc'
@@ -28,7 +33,21 @@
 
   const handleInput = async ({ type, value, amount, label, message, lightning }: ParsedInput) => {
     if (type === 'lightning_address' || type === 'lnurl') {
-      await goto(`/lnurl/${value}?type=${type}`)
+      const decodedAddress = decodeLightningAddress(value)
+      if (decodedAddress) {
+        const { username, domain } = decodedAddress
+        const bitcoinTxtRecord = await fetchBitcoinTxtRecord(username, domain)
+
+        if (bitcoinTxtRecord) {
+          const { type, value } = bitcoinTxtRecord
+
+          if (type && value && isBolt12Offer(value)) {
+            await goto(`/offers/offer/${value}`)
+          } else {
+            await goto(`/lnurl/${value}?type=${type}`)
+          }
+        }
+      }
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
