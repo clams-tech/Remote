@@ -39,14 +39,17 @@
         const bitcoinTxtRecord = await fetchBitcoinTxtRecord(username, domain)
 
         if (bitcoinTxtRecord) {
-          const { type, value } = bitcoinTxtRecord
+          const { type: recordType, value: recordValue } = bitcoinTxtRecord
 
-          if (type && value && isBolt12Offer(value)) {
-            await goto(`/offers/offer/${value}`)
+          if (recordType && recordValue && isBolt12Offer(recordValue)) {
+            await goto(`/offers/offer/${recordValue}`)
+          } else {
+            await goto(`/lnurl/${value}?type=${type}`) // default to lnurl route if value is not valid BOLT12
           }
+        } else {
+          await goto(`/lnurl/${value}?type=${type}`) // default to lnurl route if no txt records found
         }
       }
-      await goto(`/lnurl/${value}?type=${type}`)
     } else if (type === 'node_address') {
       await goto(`/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
