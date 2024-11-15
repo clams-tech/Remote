@@ -61,7 +61,7 @@ export const decodeBolt12 = async (bolt12: string) => {
     description,
     issuer,
     denomination,
-    amount: amount && msatsToSats(formatMsatString(amount)),
+    amount: (amount && msatsToSats(formatMsatString(amount))) || 0,
     senderNodeId,
     receiverNodeId,
     quantityMax,

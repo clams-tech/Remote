@@ -35,12 +35,6 @@ We would especially love help translating this app to languages other than Engli
 
    Then [open in your browser](http://localhost:5173)
 
-   Or for the native app
-
-   ```
-   yarn dev-native
-   ```
-
 ## Building from source
 
 1. Install the deps
@@ -53,10 +47,4 @@ We would especially love help translating this app to languages other than Engli
 
 ```
 yarn build
-```
-
-Or build the native desktop app:
-
-```
-yarn build-native
 ```

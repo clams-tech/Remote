@@ -1,4 +1,5 @@
 import type { ParsedInput } from './@types/common.js'
+import { getDnsRecords } from '@layered/dns-records'
 
 import {
   bolt11Regex,
@@ -8,6 +9,65 @@ import {
   onchainRegex,
   usernameRegex
 } from './regex.js'
+import type { AppError } from './@types/errors.js'
+
+function parseBitcoinTxtRecord(record: string) {
+  if (!record.includes('bitcoin')) {
+    return null
+  }
+
+  try {
+    const equalsIndex = record.indexOf('=')
+    if (equalsIndex === -1) {
+      console.error('Invalid BIP353 format: Missing "="')
+      return null
+    }
+
+    const questionMarkIndex = record.indexOf('?')
+    const type =
+      questionMarkIndex !== -1 ? record.slice(questionMarkIndex + 1, equalsIndex).trim() : null
+
+    const value = record.slice(equalsIndex + 1).trim()
+
+    return {
+      type: type || null,
+      value: value || null
+    }
+  } catch (error) {
+    console.error(`Error parsing Bitcoin TXT record: ${error as AppError}`)
+    return null
+  }
+}
+
+export async function fetchBitcoinTxtRecord(username: string, domain: string) {
+  const url = `${username}.user._bitcoin-payment.${domain}`
+
+  try {
+    const txtRecords = (await getDnsRecords(url, 'TXT')) as Array<{
+      name: string
+      type: 'TXT'
+      ttl: number
+      data: string
+    }>
+
+    if (!txtRecords || txtRecords.length === 0) {
+      console.error('No Bitcoin TXT records found')
+      return null
+    }
+
+    for (const record of txtRecords) {
+      const parsedRecord = parseBitcoinTxtRecord(record.data)
+      if (parsedRecord) {
+        return parsedRecord // Return first valid record
+      }
+    }
+
+    return null // no valid records found
+  } catch (error) {
+    console.error(`Error fetching Bitcoin TXT record for ${username}@${domain}: ${error}`)
+    return null
+  }
+}
 
 export function decodeLightningAddress(val: string): { username: string; domain: string } | null {
   const [username, domain] = val.split('@')
