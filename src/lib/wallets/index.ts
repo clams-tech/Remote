@@ -1,7 +1,6 @@
 import type { Wallet, CoreLnConfiguration } from '$lib/@types/wallets.js'
 import type { AppError } from '$lib/@types/errors.js'
 import type { Session } from '$lib/@types/session.js'
-import { WS_PROXY } from '$lib/constants.js'
 import { nowSeconds, truncateValue, wait } from '$lib/utils.js'
 import { Subject, type Observable, takeUntil, filter, take } from 'rxjs'
 import CoreLightning from './coreln/index.js'
@@ -23,6 +22,7 @@ import {
   updateInvoices,
   updateAddresses
 } from '$lib/db/helpers.js'
+import { ALBY_WS_PROXY } from '$lib/constants.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -70,7 +70,7 @@ export const walletTypeToInitialConfiguration = (type: Wallet['type']): Wallet['
         address: '',
         connection: {
           type: 'proxy',
-          value: WS_PROXY
+          value: ALBY_WS_PROXY
         },
         token: ''
       }
