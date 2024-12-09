@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
-  import { ALBY_WS_PROXY, WS_PROXY } from '$lib/constants'
+  import { ALBY_WS_PROXY } from '$lib/constants'
   import TextInput from '$lib/components/TextInput.svelte'
   import { translate } from '$lib/i18n/translations'
   import type { CoreLnConfiguration } from '$lib/@types/wallets.js'
@@ -11,7 +11,7 @@
   let advancedConnectOption: 'default' | 'customProxy' | 'directConnection' =
     connection.type === 'direct'
       ? 'directConnection'
-      : connection.value === WS_PROXY
+      : connection.value === ALBY_WS_PROXY
       ? 'default'
       : 'customProxy'
 
@@ -35,7 +35,7 @@
     } else if (advancedConnectOption === 'directConnection') {
       connection = { type: 'direct', value: connection.value === 'ws:' ? connection.value : 'wss:' }
     } else {
-      connection = { type: 'proxy', value: WS_PROXY }
+      connection = { type: 'proxy', value: ALBY_WS_PROXY }
     }
   }
 
@@ -114,7 +114,7 @@
         bind:this={customProxyInput}
         bind:value={connection.value}
         name={advancedConnectOption}
-        placeholder={WS_PROXY}
+        placeholder={ALBY_WS_PROXY}
         invalid={customProxyUrlError}
       />
     </div>
@@ -139,11 +139,6 @@
       <div
         class="flex items-center px-3 py-2 ring-2 ring-purple-500 border border-neutral-600 rounded"
       >
-        <label class="flex items-center cursor-pointer">
-          <input type="radio" bind:group={connection.value} value={WS_PROXY} />
-          <span class="ml-1">Remote</span>
-        </label>
-
         <label class="flex items-center ml-4 cursor-pointer">
           <input type="radio" bind:group={connection.value} value={ALBY_WS_PROXY} />
           <span class="ml-1">Alby ({$translate('app.labels.tor_support')})</span>
