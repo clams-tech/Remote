@@ -2,7 +2,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main
+      - test/gh-pages-deploy
 permissions:
   contents: write
 jobs:
