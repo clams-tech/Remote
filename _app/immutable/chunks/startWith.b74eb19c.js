@@ -1,0 +1,1 @@
+import{c as o}from"./concat.050007a3.js";import{a7 as n,o as u}from"./close.cbbdad23.js";function p(){for(var r=[],a=0;a<arguments.length;a++)r[a]=arguments[a];var t=n(r);return u(function(e,s){(t?o(r,e,t):o(r,e)).subscribe(s)})}export{p as s};

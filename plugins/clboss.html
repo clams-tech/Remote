@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <meta name="description" content="A user interface for your Core Lightning node" />
+    <meta name="apple-mobile-web-app-title" content="Remote" />
+    <meta name="application-name" content="Remote" />
+    <meta name="msapplication-TileColor" content="#6305f0" />
+    <meta name="msapplication-config" content="/icons/browserconfig.xml" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Remote" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#6305f0" />
+    <link rel="shortcut icon" href="/icons/favicon.ico" />
+    <meta http-equiv="content-security-policy" content="object-src 'self'; script-src 'self' 'unsafe-inline' 'sha256-vEIobUHGmyQqBpLlnZ0A+jzD82tByQJ862lldK1DnUQ='">
+		<link rel="modulepreload" href="../_app/immutable/entry/start.28527d6a.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/scheduler.20e6ba96.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/singletons.1f5db946.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/index.29fb1f06.js">
+		<link rel="modulepreload" href="../_app/immutable/entry/app.3dcfabb2.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/preload-helper.a4192956.js">
+		<link rel="modulepreload" href="../_app/immutable/chunks/index.fbf42ec5.js">
+  </head>
+  <body>
+    <div>
+			<script>
+				{
+					__sveltekit_6n1s28 = {
+						base: new URL("..", location).pathname.slice(0, -1),
+						env: {}
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../_app/immutable/entry/start.28527d6a.js"),
+						import("../_app/immutable/entry/app.3dcfabb2.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+
+					if ('serviceWorker' in navigator) {
+						addEventListener('load', function () {
+							navigator.serviceWorker.register('../service-worker.js');
+						});
+					}
+				}
+			</script>
+		</div>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+import{g as r}from"../coreln.worker-ffb87bd9.js";var e=function(){throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object")},o=r(e),s=Object.freeze({__proto__:null,default:o});export{s as b};
