@@ -1,24 +1,45 @@
-name: Build and Deploy
+name: Deploy to GitHub Pages
+
 on:
   push:
     branches:
-      - main
-permissions:
-  contents: write
+      - test/gh-pages-deploy
+
 jobs:
-  build-and-deploy:
-    concurrency: ci-${{ github.ref }}
+  build_site:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - name: Install and Build
-        run: |
-          yarn
-          yarn build
-
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          folder: build # The folder the action should deploy.
+          node-version: 20
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build site
+        env:
+          BASE_PATH: "/${{ github.event.repository.name }}"
+        run: yarn build
+
+      - name: Upload artifacts for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "build/" # Ensure this matches your adapter-static output folder
+
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

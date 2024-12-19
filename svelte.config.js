@@ -11,6 +11,10 @@ const config = {
     adapter: adapter({
       fallback: '200.html'
     }),
+    paths: {
+      assets: process.argv.includes('dev') ? '' : '/Remote',
+      base: process.argv.includes('dev') ? '' : '/Remote'
+    },
     csp: {
       mode: 'auto',
       directives: {
