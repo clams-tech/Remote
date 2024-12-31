@@ -13,6 +13,7 @@ import { decryptWithAES } from '$lib/crypto.js'
 import type { Session } from '$lib/@types/session.js'
 
 export const prerender = 'auto'
+export const trailingSlash = 'always'
 export const ssr = false
 
 export const load: LayoutLoad = async ({ url }) => {

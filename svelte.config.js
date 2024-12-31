@@ -12,8 +12,7 @@ const config = {
       fallback: '200.html'
     }),
     paths: {
-      assets: process.argv.includes('dev') ? '' : '/Remote',
-      base: process.argv.includes('dev') ? '' : '/Remote'
+      base: process.env.NODE_ENV === 'production' ? '/Remote' : ''
     },
     csp: {
       mode: 'auto',
