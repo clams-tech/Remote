@@ -16,7 +16,7 @@
 </script>
 
 <a
-  href="${base}/channels/{channel.id}"
+  href={`${base}/channels/${channel.id}`}
   class="w-full pb-3 pt-2.5 border-b border-neutral-400 block no-underline hover:bg-neutral-800 transition-all"
 >
   <div class="flex items-center justify-between gap-x-2 w-full">

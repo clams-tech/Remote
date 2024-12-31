@@ -232,7 +232,7 @@
           {:else}
             <p>
               {$translate('app.labels.no_active_offers_found')},
-              <a href="${base}/offers">{$translate('app.labels.create_one')}</a>
+              <a href={`${base}/offers`}>{$translate('app.labels.create_one')}</a>
             </p>
           {/if}
           {#if bindPrismError}
