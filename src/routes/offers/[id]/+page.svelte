@@ -28,6 +28,7 @@
   import trashOutline from '$lib/icons/trash-outline.js'
   import type { PrismType } from '$lib/@types/plugins'
   import prismIcon from '$lib/icons/prism'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -261,7 +262,7 @@
 
       <SummaryRow>
         <div slot="label">{$translate('app.labels.wallet')}:</div>
-        <a slot="value" href={`/wallets/${walletId}`} class="flex items-center no-underline">
+        <a slot="value" href={`${base}/wallets/${walletId}`} class="flex items-center no-underline">
           {#await db.wallets.get(walletId) then wallet}
             {wallet?.label || truncateValue(walletId)}
           {/await}

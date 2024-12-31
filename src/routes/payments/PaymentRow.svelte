@@ -9,6 +9,7 @@
   import SummaryPlaceholder from './SummaryPlaceholder.svelte'
   import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
   import { getPaymentSummary, type PaymentSummary } from '$lib/summary.js'
+  import { base } from '$app/paths'
 
   export let payment: Payment
 
@@ -41,7 +42,7 @@
 
 <a
   class="flex items-center justify-between py-3 w-full overflow-hidden hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 text-sm xs:text-base h-[7rem]"
-  href={`/payments/${id}?wallet=${walletId}`}
+  href={`${base}/payments/${id}?wallet=${walletId}`}
 >
   <div class="flex items-start h-full flex-1 overflow-hidden">
     <div

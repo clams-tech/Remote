@@ -211,7 +211,7 @@
             {#each $activeOffers$ as { id, label, description, bolt12 }}
               <SummaryRow>
                 <div slot="label" class="flex gap-1">
-                  <a class="no-underline" href={`/offers/${id}`}>
+                  <a class="no-underline" href={`${base}/offers/${id}`}>
                     <Button
                       disabled={!boundOfferIds.includes(id)}
                       text={truncateValue(label ?? '', 8) ||

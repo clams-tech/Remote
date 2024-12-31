@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths'
   import type { Utxo } from '$lib/@types/utxos.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { formatDate } from '$lib/dates.js'
@@ -18,7 +19,7 @@
 </script>
 
 <a
-  href={`/utxos/${id}`}
+  href={`${base}/utxos/${id}`}
   class="w-full flex items-center justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all px-2 py-4 rounded"
 >
   <div>

@@ -13,6 +13,7 @@
   import { map, timer } from 'rxjs'
   import prismIcon from '$lib/icons/prism'
   import { fade } from 'svelte/transition'
+  import { base } from '$app/paths'
 
   export let offer: Offer
 
@@ -68,7 +69,7 @@
 </script>
 
 <a
-  href={`/offers/${offer.id}`}
+  href={`${base}/offers/${offer.id}`}
   class="w-full flex items-start justify-between no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all p-4 rounded h-[102px]"
 >
   <div>

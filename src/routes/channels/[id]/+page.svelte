@@ -40,6 +40,7 @@
   import type { TransactionPayment } from '$lib/@types/payments.js'
   import warning from '$lib/icons/warning.js'
   import { fetchChannels, fetchTransactions } from '$lib/wallets/index.js'
+  import { base } from '$app/paths'
 
   export let data: PageData // channel id
 
@@ -308,7 +309,7 @@
             <div slot="value">
               {#await db.wallets.get(walletId) then wallet}
                 {#if wallet}
-                  <a class="flex items-center no-underline" href={`/wallets/${wallet.id}`}>
+                  <a class="flex items-center no-underline" href={`${base}/wallets/${wallet.id}`}>
                     {wallet.label}
                     <div class="w-4 -rotate-90">{@html caret}</div>
                   </a>
@@ -383,7 +384,7 @@
             </div>
             <div slot="value">
               {#if opener === 'local'}
-                <a href={`/wallets/${wallet.id}`} class="flex items-center"
+                <a href={`${base}/wallets/${wallet.id}`} class="flex items-center"
                   >{wallet.label}
                   <div class="w-4 -rotate-90">{@html caret}</div>
                 </a>
@@ -398,7 +399,7 @@
             <a
               slot="value"
               class="flex items-center"
-              href={`/payments/${fundingTransactionId}?wallet=${walletId}`}
+              href={`${base}/payments/${fundingTransactionId}?wallet=${walletId}`}
               >{truncateValue(fundingTransactionId)}
               <div class="w-4 -rotate-90">{@html caret}</div>
             </a>
@@ -411,7 +412,7 @@
               </div>
               <div slot="value">
                 {#if closer === 'local'}
-                  <a href={`/wallets/${wallet.id}`} class="flex items-center"
+                  <a href={`${base}/wallets/${wallet.id}`} class="flex items-center"
                     >{wallet.label}
                     <div class="w-4 -rotate-90">{@html caret}</div>
                   </a>
@@ -429,7 +430,7 @@
               </div>
               <div slot="value">
                 <a
-                  href={`/payments/${$closingTransaction$.id}?wallet=${walletId}`}
+                  href={`${base}/payments/${$closingTransaction$.id}?wallet=${walletId}`}
                   class="flex items-center"
                   >{truncateValue($closingTransaction$.id)}
                   <div class="w-4 -rotate-90">{@html caret}</div>
@@ -651,7 +652,7 @@
       {#if $closingTransaction$}
         <div>
           <div>{$translate('app.messages.channel_close_in_progress')}</div>
-          <a href={`/payments/${$closingTransaction$.id}?wallet=${connection.walletId}`}
+          <a href={`${base}/payments/${$closingTransaction$.id}?wallet=${connection.walletId}`}
             >{$translate('app.labels.go_to_closing_transaction')}</a
           >
         </div>

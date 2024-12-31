@@ -25,6 +25,7 @@
   import caret from '$lib/icons/caret.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { InvoicePayment } from '$lib/@types/payments.js'
+  import { base } from '$app/paths'
 
   export let url: URL
   export let callback: string // The URL from LN SERVICE which will accept the pay request parameters
@@ -299,7 +300,7 @@
       </div>
 
       <a
-        href={`/payments/${paidInvoice.id}?wallet=${paidInvoice.walletId}`}
+        href={`${base}/payments/${paidInvoice.id}?wallet=${paidInvoice.walletId}`}
         class="flex items-center"
         >{$translate('app.labels.goto_payment')}
         <div class="w-4 -rotate-90">{@html caret}</div>

@@ -302,7 +302,10 @@
 
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
-          <a href={`/wallets/${wallet.id}`} slot="value" class="no-underline flex items-center"
+          <a
+            href={`${base}/wallets/${wallet.id}`}
+            slot="value"
+            class="no-underline flex items-center"
             >{wallet.label}
             <div class="w-6 ml-1 -rotate-90">{@html caret}</div></a
           >
@@ -555,7 +558,7 @@
 
           <SummaryRow>
             <span slot="label">{$translate('app.labels.channel_id')}:</span>
-            <a slot="value" href={`/channels/${channel.id}`} class="flex items-center">
+            <a slot="value" href={`${base}/channels/${channel.id}`} class="flex items-center">
               {truncateValue(channel.id)}
               <div in:fade|local={{ duration: 250 }} class="w-4 -rotate-90">
                 {@html caret}
@@ -600,7 +603,7 @@
           {#if id}
             <SummaryRow>
               <span slot="label">{$translate('app.labels.offer')}:</span>
-              <a slot="value" href={`/offers/${id}`} class="flex items-center">
+              <a slot="value" href={`${base}/offers/${id}`} class="flex items-center">
                 {truncateValue(id)}
                 <div in:fade|local={{ duration: 250 }} class="w-6 cursor-pointer ml-1 -rotate-90">
                   {@html caret}

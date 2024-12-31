@@ -14,6 +14,7 @@
   import forward from '$lib/icons/forward.js'
   import { formatDate } from '$lib/dates.js'
   import { differenceInMilliseconds } from 'date-fns'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -71,7 +72,7 @@
 
       <SummaryRow>
         <div slot="label">{$translate('app.labels.wallet')}:</div>
-        <a slot="value" href={`/wallets/${walletId}`} class="flex items-center no-underline">
+        <a slot="value" href={`${base}/wallets/${walletId}`} class="flex items-center no-underline">
           {#await db.wallets.get(walletId) then wallet}
             {wallet?.label || truncateValue(walletId)}
           {/await}
@@ -126,7 +127,7 @@
         <div class="flex items-center" slot="value">
           {#await db.channels.where({ shortId: shortIdIn }).first() then inChannel}
             {#if inChannel}
-              <a href={`/channels/${inChannel.id}`} class="no-underline"
+              <a href={`${base}/channels/${inChannel.id}`} class="no-underline"
                 >{inChannel?.peerAlias ||
                   truncateValue(inChannel?.peerId || $translate('app.labels.unknown'))}</a
               >
@@ -143,7 +144,7 @@
         <div class="flex items-center" slot="value">
           {#await db.channels.where({ shortId: shortIdOut }).first() then outChannel}
             {#if outChannel}
-              <a href={`/channels/${outChannel.id}`} class="no-underline"
+              <a href={`${base}/channels/${outChannel.id}`} class="no-underline"
                 >{outChannel?.peerAlias ||
                   truncateValue(outChannel?.peerId || $translate('app.labels.unknown'))}</a
               >

@@ -40,7 +40,7 @@
   >
     {#each Object.entries($settings$.tiles) as [tile, display] (tile)}
       {#if display}
-        {@const route = `/${tile}`}
+        {@const route = `${base}/${tile}`}
         <a
           href={route}
           class="aspect-square no-underline border border-neutral-600 rounded flex flex-col justify-center items-center hover:bg-neutral-800/90 bg-neutral-900 transition-all"

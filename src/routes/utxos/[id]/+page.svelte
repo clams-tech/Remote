@@ -17,6 +17,7 @@
   import keys from '$lib/icons/keys.js'
   import caret from '$lib/icons/caret.js'
   import type { AddressPayment } from '$lib/@types/payments.js'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -71,7 +72,11 @@
         <!-- WALLET -->
         <SummaryRow>
           <span slot="label">{$translate('app.labels.wallet')}:</span>
-          <a href={`/wallets/${walletId}`} slot="value" class="no-underline flex items-center">
+          <a
+            href={`${base}/wallets/${walletId}`}
+            slot="value"
+            class="no-underline flex items-center"
+          >
             {#await db.wallets.get(walletId) then wallet}
               {wallet?.label}
             {/await}
@@ -133,7 +138,7 @@
           <div slot="label">{$translate('app.labels.receive_transaction')}</div>
           <a
             class="no-underline flex items-center"
-            href={`/payments/${txid}?wallet=${walletId}`}
+            href={`${base}/payments/${txid}?wallet=${walletId}`}
             slot="value"
             >{truncateValue(txid)}
             <div class="-rotate-90 w-6 ml-1">{@html caret}</div>
@@ -164,7 +169,7 @@
             <div slot="label">{$translate('app.labels.spend_transaction')}</div>
             <a
               class="no-underline flex items-center"
-              href={`/payments/${spendingTxid}?wallet=${walletId}`}
+              href={`${base}/payments/${spendingTxid}?wallet=${walletId}`}
               slot="value"
               >{truncateValue(spendingTxid)}
               <div class="-rotate-90 w-6 ml-1">{@html caret}</div>

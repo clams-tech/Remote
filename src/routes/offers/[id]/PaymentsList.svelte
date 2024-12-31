@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths'
   import type { InvoicePayment, Payment } from '$lib/@types/payments.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { formatDate } from '$lib/dates.js'
@@ -28,7 +29,7 @@
       <div class="mt-2 flex flex-col items-end gap-y-1">
         {#each payments as { data: { completedAt, amount, direction }, status, id, walletId }}
           <a
-            href={`/payments/${id}?wallet=${walletId}`}
+            href={`${base}/payments/${id}?wallet=${walletId}`}
             class="text-sm flex items-center max-w-full no-underline border border-transparent transition-all rounded bg-neutral-900"
           >
             <div

@@ -6,6 +6,7 @@
   import { connections$ } from '$lib/streams.js'
   import { BehaviorSubject } from 'rxjs'
   import { translate } from '$lib/i18n/translations.js'
+  import { base } from '$app/paths'
 
   export let wallet: Wallet
   export let balance: number
@@ -20,7 +21,7 @@
 
 <a
   class="flex items-center justify-between py-3 hover:bg-neutral-800/80 transition-colors no-underline px-2 bg-neutral-900 text-sm xs:text-base rounded"
-  href={`/wallets/${wallet.id}`}
+  href={`${base}/wallets/${wallet.id}`}
 >
   <div class="">
     <div class="font-semibold">{wallet.label}</div>

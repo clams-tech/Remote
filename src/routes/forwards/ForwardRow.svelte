@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths'
   import type { Forward } from '$lib/@types/forwards.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
   import { formatDate } from '$lib/dates.js'
@@ -43,7 +44,7 @@
 </script>
 
 <a
-  href={`/forwards/${forward.id}`}
+  href={`${base}/forwards/${forward.id}`}
   class="w-full flex items-center no-underline hover:bg-neutral-800/80 bg-neutral-900 transition-all py-4 pr-2 pl-4 rounded"
 >
   {#if $data$}
