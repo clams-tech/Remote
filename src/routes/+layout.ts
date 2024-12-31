@@ -11,6 +11,7 @@ import type { WalletConfiguration, WalletType } from '$lib/@types/wallets.js'
 import { createNewSession } from '$lib/session.js'
 import { decryptWithAES } from '$lib/crypto.js'
 import type { Session } from '$lib/@types/session.js'
+import { base } from '$app/paths'
 
 export const prerender = 'auto'
 export const ssr = false
@@ -95,8 +96,8 @@ export const load: LayoutLoad = async ({ url }) => {
       }
 
       // if no stored session, then we welcome to create a new session
-      if (!storedSession && pathname !== '/welcome') {
-        goto('/welcome')
+      if (!storedSession && pathname !== `${base}/welcome`) {
+        goto(`${base}/welcome`)
       }
     } else if (!routeRequiresSession(pathname)) {
       // we have a session in memory but they are trying to view a non protected route like welcome

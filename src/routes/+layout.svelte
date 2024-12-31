@@ -257,7 +257,7 @@
     in:fade
     class="flex-grow flex flex-col items-center justify-center overflow-hidden w-full pb-4"
   >
-    {#if $session$ || path === '/welcome'}
+    {#if $session$ || path === `${base}/welcome`}
       <slot />
     {:else}
       <div in:fade={{ duration: 250 }} class="w-min">
