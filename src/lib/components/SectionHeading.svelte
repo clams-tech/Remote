@@ -9,7 +9,8 @@
   export let editable = false
 
   $: if (!text && !editable) {
-    text = $translate(`app.routes.${$page.url.pathname}.title`)
+    const pathWithoutRemote = $page.url.pathname.replace(/^\/Remote/, '')
+    text = $translate(`app.routes.${pathWithoutRemote}.title`)
   }
 
   let editing = false

@@ -10,6 +10,7 @@
   import type { Channel } from '$lib/@types/channels.js'
   import SummaryRow from '$lib/components/SummaryRow.svelte'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import { base } from '$app/paths'
 
   const route = 'channels'
   const rowSize = 101
@@ -23,7 +24,7 @@
   }
 
   const button = {
-    href: '/channels/open',
+    href: `${base}/channels/open`,
     text: $translate('app.labels.open'),
     icon: plus
   }
