@@ -39,6 +39,7 @@
     syncConnectionData,
     deleteWallet
   } from '$lib/wallets/index.js'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -89,7 +90,7 @@
       .pipe(take(1))
       .subscribe(details => {
         if (!details) {
-          goto('/')
+          goto(`${base}`)
         }
       })
   })
@@ -190,7 +191,7 @@
 
     await deleteWallet(id)
 
-    setTimeout(() => goto('/wallets'), 250)
+    setTimeout(() => goto(`${base}/wallets`), 250)
   }
 
   let showDeleteModal = false

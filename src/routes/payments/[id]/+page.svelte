@@ -40,6 +40,7 @@
     type ChannelTransactionSummary,
     getPaymentSummary
   } from '$lib/summary.js'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -179,26 +180,26 @@
       case 'timelocked':
       case 'channel_close':
       case 'channel_open': {
-        return `/channels/${inputOutput.channel.id}`
+        return `${base}/channels/${inputOutput.channel.id}`
       }
       case 'deposit': {
-        return `/deposits/${inputOutput.deposit.id}`
+        return `${base}/deposits/${inputOutput.deposit.id}`
       }
       case 'sweep':
       case 'change':
       case 'spend':
       case 'transfer':
       case 'receive': {
-        return `/utxos/${inputOutput.utxo.id}`
+        return `${base}/utxos/${inputOutput.utxo.id}`
       }
       case 'settle':
-        return inputOutput.utxo && `/utxos/${inputOutput.utxo.id}`
+        return inputOutput.utxo && `${base}/utxos/${inputOutput.utxo.id}`
       // case 'htlc':
       //   return `/payments/${inputOutput.txid}?wallet=${walletId}`
       case 'withdrawal':
-        return `/wallets/${inputOutput.withdrawal.walletId}`
+        return `${base}/wallets/${inputOutput.withdrawal.walletId}`
       case 'deposit':
-        return `/wallets/${inputOutput.deposit.walletId}`
+        return `${base}/wallets/${inputOutput.deposit.walletId}`
     }
   }
 

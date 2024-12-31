@@ -84,8 +84,8 @@
   if (!!autoConnectWallet$.value) {
     const { configuration, label, type } = autoConnectWallet$.value
 
-    if (path !== '/') {
-      goto('/')
+    if (path !== `${base}`) {
+      goto(`${base}`)
     }
 
     session$
@@ -117,7 +117,7 @@
               id: createRandomHex(8),
               heading: $translate('app.labels.wallet_connected'),
               message: $translate('app.labels.wallet_connected_success_description', { label }),
-              onclick: () => goto(`/wallets/${wallet.id}`)
+              onclick: () => goto(`${base}/wallets/${wallet.id}`)
             })
           }
         } catch (error) {
@@ -150,7 +150,7 @@
   const toggleInfoModal = () => (infoModal = !infoModal)
 
   afterNavigate(({ from, to }) => {
-    if (to && to.url.pathname === '/') {
+    if (to && to.url.pathname === `${base}`) {
       routeHistory = []
     } else if (from?.url) {
       routeHistory = [
@@ -194,7 +194,7 @@
         default: 'undefined'
       })}
       <div class="flex items-center">
-        <button class:pointer={path !== '/'} on:click={() => goto('/')} class="w-10 p-1"
+        <button class:pointer={path !== `${base}`} on:click={() => goto(`${base}`)} class="w-10 p-1"
           >{@html RemoteBoltIcon}</button
         >
 

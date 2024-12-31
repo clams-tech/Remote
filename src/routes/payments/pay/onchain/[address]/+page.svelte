@@ -24,6 +24,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
   import { fetchUtxos } from '$lib/wallets/index.js'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -84,7 +85,7 @@
       }
 
       await db.payments.add(paid)
-      await goto(`/payments/${paid.id}?wallet=${paid.walletId}`)
+      await goto(`${base}/payments/${paid.id}?wallet=${paid.walletId}`)
     } catch (error) {
       payingError = error as AppError
     } finally {

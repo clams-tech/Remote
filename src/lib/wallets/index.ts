@@ -23,6 +23,7 @@ import {
   updateAddresses
 } from '$lib/db/helpers.js'
 import { ALBY_WS_PROXY } from '$lib/constants.js'
+import { base } from '$app/paths'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -389,7 +390,7 @@ export const syncConnectionData = (
                     request: request ? truncateValue(request) : 'keysend',
                     wallet: wallet.label
                   }),
-                  onclick: () => goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
+                  onclick: () => goto(`${base}/payments/${invoice.id}?wallet=${invoice.walletId}`)
                 })
 
                 lastPaidInvoiceIndexNotification = payIndex

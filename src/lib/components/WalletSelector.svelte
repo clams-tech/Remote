@@ -8,6 +8,7 @@
   import Spinner from './Spinner.svelte'
   import { createWallet } from '$lib/wallets'
   import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
 
   export let autoSelectLast: 'sent' | 'received' | '' = ''
   export let label: string = $translate('app.labels.wallet')
@@ -65,7 +66,7 @@
           class="ml-1 font-semibold text-sm leading-tight"
           on:click={async () => {
             const { id } = await createWallet()
-            goto(`/wallets/${id}`)
+            goto(`${base}/wallets/${id}`)
           }}
           ><span class="underline mr-1"
             >{$translate('app.labels.create_new_wallet_connection')}</span

@@ -15,6 +15,7 @@
   import type { AppError } from '$lib/@types/errors.js'
   import { nowSeconds } from '$lib/utils.js'
   import { createNewSession } from '$lib/session.js'
+  import { base } from '$app/paths'
 
   const translationBase = 'app.routes./welcome'
 
@@ -73,7 +74,7 @@
 
     session$.next(decrypted)
 
-    await goto('/')
+    await goto(`${base}`)
   }
 
   let encryptButton: Button

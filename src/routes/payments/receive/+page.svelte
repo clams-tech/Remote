@@ -24,6 +24,7 @@
   import ExpirySelector from '$lib/components/ExpirySelector.svelte'
   import type { AddressPayment, InvoicePayment } from '$lib/@types/payments.js'
   import Msg from '$lib/components/Msg.svelte'
+  import { base } from '$app/paths'
 
   let selectedWalletId: Wallet['id']
   let amount: number
@@ -126,7 +127,9 @@
     }
 
     if (!createPaymentError && (address || invoice)) {
-      await goto(`/payments/${invoice ? invoice.id : address?.id}?wallet=${connection.walletId}`)
+      await goto(
+        `${base}/payments/${invoice ? invoice.id : address?.id}?wallet=${connection.walletId}`
+      )
     }
 
     creatingPayment = false

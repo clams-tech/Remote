@@ -16,6 +16,7 @@
   import { goto } from '$app/navigation'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import type { InvoicePayment } from '$lib/@types/payments.js'
+  import { base } from '$app/paths'
 
   export let url: URL
   export let k1: string
@@ -109,7 +110,7 @@
         }
       }
 
-      await goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
+      await goto(`${base}/payments/${invoice.id}?wallet=${invoice.walletId}`)
     } catch (error) {
       requestError = error as AppError
     } finally {

@@ -22,6 +22,7 @@
   import { fetchTransactions, fetchUtxos } from '$lib/wallets/index.js'
   import Big from 'big.js'
   import BitcoinAmount from '$lib/components/BitcoinAmount.svelte'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -104,7 +105,7 @@
         fetchUtxos(connection)
       }
 
-      await goto(`/channels/${channel.id}`)
+      await goto(`${base}/channels/${channel.id}`)
     } catch (error) {
       openError = error as AppError
     } finally {

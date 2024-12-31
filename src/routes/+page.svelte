@@ -8,6 +8,7 @@
   import type { Tile } from '$lib/@types/settings.js'
   import { createWallet } from '$lib/wallets'
   import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
 
   let showGetStartedHint = false
   const getStartedDismissed = storage.get(STORAGE_KEYS.getStartedHint)
@@ -68,7 +69,7 @@
           class="ml-1 underline font-semibold text-sm leading-tight"
           on:click={async () => {
             const { id } = await createWallet()
-            goto(`/wallets/${id}`)
+            goto(`${base}/wallets/${id}`)
           }}>{$translate(`app.labels.wallet`).toLowerCase()}.</button
         ></Msg
       >

@@ -29,7 +29,7 @@ export const load: LayoutLoad = async ({ url }) => {
 
     const { pathname, searchParams } = url
 
-    if (pathname === '/wallets/add') {
+    if (pathname === `${base}/wallets/add`) {
       const configurationStr = searchParams.get('configuration')
       const type = searchParams.get('type') as WalletType
       const larpMode = Boolean(searchParams.get('larp'))
@@ -67,7 +67,7 @@ export const load: LayoutLoad = async ({ url }) => {
         larpMode$.next(true)
         session$.next(decrypted)
 
-        await goto('/')
+        await goto(`${base}`)
       }
     }
 
@@ -102,7 +102,7 @@ export const load: LayoutLoad = async ({ url }) => {
     } else if (!routeRequiresSession(pathname)) {
       // we have a session in memory but they are trying to view a non protected route like welcome
       // so redirect to home
-      goto('/')
+      goto(`${base}`)
     }
   }
 }

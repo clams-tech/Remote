@@ -17,6 +17,7 @@
     parseInput
   } from '$lib/input-parser.js'
   import type { PageData } from './$types.js'
+  import { base } from '$app/paths'
 
   type InputKey = 'scan' | 'paste' | 'import' | 'nfc'
 
@@ -42,22 +43,22 @@
           const { type: recordType, value: recordValue } = bitcoinTxtRecord
 
           if (recordType && recordValue && isBolt12Offer(recordValue)) {
-            await goto(`/offers/offer/${recordValue}`)
+            await goto(`${base}/offers/offer/${recordValue}`)
           } else {
-            await goto(`/lnurl/${value}?type=${type}`) // default to lnurl route if value is not valid BOLT12
+            await goto(`${base}/lnurl/${value}?type=${type}`) // default to lnurl route if value is not valid BOLT12
           }
         } else {
-          await goto(`/lnurl/${value}?type=${type}`) // default to lnurl route if no txt records found
+          await goto(`${base}/lnurl/${value}?type=${type}`) // default to lnurl route if no txt records found
         }
       }
     } else if (type === 'node_address') {
-      await goto(`/channels/open?address=${value}`)
+      await goto(`${base}/channels/open?address=${value}`)
     } else if (type === 'offer' || (lightning && isBolt12Offer(lightning))) {
-      await goto(`/offers/offer/${lightning || value}`)
+      await goto(`${base}/offers/offer/${lightning || value}`)
     } else if (type === 'invoice' || lightning) {
-      await goto(`/payments/pay/bolt11/${lightning || value}`)
+      await goto(`${base}/payments/pay/bolt11/${lightning || value}`)
     } else if (type === 'node_publickey') {
-      await goto(`/payments/pay/keysend/${value}`)
+      await goto(`${base}/payments/pay/keysend/${value}`)
     } else if (type === 'onchain') {
       const searchParams = new URLSearchParams()
 
@@ -73,7 +74,7 @@
         searchParams.append('message', message)
       }
 
-      await goto(`/payments/pay/onchain/${value}?${searchParams.toString()}`)
+      await goto(`${base}/payments/pay/onchain/${value}?${searchParams.toString()}`)
     }
   }
 

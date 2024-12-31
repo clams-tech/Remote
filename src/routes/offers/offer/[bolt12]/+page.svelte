@@ -26,6 +26,7 @@
   import { nowSeconds } from '$lib/utils.js'
   import { decodeBolt12 } from '$lib/invoices.js'
   import type { InvoicePayment } from '$lib/@types/payments.js'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -138,7 +139,7 @@
       }
 
       await db.payments.add(invoice)
-      await goto(`/payments/${invoice.id}?wallet=${invoice.walletId}`)
+      await goto(`${base}/payments/${invoice.id}?wallet=${invoice.walletId}`)
     } catch (error) {
       requestingError = error as AppError
     } finally {

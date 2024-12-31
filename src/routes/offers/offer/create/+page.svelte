@@ -20,6 +20,7 @@
   import { db } from '$lib/db/index.js'
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import { nowSeconds } from '$lib/utils.js'
+  import { base } from '$app/paths'
 
   const availableWallets$ = combineLatest([wallets$, connections$]).pipe(
     map(([wallets, connections]) =>
@@ -87,7 +88,7 @@
 
     if (offer) {
       await db.offers.add(offer)
-      await goto(`/offers/${offer.id}`)
+      await goto(`${base}/offers/${offer.id}`)
     }
 
     creatingOffer = false

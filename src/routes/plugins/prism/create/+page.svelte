@@ -21,6 +21,7 @@
   import { isBolt12Offer } from '$lib/input-parser'
   import type { ParsedInput } from '$lib/@types/common'
   import Modal from '$lib/components/Modal.svelte'
+  import { base } from '$app/paths'
 
   export let data: PageData
   const { wallet } = data
@@ -119,7 +120,7 @@
       if (prism) {
         await db.prisms.add(prism, prism?.prism_id)
         creatingPrism = false
-        goto(`/plugins/prism/${prism.prism_id}?wallet=${wallet}`)
+        goto(`${base}/plugins/prism/${prism.prism_id}?wallet=${wallet}`)
       }
     } catch (error) {
       createPrismError = error as AppError
