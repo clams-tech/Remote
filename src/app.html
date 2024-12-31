@@ -15,7 +15,7 @@
 
     <!-- Dynamic Base Path -->
     <script>
-      const base = process.env.NODE_ENV === 'production' ? '/Remote' : ''
+      const base = import.meta.env.PROD ? '/Remote' : ''
       document.write(`
         <link rel="manifest" href="${base}/manifest.webmanifest" />
         <link rel="apple-touch-icon" sizes="180x180" href="${base}/icons/apple-touch-icon.png" />
