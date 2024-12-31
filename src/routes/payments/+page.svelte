@@ -11,6 +11,7 @@
   import { db } from '$lib/db/index.js'
   import type { Channel } from '$lib/@types/channels.js'
   import { updateAddresses, updateInvoices } from '$lib/db/helpers.js'
+  import { base } from '$app/paths'
 
   const route = 'payments'
   const rowSize = 112
@@ -29,7 +30,7 @@
   }
 
   const button = {
-    href: '/payments/receive',
+    href: `${base}/payments/receive`,
     text: $translate('app.labels.receive'),
     icon: plus
   }

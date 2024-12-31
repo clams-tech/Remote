@@ -33,7 +33,7 @@
       const { id } = await createWallet()
       goto(`${base}/wallets/${id}`)
     },
-    href: '',
+    href: `${base}`,
     text: $translate('app.labels.add'),
     icon: plus
   }

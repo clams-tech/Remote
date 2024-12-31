@@ -7,6 +7,7 @@
   import { getFilters, getSorters, getTags } from '$lib/filters.js'
   import type { Connection } from '$lib/wallets/interfaces.js'
   import ItemsList from '$lib/components/ItemsList.svelte'
+  import { base } from '$app/paths'
 
   const route = 'offers'
   const rowSize = 102
@@ -19,7 +20,7 @@
   }
 
   const button = {
-    href: '/offers/offer/create',
+    href: `${base}/offers/offer/create`,
     text: $translate('app.labels.create'),
     icon: plus
   }

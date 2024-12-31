@@ -11,6 +11,7 @@
   import check from '$lib/icons/check'
   import close from '$lib/icons/close'
   import Spinner from '$lib/components/Spinner.svelte'
+  import { base } from '$app/paths'
 
   let loading = true
   let selectedWalletId: Wallet['id']
@@ -96,7 +97,7 @@
           >
             {#each plugins as { label, installed, active, repo, route }}
               <a
-                href={installed ? `${route}?wallet=${selectedWalletId}` : repo}
+                href={installed ? `${base}${route}?wallet=${selectedWalletId}` : repo}
                 target={installed ? null : '_blank'}
                 rel={installed ? null : 'noopener noreferrer'}
                 class="no-underline p-4 border rounded-lg flex flex-col justify-start mb-2 w-full"

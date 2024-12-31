@@ -8,6 +8,7 @@
   import { getSorters, getTags } from '$lib/filters'
   import type { Sorters } from '$lib/@types/common'
   import { fetchPrismBindings, fetchPrisms } from '$lib/wallets'
+  import { base } from '$app/paths'
 
   export let data: PageData
   const { wallet } = data
@@ -22,7 +23,7 @@
   }
 
   const button = {
-    href: `/plugins/prism/create?wallet=${wallet}`,
+    href: `${base}/plugins/prism/create?wallet=${wallet}`,
     text: $translate('app.labels.create'),
     icon: prismIcon
   }
