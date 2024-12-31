@@ -30,6 +30,7 @@
   import type { Session } from '$lib/@types/session.js'
   import { validateWalletConfiguration } from '$lib/wallets/validation.js'
   import RemoteBoltIcon from '$lib/icons/remote-bolt'
+  import { base } from '$app/paths'
 
   import {
     autoConnectWallet$,
@@ -236,12 +237,15 @@
           </button>
         {/if}
 
-        <a href="/input" class="flex flex-col items-center justify-center no-underline">
+        <a href="${base}/input" class="flex flex-col items-center justify-center no-underline">
           <div class="w-8">{@html scan}</div>
           <span class="text-xs font-semibold">{$translate('app.labels.scan')}</span>
         </a>
 
-        <a href="/payments/receive" class="flex flex-col items-center justify-center no-underline">
+        <a
+          href="${base}/payments/receive"
+          class="flex flex-col items-center justify-center no-underline"
+        >
           <div class="w-8">{@html plus}</div>
           <span class="text-xs font-semibold">{$translate('app.labels.receive')}</span>
         </a>

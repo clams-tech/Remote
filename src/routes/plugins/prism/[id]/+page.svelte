@@ -27,6 +27,7 @@
     fetchPrisms
   } from '$lib/wallets/index.js'
   import Msg from '$lib/components/Msg.svelte'
+  import { base } from '$app/paths'
 
   export let data: PageData
   const { id, wallet } = data // id of prism and wallet id of associated wallet
@@ -231,7 +232,7 @@
           {:else}
             <p>
               {$translate('app.labels.no_active_offers_found')},
-              <a href="/offers">{$translate('app.labels.create_one')}</a>
+              <a href="${base}/offers">{$translate('app.labels.create_one')}</a>
             </p>
           {/if}
           {#if bindPrismError}
