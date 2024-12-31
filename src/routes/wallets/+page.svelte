@@ -14,6 +14,7 @@
   import { filter, map, merge, switchMap, takeUntil } from 'rxjs'
   import { createWallet, fetchChannels, fetchUtxos } from '$lib/wallets/index.js'
   import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
 
   const route = 'wallets'
   const rowSize = 82
@@ -30,7 +31,7 @@
   const button = {
     onClick: async () => {
       const { id } = await createWallet()
-      goto(`/wallets/${id}`)
+      goto(`${base}/wallets/${id}`)
     },
     href: '',
     text: $translate('app.labels.add'),

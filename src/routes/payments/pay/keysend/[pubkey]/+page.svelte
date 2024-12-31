@@ -25,6 +25,7 @@
   import ErrorDetail from '$lib/components/ErrorDetail.svelte'
   import Spinner from '$lib/components/Spinner.svelte'
   import ShowMoar from '$lib/components/ShowMoar.svelte'
+  import { base } from '$app/paths'
 
   export let data: PageData
 
@@ -72,7 +73,7 @@
       })
 
       await db.payments.add(paid)
-      await goto(`/payments/${paid.id}?wallet=${paid.walletId}`)
+      await goto(`${base}/payments/${paid.id}?wallet=${paid.walletId}`)
     } catch (error) {
       payingError = error as AppError
     } finally {

@@ -157,7 +157,7 @@
 
       if (deletedPrism) {
         deletingPrism = false
-        goto(`/plugins/prism?wallet=${wallet}`)
+        goto(`${base}/plugins/prism?wallet=${wallet}`)
       }
     } catch (error) {
       deletePrismError = error as AppError
