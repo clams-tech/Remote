@@ -61,9 +61,7 @@
       if (!tag) {
         parsingLnurl = true
 
-        const result = await fetch(`${API_URL}/http-proxy`, {
-          headers: { 'Target-URL': url.toString() }
-        }).then(res => res.json())
+        const result = await fetch(url.toString()).then(res => res.json())
 
         if (result.status === 'ERROR') {
           throw {
