@@ -50,9 +50,7 @@
       loginURL.searchParams.set('key', signer.publicKey)
       loginURL.searchParams.set('t', Date.now().toString())
 
-      const authResponse = await fetch(`${API_URL}/http-proxy`, {
-        headers: { 'Target-URL': loginURL.toString() }
-      }).then((res) => res.json())
+      const authResponse = await fetch(loginURL.toString()).then(res => res.json())
 
       if (authResponse && authResponse.status === 'OK') {
         authenticationSuccess = true
