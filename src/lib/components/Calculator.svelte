@@ -39,8 +39,6 @@
       setAmount()
     }
   }
-
-  console.log(`fiat = `, fiat)
 </script>
 
 {#if $bitcoinExchangeRates$}
