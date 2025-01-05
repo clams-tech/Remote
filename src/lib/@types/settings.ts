@@ -13,9 +13,6 @@ export type Tile =
   | 'channels'
   | 'offers'
   | 'forwards'
-  // | 'accounting'
-  // | 'charts'
-  // | 'trades'
   | 'settings'
   | 'plugins'
 
@@ -49,26 +46,7 @@ export enum BitcoinDenomination {
 // https://www.statista.com/statistics/1189498/share-of-global-payments-by-currency/
 export enum FiatDenomination {
   'none' = 'none',
-  'usd' = 'usd',
-  'eur' = 'eur',
-  'gbp' = 'gbp',
-  'cny' = 'cny',
-  'jpy' = 'jpy',
-  'cad' = 'cad',
-  'aud' = 'aud',
-  'hkd' = 'hkd',
-  'sgd' = 'sgd',
-  'sek' = 'sek',
-  'chf' = 'chf',
-  'thb' = 'thb',
-  'pln' = 'pln',
-  'nok' = 'nok',
-  'myr' = 'myr',
-  'dkk' = 'dkk',
-  'zar' = 'zar',
-  'nzd' = 'nzd',
-  'mxn' = 'mxn',
-  'rub' = 'rub'
+  'usd' = 'usd'
 }
 
 export type Denomination = BitcoinDenomination | FiatDenomination
