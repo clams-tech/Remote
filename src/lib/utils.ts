@@ -53,10 +53,18 @@ export async function getBitcoinExchangeRate(
   }
 
   try {
-    const result = await fetch(`${API_URL}/exchange-rates?currency=${currency}`).then(res =>
-      res.json()
-    )
-    return result
+    const result = await fetch('https://api.coincap.io/v2/rates/bitcoin').then(res => res.json())
+
+    const rateUsd = parseFloat(result?.data?.rateUsd || '0')
+
+    if (isNaN(rateUsd) || rateUsd <= 0) {
+      throw new Error(`Invalid ${currency} rate received from API`)
+    }
+
+    return {
+      none: 0,
+      usd: rateUsd
+    }
   } catch (error) {
     log.warn(`Could not get exchange rate for currency: ${currency} `)
     return null
