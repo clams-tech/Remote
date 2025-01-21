@@ -17,11 +17,11 @@ You can contribute directly to the project using the following methods:
 
 #### BOLT12 Offer:
 
-![BOLT12]('./static/assets/BOLT12.png')
+![BOLT12](./static/assets/BOLT12.png)
 
 #### Lightning Address (`tips@clams.tech`):
 
-![tips@clams.tech]('./static/assets/tips@clams.tech.png')
+![tips@clams.tech](./static/assets/tips@clams.tech.png)
 
 Thank you for supporting the project! Every sat makes a difference, and we're grateful for your help.
 
