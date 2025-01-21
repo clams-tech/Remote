@@ -11,6 +11,20 @@ Remote control your Core Lightning node(s) via the lightning network from any we
 - [Contributing](#contributing)
 - [Running Locally](#running-locally)
 
+## Funding
+
+You can contribute directly to the project using the following methods:
+
+#### BOLT12 Offer:
+
+![BOLT12]('./static/assets/BOLT12.png')
+
+#### Lightning Address (`tips@clams.tech`):
+
+![tips@clams.tech]('./static/assets/tips@clams.tech.png')
+
+Thank you for supporting the project! Every sat makes a difference, and we're grateful for your help.
+
 ## Contributing
 
 This project is open source and contributions are welcome and encouraged! If you find any bugs, creating an issue for it is super helpful. If you would like to contribute some code and or implement a feature, try jumping in to our [Discord](https://discord.gg/eWfHuJZVaB) to discuss or create an [issue](https://github.com/clams-tech/remote/issues) on the repo.
