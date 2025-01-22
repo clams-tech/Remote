@@ -17,11 +17,15 @@ You can contribute directly to the project using the following methods:
 
 #### BOLT12 Offer:
 
-![BOLT12](./static/assets/BOLT12.png)
+![lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qt2rt2xr6uuj7cfce48c5cr8sa2dqp2nkumkuztlq840mpjj95anvqsrh809gs052xe9reyna6v2djjv4p7k0leqy9uhthm8tpvvppphlmfsqvcdy9947hanvmq9mssn970apemvm7hjhg54qfdahgq2t5rwzca27ksjcz7lwn8xyl9qet4lmd4zjq8ucy4gq0cjem6q47gcl8a4f9lcr0qajukk809lnu7az9wupm0vz6ljh3ajgqqspdlvl6crzaxz9ueuu5h9as269y](./static/assets/BOLT12.png)
 
 #### Lightning Address (`tips@clams.tech`):
 
 ![tips@clams.tech](./static/assets/tips@clams.tech.png)
+
+#### Onchain:
+
+![32KAVNNDqjvw9SgProPnffVgdg4YEhgVKy](./static/assets/onchain.png)
 
 Thank you for supporting the project! Every sat makes a difference, and we're grateful for your help.
 
