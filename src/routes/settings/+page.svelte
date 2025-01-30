@@ -19,6 +19,7 @@
   import close from '$lib/icons/close.js'
   import trashOutline from '$lib/icons/trash-outline.js'
   import { deleteAll } from '$lib/db/index.js'
+  import { TipModal } from 'tip-modal'
 
   import {
     FiatDenomination,
@@ -107,6 +108,16 @@
 
   const toggleTile = (tile: string) => {
     $settings$.tiles[tile as Tile] = !$settings$.tiles[tile as Tile]
+  }
+
+  let showModal = false
+
+  function openModal() {
+    showModal = true
+  }
+
+  function closeModal() {
+    showModal = false
   }
 </script>
 
@@ -238,7 +249,7 @@
     </div>
   </div>
 
-  <div class="w-full flex items-center mt-4">
+  <div class="w-full flex items-center mt-4 justify-between">
     <div class="flex items-center gap-x-4">
       <a href={DISCORD_LINK} rel="noopener noreferrer" target="_blank"
         ><div class="w-6">{@html discord}</div></a
@@ -253,6 +264,13 @@
         >{$translate('app.labels.docs')}</a
       >
     </div>
+    <TipModal
+      buttonTheme="light"
+      buttonText={$translate('app.labels.support')}
+      {showModal}
+      {openModal}
+      {closeModal}
+    />
   </div>
 </Section>
 

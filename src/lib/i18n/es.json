@@ -558,7 +558,8 @@
     "no_active_offers_found": "No se encontraron ofertas activas",
     "create_one": "crear una",
     "prism_name_placeholder": "Consejos para la banda",
-    "member_destination_placeholder": "Oferta BOLT12 o clave pública del nodo"
+    "member_destination_placeholder": "Oferta BOLT12 o clave pública del nodo",
+    "support": "Soporte"
   },
   "messages": {
     "closing_channel": "Cerrar un canal publicará una transacción en la cadena y liquidará los saldos actuales del canal.",
