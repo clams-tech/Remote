@@ -110,6 +110,9 @@
     $settings$.tiles[tile as Tile] = !$settings$.tiles[tile as Tile]
   }
 
+  // TipModal props
+  const paymentTag = 'remote'
+
   let showModal = false
 
   function openModal() {
@@ -265,8 +268,10 @@
       >
     </div>
     <TipModal
+      modalTitle={$translate('app.labels.support_thank_you')}
       buttonTheme="light"
       buttonText={$translate('app.labels.support')}
+      {paymentTag}
       {showModal}
       {openModal}
       {closeModal}

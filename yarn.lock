@@ -3034,7 +3034,7 @@ tinyspy@^2.1.1:
 
 "tip-modal@git+https://github.com/clams-tech/tip-modal.git":
   version "0.0.1"
-  resolved "git+https://github.com/clams-tech/tip-modal.git#afa5db0e943f3baaac607989a815e697cc0b9d3c"
+  resolved "git+https://github.com/clams-tech/tip-modal.git#cc299a12506aa4bfb22763d16ef102f59d00fb38"
   dependencies:
     esm-env "^1.2.2"
 
