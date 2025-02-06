@@ -11,6 +11,36 @@ Remote control your Core Lightning node(s) via the lightning network from any we
 - [Contributing](#contributing)
 - [Running Locally](#running-locally)
 
+## Funding
+
+You can contribute directly to the project using the following methods:
+
+#### BOLT12 Offer:
+
+![lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qt2rt2xr6uuj7cfce48c5cr8sa2dqp2nkumkuztlq840mpjj95anvqsrh809gs052xe9reyna6v2djjv4p7k0leqy9uhthm8tpvvppphlmfsqvcdy9947hanvmq9mssn970apemvm7hjhg54qfdahgq2t5rwzca27ksjcz7lwn8xyl9qet4lmd4zjq8ucy4gq0cjem6q47gcl8a4f9lcr0qajukk809lnu7az9wupm0vz6ljh3ajgqqspdlvl6crzaxz9ueuu5h9as269y](./static/assets/BOLT12.png)
+
+```
+lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qt2rt2xr6uuj7cfce48c5cr8sa2dqp2nkumkuztlq840mpjj95anvqsrh809gs052xe9reyna6v2djjv4p7k0leqy9uhthm8tpvvppphlmfsqvcdy9947hanvmq9mssn970apemvm7hjhg54qfdahgq2t5rwzca27ksjcz7lwn8xyl9qet4lmd4zjq8ucy4gq0cjem6q47gcl8a4f9lcr0qajukk809lnu7az9wupm0vz6ljh3ajgqqspdlvl6crzaxz9ueuu5h9as269y
+```
+
+#### Lightning Address (`remote@clams.tech`):
+
+![remote@clams.tech](./static/assets/remote@clams.tech.png)
+
+```
+remote@clams.tech
+```
+
+#### Onchain:
+
+![32KAVNNDqjvw9SgProPnffVgdg4YEhgVKy](./static/assets/onchain.png)
+
+```
+32KAVNNDqjvw9SgProPnffVgdg4YEhgVKy
+```
+
+Thank you for supporting the project! Every sat makes a difference, and we're grateful for your help.
+
 ## Contributing
 
 This project is open source and contributions are welcome and encouraged! If you find any bugs, creating an issue for it is super helpful. If you would like to contribute some code and or implement a feature, try jumping in to our [Discord](https://discord.gg/eWfHuJZVaB) to discuss or create an [issue](https://github.com/clams-tech/remote/issues) on the repo.
