@@ -140,13 +140,14 @@ Remote uses a library called [Lnmessage](https://github.com/aaronbarnardsound/ln
 
 When connecting from the browser, we need to use a WebSocket for connection that routes lightning messages via a trustless proxy server. The Clams proxy server accepts a connection from the browser, initiates a regular socket connection to your node and then just shuffles encrypted binary packets between the browser and your node. The proxy server is trustless since the server cannot decrypt any of the traffic that it sees. The decryption keys remain client side and never leave your device.
 
-!!! info
-
-    A direct connection could be made to a CoreLn node over WebSockets thanks to the [experimental-websocket-port](https://lightning.readthedocs.io/lightningd-config.5.html?highlight=experimental-websocket-port) config option, but typically most users will not have the required ssl certificate required to satisfy CORS connections within browsers so that option is not currently available.
+NOTE:
+```
+A direct connection could be made to a CoreLn node over WebSockets thanks to the [experimental-websocket-port](https://lightning.readthedocs.io/lightningd-config.5.html?highlight=experimental-websocket-port) config option, but typically most users will not have the required ssl certificate required to satisfy CORS connections within browsers so that option is not currently available.
+```
 
 Below is an architecture diagram demonstrating how the browser app communicates with a Lightning node via a trustless proxy server.
 
-<img alt="Architecture" src="../assets/connect-diagram.png">
+![image](https://github.com/user-attachments/assets/3739c6cf-cf2d-4906-85d9-ee51984d606e)
 <figcaption style='font-size: small; margin: -1em 0 2em 0;'>Web browser to lightning node communication</figcaption>
 
 ### Troubleshooting
@@ -249,7 +250,7 @@ Remote is offered as a Progressive Web App (PWA), allowing you to install it dir
 3. Press “Add”
 4. Then you will see the Remote icon on your home screen
 
-<img alt="iOS install" src="../assets/installation-ios.png">
+![image](https://github.com/user-attachments/assets/1412d7cc-4048-49db-b32f-2c9e38799599)
 <figcaption style='font-size: small; margin: -1em 0 2em 0;'>iOS Install</figcaption>
 
 #### Android
@@ -261,7 +262,7 @@ Remote is offered as a Progressive Web App (PWA), allowing you to install it dir
 3. Press “Add to Home screen”
 4. Then you will see the Remote icon on your home screen
 
-<img alt="Android install" src="../assets/installation-android.png">
+![image](https://github.com/user-attachments/assets/1adb3b3c-74c4-4c60-9473-f5fd8c934d41)
 <figcaption style='font-size: small; margin: -1em 0 2em 0;'>Android Install</figcaption>
 
 ## Running a VPN
@@ -315,7 +316,7 @@ To try the app out you can create a local regtest lightning network using [Polar
 
 BOLT12 Offers is a new standard for invoicing that brings some neat new features that are not possible with BOLT11 invoices (the current standard). You can create reusable static invoices for donations, create a QR invoice request that allows someone to withdraw from your node, denominate in fiat currencies, proof of payment and more. For more info on BOLT12 check out [BOLT12.org](https://bolt12.org).
 
-!!! info
+NOTE:
 
     To use the BOLT12 features in Remote, you will need to enable the [`--experimental-offers` flag](https://lightning.readthedocs.io/lightningd-config.5.html#experimental-options) in your Core Lightning config file.
 
@@ -335,7 +336,7 @@ You can view all of your current offers listed with a brief summary of each one.
 
 Clicking on one of the offers in the summary list will show you the offer details. You can view all of the payments that have been made via that offer and can click through to see the payment details.
 
-!!! info
+NOTE:
 
     Remote does not currently support the recurrence features of BOLT12, but will support them once they are added back in to the spec.
 
