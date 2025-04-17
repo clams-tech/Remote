@@ -98,7 +98,7 @@ If you need some help you can [join our Discord server](https://discord.gg/eWfHu
 
 ### Let’s Go!
 
-Download the [desktop application](https://clams.tech/remote/downloads) or visit the [browser app](https://remote.clams.tech) (PWA).
+Visit the [browser app](https://remote.clams.tech) (PWA).
 
 ## Encryption
 
