@@ -6,7 +6,6 @@
 Remote control your Core Lightning node(s) via the lightning network from any web enabled device.
 
 - [App](https://remote.clams.tech)
-- [Documentation](https://docs.clams.tech/remote)
 - [Discord](https://discord.gg/eWfHuJZVaB)
 - [Contributing](#contributing)
 - [Running Locally](#running-locally)
@@ -92,7 +91,7 @@ yarn build
 
 If you need some help you can [join our Discord server](https://discord.gg/eWfHuJZVaB) and ask a question. We’ll try and get back to you as soon as possible.
 
-→ [Github Issues](https://github.com/clams-tech/App/issues)
+→ [Github Issues](https://github.com/clams-tech/Remote/issues)
 
 → [Discord](https://discord.gg/eWfHuJZVaB)
 
@@ -114,7 +113,7 @@ This is where you establish connections to multiple wallets to synchronize data 
 
 To connect your Core Lightning node you need to enter two things:
 
-- Your [Lightning Address](/glossary/#lightning-address)
+- Your [Lightning Address](#glossary)
 - A [Rune](#runes) to permit the app to perform some functions on your node.
 
 Once you have input both, click the connect button to initiate a connection to your node. If connection is successful, you will see the a green `connected` status appear.
