@@ -22,7 +22,7 @@ import {
   updateInvoices,
   updateAddresses
 } from '$lib/db/helpers.js'
-import { ALBY_WS_PROXY } from '$lib/constants.js'
+import { CLAMS_WS_PROXY } from '$lib/constants.js'
 
 type ConnectionCategory = 'lightning' | 'onchain' | 'exchange' | 'custodial' | 'custom'
 
@@ -70,7 +70,7 @@ export const walletTypeToInitialConfiguration = (type: Wallet['type']): Wallet['
         address: '',
         connection: {
           type: 'proxy',
-          value: ALBY_WS_PROXY
+          value: CLAMS_WS_PROXY
         },
         token: ''
       }
