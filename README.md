@@ -1,5 +1,10 @@
 # Remote
 
+> [!WARNING]
+> **This project is no longer maintained.** This repository is archived and will not receive updates, bug fixes, security patches or support.
+>
+> Remote is licensed under GPL-3.0. Anyone is welcome to fork it and carry it forward.
+
 ![Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote-dark.svg#gh-dark-mode-only)
 ![Remote Logo](https://raw.githubusercontent.com/clams-tech/remote/main/.github/images/clams-remote.svg#gh-light-mode-only)
 
